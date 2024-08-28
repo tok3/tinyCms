@@ -1,0 +1,110 @@
+<!--begin:Footer-->
+<footer id="footer" class="position-relative bg-dark footer" data-bs-theme="dark">
+    <div class="container pt-9 pt-lg-11 pb-5">
+        <div class="row mb-5">
+            <div class="col-lg-7 col-md-12 mb-5 mb-lg-0">
+                <div class="mb-7 mb-lg-9 d-flex flex-column flex-sm-row justify-content-between align-items-end">
+                    <img src="{{ URL::asset('assets/img/logo/logo-white.svg') }}" alt="Assan Logo" class="width-8x mb-6 mb-sm-0">
+                    <x-partials.color-mode />
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-5 mb-md-0">
+                        <h5 class="mb-4 text-white">Products</h5>
+                        <nav class="nav flex-column">
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0 mb-3">Assan</a>
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0 mb-3">Airbnb</a>
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0 mb-3">Codepen</a>
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0 mb-3">Chrome</a>
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0 mb-3">Dropbox</a>
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0 mb-3">Jira</a>
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0 mb-3">Slack</a>
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0">Zendesk</a>
+                        </nav>
+                    </div>
+                    <div class="col-md-4 mb-5 mb-md-0">
+                        <h5 class="mb-4 text-white">Resources</h5>
+                        <nav class="nav flex-column">
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0 mb-3">Bootstrap</a>
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0 mb-3">Wrapbootstrap</a>
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0 mb-3">Babel</a>
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0 mb-3">Browserify</a>
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0 mb-3">Greensock</a>
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0 mb-3">Javascript</a>
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0 mb-3">Gulp</a>
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0">Sass</a>
+                        </nav>
+                    </div>
+                    <div class="col-md-4">
+                        <h5 class="mb-4 text-white">Company</h5>
+                        <nav class="nav flex-column">
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0 mb-3">About us</a>
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0 mb-3">Career</a>
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0 mb-3">Team</a>
+                            <a href="{{ URL::asset('#') }}" class="nav-link p-0">Blog</a>
+                        </nav>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-lg-5 ms-auto">
+                <div class="py-5 bg-white-25 bg-gradient px-4 rounded-4">
+                    <h5 class="mb-4 text-white">Contact</h5>
+                    <div class="mb-2"><a href="{{ URL::asset('tel:+1123456789') }}" class="fs-5 link-hover-underline">+1 1234 56789</a>
+                    </div>
+                    <div><a href="{{ URL::asset('mailto:hello@domain.com?subject=Hello!') }}"
+                            class="fs-5 link-hover-underline">support@domain.com</a>
+                    </div>
+                    <hr class="my-4 text-white my-sm-5">
+                    <h5 class="mb-4 text-white">Have a project?</h5>
+                    <a href="{{ URL::asset('#') }}" class="btn btn-primary rounded-pill hover-lift btn-hover-arrow"><span>Let's talk with
+                            us</span></a>
+
+                    <hr class="my-4 text-white my-sm-5">
+                    <h5 class="mb-4 text-white">Follow us</h5>
+                    <div class="mb-4 mb-md-0 d-flex">
+                        <!-- Social button -->
+                        <a href="{{ URL::asset('#!') }}" class="d-inline-block text-white mb-1 me-2 si rounded-pill si-hover-facebook">
+                            <i class="bx bxl-facebook fs-5"></i>
+                            <i class="bx bxl-facebook fs-5"></i>
+                        </a>
+                        <!-- Social button -->
+                        <a href="{{ URL::asset('#!') }}" class="d-inline-block text-white mb-1 me-2 si rounded-pill si-hover-twitter">
+                            <i class="bx bxl-twitter fs-5"></i>
+                            <i class="bx bxl-twitter fs-5"></i>
+                        </a>
+                        <!-- Social button -->
+                        <a href="{{ URL::asset('#!') }}" class="d-inline-block text-white mb-1 me-2 si rounded-pill si-hover-linkedin">
+                            <i class="bx bxl-linkedin fs-5"></i>
+                            <i class="bx bxl-linkedin fs-5"></i>
+                        </a>
+                        <!-- Social button -->
+                        <a href="{{ URL::asset('#!') }}" class="d-inline-block text-white mb-1 si rounded-pill si-hover-instagram">
+                            <i class="bx bxl-instagram fs-5"></i>
+                            <i class="bx bxl-instagram fs-5"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr class="mt-0 mb-5">
+        <div class="row justify-content-between">
+            <div class="col-md-7 mb-4 mb-md-0">
+                <div class="nav small">
+                    <a href="{{ URL::asset('#') }}" class="nav-link ps-0">Privacy Policy</a>
+                    <a href="{{ URL::asset('#') }}" class="nav-link ps-0">Terms and Conditions</a>
+                    <a href="{{ URL::asset('#') }}" class="nav-link ps-0">Press kit</a>
+                </div>
+            </div>
+
+            <div class="col-md-5 text-md-end">
+                <span class="d-block lh-sm small text-white-50">&copy; Copyright
+                    <script>
+                        document.write(new Date().getFullYear())
+
+                    </script>. Assan
+                </span>
+            </div>
+        </div>
+    </div>
+</footer>
+<!--end:Footer-->

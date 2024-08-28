@@ -1,0 +1,379 @@
+<?php
+
+namespace App\Filament\Resources\Admin;
+
+use App\Filament\Resources\Admin;
+use App\Filament\Resources\Admin\PageResource\Actions\CopyAction;
+use App\Filament\Resources\PageResource\Pages;
+use App\Models\Page;
+use Filament\Actions\Action;
+use Filament\Forms;
+use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieTagsInput;
+use Filament\Forms\Components\Tab;
+use Filament\Forms\Components\Tabs;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Columns\SpatieTagsColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Mohamedsabil83\FilamentFormsTinyeditor\Components\TinyEditor;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\Group;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\ViewField;
+
+class PageResource extends Resource
+{
+    protected static ?string $model = Page::class;
+
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = 'CMS';
+
+    public static function form(Form $form): Form
+    {
+
+
+        return $form
+            ->schema([
+                Forms\Components\Section::make()->schema([
+
+                    Forms\Components\Actions::make([
+
+                        Forms\Components\Actions\Action::make('Seite Ansehen')
+                            ->url(fn(Forms\Get $get): string => $get('slug') ? route('frontend', $get('slug')) : '#')
+                            ->openUrlInNewTab()
+                            ->icon('heroicon-m-eye')
+                            ->color('gray')
+                            ->visible(fn(Forms\Get $get) => !is_null($get('slug')) && $get('slug') !== ''),
+
+                        Forms\Components\Actions\Action::make('Theme Ansehen')
+                            ->url('/assan/index.html')
+                            ->openUrlInNewTab()
+                            ->icon('heroicon-m-eye')
+                            ->color('gray')
+                            ->visible(),
+
+                    ]),
+                    Tabs::make('Page Tabs')->tabs([
+
+                        Tabs\Tab::make('Page')
+                            ->schema([
+                                //TABCONTENT
+                                Group::make([
+                                    Toggle::make('published'),
+
+
+                                ])->columnSpan('full'),
+
+
+                                TextInput::make('title')
+                                    ->required()
+                                    ->live(onBlur: true)
+                                    ->autocomplete(false)
+                                    ->afterStateUpdated(function ($state, Forms\Set $set) {
+
+                                        $slug = $set('slug', str($state)->slug()->toString());
+                                        while (Page::whereSlug($slug)->exists())
+                                        {
+                                            $slug = $set('slug', str($state)->slug()->toString());
+                                        }
+
+                                        return $slug;
+                                    }
+                                    ),
+
+                                TextInput::make('slug')
+                                    ->required()
+                                    ->dehydrated(true),
+
+                                SpatieTagsInput::make('tags'),
+
+
+                                Select::make('navbar_type')
+                                    ->options([
+                                        1 => 'White Opaque',
+                                        2 => 'Start Transparent',
+                                    ])
+                                    ->default(1)
+                                    ->required()
+                                    ->label('Navbar Type'),
+
+
+                                Forms\Components\Section::make('Content')->schema([
+
+                                    //-------------------------------------
+
+                                    Forms\Components\Builder::make('blocks')
+                                        ->blocks([
+
+                                            //-------------------------------------
+                                            Forms\Components\Builder\Block::make('text')
+                                                ->schema([
+
+                                                    TextInput::make('heading')
+                                                        ->label('Heading')
+                                                        ->columnSpan(9)
+                                                    ,
+                                                    Select::make('levelHeading')
+                                                        ->options([
+                                                            'h1' => 'Heading 1',
+                                                            'h2' => 'Heading 2',
+                                                            'h3' => 'Heading 3',
+                                                            'h4' => 'Heading 4',
+                                                            'h5' => 'Heading 5',
+                                                            'h6' => 'Heading 6',
+                                                        ])
+                                                        ->default('h1')
+                                                        ->columnSpan(3),
+
+                                                    TextInput::make('heading2')
+                                                        ->label('Heading2')
+                                                        ->columnSpan(9),
+                                                    Select::make('levelHeading2')
+                                                        ->options([
+                                                            'h1' => 'Heading 1',
+                                                            'h2' => 'Heading 2',
+                                                            'h3' => 'Heading 3',
+                                                            'h4' => 'Heading 4',
+                                                            'h5' => 'Heading 5',
+                                                            'h6' => 'Heading 6',
+                                                        ])
+                                                        ->default('h4')
+                                                        ->columnSpan(3),
+
+                                                    Forms\Components\Textarea::make('teaser')
+                                                        ->label('Teaser/Anriss')
+                                                        ->columnSpan(12)
+                                                    ,
+
+                                                    TinyEditor::make('text')->profile('custom')->toolbarSticky(true)
+                                                        ->columnSpan(12),
+                                                ])->label(function (?array $state): string {
+                                                    if ($state === null)
+                                                    {
+                                                        return 'Textbock';
+                                                    }
+
+                                                    return $state['heading'] ?? 'Untitled Textblock';
+                                                })
+                                                ->columns(12),
+
+
+                                            //-------------------------------------
+
+                                            Forms\Components\Builder\Block::make('tinyMCE')
+                                                ->schema([
+
+                                                    TinyEditor::make('editorContent')->profile('custom')->toolbarSticky(true)
+                                                ])->label(function (?array $state): string {
+                                                    $compName = "Editor TinyMCE";
+
+                                                    if ($state === null)
+                                                    {
+
+                                                        return 'Editor TinyMCE';
+                                                    }
+
+                                                    $label = strip_tags($state['editorContent']);
+
+                                                    //$label = $state['editorContent'];
+
+                                                    return $compName . ' ( ' . trim(\Str::limit(html_entity_decode($label) . ' )', 55, '[..]')) ?? $compName;
+                                                })
+                                            ,
+                                            //-------------------------------------
+
+                                            Forms\Components\Builder\Block::make('blockquote')
+                                                ->schema([
+                                                    Forms\Components\Textarea::make('quote')
+                                                        ->label('Blockquote')
+                                                        ->required()
+                                                        ->columnSpan(8),
+                                                    Forms\Components\TextInput::make('author')
+                                                        ->label('Autor')
+                                                        ->columnSpan(4),
+                                                    Forms\Components\TextInput::make('buttonText')
+                                                        ->label('Button Text')
+                                                        ->columnSpan(4),
+                                                    Forms\Components\TextInput::make('buttonTarget')
+                                                        ->label('Button Target')
+                                                        ->columnSpan(4),
+                                                ])
+                                                ->columns(12),
+
+
+                                        ])
+                                        ->reorderableWithButtons()
+                                        ->collapsible()
+                                        ->cloneable()
+                                        ->addActionLabel('Add a new block')
+                                    ,
+                                ]), // END BlOCK
+
+
+                                // END TABCONTENT
+                            ]),
+                        Tabs\Tab::make('SEO')
+                            ->schema([
+
+                                Fieldset::make('Meta Information')->schema([
+                                    Textarea::make('meta.description')->columnSpan(2)
+                                        ->label('Meta Description'),
+                                    Textarea::make('meta.keywords')->columnSpan(2)
+                                        ->label('Meta Keywords'),
+                                ])->columns(2),
+                                Fieldset::make('Opengraph')->schema([
+                                    Textarea::make('meta_og.description')
+                                        ->columnSpan(2)
+                                        ->label('og:description'),
+                                    Select::make('meta_og.type')
+                                        ->label('OG Type')
+                                        ->options([
+                                            'website' => 'Website',
+                                            'article' => 'Article',
+                                            'profile' => 'Profile',
+                                        ])
+                                        ->default('website'),
+
+                                    FileUpload::make('meta_og.image')
+                                        ->label('OG Image')
+                                        ->image()
+                                        ->disk('public') // oder einen anderen Disk, je nachdem, wo Sie die Bilder speichern möchten
+                                        ->directory('meta_images') // Das Verzeichnis im gewählten Disk, in dem die Bilder gespeichert werden
+                                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif']),
+
+
+                                ])->columns(2),
+                                Fieldset::make('Twitter X')->schema([
+
+                                    Textarea::make('meta_twitter.description')
+                                        ->label('twitter:description')
+                                        ->columnSpan(2),
+                                    Select::make('meta_twitter.card')
+                                        ->label('Twitter Card Type')
+                                        ->options([
+                                            'summary' => 'Summary',
+                                            'summary_large_image' => 'Summary with Large Image',
+                                            'app' => 'App',
+                                            'player' => 'Player',
+                                        ])
+                                        ->default('summary'),
+
+                                    FileUpload::make('meta_twitter.image')
+                                        ->label('Twitter Image')
+                                        ->image()
+                                        ->disk('public') // oder einen anderen Disk, je nachdem, wo Sie die Bilder speichern möchten
+                                        ->directory('meta_images') // Das Verzeichnis im gewählten Disk, in dem die Bilder gespeichert werden
+                                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif'])
+
+
+                                ])->columns(2),
+                            ]),
+                        Tabs\Tab::make('Settings')
+                            ->schema([
+                                // Hier können weitere Einstellungsfelder hinzugefügt werden
+                            ]),
+                    ])->columns(2),
+
+                ]),
+
+            ]);
+    }
+
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('title')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('slug')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('author.name')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\ToggleColumn::make('published'),
+                SpatieTagsColumn::make('tags'),
+            ])
+            ->filters([
+                Filter::make('is_published')
+                    ->query(fn(Builder $query): Builder => $query->where('published', true)),
+
+                /**
+                 * @NOTE
+                 * This got a bit complicated
+                 * since the Filter would show the object
+                 * { en: "Foo" } and not just "Foo"
+                 */
+                SelectFilter::make('tags')
+                    /** @phpstan-ignore-next-line */
+                    ->options(\App\Models\Tag::all()
+                        ->pluck('name', 'id')
+                        ->unique())
+                    ->query(function (Builder $query, array $data): Builder {
+                        $tag = (int)data_get($data, 'value');
+
+                        return $query->when($tag, function ($query) use ($tag) {
+                            $query->whereHas('tags', function ($query) use ($tag) {
+                                $query->where('tags.id', '=', $tag);
+                            });
+                        });
+                    }),
+            ])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+                CopyAction::make('copy')
+                    ->color('gray'),
+
+
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Admin\PageResource\Pages\ListPages::route('/'),
+            'create' => Admin\PageResource\Pages\CreatePage::route('/create'),
+            'edit' => Admin\PageResource\Pages\EditPage::route('/{record}/edit'),
+        ];
+    }
+
+    protected static function getActions(): array
+    {
+        return [
+            // Andere Aktionen...
+
+            Action::make('customAction')
+                ->label('Mein Button')
+                ->url(route('custom.route')) // URL oder Route, zu der navigiert wird
+                ->icon('heroicon-o-document-add') // Optional: Icon
+                ->color('success'), // Optional: Farbe des Buttons
+        ];
+    }
+}

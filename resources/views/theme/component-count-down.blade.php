@@ -1,0 +1,124 @@
+<x-assan-layout layout-type="{{$layoutType}}">
+             <!--page-hero-->
+  <section class="bg-gradient-primary text-white position-relative">
+    <div class="container pt-14 pb-9 pb-lg-12 position-relative z-1">
+        <div class="row pt-lg-5 align-items-center justify-content-center text-center">
+                        <div class="col-lg-10 col-xl-7 z-2">
+                            <div class="position-relative">
+                                <div>
+                                    <nav class="d-flex justify-content-center" aria-label="breadcrumb">
+                                        <div class="mb-4">
+                                            <ol class="breadcrumb mb-0">
+                                                <li class="breadcrumb-item"><a href="{{ URL::asset('#') }}">Home</a></li>
+                                                <li class="breadcrumb-item active">Components</li>
+                                                <li class="breadcrumb-item active" aria-current="page">Jquery countdown
+                                                </li>
+                                            </ol>
+                                        </div>
+                                    </nav>
+                                    <h1 class="mb-0 display-4">
+                                        Jquery Countdown
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="position-relative">
+                <div class="container py-9 py-lg-11">
+                    <div class="d-flex align-items-center mb-5">
+                        <h6 class="mb-0 me-4">Countdown example</h6>
+                    </div>
+                    <!--Countdown Start -->
+                    <div class="position-relative d-flex flex-wrap mb-7" data-countdown="2024/01/01"></div>
+                    <!--/.Countdown End -->
+
+
+                    <!--Snippets tab nav-->
+          <nav class="nav nav-tabs mb-0">
+            <a href="{{ URL::asset('#copyCountdownHtml') }}" data-bs-toggle="tab" class="nav-link active">HTML</a>
+            <a href="{{ URL::asset('#copyCountdownJs') }}" data-bs-toggle="tab" class="nav-link">Js</a>
+        </nav>
+        <!--Snippets tabs-->
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="copyCountdownHtml">
+              <div class="position-relative">
+                <button
+                    class="btn btn-sm position-absolute end-0 top-0 me-3 mt-3 z-1 btn-primary copy-link"
+                    data-clipboard-target="#copyCountdownHtml1" data-clipboard-action="copy" id="copyCountdownHtml1-1">Copy code</button>
+                <pre id="copyCountdownHtml1" class="language-markup bg-secondary text-white-50 mt-0" data-lang="html">
+<code>
+    &lt;!--Countdown Start -->
+    &lt;div class="position-relative d-flex flex-wrap mb-7" data-countdown="2024/01/01">&lt;/div>
+    &lt;!--/.Countdown End -->
+</code>
+</pre>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="copyCountdownJs">
+                <div class="position-relative">
+                  <button
+                      class="btn btn-sm position-absolute end-0 top-0 me-3 mt-3 z-1 btn-primary copy-link"
+                      data-clipboard-target="#copyCountdownJs2" data-clipboard-action="copy" id="copyCountdownJs2-2">Copy code</button>
+                  <pre id="copyCountdownJs2" class="language-markup bg-secondary text-white-50 mt-0" data-lang="javascript">
+  <code>
+    &lt;!--Countdown plugin and jquery-->
+    &lt;script src="{{ URL::asset('assets/vendor/node_modules/js/jquery.min.js') }}">&lt;/script>
+    &lt;script src="{{ URL::asset('assets/vendor/node_modules/js/jquery.countdown.min.js') }}">&lt;/script>
+    &lt;script>
+        $('[data-countdown]').each(function () {
+            var $this = $(this), finalDate = $(this).data('countdown');
+            $this.countdown(finalDate, function (event) {
+                var $this = $(this).html(event.strftime(''
+                    + '&lt;div class="width-10x height-10x d-flex flex-column flex-center rounded-circle bg-body-tertiary small me-3">&lt;h2 class="mb-0">%w&lt;/h2> weeks&lt;/div> '
+                    + '&lt;div class="width-10x height-10x d-flex flex-column flex-center rounded-circle bg-body-tertiary small me-3">&lt;h2 class="mb-">%d&lt;/h2> days&lt;/div> '
+                    + '&lt;div class="width-10x height-10x d-flex flex-column flex-center rounded-circle bg-body-tertiary small me-3">&lt;h2 class="mb-0">%H&lt;/h2> hr&lt;/div> '
+                    + '&lt;div class="width-10x height-10x d-flex flex-column flex-center rounded-circle bg-body-tertiary small me-3">&lt;h2 class="mb-0">%M&lt;/h2> min&lt;/div> '
+                    + '&lt;div class="width-10x height-10x d-flex flex-column flex-center rounded-circle bg-body-tertiary small me-3">&lt;h2 class="mb-0">%S&lt;/h2> sec&lt;/div>'));
+            });
+        });
+    &lt;/script>
+  </code>
+  </pre>
+                  </div>
+              </div>
+        </div>
+
+
+                    <div class="border text-end border-top-0 p-4">
+                        <a href="{{ URL::asset('http://hilios.github.io/jQuery.countdown/') }}" target="_blank">
+                            View Plugin
+                        </a>
+                    </div>
+                </div>
+            </section>
+            <section class="bg-gradient bg-secondary text-white position-relative">
+                <svg class="position-absolute top-0 start-0 text-white w-50 h-auto w-lg-75" width="136" height="76"
+                    viewBox="0 0 136 76" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-opacity=".1"
+                        d="M136 -28C136 -14.3425 133.31 -0.818782 128.083 11.7991C122.857 24.4169 115.196 35.8818 105.539 45.5391C95.8818 55.1964 84.4169 62.857 71.7991 68.0835C59.1812 73.31 45.6575 76 32 76C18.3425 76 4.81878 73.31 -7.79908 68.0835C-20.4169 62.857 -31.8818 55.1964 -41.5391 45.5391C-51.1964 35.8818 -58.857 24.4169 -64.0835 11.7991C-69.31 -0.818789 -72 -14.3425 -72 -28L136 -28Z"
+                        fill="currentColor" />
+                </svg>
+                <div class="container py-9 py-lg-11 position-relative z-1">
+                    <div class="row align-items-center justify-content-center">
+                        <div class="col-md-10 col-lg-8 col-xl-7 text-center mx-auto">
+                            <h2 class="mb-4 display-4" data-aos="fade-up">
+                                Let's start building stunning websites
+                            </h2>
+                            <p class="mb-5 px-lg-5" data-aos="fade-up" data-aos-delay="100">
+                                Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing
+                                industries for previewing layouts and visual mockups.
+                            </p>
+                            <div data-aos="fade-up">
+                                <a href="{{ URL::asset('#!') }}" class="btn btn-primary btn-lg">Purchase a
+                                    license</a>
+                            </div>
+                        </div>
+                        <!--End Col-->
+                    </div> <!-- / .row -->
+                </div> <!-- / .container -->
+            </section>
+</x-assan-layout>
