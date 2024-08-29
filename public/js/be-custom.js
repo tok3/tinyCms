@@ -64,3 +64,22 @@ document.addEventListener('DOMContentLoaded', function () {
     // Add event listener for changes in the select field
     document.querySelector('[wire\\:model="data.settings.colorSelectMode"]').addEventListener('change', toggleFields);
 });
+
+
+document.addEventListener('keydown', function(event) {
+    if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+        event.preventDefault(); // Verhindert das Standardverhalten des Browsers (Speichern der Seite)
+
+        // Formular mit der ID 'form' abrufen
+        var form = document.getElementById('form');
+
+        if (form) {
+            // Submit-Button innerhalb des Formulars suchen
+            var submitButton = form.querySelector('[type="submit"]');
+
+            if (submitButton) {
+                submitButton.click(); // Klick auf den Submit-Button simulieren
+            }
+        }
+    }
+});

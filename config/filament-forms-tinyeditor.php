@@ -80,6 +80,14 @@ return [
                     'title' => 'Fluid',
                     'value' => 'img-fluid',
                   ],
+                  [
+                    'title' => 'Mask - Kidney (blob)',
+                    'value' => 'mask-image mask-blob',
+                  ],
+                  [
+                    'title' => 'Mask - Kidney flip-x (blob-3)',
+                    'value' => 'mask-image mask-blob flip-x',
+                  ],
 
               ],
                 'content_css'=>'/build/'.$manifest['resources/scss/tinyMCEtheme.scss']['file'],
