@@ -85,8 +85,8 @@ return [
                     'value' => 'mask-image mask-blob',
                   ],
                   [
-                    'title' => 'Mask - Kidney flip-x (blob-3)',
-                    'value' => 'mask-image mask-blob flip-x',
+                    'title' => 'Mask - Kidney flip-x (blob)',
+                    'value' => 'mask-image mask-blob-x',
                   ],
 
               ],
