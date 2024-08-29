@@ -54,8 +54,8 @@
         <nav class="navbar navbar-expand-lg navbar-light bg-body">
             <div class="container py-lg-2 position-relative">
                 <a class="navbar-brand" href="{{ URL::asset('assan/index.html') }}">
-                    <img src="{{ URL::asset('assets/img/logo/logo.svg') }}" alt="" class="navbar-brand-light img-fluid">
-                    <img src="{{ URL::asset('assets/img/logo/logo-white.svg') }}" alt="" class="navbar-brand-dark img-fluid">
+                    <img src="{{ URL::asset('assets/img/logo/logo.png') }}" alt="" class="navbar-brand-light img-fluid">
+                    <img src="{{ URL::asset('assets/img/logo/logo-white.png') }}" alt="" class="navbar-brand-dark img-fluid">
                 </a>
 
                 <div class="d-flex align-items-center navbar-no-collapse-items order-lg-last">
