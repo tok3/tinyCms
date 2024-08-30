@@ -119,24 +119,55 @@ class PageResource extends Resource
                                             Forms\Components\Builder\Block::make('text')
                                                 ->schema([
 
+                                                    Fieldset::make('Container Settings')
+                                                        ->schema([
+                                                            TextInput::make('container_id')
+                                                                ->label('Container ID')
+                                                                ->columnSpan(8), // Nimmt die Hälfte der Zeile ein
+
+                                                            Select::make('margin_top')
+                                                                ->label('Margin Top')
+                                                                ->options([
+                                                                    '60px' => '+60px',
+                                                                    '50px' => '+50px',
+                                                                    '40px' => '+40px',
+                                                                    '30px' => '+30px',
+                                                                    '20px' => '+20px',
+                                                                    '10px' => '+10px',
+                                                                    '0px'  => '0px',
+                                                                    '-10px' => '-10px',
+                                                                    '-20px' => '-20px',
+                                                                    '-30px' => '-30px',
+                                                                    '-40px' => '-40px',
+                                                                    '-50px' => '-50px',
+                                                                ])
+                                                                ->default('mt-0')
+                                                                ->columnSpan(2), // Nimmt ein Viertel der Zeile ein
+
+                                                            Select::make('margin_bottom')
+                                                                ->label('Margin Bottom')
+                                                                ->options([
+                                                                    '60px' => '+60px',
+                                                                    '50px' => '+50px',
+                                                                    '40px' => '+40px',
+                                                                    '30px' => '+30px',
+                                                                    '20px' => '+20px',
+                                                                    '10px' => '+10px',
+                                                                    '0px'  => '0px',
+                                                                    '-10px' => '-10px',
+                                                                    '-20px' => '-20px',
+                                                                    '-30px' => '-30px',
+                                                                    '-40px' => '-40px',
+                                                                    '-50px' => '-50px',
+                                                                ])
+                                                                ->default('mb-0')
+                                                                ->columnSpan(2), // Nimmt ein Viertel der Zeile ein
+                                                        ])
+                                                        ->columns(12) // Stellt sicher, dass das Fieldset ein 12-Spalten-Layout verwendet
+                                                        ->extraAttributes(['style' => 'background-color:#F9FAFB']),
+
                                                     TextInput::make('heading')
                                                         ->label('Heading')
-                                                        ->columnSpan(9)
-                                                    ,
-                                                    Select::make('levelHeading')
-                                                        ->options([
-                                                            'h1' => 'Heading 1',
-                                                            'h2' => 'Heading 2',
-                                                            'h3' => 'Heading 3',
-                                                            'h4' => 'Heading 4',
-                                                            'h5' => 'Heading 5',
-                                                            'h6' => 'Heading 6',
-                                                        ])
-                                                        ->default('h1')
-                                                        ->columnSpan(3),
-
-                                                    TextInput::make('heading2')
-                                                        ->label('Heading2')
                                                         ->columnSpan(9),
                                                     Select::make('levelHeading2')
                                                         ->options([
