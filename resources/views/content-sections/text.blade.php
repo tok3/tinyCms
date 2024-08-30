@@ -1,4 +1,4 @@
-<div @if(isset($data['container_id']))id="{{$data['container_id']}}" @endif @if($prevElem == "")style="margin-top:120px !important;" @endif class="container {{$data['margin_top']}} ">
+<div @if(isset($data['container_id']))id="{{$data['container_id']}}" @endif @if($prevElem == "")style="margin-top:120px !important;" @endif class="container ">
     <div class="row"
          style="@if(isset($data['margin_bottom']) && $data['margin_bottom'] != 0)margin-bottom:{{$data['margin_bottom']}}!important;@endif @if(isset($data['margin_top']) && $data['margin_top'] != "")margin-top:{{$data['margin_top']}} !important;@endif">
         <div class="col-xl-9 mx-auto">
@@ -23,4 +23,3 @@
 </div>
 </div>
 </div>
-
