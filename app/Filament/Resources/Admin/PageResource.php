@@ -134,7 +134,7 @@ class PageResource extends Resource
                                                                     '30px' => '+30px',
                                                                     '20px' => '+20px',
                                                                     '10px' => '+10px',
-                                                                    '0px'  => '0px',
+                                                                    '0px' => '0px',
                                                                     '-10px' => '-10px',
                                                                     '-20px' => '-20px',
                                                                     '-30px' => '-30px',
@@ -153,7 +153,7 @@ class PageResource extends Resource
                                                                     '30px' => '+30px',
                                                                     '20px' => '+20px',
                                                                     '10px' => '+10px',
-                                                                    '0px'  => '0px',
+                                                                    '0px' => '0px',
                                                                     '-10px' => '-10px',
                                                                     '-20px' => '-20px',
                                                                     '-30px' => '-30px',
@@ -240,6 +240,69 @@ class PageResource extends Resource
                                                         ->columnSpan(4),
                                                 ])
                                                 ->columns(12),
+                                            //-------------------------------------
+                                            Forms\Components\Builder\Block::make('countdown-timer')
+                                                ->schema([
+                                                    // Erste Zeile: Datetimepicker und Dropdown
+                                                    Forms\Components\Grid::make(12)->schema([
+                                                        Forms\Components\DateTimePicker::make('endDate')
+                                                            ->label('Ende Datum')
+                                                            ->required()
+                                                            ->columnSpan(3), // Schmaler Bereich oben
+
+                                                        // Dropdown für Erscheinungsbild
+                                                        Forms\Components\Select::make('background')
+                                                            ->label('Erscheinungsbild')
+                                                            ->options([
+                                                                'bg-primary' => 'Primärfarbe',
+                                                                'bg-secondary' => 'Sekundärfarbe',
+                                                                'bg-gradient-blue' => 'Blauer Verlauf',
+                                                                'bg-gradient-primary' => 'Primärer Verlauf',
+                                                            ])
+                                                            ->required() // Optional, falls eine Auswahl erforderlich ist
+                                                            ->columnSpan(3), // Schmaler Bereich für den Dropdown
+                                                    ]),
+
+                                                    // Zweite Zeile: Überschrift untereinander
+                                                    Forms\Components\Grid::make(12)->schema([
+                                                        Forms\Components\Textarea::make('heading')
+                                                            ->label('Überschrift')
+                                                            ->required()
+                                                            ->columnSpan(8), // Volle Breite
+                                                    ]),
+
+                                                    // Dritte Zeile: Subtext unter Überschrift
+                                                    Forms\Components\Grid::make(12)->schema([
+                                                        Forms\Components\TextInput::make('subtext')
+                                                            ->label('Subtext')
+                                                            ->columnSpan(8), // Volle Breite
+                                                    ]),
+
+
+                                                    // Vierte Zeile: Button Text, Button Target und Dropdown für Button-Erscheinungsbild auf eine Breite von 8 beschränkt
+                                                    Forms\Components\Grid::make(8)->schema([ // Ändere das Grid auf 8 Spalten
+                                                        Forms\Components\TextInput::make('buttonText')
+                                                            ->label('Button Text')
+                                                            ->columnSpan(2), // Verteilt die Breite gleichmäßig innerhalb von 8 Spalten
+
+                                                        Forms\Components\TextInput::make('buttonTarget')
+                                                            ->label('Button Target')
+                                                            ->columnSpan(2), // Verteilt die Breite gleichmäßig innerhalb von 8 Spalten
+
+                                                        // Dropdown für Button-Erscheinungsbild
+                                                        Forms\Components\Select::make('buttonAppearance')
+                                                            ->label('Button Erscheinungsbild')
+                                                            ->options([
+                                                                'btn-light' => 'Hell',
+                                                                'btn-dark' => 'Dunkel',
+                                                                'btn-primary' => 'Primär',
+                                                                'btn-secondary' => 'Sekundär',
+                                                            ])
+                                                            ->required() // Optional, falls eine Auswahl erforderlich ist
+                                                            ->columnSpan(2), // Verteilt die Breite gleichmäßig innerhalb von 8 Spalten
+                                                    ]),
+                                                ])
+                                                ->columns(12), // Definiert die Anzahl der Spalten im Grid // Definiert die Anzahl der Spalten im Grid
 
 
                                         ])

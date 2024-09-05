@@ -21,6 +21,7 @@
     <title>{{ isset($title) ? $title : '' }}</title>
 
     @yield('add-head')
+    @stack('add-head')
 
 </head>
 

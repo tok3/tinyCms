@@ -58,6 +58,7 @@ return [
 
         'custom' => [
             'plugins' => 'code advlist autoresize codesample directionality emoticons fullscreen hr image imagetools link lists media table toc wordcount',
+            'inline'=> true,
             'toolbar' => 'fullscreen | code | undo redo removeformat | formatselect fontsizeselect | bold italic | rtl ltr | alignjustify alignright aligncenter alignleft | numlist bullist | forecolor backcolor | blockquote table toc hr | image link media codesample emoticons | wordcount ',
             'upload_directory' => 'storage',
             'custom_configs' => [
