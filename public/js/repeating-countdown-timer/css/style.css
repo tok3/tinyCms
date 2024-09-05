@@ -1,0 +1,101 @@
+.counter-container {
+    --fontBase: "Roboto Condensed", sans-serif;
+    --white: #fff;
+    --gray: #1a1a1a;
+    --black-shadow: rgba(255, 255, 255, 0.8);
+}
+
+.counter-container * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.counter-container {
+    font-size: 62.5%; /* Basisschriftgröße für den gesamten Container */
+    display: flex;
+    flex-direction: column;
+    /*height: 50vh;*/
+    justify-content: center;
+    align-items: center;
+ /*   background: rgba(0, 0, 0, 0.8);*/
+}
+
+.counter-container .wrapper {
+    display: flex;
+    gap: 3%;
+    min-width: 255px;
+    width: 75%;
+    min-height: 90px;
+    height: calc(25vw);
+    justify-content: space-between;
+}
+
+.counter-container .begin,
+.counter-container .stop {
+    height: 30px;
+    padding-block: 5px;
+    padding-inline: 10px;
+    margin-inline: 10px;
+    font-size: 1.5rem; /* Schriftgröße für spezifische Buttons */
+}
+
+
+.counter-container small {
+    color: white;
+    font-size: 2.5vw; /* Schriftgröße in vw für small-Elemente */
+}
+
+.counter-container .begin {
+    display: none;
+}
+
+.counter-container .item {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    /*gap: 30%;*/
+    row-gap:10%;
+    column-gap:30%;
+    width: 30%;
+}
+
+.counter-container .item span {
+    color: var(--white);
+    font-size: 2.0vw; /* Schriftgröße für span in .item */
+}
+
+.counter-container .item .number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--gray);
+    border-radius: 5%;
+    height: 55%;
+}
+
+.counter-container .item .number span {
+    font-size: 11vw; /* Schriftgröße für span in .number */
+    line-height: 4.7rem;
+    font-weight: bold;
+}
+
+
+@media screen and (min-width: 1024px) {
+    .counter-container .wrapper {
+        width: 800px;
+        height: 285px;
+    }
+
+    .counter-container .item span {
+        font-size: 1.0rem; /* Schriftgröße für span in .item bei großen Bildschirmen */
+    }
+
+    .counter-container .item .number span {
+        font-size: 8.0rem; /* Schriftgröße für span in .number bei großen Bildschirmen */
+    }
+
+    .counter-container small {
+        font-size: 1.0rem; /* Schriftgröße für small-Elemente bei großen Bildschirmen */
+    }
+}

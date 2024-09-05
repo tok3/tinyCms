@@ -7,6 +7,8 @@
 <!--Iconsmind Icons-->
 <link rel="stylesheet" href="{{ URL::asset('assets/fonts/iconsmind/iconsmind.css') }}">
 
+<link rel="stylesheet" href="{{ URL::asset('assets/fonts/bootstrap-icons/bootstrap-icons.css') }}">
+
 <!--Google fonts-->
 <link rel="preconnect" href="{{ URL::asset('https://fonts.googleapis.com') }}">
 <link rel="preconnect" href="{{ URL::asset('https://fonts.gstatic.com') }}" crossorigin>

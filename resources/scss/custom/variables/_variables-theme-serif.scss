@@ -1815,6 +1815,8 @@ $bg-gradient-blur:linear-gradient(180deg, rgba($white, 0.01), rgba($white, 1) 85
 $bg-gradient-dark:-webkit-gradient(linear,left top,left bottom,from(rgba($black,0)),to(rgba($black,1))) !default;
 $bg-gradient-light:radial-gradient( 200% 160% at 75% 130%, $white 0%, shade-color($light,0%)100%) !default;
 
+$bg-gradient-blue:linear-gradient(155deg, #1121c2 20%,#162aef 40%, #1121c2 95%, #2c3bd3) !default;
+
 
 //Brand Colors map
 $brand-colors: () !default;
