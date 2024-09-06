@@ -2,6 +2,16 @@
 .btn {
     text-transform: none !important;
 }
+
+body {
+    hyphens: auto;
+    word-break: break-word; /* Optional: Zeilenumbruch bei extrem langen Wörtern */
+}
+/* Silbentrennung für ein bestimmtes Element deaktivieren */
+.no-hyphenation {
+    hyphens: none !important;
+
+}
 /* Margin Top Klassen */
 .mt-60 { margin-top: 60px; }
 .mt-50 { margin-top: 50px; }

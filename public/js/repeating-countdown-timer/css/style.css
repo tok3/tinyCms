@@ -82,6 +82,8 @@
     background-color: var(--gray);
     border-radius: 5%;
     height: 55%;
+    white-space: nowrap !important;
+    hyphens: none !important;
 }
 
 .counter-container .item .number span {

@@ -6,7 +6,7 @@
                 <h2 class="mb-4 display-4 aos-init aos-animate" data-aos="fade-up">{!! $data['heading'] !!}</h2>
                 <p class="mb-5 px-lg-5 aos-init aos-animate" data-aos="fade-up" data-aos-delay="100">{!! $data['subtext'] !!}</p>
 
-                <div class="counter-container" data-countdown-end="{!! $data['endDate'] !!}">
+                <div class="counter-container" style="whitespace:nowrap" data-countdown-end="{!! $data['endDate'] !!}">
 
                     <div class="wrapper">
                         <div class="item">
