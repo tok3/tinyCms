@@ -1,8 +1,17 @@
+/*@import url('https://fonts.cdnfonts.com/css/lcd');
+@import url('https://fonts.cdnfonts.com/css/alarm-clock');*/
 .counter-container {
     --fontBase: "Roboto Condensed", sans-serif;
     --white: #fff;
     --gray: #1a1a1a;
     --black-shadow: rgba(255, 255, 255, 0.8);
+
+    /*    font-family: 'LCD', sans-serif;*/
+/*    font-family: 'LCD2', sans-serif;*/
+   /* font-family: 'LCDMono2', sans-serif;*/
+   /* font-family: 'LCDMono', sans-serif;*/
+   /* font-family: 'Digitalism', sans-serif;*/
+
 }
 
 .counter-container * {
@@ -66,6 +75,7 @@
 }
 
 .counter-container .item .number {
+    /*font-family: 'alarm clock', sans-serif;*/
     display: flex;
     align-items: center;
     justify-content: center;
