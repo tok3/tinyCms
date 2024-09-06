@@ -86,10 +86,13 @@
     hyphens: none !important;
 }
 
+
 .counter-container .item .number span {
     font-size: 11vw; /* Schriftgröße für span in .number */
     line-height: 4.7rem;
     font-weight: bold;
+    white-space: nowrap !important;
+    hyphens: none !important;
 }
 
 
