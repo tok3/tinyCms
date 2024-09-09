@@ -1822,7 +1822,7 @@ $gradient-alt:$pink!default;
 $bg-gradient-primary:linear-gradient(155deg, $primary 20%,$purple 40%, $gradient-alt 95%, $gradient-alt) !default;
 
 $bg-gradient-blue:linear-gradient(155deg, #1121c2 20%,#162aef 40%, #1121c2 95%, #2c3bd3) !default;
-$bg-gradient-blue:linear-gradient(155deg, #1121c2 20%,#162aef 40%, #1121c2 95%, #2c3bd3) !default;
+$bg-gradient-blue-dark:linear-gradient(155deg, #0a1694 20%,#040b57 40%, #141d77 95%, #040e6e) !default;
 
 $bg-gradient-tint:radial-gradient(200% 160% at 75% 130%,tint-color($gradient-alt,94%),tint-color($primary,96%)) !default;
 $bg-gradient-blur:linear-gradient(180deg, rgba($white, 0.01), rgba($white, 1) 85%),radial-gradient(ellipse at top left, rgba($primary, 0.3), transparent 50%),radial-gradient(ellipse at top right, rgba($gradient-alt, 0.25), transparent 50%),radial-gradient(ellipse at center right, rgba($purple, 0.25), transparent 50%),radial-gradient(ellipse at center left, rgba($gradient-alt, 0.25), transparent 50%)!default;
