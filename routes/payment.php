@@ -11,7 +11,7 @@ use App\Http\Controllers\CreateSubscriptionController;
 use App\Http\Controllers\MollieTestController;
 
 
-Route::get('/checkout', [CheckoutController::class, 'showPlans'])->name('view.plans');
+Route::get('/preise', [CheckoutController::class, 'showPlans'])->name('view.plans');
 
 Route::post('/checkout', [CheckoutController::class, 'preparePayment'])->name('checkout.plan');
 Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('order.success');
