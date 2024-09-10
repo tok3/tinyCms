@@ -12,10 +12,10 @@
             <div class="row pb-9">
                 <div class="col-lg-10 mx-auto">
                     <div class="position-relative z-1 aos-init aos-animate" data-aos-duration="400" data-aos="fade-up"><!--Subtitle-->
-                        <h6 class="mb-5 text-center text-warning">A good company</h6>
+                        <h6 class="mb-5 text-center text-warning">Ihr Weg zur Barrierefreiheit</h6>
                         <!--Quote text-->
-                        <h2 class="display-4 fw-medium text-center mb-5">“ We believe in great details, and we also believe in businesses that keep that in our mind all days, everyday. ”</h2>
-                        <h5 class="text-center">- Client</h5>
+                        <h2 class="display-4 fw-medium text-center mb-5">Wählen Sie Ihren Plan – und legen Sie direkt los!</h2>
+
                     </div>
                 </div>
             </div>
