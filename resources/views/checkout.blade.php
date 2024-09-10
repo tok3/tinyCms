@@ -24,7 +24,7 @@
 
         <div class="jarallax-container" id="jarallax-container-0" style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; overflow: hidden; z-index: -100; clip-path: polygon(0px 0px, 100% 0px, 100% 100%, 0px 100%);"></div>
     </section>
-    <section class="position-relative border-top">
+    <section class="position-relative">
         <div class="container pt-9 pt-lg-11">
 
 
@@ -53,6 +53,9 @@ $paymentModality['annual'] ="pro Jahr </br>bei jährlicher Zahlung";
 $paymentModality['monthly'] ="pro Monat </br>bei Monatlicher Zahlung";
 @endphp
             @foreach($products as $product)
+                    <form action="{{ route('checkout.plan') }}" method="POST">
+                        @csrf  <!-- CSRF Protection -->
+                        <input type="hidden" name="product_id" value="{{ $product->id }}">
                     <div class="container py-3 py-lg-3 plan" data-plan="{{$product->interval}}">
                         <div class="bg-body overflow-hidden shadow-lg px-4 py-2 px-lg-5">
                             <div class="row align-items-center ">
@@ -82,14 +85,15 @@ $paymentModality['monthly'] ="pro Monat </br>bei Monatlicher Zahlung";
                                 <div class="col-lg-2 col-md-12 text-center text-md-end">
                                     <!--Action-->
                                     <div data-aos="fade-left" data-aos-delay="200" class="aos-init aos-animate">
-                                        <a href="#!" class="btn btn-primary btn-lg m-sm-2">
-                                            <span>Jetzt Starten ...</span>
-                                        </a>
+                                        <button type="submit" class="btn btn-primary btn-lg m-sm-2">
+                                            <span>buchen ...</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div> <!-- / .row -->
                         </div>
                     </div>
+                    </form>
                 @endforeach
 
            {{--     <div class="row grid-separator">
