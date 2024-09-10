@@ -77,12 +77,12 @@ $paymentModality['monthly'] ="pro Monat </br>bei Monatlicher Zahlung";
                                     <p class="h4 mb-0 pe-lg-11 aos-init aos-animate" data-aos="fade-up" data-aos-delay="150">
                                         {{$product->formattedPrice}} &euro;
                                     </p>
-                                    <p class="text-success mb-0 pe-lg-11 aos-init aos-animate small">{!!  $paymentModality[$product->interval]!!}</p>
+                                    <p class="text-success mb-0 pe-lg-11 p-sm-3 aos-init aos-animate small">{!!  $paymentModality[$product->interval]!!}</p>
                                 </div>
                                 <div class="col-lg-2 col-md-12 text-center text-md-end">
                                     <!--Action-->
                                     <div data-aos="fade-left" data-aos-delay="200" class="aos-init aos-animate">
-                                        <a href="#!" class="btn btn-primary btn-lg">
+                                        <a href="#!" class="btn btn-primary btn-lg m-sm-2">
                                             <span>Jetzt Starten ...</span>
                                         </a>
                                     </div>
