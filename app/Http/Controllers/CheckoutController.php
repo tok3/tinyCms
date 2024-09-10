@@ -138,7 +138,8 @@ class CheckoutController extends Controller
     public function showPlans(Request $request)
     {
 
-        $products = Product::where('active', 1)->get();
+        $products = Product::where('active', 1)
+            ->orderBy('payment_type')->orderBy('id')->orderBy('sequence')->get();
 
         return view('checkout', ['products' => $products]);
     }

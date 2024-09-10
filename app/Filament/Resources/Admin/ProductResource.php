@@ -12,7 +12,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Select;
-
+use Filament\Support\Enums\Alignment;
 class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
@@ -31,7 +31,7 @@ class ProductResource extends Resource
                 TextInput::make('price')
                     ->required()
                     ->numeric()
-                    ->label('Price ($)'),
+                    ->label('Price'),
                 Select::make('currency')
                     ->options([
                         'USD' => 'USD',
@@ -52,9 +52,10 @@ class ProductResource extends Resource
                     ->afterStateUpdated(fn ($state, callable $set) => $state === 'one_time' ? $set('interval', null) : null),
                 Select::make('interval')
                     ->options([
+                        'daily' => 'Daily',
                         'weekly' => 'Weekly',
                         'monthly' => 'Monthly',
-                        'daily' => 'Daily',
+                        'annual' => 'Annual',
                     ])
                     ->label('Interval')
                     ->hidden(fn (callable $get) => $get('payment_type') !== 'recurrent'),
@@ -71,11 +72,13 @@ class ProductResource extends Resource
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('description')
-                    ->sortable()
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('price')
-                    ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('formatted_price')
+                    ->searchable()
+                    ->label('Preis')
+                    ->formatStateUsing(fn (string $state) => $state . ' €') // Euro-Zeichen hinzufügen
+                    ->alignment(Alignment::End),
                 Tables\Columns\TextColumn::make('currency')
                     ->sortable()
                     ->searchable(),

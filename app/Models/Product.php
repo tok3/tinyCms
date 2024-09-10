@@ -15,7 +15,7 @@ class Product extends Model
     // Accessor to get the price in a formatted way
     public function getPriceAttribute($value)
     {
-        return number_format($value / 100, 2); // Convert integer price to float with 2 decimal places
+        return $value; // Convert integer price to float with 2 decimal places
     }
 
     // Mutator to set the price in integer format
@@ -24,9 +24,9 @@ class Product extends Model
         $this->attributes['price'] = $value * 100; // Convert float price to integer (cents)
     }
 
-    // Accessor to get the formatted price with currency
-    public function getFormattedPriceAttribute()
+    public function getFormattedPriceAttribute($locale = "DE")
     {
-        return number_format($this->price / 100, 2);
+        // Tausendertrennzeichen: '.', Dezimaltrennzeichen: ','
+        return number_format($this->price / 100, 2, ',', '.');
     }
 }
