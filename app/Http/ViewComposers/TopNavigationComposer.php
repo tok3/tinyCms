@@ -40,12 +40,13 @@ class TopNavigationComposer
                 ])->render();
             } else {
                 $children = '';
+
                 foreach ($menuItem->children as $child) {
                     $children .= view('components.sub-menu-item', [
                         'name' => $child->name,
                         'slug' => $child->slug,
                         'lastSegment' => $lastSegment,
-                        'url' => str_replace('//','/', url($child->full_path)).'AA',
+                        'url' => url(ltrim($child->full_path, '/')),
                     'hasChildren' => $child->children
 
                     ])->render();
@@ -54,7 +55,7 @@ class TopNavigationComposer
                     'name' => $menuItem->name,
                     'slug' => $menuItem->slug,
                     'lastSegment' => $lastSegment,
-                    'url' => url($menuItem->full_path).'BB',
+                    'url' => url(ltrim($child->full_path, '/')),
                     'hasChildren' => true,
                     'slot' => $children
                 ])->render();
