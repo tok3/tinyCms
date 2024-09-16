@@ -45,7 +45,7 @@ class TopNavigationComposer
                         'name' => $child->name,
                         'slug' => $child->slug,
                         'lastSegment' => $lastSegment,
-                        'url' => str_replace('//','/', url($child->full_path)),
+                        'url' => str_replace('//','/', url($child->full_path)).'AA',
                     'hasChildren' => $child->children
 
                     ])->render();
@@ -54,7 +54,7 @@ class TopNavigationComposer
                     'name' => $menuItem->name,
                     'slug' => $menuItem->slug,
                     'lastSegment' => $lastSegment,
-                    'url' => url($menuItem->full_path),
+                    'url' => url($menuItem->full_path).'BB',
                     'hasChildren' => true,
                     'slot' => $children
                 ])->render();
