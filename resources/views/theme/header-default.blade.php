@@ -35,7 +35,7 @@
 &lt;header class="z-fixed">
  &lt;nav class="navbar navbar-expand-lg navbar-light shadow-lg">
    &lt;div class="container position-relative">
-     &lt;a class="navbar-brand" href="{{ URL::asset('index.html') }}">
+     &lt;a class="navbar-brand" href="{{ URL::asset('/') }}">
       &lt;img src="{{ URL::asset('assets/img/logo/logo.svg') }}" alt="" class="img-fluid navbar-brand-light">
       &lt;img src="{{ URL::asset('assets/img/logo/logo-white.svg') }}" alt="" class="img-fluid navbar-brand-dark">
    &lt;/a>
