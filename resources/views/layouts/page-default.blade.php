@@ -15,6 +15,9 @@
 
     <!--Swiper slider-->
     <link rel="stylesheet" href="{{ URL::asset('assets/vendor/node_modules/css/swiper-bundle.min.css') }}">
+
+    <link rel="stylesheet" href="{{ URL::asset('assets/css/aktion-bf.min.css') }}">
+
     <!-- Main CSS -->
     {{--    <link href="{{ URL::asset('assets/css/theme.min.css')}}" rel="stylesheet">--}}
     @vite(['resources/scss/theme.scss'])
@@ -129,6 +132,7 @@
 
 </script>
 @stack('scripts')
+<script src="{{ URL::asset('assets/js/aktion-bf.js') }}"></script>
 
 </body>
 

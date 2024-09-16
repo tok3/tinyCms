@@ -7,7 +7,6 @@
         @endif
                 @include('components.filament.menu-explorer-ctrl', ['menuItem' => $child, 'id'=>$id])
 
-
     </span>
     @if($child->children->isNotEmpty())
         <ul class="!visible visible" id="collapse{{ $child->id }}" data-twe-collapse-item>
