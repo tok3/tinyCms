@@ -1885,33 +1885,33 @@ body.ini-bf-big-white-cursor,
 body.ini-bf-big-white-cursor * {
     cursor: url("./svgs/white-cursor.svg"), default !important;
 }
-body.ini-bf-big-white-cursor * input, 
-body.ini-bf-big-white-cursor * textarea, 
-body.ini-bf-big-white-cursor * select, 
-body.ini-bf-big-white-cursor * a, 
-body.ini-bf-big-white-cursor * button, 
+body.ini-bf-big-white-cursor * input,
+body.ini-bf-big-white-cursor * textarea,
+body.ini-bf-big-white-cursor * select,
+body.ini-bf-big-white-cursor * a,
+body.ini-bf-big-white-cursor * button,
 body.ini-bf-big-white-cursor * [role=button] {
     cursor: url("./svgs/white-pointer.svg"), default !important;
 }
-     
 
 
-            
+
+
 body.ini-bf-big-black-cursor,
 body.ini-bf-big-black-cursor * {
-    cursor: url("./svgs/black-cursor.svg"), 
+    cursor: url("./svgs/black-cursor.svg"),
     default !important;
 }
-body.ini-bf-big-black-cursor * input, 
-body.ini-bf-big-black-cursor * textarea, 
-body.ini-bf-big-black-cursor * select, 
-body.ini-bf-big-black-cursor * a, 
-body.ini-bf-big-black-cursor * button, 
+body.ini-bf-big-black-cursor * input,
+body.ini-bf-big-black-cursor * textarea,
+body.ini-bf-big-black-cursor * select,
+body.ini-bf-big-black-cursor * a,
+body.ini-bf-big-black-cursor * button,
 body.ini-bf-big-black-cursor * [role=button] {
-    cursor: url("./svgs/black-pointer.svg"), 
+    cursor: url("./svgs/black-pointer.svg"),
     default !important;
 }
-                
+
 body.ini-bf-readable-font *:not(i){
     font-family: Arial, Helvetica, sans-serif !important;
 }
@@ -1930,15 +1930,15 @@ body.ini-bf-readable-font *:not(i){
                 local("OpenDyslexic-Bold-Italic");
         font-weight: bold;
         font-style: italic;
-        font-display: swap; 
+        font-display: swap;
             }
 @font-face {
     font-family: 'OpenDyslexic';
     src:    url("./fonts/opendyslexic/OpenDyslexic-Bold.ttf"),
-            local("OpenDyslexic-Bold"); 
+            local("OpenDyslexic-Bold");
     font-weight: bold;
     font-style: normal;
-    font-display: swap; 
+    font-display: swap;
 }
 @font-face {
     font-family: 'OpenDyslexic';
@@ -1946,7 +1946,7 @@ body.ini-bf-readable-font *:not(i){
             local("OpenDyslexic-Regular");
     font-weight: normal;
     font-style: normal;
-    font-display: swap; 
+    font-display: swap;
 }
 body.ini-bf-dyslexia-font *
 {
@@ -2033,7 +2033,7 @@ body.ini-bf-highlight-focus *:focus {
     outline-offset: var(--bf-ini-highlightFocusOutlineOffset) !important;
 }
 
-    
+
 body.ini-bf-highlight-titles *:is(h1,h2,h3,h4,h5,h6,[role="heading"]) {
     outline-style: var(--bf-ini-highlightTitlesOutlineStyle) !important;
     outline-color: var(--bf-ini-highlightTitlesOutlineColor) !important;

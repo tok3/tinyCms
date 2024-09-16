@@ -45,7 +45,7 @@ class TopNavigationComposer
                         'name' => $child->name,
                         'slug' => $child->slug,
                         'lastSegment' => $lastSegment,
-                        'url' => url($child->full_path),
+                        'url' => str_replace('//','/', url($child->full_path)),
                     'hasChildren' => $child->children
 
                     ])->render();
