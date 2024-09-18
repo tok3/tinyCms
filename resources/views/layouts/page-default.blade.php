@@ -2,7 +2,6 @@
     <!doctype html>
 <html lang="de" data-bs-theme="light">
 <head>
-
     <x-site-partials.metas page="{!! $page !!}"/>
 
     <link rel="icon" href="{{ URL::asset('assets/img/favicon.ico') }}" type="image/ico">
@@ -21,11 +20,11 @@
     <!-- Main CSS -->
     {{--    <link href="{{ URL::asset('assets/css/theme.min.css')}}" rel="stylesheet">--}}
     @vite(['resources/scss/theme.scss'])
-    <title>{{ isset($title) ? $title : '' }}</title>
 
     @yield('add-head')
     @stack('add-head')
 
+    <title>{{ isset(json_decode($page, true)['title']) ? json_decode($page, true)['title'] : '' }}</title>
 </head>
 
 <body>
