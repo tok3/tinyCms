@@ -4,10 +4,10 @@
         <div class="border-bottom">
             <div class="row py-5">
                 <div class="col-sm-5 col-md-4 mb-sm-0 text-sm-end">
-                    <div class="dropup d-table" style="padding:0 !important;margin:0 !important;">
+                    <div class="dropup d-table">
 
 
-                        <img src="{{ URL::asset('assets/img/IHK-AB-1.png') }}"  alt="ihk-aschaffenburg">
+                        <img src="{{ URL::asset('assets/img/IHK-AB-1.png') }}"  alt="ihk-aschaffenburg" >
 
 
 
