@@ -16,7 +16,7 @@
                 </div>
                 <div class="col-sm-7 col-md-8 small ">
                     <span class="d-block lh-sm small text-white">
-                        <h6>Die Dun&Bradstreet D-U-N-S® Nummer des Unternehmens lautet: 341995818</h6>
+                        <div class="h6">Die Dun&Bradstreet D-U-N-S® Nummer des Unternehmens lautet: 341995818</div>
 D-U-N-S ist die Abkürzung für Data Universal Numbering System, ein Zahlensystem zur eindeutigen Identifikation von Unternehmen, Unternehmensbereichen und öffentlichen Einrichtungen. Der neunstellige D-U-N-S-Zahlencode wird seit 1962 von Dun & Bradstreet herausgegeben und dient als Identifikationsnummer für jedes in der Datenbank von D&B gespeicherte Unternehmen.<br>
 Die D-U-N-S Nummer wird von der Europäischen Kommission, den Vereinten Nationen und der US-amerikanischen Regierung verwendet.
                     </span>
