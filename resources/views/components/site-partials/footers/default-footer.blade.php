@@ -50,7 +50,7 @@ Die D-U-N-S Nummer wird von der Europäischen Kommission, den Vereinten Nationen
             </div>
             <!--Footer col-->
             <div class="col-md-4 col-lg-3 ps-md-6 py-lg-7 py-5">
-                <h6 class="mb-4 text-white-50">Mehr</h6>
+                <div class="h6 mb-4 text-white-50">Mehr</div>
                 <ul class="nav flex-column">
                     {!! $footerNavigationItems !!}
                 </ul>
@@ -60,7 +60,7 @@ Die D-U-N-S Nummer wird von der Europäischen Kommission, den Vereinten Nationen
                 <div class="d-flex flex-column flex-sm-row">
                     <div class="mb-4 flex-grow-1 mb-sm-0 pe-sm-3">
                         <div>
-                            <h6 class="mb-4 text-white-50">Geschäftsstelle</h6>
+                            <div class="h6 mb-4 text-white-50">Geschäftsstelle</div>
                             <p class="mb-2">
                                 <strong class="small text-white">camindu GmbH
                                 </strong>
@@ -73,7 +73,7 @@ Die D-U-N-S Nummer wird von der Europäischen Kommission, den Vereinten Nationen
                         </div>
                     </div>
                     <div class="ps-sm-3 flex-grow-1">
-                        <h6 class="mb-4 text-white-50">Erreichbarkeit</h6>
+                        <div class="h6 mb-4 text-white-50">Erreichbarkeit</div>
                         <strong class="d-block text-white-50 small mb-2">Fon:</strong>
                         <a href="tel:+4960211307128" class="fw-semibold link-underline link-light">06021-130 712-8</a>
                         <br><br>
