@@ -30,9 +30,9 @@ Die D-U-N-S Nummer wird von der Europäischen Kommission, den Vereinten Nationen
             <!--Footer col-->
             <div class="col-md-6 col-lg-3 pe-md-6 py-lg-7 py-5">
                 <div class="d-flex flex-column h-100">
-                    <h6 class="mb-4 text-white-50">
+                    <div class="h6 mb-4 text-white-50">
                         Mehr Infos per Email erhalten ?
-                    </h6>
+                    </div>
                     <p class="mb-4 small text-white-50">Tragen Sie sich einfach in unsere Infomail-Liste ein.
                     </p>
 
