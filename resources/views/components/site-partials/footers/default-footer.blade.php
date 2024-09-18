@@ -10,6 +10,7 @@
                         <img src="{{ URL::asset('assets/img/IHK-AB-1.png') }}"  alt="ihk-aschaffenburg">
 
 
+
                     </div>
 
                 </div>
@@ -32,14 +33,18 @@ Die D-U-N-S Nummer wird von der Europäischen Kommission, den Vereinten Nationen
                     <h6 class="mb-4 text-white-50">
                         Mehr Infos per Email erhalten ?
                     </h6>
-                    <p class="mb-4 small text-white-50">Tragen Sie sich einfach in unsere Infomail-Liste ein.</p>
+                    <p class="mb-4 small text-white-50">Tragen Sie sich einfach in unsere Infomail-Liste ein.
+                    </p>
 
                     <div class="d-grid">
                         <a href="{{url('subscribe/camindu-gmbh')}}" class="btn btn-primary" type="submit">
                             Infomail erhalten ...
                         </a>
                     </div>
-                    <x-partials.color-mode/>
+
+                    <x-site-partials.social-media-buttons/>
+                    {{--<x-partials.color-mode/>--}}
+
                 </div>
 
             </div>

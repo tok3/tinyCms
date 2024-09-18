@@ -7,6 +7,25 @@ body {
     hyphens: auto;
     word-break: break-word; /* Optional: Zeilenumbruch bei extrem langen Wörtern */
 }
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex-grow: 1;
+}
+
+footer {
+    background-color: #f1f1f1;
+    padding: 20px;
+    text-align: center;
+}
 /* Silbentrennung für ein bestimmtes Element deaktivieren */
 .no-hyphenation {
     hyphens: none !important;
