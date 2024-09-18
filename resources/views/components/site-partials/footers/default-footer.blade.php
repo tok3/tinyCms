@@ -75,11 +75,11 @@ Die D-U-N-S Nummer wird von der Europäischen Kommission, den Vereinten Nationen
                     <div class="ps-sm-3 flex-grow-1">
                         <h6 class="mb-4 text-white-50">Erreichbarkeit</h6>
                         <strong class="d-block text-white-50 small mb-2">Fon:</strong>
-                        <a href="{{ URL::asset('#!') }}" class="fw-semibold link-underline link-light">06021-130 712-2</a>
+                        <a href="tel:+4960211307128" class="fw-semibold link-underline link-light">06021-130 712-8</a>
                         <br><br>
                         <strong class="d-block text-white-50 small mb-2">Email:</strong>
-                        <a href="{{ URL::asset('mailto:mail@email.com') }}"
-                           class="fw-semibold link-underline link-light">info@camindu.de</a>
+                        <a href="{{ URL::asset('mailto:info@aktion-barrierefrei.de') }}"
+                           class="fw-semibold link-underline link-light">info@aktion-barrierefrei.de</a>
 
 
                     </div>
