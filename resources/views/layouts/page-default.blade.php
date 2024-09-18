@@ -43,6 +43,7 @@
 
 <x-site-partials.footers.default-footer/>
 
+{{--
 <!-- begin:Back to Top button -->
 <a href="{{ URL::asset('#') }}" class="toTop">
     <svg class="progress-circle" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -51,6 +52,7 @@
     <i class="bx bxs-up-arrow"></i>
 </a>
 <!-- begin:Back to Top button -->
+--}}
 
 
 <!-- scripts -->
