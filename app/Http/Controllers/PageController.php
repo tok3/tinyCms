@@ -10,7 +10,10 @@ use Facades\App\Domain\Render\RenderContent;
 use App\Models\MenuItem;
 use Spatie\Menu\Laravel\Menu;
 use Spatie\Menu\Link;
-
+use Carbon\Carbon;
+use Spatie\Sitemap\Sitemap;
+use Spatie\Sitemap\Tags\Url;
+use Spatie\Sitemap\SitemapGenerator;
 /**
  * Class PageController
  *
@@ -133,4 +136,12 @@ class PageController extends Controller
         return $menu;
     }
 
+
+
+    public function sitemap()
+    {
+        $path = public_path('sitemap.xml');
+        SitemapGenerator::create('https://aktion-barrierefrei.de')->writeToFile($path);
+
+    }
 }

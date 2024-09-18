@@ -65,6 +65,8 @@ Route::get('/dashboard/logout', function () {
 })->name('filament.dashboard.auth.logout');
 */
 
+// ---
+Route::get('sitemap/generate', [PageController::class, 'sitemap'])->name('generate-sitemap');
 
 // -----------------------------------------------
 
