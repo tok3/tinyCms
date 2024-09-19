@@ -37,7 +37,9 @@ Route::middleware('guest')->group(function () {
         ->name('password.store');
 });
 
+// when logged out
 
+//login.show
 // first verify email before first login
 Route::get('verify-email', EmailVerificationPromptController::class)
     ->name('verification.notice');

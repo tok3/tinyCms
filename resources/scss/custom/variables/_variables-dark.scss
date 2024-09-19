@@ -89,3 +89,5 @@ $accordion-button-active-icon-dark:  url("data:image/svg+xml,<svg xmlns='http://
 $bg-gradient-blur-dark:linear-gradient(180deg, rgba($black, 0.01), rgba($black, 1) 85%),radial-gradient(ellipse at top left, rgba($primary, 0.6), transparent 50%),radial-gradient(ellipse at top right, rgba($gradient-alt, 0.5), transparent 50%),radial-gradient(ellipse at center right, rgba($purple, 0.5), transparent 50%),radial-gradient(ellipse at center left, rgba($gradient-alt, 0.5), transparent 50%)!default;
 $bg-gradient-tint-dark:radial-gradient(200% 160% at 75% 130%,shade-color($gradient-alt,45%),shade-color($primary,75%)) !default;
 $bg-gradient-light-dark:radial-gradient( 200% 160% at 75% 130%, $black 0%, shade-color($gray-900,0%)100%) !default;
+
+$bg-faq-gradient:linear-gradient(98.24deg, #000000 0%, #1a1a1a 47.4%, #2b2b2b 100%)!default;

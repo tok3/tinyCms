@@ -4,7 +4,7 @@
         <div class="border-bottom">
             <div class="row py-5">
                 <div class="col-sm-5 col-md-4 mb-sm-0 text-sm-end">
-                    <div class="dropup d-table">
+                    <div class="dropup d-table" style="padding:0 !important;margin:0 !important;">
 
 
                         <img src="{{ URL::asset('assets/img/IHK-AB-1.png') }}"  alt="ihk-aschaffenburg" >
@@ -43,7 +43,7 @@ Die D-U-N-S Nummer wird von der Europäischen Kommission, den Vereinten Nationen
                     </div>
 
                     <x-site-partials.social-media-buttons/>
-                    {{--<x-partials.color-mode/>--}}
+                    <x-partials.color-mode/>
 
                 </div>
 

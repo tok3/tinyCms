@@ -7,6 +7,7 @@ body {
     hyphens: auto;
     word-break: break-word; /* Optional: Zeilenumbruch bei extrem langen Wörtern */
 }
+
 html, body {
     height: 100%;
     margin: 0;
@@ -26,41 +27,125 @@ footer {
     padding: 20px;
     text-align: center;
 }
+
+
+.bg-faq-gradient {
+    background: $bg-faq-gradient !important;
+}
+
+.line-maricon {
+    padding-bottom: 2px;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(108, 213, 246, 1) 0%, rgba(248, 157, 92, 1) 50%, rgba(91, 106, 240, 1) 100%);
+}
+
 /* Silbentrennung für ein bestimmtes Element deaktivieren */
 .no-hyphenation {
     hyphens: none !important;
 
 }
-.stepicon-valign{
+
+.stepicon-valign {
     margin-top: 0.28em;
 }
+
 /* Margin Top Klassen */
-.mt-60 { margin-top: 60px; }
-.mt-50 { margin-top: 50px; }
-.mt-40 { margin-top: 40px; }
-.mt-30 { margin-top: 30px; }
-.mt-20 { margin-top: 20px; }
-.mt-10 { margin-top: 10px; }
-.mt-0  { margin-top: 0px; }
-.mt--10 { margin-top: -10px; }
-.mt--20 { margin-top: -20px; }
-.mt--30 { margin-top: -30px; }
-.mt--40 { margin-top: -40px; }
-.mt--50 { margin-top: -50px; }
+.mt-60 {
+    margin-top: 60px;
+}
+
+.mt-50 {
+    margin-top: 50px;
+}
+
+.mt-40 {
+    margin-top: 40px;
+}
+
+.mt-30 {
+    margin-top: 30px;
+}
+
+.mt-20 {
+    margin-top: 20px;
+}
+
+.mt-10 {
+    margin-top: 10px;
+}
+
+.mt-0 {
+    margin-top: 0px;
+}
+
+.mt--10 {
+    margin-top: -10px;
+}
+
+.mt--20 {
+    margin-top: -20px;
+}
+
+.mt--30 {
+    margin-top: -30px;
+}
+
+.mt--40 {
+    margin-top: -40px;
+}
+
+.mt--50 {
+    margin-top: -50px;
+}
 
 /* Margin Bottom Klassen */
-.mb-60 { margin-bottom: 60px; }
-.mb-50 { margin-bottom: 50px; }
-.mb-40 { margin-bottom: 40px; }
-.mb-30 { margin-bottom: 30px; }
-.mb-20 { margin-bottom: 20px; }
-.mb-10 { margin-bottom: 10px; }
-.mb-0  { margin-bottom: 0px; }
-.mb--10 { margin-bottom: -10px; }
-.mb--20 { margin-bottom: -20px; }
-.mb--30 { margin-bottom: -30px; }
-.mb--40 { margin-bottom: -40px; }
-.mb--50 { margin-bottom: -50px; }
+.mb-60 {
+    margin-bottom: 60px;
+}
+
+.mb-50 {
+    margin-bottom: 50px;
+}
+
+.mb-40 {
+    margin-bottom: 40px;
+}
+
+.mb-30 {
+    margin-bottom: 30px;
+}
+
+.mb-20 {
+    margin-bottom: 20px;
+}
+
+.mb-10 {
+    margin-bottom: 10px;
+}
+
+.mb-0 {
+    margin-bottom: 0px;
+}
+
+.mb--10 {
+    margin-bottom: -10px;
+}
+
+.mb--20 {
+    margin-bottom: -20px;
+}
+
+.mb--30 {
+    margin-bottom: -30px;
+}
+
+.mb--40 {
+    margin-bottom: -40px;
+}
+
+.mb--50 {
+    margin-bottom: -50px;
+}
 
 /* Pastellfarbene Hintergrundfarben */
 .pastel-blue {

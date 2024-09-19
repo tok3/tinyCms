@@ -32,11 +32,30 @@
 <x-partials.preloader/>
 <x-site-partials.headers.default-header navbarType="{{$navbarType}}"/>
 
+<style>
+    /* Default light mode */
+    body {
+        background: linear-gradient(98.24deg, #FFFFFF 0%, #F9F9FF 47.4%, #EBECF7 100%);
+    }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+        body {
+            background: linear-gradient(98.24deg, #333333 0%, #444444 47.4%, #555555 100%);
+        }
+
+        .bg-linear-gradient {
+            background: linear-gradient(98.24deg, #333333 0%, #444444 47.4%, #555555 100%);
+        }
+    }
+</style>
+
+<div style="border:3px dotted green; height:100px; width:100px;" class="bg-linear-gradient">
+    HALLO
+</div>
 <!--begin:main content-->
 <main >
-
     {{ $slot }}
-
 </main>
 <!--end:main content-->
 
