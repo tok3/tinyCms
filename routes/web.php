@@ -66,7 +66,7 @@ Route::get('/dashboard/logout', function () {
 */
 
 // ---
-Route::get('sitemap/generate', [PageController::class, 'sitemap'])->name('generate-sitemap');
+Route::post('sitemap/generate', [PageController::class, 'sitemap'])->name('sitemap.generate');
 
 // -----------------------------------------------
 
