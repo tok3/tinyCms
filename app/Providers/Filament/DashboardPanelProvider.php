@@ -81,6 +81,7 @@ class DashboardPanelProvider extends PanelProvider
             ])
             ->navigationItems([
 
+
                 /*    NavigationItem::make('Firmendaten')
                         ->url('/'.$panel->getId().'/'.$tenant_id.'/companies/'.$tenant_id.'/edit', shouldOpenInNewTab: false)
                         ->icon('heroicon-o-newspaper')
