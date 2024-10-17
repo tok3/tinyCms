@@ -12,6 +12,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Forms\Components\Tabs;
 
 class CompanyResource extends Resource
 {
@@ -44,99 +45,87 @@ class CompanyResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Firmendetails')
-                    ->schema([
-                        FileUpload::make('logo_image')
-                            ->label('Firmenlogo')
-                            ->disk('public') // Spezifiziere den Disk, auf dem die Datei gespeichert werden soll
-                            ->directory('logo-images') // Spezifiziere das Verzeichnis innerhalb des Disks
-                            ->acceptedFileTypes(['image/*']) // Optional: Akzeptierte Dateitypen einschränken
-                            ->image() // Optional: Aktiviert eine Vorschau für Bild-Uploads
-                            ->storeFileNamesIn('logo_orig_filename')
-                            ->directory('logo-images'),
-                        Forms\Components\TextInput::make('name')
-                            ->label('Firmenname')
-                            ->maxLength(255)
-                            ->required()
-                            ->placeholder('Firmennamen eingeben'),
-                        \LaraZeus\Qr\Components\Qr::make('slug')
-                            // to open the designer as slide over instead of a modal
-                            ->asSlideOver()
+                Forms\Components\Tabs::make('Company Information')
+                    ->tabs([
+                        Forms\Components\Tabs\Tab::make('Firmendetails')
+                            ->schema([
+                                Forms\Components\Section::make('Firmendetails')
+                                    ->schema([
+                                        FileUpload::make('logo_image')
+                                            ->label('Firmenlogo')
+                                            ->disk('public')
+                                            ->directory('logo-images')
+                                            ->acceptedFileTypes(['image/*'])
+                                            ->image()
+                                            ->storeFileNamesIn('logo_orig_filename'),
 
-                            //you can set the column you want to save the QR design options, you must cast it to array in your model
-                            ->optionsColumn('string')
+                                        Forms\Components\TextInput::make('name')
+                                            ->label('Firmenname')
+                                            ->maxLength(255)
+                                            ->required()
+                                            ->placeholder('Firmennamen eingeben'),
 
-                            // set the icon for the QR action
-                            ->actionIcon('heroicon-s-building-library')
+                                        Forms\Components\TextInput::make('name_2')
+                                            ->label('Firmennamen 2')
+                                            ->maxLength(255)
+                                            ->nullable()
+                                            ->placeholder('Firmennamen 2'),
 
-                        // more options soon
-                        ,
+                                        Forms\Components\TextInput::make('str')
+                                            ->label('Straße')
+                                            ->maxLength(255)
+                                            ->placeholder('Straße eingeben'),
 
-                        Forms\Components\TextInput::make('name_2')
-                            ->label('Zusätzlicher Firmenname')
-                            ->maxLength(255)
-                            ->nullable()
-                            ->placeholder('Zusätzliche Firmennamen eingeben'),
+                                        Forms\Components\Grid::make(6)
+                                            ->schema([
+                                                Forms\Components\TextInput::make('plz')
+                                                    ->label('PLZ')
+                                                    ->numeric()
+                                                    ->maxLength(5)
+                                                    ->placeholder('12345')
+                                                    ->columnSpan(2),
 
-                        Forms\Components\TextInput::make('str')
-                            ->label('Straße')
-                            ->type('regex')
-                            ->maxLength(255)
-                            ->placeholder('Straße eingeben'),
+                                                Forms\Components\TextInput::make('ort')
+                                                    ->label('Ort')
+                                                    ->maxLength(255)
+                                                    ->placeholder('Ort eingeben')
+                                                    ->columnSpan(4),
+                                            ]),
 
-                        // PLZ kürzer als Ort
-                        Forms\Components\Grid::make(6) // Gesamtzahl der Spalten im Grid erhöhen für feinere Kontrolle
-                        ->schema([
-                            Forms\Components\TextInput::make('plz')
-                                ->label('PLZ')
-                                ->numeric()
-                                ->maxLength(5)
-                                ->placeholder('12345')
-                                ->columnSpan(2), // PLZ nimmt weniger Platz ein
+                                        Forms\Components\Grid::make(4)
+                                            ->schema([
+                                                Forms\Components\TextInput::make('fon')
+                                                    ->label('Telefon')
+                                                    ->tel()
+                                                    ->placeholder('Telefonnummer eingeben')
+                                                    ->columnSpan(2),
 
-                            Forms\Components\TextInput::make('ort')
-                                ->label('Ort')
-                                ->maxLength(255)
-                                ->placeholder('Ort eingeben')
-                                ->columnSpan(4), // Ort nimmt mehr Platz ein
-                        ]),
+                                                Forms\Components\TextInput::make('mobile')
+                                                    ->label('Mobil')
+                                                    ->tel()
+                                                    ->placeholder('Mobilnummer eingeben')
+                                                    ->columnSpan(2),
+                                            ]),
 
-                        // Telefon und Mobil in einer Reihe, gleich lang
-                        Forms\Components\Grid::make(4) // Anpassung der Spaltenanzahl für diese Zeile
-                        ->schema([
-                            Forms\Components\TextInput::make('fon')
-                                ->label('Telefon')
-                                ->tel()
-                                ->placeholder('Telefonnummer eingeben')
-                                ->columnSpan(2), // Nimmt die Hälfte der verfügbaren Breite ein
+                                        Forms\Components\Grid::make(4)
+                                            ->schema([
+                                                Forms\Components\TextInput::make('email')
+                                                    ->label('Email')
+                                                    ->email()
+                                                    ->maxLength(255)
+                                                    ->placeholder('E-Mail-Adresse eingeben')
+                                                    ->columnSpan(2),
 
-                            Forms\Components\TextInput::make('mobile')
-                                ->label('Mobil')
-                                ->tel()
-                                ->placeholder('Mobilnummer eingeben')
-                                ->columnSpan(2), // Nimmt die Hälfte der verfügbaren Breite ein
-                        ]),
-
-                        // Email und Webseite in einer Reihe, gleich lang
-                        Forms\Components\Grid::make(4) // Gleiche Spaltenanzahl wie bei Telefon/Mobil
-                        ->schema([
-                            Forms\Components\TextInput::make('email')
-                                ->label('Email')
-                                ->email()
-                                ->maxLength(255)
-                                ->placeholder('E-Mail-Adresse eingeben')
-                                ->columnSpan(2), // Nimmt die Hälfte der verfügbaren Breite ein
-
-                            Forms\Components\TextInput::make('web')
-                                ->label('Webseite')
-                                ->url()
-                                ->maxLength(255)
-                                ->placeholder('Webseiten-URL eingeben')
-                                ->columnSpan(2), // Nimmt die Hälfte der verfügbaren Breite ein
-                        ]),
-
+                                                Forms\Components\TextInput::make('web')
+                                                    ->label('Webseite')
+                                                    ->url()
+                                                    ->maxLength(255)
+                                                    ->placeholder('Webseiten-URL eingeben')
+                                                    ->columnSpan(2),
+                                            ]),
+                                    ]),
+                            ]),
                     ]),
-
             ]);
     }
 

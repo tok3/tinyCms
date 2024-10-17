@@ -9,7 +9,7 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'description', 'price', 'currency', 'payment_type', 'interval', 'active'
+        'name', 'description', 'price', 'currency', 'payment_type', 'interval', 'active','trial_period_days'
     ];
 
     // Accessor to get the price in a formatted way
@@ -19,10 +19,6 @@ class Product extends Model
     }
 
     // Mutator to set the price in integer format
-    public function setPriceAttribute($value)
-    {
-        $this->attributes['price'] = $value * 100; // Convert float price to integer (cents)
-    }
 
     public function getFormattedPriceAttribute($locale = "DE")
     {

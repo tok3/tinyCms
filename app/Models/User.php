@@ -17,9 +17,6 @@ use Illuminate\Support\Collection;
 
 use Filament\Facades\Filament;
 
-
-
-
 /**
  * Class User
  * @package YourNamespace

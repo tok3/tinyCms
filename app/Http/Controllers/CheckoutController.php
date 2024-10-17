@@ -8,128 +8,101 @@ use Mollie\Laravel\Facades\Mollie;
 use App\Models\User;
 use App\Models\Company;
 use App\Models\Subscription;
-
+use Faker\Factory as Faker;
+use GuzzleHttp\Client;
+use App\Models\TemporaryUserData;
 /**
  *
  */
 class CheckoutController extends Controller
 {
-    /**https://www.youtube.com/watch?v=fzZ9S2RxFPw&t=295s
-     * Handle the incoming request.
-     */
 
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     * @throws \Mollie\Api\Exceptions\ApiException
+     */
     public function preparePayment(Request $request)
     {
 
+
+        $payment = $this->firstPayment($request);
+
+        return redirect($payment->getCheckoutUrl(), 303);
+
+    }
+
+
+    /**
+     * @param $orderedProduct
+     * @return \Mollie\Api\Resources\Payment
+     * @throws \Mollie\Api\Exceptions\ApiException
+     */
+    private function firstPayment(Request $request)
+    {
+
+
         $orderedProduct = Product::where('id', $request->input('product_id'))->first();
 
+        $name = $request->input('user')['vorname'] . ' '.$request->input('user')['name'];
+        $email = $request->input('user')['email'];
+        $billingEmail = $request->input('company')['email'];
+
+        $customer = Mollie::api()->customers->create([
+            'name' => $name,
+            'email' => $email,
+        ]);
+
+        // Temporäre Daten in der Datenbank speichern
+        TemporaryUserData::create([
+            'mollie_customer_id' => $customer->id,
+            'user_data' => json_encode($request->input('user')),
+            'company_data' => json_encode($request->input('company')),
+        ]);
+
+        $price = $orderedProduct->price;
+        if($orderedProduct->trial_period_days > 0)
+        {
+            $price = 0.00;
+        }
+        // Zahlung erstellen
         $payment = Mollie::api()->payments->create([
             "amount" => [
                 "currency" => $orderedProduct->currency,
-                "value" => number_format($orderedProduct->pricehea / 100, 2, '.', '') // You must send the correct number of decimals, thus we enforce the use of strings
+                "value" => number_format($price / 100, 2, '.', '') // You must send the correct number of decimals, thus we enforce the use of strings
             ],
-            "description" => $orderedProduct->name,
-            "redirectUrl" => route('order.success'),
-            "webhookUrl" => route('ng-webhook'),
+            'customerId' => $customer->id,
+            'sequenceType' => 'first',
+            'billingEmail' => $billingEmail,
+            'description' => $orderedProduct->name,
+            'redirectUrl' => url('preise#step-4'),
+            'webhookUrl' => route('mollie.paymentWebhook'),
+            "method"      => ["creditcard","directdebit","sofort", "directdebit", "klarnapaylater", "ideal"],
             "metadata" => [
-                "order_id" => "12345",
+                "product_id" => $orderedProduct->id,
+                "customer_id" => $customer->id,
+                "company" =>$request->input('company')['name'],
             ],
         ]);
 
-        session()->put('pymentId', $payment->id);
 
-        // redirect customer to Mollie checkout page
-        return redirect($payment->getCheckoutUrl(), 303);
+        return $payment;
+
     }
+
 
     /**
-     * After the customer has completed the transaction,
-     * you can fetch, check and process the payment.
-     * This logic typically goes into the controller handling the inbound webhook request.
-     * See the webhook docs in /docs and on mollie.com for more information.
+     * email check auf uniqueness
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
-
-    public function handleWebhookNotification(Request $request)
+    public function checkEmail(Request $request)
     {
-        $paymentId = $request->input('id');
-
-
-        $payment = Mollie::api()->payments->get($paymentId);
-
-        \Log::info('Payment retrieved: ', (array) $payment);
-
-
-        // Zahlungsdaten in die subscriptions Tabelle einfügen
-        Subscription::create([
-            'name' => 'Subscription Name', // Beispiel: Name des Abonnements
-            'plan' => 'basic', // Beispiel: Plan des Abonnements
-            'owner_type' => $payment->metadata->owner->type, // Beispiel: Besitzer-Typ (z.B. User Modell)
-            'owner_id' => $payment->metadata->owner->id, // Beispiel: Besitzer-ID (z.B. User ID)
-            'next_plan' => null, // Optional
-            'quantity' => 1,
-            'tax_percentage' => 0.0000,
-            'ends_at' => null,
-            'trial_ends_at' => null,
-            'cycle_started_at' => now(),
-            'cycle_ends_at' => null,
-            'scheduled_order_item_id' => null,
-            'cp_object' => json_encode($payment), // Zahlungsdaten als JSON speichern
-        ]);
-
-
-
-        if ($payment->isPaid())
-        {
-            echo 'Payment received.';
-            // Do your thing ...
-        }
-        return response()->json(['message' => 'Payment saved successfully']);
+        $emailExists = User::where('email', $request->email)->exists();
+        return response()->json(['exists' => $emailExists]);
     }
 
-
-    public function success(Request $request)
-    {
-
-        $paymentId = session()->get('pymentId');
-
-        $payment = Mollie::api()->payments->get($paymentId);
-        // Zahlungsdaten in die subscriptions Tabelle einfügen
-
-        // Zahlungsinformationen ausgeben, um zu sehen, was da kommt
-        \Log::info('Payment retrieved: ', (array) $payment);
-
-        // Zahlungsdaten in die subscriptions Tabelle einfügen
-        Subscription::create([
-            'name' => 'Subscription Name', // Beispiel: Name des Abonnements
-            'plan' => 'basic', // Beispiel: Plan des Abonnements
-            'owner_type' => 'App\\Models\\User', // Beispiel: Besitzer-Typ (z.B. User Modell)
-            'owner_id' => 1, // Beispiel: Besitzer-ID (z.B. User ID)
-            'next_plan' => null, // Optional
-            'quantity' => 1,
-            'tax_percentage' => 0.0000,
-            'ends_at' => null,
-            'trial_ends_at' => null,
-            'cycle_started_at' => now(),
-            'cycle_ends_at' => null,
-            'scheduled_order_item_id' => null,
-            'cp_object' => json_encode($payment), // Zahlungsdaten als JSON speichern
-        ]);
-
-        echo "<pre>";
-        print_r($payment);
-        echo "</pre>";
-        if ($payment->isPaid())
-        {
-            echo 'Payment received.';
-            // Do your thing ...
-        }
-    }
-
-    public function cancel()
-    {
-
-        echo "canceled";
-    }
 
     /**
      * @param Request $request
@@ -144,20 +117,38 @@ class CheckoutController extends Controller
         return view('checkout', ['products' => $products]);
     }
 
-
-    // test mollie subsctiption with mollie cashier
-
-    public function newSubscription()
+    /**
+     * Produktdetails für die Checkout-Zusammenfassung im Smart Wizard abrufen
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getProductDetails(Request $request)
     {
+        // Produkt-ID aus der Session abrufen
+        $productId = $request->input('product_id');
 
+        if (!$productId) {
+            return response()->json(['error' => 'Kein Produkt ausgewählt.'], 400);
+        }
 
+        // Produktdetails anhand der Produkt-ID abrufen
+        $product = Product::find($productId);
 
+        if (!$product) {
+            return response()->json(['error' => 'Produkt nicht gefunden.'], 404);
+        }
 
-        $user = Company::find(2);
+        // Produktdaten für die Ausgabe vorbereiten
+        $productDetails = [
+            'name' => $product->name,
+            'description' => $product->description,
+            'formattedPrice' => number_format($product->price / 100, 2, ',', '.'), // Preis in € formatieren
+            'interval' => $product->interval,
+            'trial_period_days' => $product->trial_period_days
+        ];
 
-// Make sure to configure the 'premium' plan in config/cashier_plans.php
-        $result = $user->newSubscription('main', 'premium')->create();
+        // Rückgabe der Produktdetails als JSON
+        return response()->json($productDetails);
     }
-
 
 }

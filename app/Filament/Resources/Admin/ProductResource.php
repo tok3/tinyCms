@@ -29,9 +29,18 @@ class ProductResource extends Resource
                 Textarea::make('description')
                     ->nullable(),
                 TextInput::make('price')
+                    ->label('Preis')
+                    ->string()
                     ->required()
-                    ->numeric()
-                    ->label('Price'),
+                    ->afterStateHydrated(function ($set, $state) {
+                        // Show the price as euros in the form (from cents)
+                        $set('price', number_format($state / 100, 2, ',', '.'));
+                    })
+                    ->dehydrateStateUsing(function ($state) {
+                        // Before saving, convert euros back to cents
+                        return intval(str_replace(',', '.', str_replace('.', '', $state)) * 100);
+                    })
+                  ,
                 Select::make('currency')
                     ->options([
                         'USD' => 'USD',
@@ -41,6 +50,10 @@ class ProductResource extends Resource
                     ])
                     ->required()
                     ->label('Currency'),
+                TextInput::make('trial_period_days')
+                    ->required()
+                    ->numeric()
+                    ->label('Trial Period (Days)'),
                 Select::make('payment_type')
                     ->options([
                         'one_time' => 'One-time',
@@ -52,8 +65,8 @@ class ProductResource extends Resource
                     ->afterStateUpdated(fn ($state, callable $set) => $state === 'one_time' ? $set('interval', null) : null),
                 Select::make('interval')
                     ->options([
-                        'daily' => 'Daily',
-                        'weekly' => 'Weekly',
+                      /*  'daily' => 'Daily',
+                        'weekly' => 'Weekly',*/
                         'monthly' => 'Monthly',
                         'annual' => 'Annual',
                     ])
@@ -77,7 +90,7 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('formatted_price')
                     ->searchable()
                     ->label('Preis')
-                    ->formatStateUsing(fn (string $state) => $state . ' €') // Euro-Zeichen hinzufügen
+                    ->formatStateUsing(fn (string $state) => $state )
                     ->alignment(Alignment::End),
                 Tables\Columns\TextColumn::make('currency')
                     ->sortable()
