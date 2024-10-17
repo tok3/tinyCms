@@ -4,10 +4,12 @@ namespace App\Filament\Resources\Shared;
 
 use App\Filament\Resources\Pages;
 use App\Models\User;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Resources\Form;
 use Filament\Resources\Resource;
 use Filament\Resources\Table;
+use Filament\Support\Enums\Alignment;
 use Filament\Tables;
 
 class UserResource extends Resource
@@ -39,8 +41,37 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')->label('Name'),
-                Tables\Columns\TextColumn::make('email')->label('Email'),
+                Tables\Columns\TextColumn::make('companies.name') // Access companies via the pivot table
+                ->label('Companies')
+                    ->formatStateUsing(function ($state, User $record) {
+                        return $record->companies->pluck('name')->implode(', ');
+                    })
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Name'),
+                Tables\Columns\TextColumn::make('email')
+                    ->label('Email'),
+                Tables\Columns\TextColumn::make('email_verified_at')
+                    ->label('Email verifiziert')
+                    ->default('0000-00-00')
+                    ->formatStateUsing(function ($state) {
+                        // Prüfe, ob das Datum gültig ist, bevor es formatiert wird
+                        return ($state && Carbon::hasFormat($state, 'Y-m-d H:i:s'))
+                            ? Carbon::parse($state)->format('d.m.Y H:i')
+                            : 'n/a';
+                    })->alignment(Alignment::Center),
+
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Aktualisiert')
+                    ->formatStateUsing(fn($state) => Carbon::parse($state)
+                        ->format('d.m.Y H:i'))
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Erstellt')
+                    ->formatStateUsing(fn($state) => Carbon::parse($state)
+                        ->format('d.m.Y H:i'))
+                    ->sortable(),
             ])
             ->filters([
                 //
@@ -81,4 +112,12 @@ class UserResource extends Resource
     {
         return __('Users');
     }
+
+// In your UserResource
+
+    /*public static function query(): Builder
+    {
+        return parent::query()->with('company');
+    }*/
+
 }

@@ -12,7 +12,9 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        'webhooks/mollie/first-payment',
+        'webhooks/mollie',
+        'mollie/payment',
+        'mollie/subscription',
         'upload-image',
     ];
 }

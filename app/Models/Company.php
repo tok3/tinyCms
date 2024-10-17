@@ -6,10 +6,9 @@ use App\Helpers\QrPromoHelper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-use Laravel\Cashier\Billable;
 class Company extends Model
 {
-    use HasFactory, Sluggable, Billable;
+    use HasFactory, Sluggable;
 
     protected $fillable = [
         'name',
@@ -51,11 +50,47 @@ class Company extends Model
 
 
     }
-/*    public function users(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class);
-    }*/
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function mollieCustomer()
+    {
+        return $this->hasOne(MollieCustomer::class, 'model_id');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+
+    public function subscription()
+    {
+        return $this->hasOneThrough(
+            MollieSubscription::class,
+            MollieCustomer::class,
+            'model_id',       // Foreign key on MollieCustomer table
+            'customer_id',    // Foreign key on MollieSubscription table
+            'id',             // Local key on Company table
+            'mollie_customer_id'  // Local key on MollieCustomer table
+        )->where('mollie_customers.model_type', Company::class);
+    }
+
+    // In Company.php (Company Model)
+    public function subscriptions()
+    {
+        return $this->hasManyThrough(
+            MollieSubscription::class,
+            MollieCustomer::class,
+            'model_id',         // Foreign key on MollieCustomer table
+            'customer_id',      // Foreign key on MollieSubscription table
+            'id',               // Local key on Company table
+            'mollie_customer_id' // Local key on MollieCustomer table
+        )->where('mollie_customers.model_type', Company::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
     public function users()
     {
         return $this->belongsToMany(User::class, 'company_user');
@@ -86,24 +121,5 @@ class Company extends Model
         return $this->belongsTo(Company::class,'id');
     }
 
-    /**
-     * Get the receiver information for the invoice.
-     * Typically includes the name and some sort of (E-mail/physical) address.
-     *
-     * @return array An array of strings
-     */
-    public function getInvoiceInformation()
-    {
-        return [$this->name, $this->email];
-    }
 
-    /**
-     * Get additional information to be displayed on the invoice. Typically a note provided by the customer.
-     *
-     * @return string|null
-     */
-    public function getExtraBillingInformation()
-    {
-        return null;
-    }
 }

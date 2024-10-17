@@ -10,6 +10,10 @@ class EditCompany extends EditRecord
 {
     protected static string $resource = CompanyResource::class;
 
+    public function getTitle(): string
+    {
+        return 'Firmendaten bearbeiten ';
+    }
     protected function getHeaderActions(): array
     {
         if (auth()->user()->is_admin != 1)

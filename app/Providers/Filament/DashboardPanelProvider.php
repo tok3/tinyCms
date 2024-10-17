@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Resources\Admin\MollieSubscriptionResource;
 use Filament\Facades\Filament;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -31,25 +32,32 @@ class DashboardPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
 
-        $tenant_id =  \Request::segment(2);
+        $tenant_id = \Request::segment(2);
 
-         $panel->id('dashboard')
+        $panel->id('dashboard')
             ->path('dashboard')
-             ->profile()
+            ->profile()
             ->tenant(Company::class)
             ->login()
-             ->plugin(new MinimalTheme())
-             ->viteTheme(['resources/css/app.css','resources/css/filament/admin/theme.css'])
-             ->colors(MinimalTheme::getColors())
-             ->icons(MinimalTheme::getIcons())
-             ->sidebarCollapsibleOnDesktop()
-             ->sidebarWidth('15rem')
+            ->plugin(new MinimalTheme())
+            ->viteTheme(['resources/css/app.css', 'resources/css/filament/admin/theme.css'])
+            ->colors(MinimalTheme::getColors())
+            ->icons(MinimalTheme::getIcons())
+            ->sidebarCollapsibleOnDesktop()
+            ->sidebarWidth('15rem')
             //->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverResources(in: app_path('Filament/Resources/User'), for: 'App\\Filament\\Resources\\User')
             ->discoverResources(in: app_path('Filament/Resources/Shared'), for: 'App\\Filament\\Resources\\Shared')
             ->discoverPages(in: app_path('Filament/Dashboard/Pages'), for: 'App\\Filament\\Dashboard\\Pages')
             ->pages([
                 Pages\Dashboard::class,
+
+                 ])
+            ->resources([
+
+                MollieSubscriptionResource::class,
+
+                // Weitere Ressourcen können hier hinzugefügt werden
             ])
 //            ->discoverWidgets(in: app_path('Filament/Dashboard/Widgets'), for: 'App\\Filament\\Dashboard\\Widgets')
             ->widgets([
@@ -71,15 +79,15 @@ class DashboardPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
-             ->navigationItems([
+            ->navigationItems([
 
-            /*    NavigationItem::make('Firmendaten')
-                    ->url('/'.$panel->getId().'/'.$tenant_id.'/companies/'.$tenant_id.'/edit', shouldOpenInNewTab: false)
-                    ->icon('heroicon-o-newspaper')
-                    ->sort(3),
-*/
-               /*  NavigationItem::make('Analytics')
-                     ->visible(fn(): bool => auth()->user()->can('view-analytics')),*/
+                /*    NavigationItem::make('Firmendaten')
+                        ->url('/'.$panel->getId().'/'.$tenant_id.'/companies/'.$tenant_id.'/edit', shouldOpenInNewTab: false)
+                        ->icon('heroicon-o-newspaper')
+                        ->sort(3),
+    */
+                /*  NavigationItem::make('Analytics')
+                      ->visible(fn(): bool => auth()->user()->can('view-analytics')),*/
                 // ...
             ]);
 
