@@ -2,7 +2,6 @@
 @php
     // Hole das ausgewählte Produkt aus der Session
     $selectedProductId = session('selected_product_id');
-    $selectedProductId = 1;
     $selectedProduct = $products->firstWhere('id', $selectedProductId);
 @endphp
 
