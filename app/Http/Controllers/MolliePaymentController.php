@@ -309,6 +309,8 @@ class MolliePaymentController extends Controller
         switch ($product->interval) {
             case 'daily':
                 return now()->addDay()->toDateString();
+            case 'weekly':
+                return now()->addWeek()->toDateString();
             case 'monthly':
                 return now()->addMonth()->toDateString();
             case 'annual':
