@@ -109,7 +109,7 @@ $(document).ready(function () {
                     type: 'GET',
                     data: { product_id: selectedProductId },
                     success: function(response) {
-
+alert('-->'+product_id);
                         console.log(response.name);
 
                         $('#product-name').text(response.name);
