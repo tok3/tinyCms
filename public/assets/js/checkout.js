@@ -130,7 +130,6 @@ $(document).ready(function () {
                         $('#payment-modality').html(paymentModality[response.interval]);
 
 
-                        console.log('response->'+responce);
                         if (response.trial_period_days > 0) {
                             var trialEnddate = addDaysToDate(response.trial_period_days);
 
