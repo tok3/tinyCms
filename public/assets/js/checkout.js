@@ -101,19 +101,14 @@ $(document).ready(function () {
             // Lade das ausgewählte Produkt aus der Session oder einem Input-Feld
             var selectedProductId = sessionStorage.getItem('selectedProductId');
 
-            alert(selectedProductId);
             if (selectedProductId) {
+
                 // Wenn das Produkt geladen werden kann, Produktinformationen dynamisch aktualisieren
-                alert('-->'+selectedProductId);
-
-
                 $.ajax({
                     url: '/get-product-details', // Route zum Abrufen der Produktdetails
                     type: 'GET',
                     data: { product_id: selectedProductId },
                     success: function(response) {
-                        console.log(response.name);
-                        console.log(response.interval);
 
                         $('#product-name').text(response.name);
                         $('#product-description').text(response.description);
@@ -128,13 +123,13 @@ $(document).ready(function () {
                         };
 
 
-                        console.log(paymentModality[response.interval]);
                         $('#payment-modality').html(paymentModality[response.interval]);
 
 
                         if (response.trial_period_days > 0) {
-                            console.log(response.trial_period_days);
+
                             var trialEnddate = addDaysToDate(response.trial_period_days);
+
                             $('#trial-period-row').show();
                             $('#product-trial-period').text(response.trial_period_days + ' Tage kostenlose Testphase');
                             $('#trial-period-ends').html(trialEnddate);
@@ -143,7 +138,7 @@ $(document).ready(function () {
                         }
                     },
                     error: function(xhr) {
-                   alert('kein succcess')
+
                         console.log(xhr.responseText);
                     }
                 });
