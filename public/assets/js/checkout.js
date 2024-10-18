@@ -113,6 +113,7 @@ $(document).ready(function () {
                     data: { product_id: selectedProductId },
                     success: function(response) {
                         console.log(response.name);
+                        console.log(response.interval);
 
                         $('#product-name').text(response.name);
                         $('#product-description').text(response.description);
