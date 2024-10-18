@@ -2,7 +2,7 @@
 @php
     // Hole das ausgewählte Produkt aus der Session
     $selectedProductId = session('selected_product_id');
-    $selectedProductId = 1;
+    $selectedProductId = 10;
     $selectedProduct = $products->firstWhere('id', $selectedProductId);
 @endphp
 
@@ -50,6 +50,7 @@
                 <td class="align-text-top">Preis:&nbsp</td>
                 <td><strong class="total-price">{{$selectedProduct->formattedPrice}} €</strong> <small id="payment-modality">{!!  $paymentModality[$selectedProduct->interval]!!}</small></td>
             </tr>
+            -->{{$selectedProduct->trial_period_days}}
             @if($selectedProduct->trial_period_days > 0)
                 <tr id="trial-period-row">
                     <td class="align-text-top text-right text-danger" style="text-align: right !important;"><i class="bi bi-info-circle"></i>&nbsp;</td>
