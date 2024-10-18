@@ -133,8 +133,8 @@ $(document).ready(function () {
 
 
                         if (response.trial_period_days > 0) {
+                            console.log(response.trial_period_days);
                             var trialEnddate = addDaysToDate(response.trial_period_days);
-
                             $('#trial-period-row').show();
                             $('#product-trial-period').text(response.trial_period_days + ' Tage kostenlose Testphase');
                             $('#trial-period-ends').html(trialEnddate);
