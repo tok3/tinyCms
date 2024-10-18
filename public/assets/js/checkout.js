@@ -126,10 +126,10 @@ $(document).ready(function () {
                         $('#payment-modality').html(paymentModality[response.interval]);
 
 
-
+                        alert();
                         if (response.trial_period_days > 0) {
                             var trialEnddate = addDaysToDate(response.trial_period_days);
-                        alert(trialEnddate);
+
                             $('#trial-period-row').show();
                             $('#product-trial-period').text(response.trial_period_days + ' Tage kostenlose Testphase');
                             $('#trial-period-ends').html(trialEnddate);
