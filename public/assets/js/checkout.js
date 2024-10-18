@@ -101,6 +101,7 @@ $(document).ready(function () {
             // Lade das ausgewählte Produkt aus der Session oder einem Input-Feld
             var selectedProductId = sessionStorage.getItem('selectedProductId');
 
+            alert(selectedProductId);
             if (selectedProductId) {
                 // Wenn das Produkt geladen werden kann, Produktinformationen dynamisch aktualisieren
                 $.ajax({
