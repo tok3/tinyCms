@@ -14,6 +14,7 @@ class VerifyCsrfToken extends Middleware
     protected $except = [
         'webhooks/mollie',
         'mollie/payment',
+        'get-product-details',
         'mollie/subscription',
         'upload-image',
         'storeReferrer',

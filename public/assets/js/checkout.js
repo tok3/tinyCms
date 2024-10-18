@@ -101,15 +101,19 @@ $(document).ready(function () {
             // Lade das ausgewählte Produkt aus der Session oder einem Input-Feld
             var selectedProductId = sessionStorage.getItem('selectedProductId');
 
+            alert(selectedProductId);
             if (selectedProductId) {
                 // Wenn das Produkt geladen werden kann, Produktinformationen dynamisch aktualisieren
+                alert('-->'+selectedProductId);
+
+
                 $.ajax({
                     url: '/get-product-details', // Route zum Abrufen der Produktdetails
                     type: 'GET',
                     data: { product_id: selectedProductId },
                     success: function(response) {
-
                         console.log(response.name);
+                        console.log(response.interval);
 
                         $('#product-name').text(response.name);
                         $('#product-description').text(response.description);
@@ -117,16 +121,19 @@ $(document).ready(function () {
 
                         // Definiere das paymentModality-Objekt in JavaScript
                         const paymentModality = {
-                            daily: "pro Tag </br>bei Monatlicher Zahlung",
-                            annual: "pro Jahr </br>bei jährlicher Zahlung",
-                            monthly: "pro Monat </br>bei Monatlicher Zahlung"
+                            "weekly": "pro Woche </br>bei Monatlicher Zahlung",
+                            "daily": "pro Tag </br>bei Monatlicher Zahlung",
+                            "annual": "pro Jahr </br>bei jährlicher Zahlung",
+                            "monthly": "pro Monat </br>bei Monatlicher Zahlung"
                         };
 
+
+                        console.log(paymentModality[response.interval]);
                         $('#payment-modality').html(paymentModality[response.interval]);
 
 
-
                         if (response.trial_period_days > 0) {
+                            console.log(response.trial_period_days);
                             var trialEnddate = addDaysToDate(response.trial_period_days);
                             $('#trial-period-row').show();
                             $('#product-trial-period').text(response.trial_period_days + ' Tage kostenlose Testphase');
@@ -136,6 +143,7 @@ $(document).ready(function () {
                         }
                     },
                     error: function(xhr) {
+                   alert('kein succcess')
                         console.log(xhr.responseText);
                     }
                 });
