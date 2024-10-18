@@ -16,5 +16,7 @@ class VerifyCsrfToken extends Middleware
         'mollie/payment',
         'mollie/subscription',
         'upload-image',
+        'storeReferrer',
+        'storeDownloadReferrer',
     ];
 }
