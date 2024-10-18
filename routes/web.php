@@ -9,6 +9,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ImageUploadController;
+use App\Http\Controllers\ReferrerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,6 +67,10 @@ Route::get('/dashboard/logout', function () {
 */
 
 // ---
+
+Route::post('storeReferrer', [ReferrerController::class, 'storeReferrer'])->name('storeReferrer');
+Route::post('storeDownloadReferrer', [ReferrerController::class, 'storeDownloadReferrer'])->name('storeDownloadReferrer');
+
 Route::post('sitemap/generate', [PageController::class, 'sitemap'])->name('sitemap.generate');
 
 // -----------------------------------------------
