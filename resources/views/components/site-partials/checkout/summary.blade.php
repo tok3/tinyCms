@@ -50,13 +50,10 @@
                 <td class="align-text-top">Preis:&nbsp</td>
                 <td><strong class="total-price">{{$selectedProduct->formattedPrice}} €</strong> <small id="payment-modality">{!!  $paymentModality[$selectedProduct->interval]!!}</small></td>
             </tr>
-            -->{{$selectedProduct->trial_period_days}}
-            @if($selectedProduct->trial_period_days > 0)
                 <tr id="trial-period-row">
                     <td class="align-text-top text-right text-danger" style="text-align: right !important;"><i class="bi bi-info-circle"></i>&nbsp;</td>
                     <td class=" text-danger small"><strong id="product-trial-period">{{$selectedProduct->trial_period_days}} Tage kostenlose Testphase</strong>, Sie zahlen heute <strong>0,00 €</strong>, nutzen sie das Produkt über die Testphase hinaus, stellen wir Ihnen den Betrag von <strong class="total-price">placeholder</strong> am <span id="trial-period-ends">%trial-period-ends%</span> in Rechnung.</td>
                 </tr>
-            @endif
 
             </tbody>
         </table>
