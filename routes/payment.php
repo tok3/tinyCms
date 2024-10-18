@@ -19,7 +19,7 @@ Route::get('/subscriptiontest', [CheckoutController::class, 'subscriptiontest'])
 
 Route::post('/check-email', [CheckoutController::class, 'checkEmail']);
 
-Route::get('/get-product-details', [CheckoutController::class, 'getProductDetails']);
+//Route::get('/get-product-details', [CheckoutController::class, 'getProductDetails']);
 //
 Route::get('/mollie/payment/test', [MolliePaymentController::class, 'test']);
 
