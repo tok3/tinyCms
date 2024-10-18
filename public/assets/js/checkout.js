@@ -117,6 +117,7 @@ $(document).ready(function () {
 
                         // Definiere das paymentModality-Objekt in JavaScript
                         const paymentModality = {
+                            weekly: "pro Woche </br>bei Monatlicher Zahlung",
                             daily: "pro Tag </br>bei Monatlicher Zahlung",
                             annual: "pro Jahr </br>bei jährlicher Zahlung",
                             monthly: "pro Monat </br>bei Monatlicher Zahlung"
@@ -128,6 +129,7 @@ $(document).ready(function () {
 
                         if (response.trial_period_days > 0) {
                             var trialEnddate = addDaysToDate(response.trial_period_days);
+                        alert(trialEnddate);
                             $('#trial-period-row').show();
                             $('#product-trial-period').text(response.trial_period_days + ' Tage kostenlose Testphase');
                             $('#trial-period-ends').html(trialEnddate);
