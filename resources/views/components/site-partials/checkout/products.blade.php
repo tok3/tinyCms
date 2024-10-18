@@ -1,7 +1,7 @@
 
 @php
-    $paymentModality['daily'] ="pro Tag </br>bei Monatlicher Zahlung";
-        $paymentModality['weekly'] ="pro Woche </br>bei Monatlicher Zahlung";
+    $paymentModality['daily'] ="pro Tag </br>bei Täglicher Abbuchung";
+        $paymentModality['weekly'] ="pro Woche </br>bei Wöchentlicher Abbuchung";
 
         $paymentModality['annual'] ="pro Jahr </br>bei jährlicher Zahlung";
         $paymentModality['monthly'] ="pro Monat </br>bei Monatlicher Zahlung";

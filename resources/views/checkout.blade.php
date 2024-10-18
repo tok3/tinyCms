@@ -53,8 +53,7 @@
              style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; overflow: hidden; z-index: -100; clip-path: polygon(0px 0px, 100% 0px, 100% 100%, 0px 100%);"></div>
     </section>
 
-
-    <section class="py-5 overflow-hidden ">
+    <section class="py-5 overflow-hidden">
         <div class="container py-9 py-lg-11 position-relative z-1" id="smartWizzardContainer">
             <div class="row pb-5 align-items-start">
 
