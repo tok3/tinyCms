@@ -121,12 +121,14 @@ $(document).ready(function () {
 
                         // Definiere das paymentModality-Objekt in JavaScript
                         const paymentModality = {
-                            weekly: "pro Woche </br>bei Monatlicher Zahlung",
-                            daily: "pro Tag </br>bei Monatlicher Zahlung",
-                            annual: "pro Jahr </br>bei jährlicher Zahlung",
-                            monthly: "pro Monat </br>bei Monatlicher Zahlung"
+                            "weekly": "pro Woche </br>bei Monatlicher Zahlung",
+                            "daily": "pro Tag </br>bei Monatlicher Zahlung",
+                            "annual": "pro Jahr </br>bei jährlicher Zahlung",
+                            "monthly": "pro Monat </br>bei Monatlicher Zahlung"
                         };
 
+
+                        console.log(paymentModality[response.interval]);
                         $('#payment-modality').html(paymentModality[response.interval]);
 
 
