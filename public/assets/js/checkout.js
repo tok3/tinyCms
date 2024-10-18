@@ -104,7 +104,8 @@ $(document).ready(function () {
             alert(selectedProductId);
             if (selectedProductId) {
                 // Wenn das Produkt geladen werden kann, Produktinformationen dynamisch aktualisieren
-                alert('-->'+product_id);
+                alert('-->'+selectedProductId);
+
 
                 $.ajax({
                     url: '/get-product-details', // Route zum Abrufen der Produktdetails
