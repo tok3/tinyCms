@@ -65,8 +65,8 @@ class ProductResource extends Resource
                     ->afterStateUpdated(fn ($state, callable $set) => $state === 'one_time' ? $set('interval', null) : null),
                 Select::make('interval')
                     ->options([
-                      /*  'daily' => 'Daily',
-                        'weekly' => 'Weekly',*/
+                        'daily' => 'Daily',
+                        'weekly' => 'Weekly',
                         'monthly' => 'Monthly',
                         'annual' => 'Annual',
                     ])

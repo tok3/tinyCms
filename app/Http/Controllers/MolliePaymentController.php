@@ -218,9 +218,10 @@ class MolliePaymentController extends Controller
                     break;
                 }
             }
-            $intervals['monthly'] = '1 month';
             $intervals['daily'] = '1 day';
-            $intervals['annual'] = '12 month';
+            $intervals['weekly'] = '1 week';
+            $intervals['monthly'] = '1 month';
+            $intervals['annual'] = '12 months';
 
 
           $startDate = $this->getStartDate($product);
