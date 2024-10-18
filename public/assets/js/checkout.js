@@ -104,12 +104,13 @@ $(document).ready(function () {
             alert(selectedProductId);
             if (selectedProductId) {
                 // Wenn das Produkt geladen werden kann, Produktinformationen dynamisch aktualisieren
+                alert('-->'+product_id);
+
                 $.ajax({
                     url: '/get-product-details', // Route zum Abrufen der Produktdetails
                     type: 'GET',
                     data: { product_id: selectedProductId },
                     success: function(response) {
-alert('-->'+product_id);
                         console.log(response.name);
 
                         $('#product-name').text(response.name);
@@ -139,6 +140,7 @@ alert('-->'+product_id);
                         }
                     },
                     error: function(xhr) {
+                   alert('kein succcess')
                         console.log(xhr.responseText);
                     }
                 });
