@@ -137,7 +137,9 @@ class MolliePaymentController extends Controller
 
         // Rufe die Zahlung über Mollie API ab
         $payment = Mollie::api()->payments->get($paymentId);
-
+        \Log::info('<---------------------------------->');
+        \Log::info('Payment: ' .$request->id.' -> '. json_encode($payment, JSON_PRETTY_PRINT));
+        \Log::info('<---------------------------------->');
         // Decode metadata from the payment object
         $metadata = $payment->metadata; // Decode the metadata
 
