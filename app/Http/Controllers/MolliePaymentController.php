@@ -332,7 +332,11 @@ class MolliePaymentController extends Controller
 
         // Rufe die Subscription über Mollie API ab
         $subscription = Mollie::api()->subscriptions()->get($subscriptionId);
-        //\Log::info('Subscription From Webhook: ' . json_encode($subscription, JSON_PRETTY_PRINT));
+
+        \Log::info('<---------------------------------->');
+        \Log::info('Subscription From Webhook: ' . json_encode($subscription, JSON_PRETTY_PRINT));
+        \Log::info('<---------------------------------->');
+
         // Aktualisiere oder speichere die Subscription in der Datenbank
         MollieSubscription::updateOrCreate(
             ['subscription_id' => $subscription->id],
