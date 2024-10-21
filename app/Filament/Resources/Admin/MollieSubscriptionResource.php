@@ -20,6 +20,10 @@ use Filament\Forms\Components\Card;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Grid;
 use GuzzleHttp\Client;
+use Filament\Tables\Actions\Action;
+use Mollie\Laravel\Facades\Mollie;
+use Filament\Notifications\Notification;
+
 class MollieSubscriptionResource extends Resource
 {
     protected static ?string $model = MollieSubscription::class;
@@ -225,7 +229,54 @@ class MollieSubscriptionResource extends Resource
                 //
             ])
             ->actions([
-             /*   Tables\Actions\EditAction::make(),*/
+                // Hier fügst du die benutzerdefinierte "Delete Subscription" Aktion hinzu
+                Action::make('deleteSubscription')
+                    ->label('Subscription kündigen')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->action(function (MollieSubscription $record) {
+                        try {
+                            // Guzzle-Client initialisieren
+                            $client = new Client();
+
+                            // API-Endpunkt für die Subscription-Stornierung
+                            $url = "https://api.mollie.com/v2/customers/{$record->customer_id}/subscriptions/{$record->subscription_id}";
+
+                            // Authentifizierungstoken von Mollie
+                            $apiKey = config('mollie.key'); // Stelle sicher, dass du den API-Schlüssel in deiner mollie config hast
+
+                            // Anfrage an Mollie senden, um die Subscription zu kündigen
+                            $response = $client->request('DELETE', $url, [
+                                'headers' => [
+                                    'Authorization' => 'Bearer ' . $apiKey,
+                                    'Accept'        => 'application/json',
+                                ]
+                            ]);
+
+                            // Überprüfung auf erfolgreiche Anfrage
+                            if ($response->getStatusCode() === 204) {
+                                // Optional: Setze den Status in der Datenbank, um die Kündigung zu vermerken
+                                $record->update(['status' => 'canceled']);
+
+                                // Rückmeldung an den Benutzer
+                                Notification::make()
+                                    ->title('Subscription erfolgreich gekündigt')
+                                    ->success()
+                                    ->send();
+                            } else {
+                                throw new \Exception('Fehler bei der Anfrage: ' . $response->getBody()->getContents());
+                            }
+
+                        } catch (\Exception $e) {
+                            Notification::make()
+                                ->title('Fehler beim Kündigen der Subscription')
+                                ->danger()
+                                ->body($e->getMessage())
+                                ->send();
+                        }
+                    }),
+
+
             ])
             ->bulkActions([
              /*   Tables\Actions\BulkActionGroup::make([

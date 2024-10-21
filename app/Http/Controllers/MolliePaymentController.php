@@ -237,9 +237,10 @@ class MolliePaymentController extends Controller
                         'value' => number_format($product->price / 100, 2, '.', '')  // Betrag der Subscription
                     ],
                     'interval' => $intervals[$product->interval], // Intervall für wiederkehrende Zahlungen
-                    'description' => $product->name . ' ' . $product->dscription,
+                    'description' => $product->name . ' ' . $product->description, // Korrigierte Beschreibung
                     'startDate' => $startDate, // Startdatum der ersten Abonnementzahlung
-                    'webhookUrl' => route('mollie.subscriptionWebhook'), // Webhook URL für Subscription-Events
+                  //  'webhookUrl' => route('mollie.subscriptionWebhook'), // Webhook URL für Subscription-Events
+                    'webhookUrl' => route('mollie.paymentWebhook'),
                     'metadata' => [
                         'order_id' => str_pad(mt_rand(0, 99999), 5, '0', STR_PAD_LEFT) // Hier kannst du zusätzliche Metadaten hinzufügen
                     ],
