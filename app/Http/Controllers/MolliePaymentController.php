@@ -127,8 +127,10 @@ class MolliePaymentController extends Controller
      */
     public function handlePaymentNotification(Request $request)
     {
+        \Log::info('<---------------------------------->');
+        \Log::info('Payment Webhook: ' .$request->id.' -> '. json_encode($request->json()->all(), JSON_PRETTY_PRINT));
+        \Log::info('<---------------------------------->');
 
-        //\Log::info($request->id . __FILE__ . ' COMPLETE REQUEST: ' . json_encode($request->json()->all(), JSON_PRETTY_PRINT));
         // Erhalte die Payment-ID aus dem Webhook-Request
 
         $paymentId = $request->id;
@@ -203,12 +205,11 @@ class MolliePaymentController extends Controller
             $customerId = $payment->customerId;
 
             // Hole den Kunden anhand der Customer ID
-
-            //     $customer = Mollie::api()->customers->get($customerId);
-            //  $mandates = Mollie::api()->mandates->listFor($customer);
             $mandates = $this->getMandates($customerId);
+
             // Überprüfe, ob ein gültiges Mandat vorhanden ist
             $hasValidMandate = false;
+
             //\Log::info('MANDATE: ' . json_encode($mandates, JSON_PRETTY_PRINT));
             foreach ($mandates['_embedded']['mandates'] as $mandate)
             {
@@ -334,8 +335,9 @@ class MolliePaymentController extends Controller
         $subscription = Mollie::api()->subscriptions()->get($subscriptionId);
 
         \Log::info('<---------------------------------->');
-        \Log::info('Subscription From Webhook: ' . json_encode($subscription, JSON_PRETTY_PRINT));
+        \Log::info('Subscription Webhook: ' .$request->id.' -> '. json_encode($request->json()->all(), JSON_PRETTY_PRINT));
         \Log::info('<---------------------------------->');
+
 
         // Aktualisiere oder speichere die Subscription in der Datenbank
         MollieSubscription::updateOrCreate(
