@@ -349,6 +349,11 @@ class MolliePaymentController extends Controller
     }
 
 
+    /** sync subscriptions in local database
+     *
+     * @param $mollieSubscriptionResponse
+     * @return true
+     */
     private function syncLocalSubscription($mollieSubscriptionResponse){
 
         // Aktualisiere oder speichere die Subscription in der Datenbank
