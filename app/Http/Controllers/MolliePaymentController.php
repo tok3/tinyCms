@@ -23,16 +23,18 @@ class MolliePaymentController extends Controller
     public function test()
     {
 
-$subscriptionId = 'sub_B9HwzdPLVt';
-$customerId = 'cst_PXwmRFVnJr';
+        $subscriptionId = 'sub_duoJE78NZG';
+        $customerId = 'cst_2WvW4LzTNE';
         $subscription = $this->getMollieSubscription($subscriptionId, $customerId);
-
         echo "<pre>";
         print_r($subscription);
         echo "</pre>";
-
-         /// user register test
-
+        $this->updateSubscriptionAmount($subscriptionId, $customerId, '19.45');
+        /// user register test
+        $subscription = $this->getMollieSubscription($subscriptionId, $customerId);
+        echo "<pre>";
+        print_r($subscription);
+        echo "</pre>";
         // Benutzer registrieren und in der Datenbank speichern
         // Erstelle einen Faker-Instanz
         $faker = Faker::create();
@@ -143,7 +145,7 @@ $customerId = 'cst_PXwmRFVnJr';
     public function handlePaymentNotification(Request $request)
     {
         \Log::info('<---------------------------------->');
-        \Log::info('Payment Webhook: ' .$request->id.' -> '. json_encode($request->json()->all(), JSON_PRETTY_PRINT));
+        \Log::info('Payment Webhook: ' . $request->id . ' -> ' . json_encode($request->json()->all(), JSON_PRETTY_PRINT));
         \Log::info('<---------------------------------->');
 
         // Erhalte die Payment-ID aus dem Webhook-Request
@@ -153,7 +155,7 @@ $customerId = 'cst_PXwmRFVnJr';
         // Rufe die Zahlung über Mollie API ab
         $payment = Mollie::api()->payments->get($paymentId);
         \Log::info('<---------------------------------->');
-        \Log::info('Payment: ' .$request->id.' -> '. json_encode($payment, JSON_PRETTY_PRINT));
+        \Log::info('Payment: ' . $request->id . ' -> ' . json_encode($payment, JSON_PRETTY_PRINT));
         \Log::info('<---------------------------------->');
         // Decode metadata from the payment object
         $metadata = $payment->metadata; // Decode the metadata
@@ -209,7 +211,6 @@ $customerId = 'cst_PXwmRFVnJr';
         );
 
 
-
         // firma und useraccount für firma initiieren
         $this->initCompanyAccount($payment->customerId);
 
@@ -242,7 +243,7 @@ $customerId = 'cst_PXwmRFVnJr';
             $intervals['annual'] = '12 months';
 
 
-          $startDate = $this->getStartDate($product);
+            $startDate = $this->getStartDate($product);
 
             if ($hasValidMandate)
             {
@@ -256,57 +257,37 @@ $customerId = 'cst_PXwmRFVnJr';
                     'interval' => $intervals[$product->interval], // Intervall für wiederkehrende Zahlungen
                     'description' => $product->name . ' ' . $product->description, // Korrigierte Beschreibung
                     'startDate' => $startDate, // Startdatum der ersten Abonnementzahlung
-                  //  'webhookUrl' => route('mollie.subscriptionWebhook'), // Webhook URL für Subscription-Events
+                    //  'webhookUrl' => route('mollie.subscriptionWebhook'), // Webhook URL für Subscription-Events
                     'webhookUrl' => route('mollie.paymentWebhook'),
                     'metadata' => [
                         'order_id' => str_pad(mt_rand(0, 99999), 5, '0', STR_PAD_LEFT) // Hier kannst du zusätzliche Metadaten hinzufügen
                     ],
                 ];
 
-
                 $subscription = $this->createSubscription($customerId, $subscriptionData);
 
                 //\Log::info('Subscription: ' . json_encode($subscription, JSON_PRETTY_PRINT));
-                MollieSubscription::updateOrCreate(
-                    ['subscription_id' => $subscription->id],
-                    [
-                        'customer_id' => $subscription->customerId,
-                        'amount_value' => $subscription->amount->value,
-                        'amount_currency' => $subscription->amount->currency,
-                        'interval' => $subscription->interval,
-                        'status' => $subscription->status,
-                        'start_date' => $subscription->startDate,
-                        'next_payment_date' => $subscription->nextPaymentDate ?? null,
-                        'description' => $subscription->description, // Hinzufügen des description-Feldes
-                        'metadata' => json_encode($subscription->metadata), // Hinzufügen des metadata-Feldes als JSON
-                    ]
-                );
 
-                // Update the subscription_id for the specified payment
+                $this->syncLocalSubscription($subscription);
+
+                // Add the subscription_id for the specified payment
                 MolliePayment::where('payment_id', $payment->id)
                     ->update(['subscription_id' => $subscription->id]);
 
-                //\Log::info('Subscription created for customer: ' . $customerId);
-
-                /*     $subscription = Mollie::api()->customers()->get($customerId)->subscriptions()->create([
-                    "amount" => [
-                        "currency" => $payment->amount->currency,
-                        "value" => $payment->amount->value // Betrag für das Abonnement
-                    ],
-                    "interval" => "1 month", // Wiederkehrende Zahlung
-                    "description" => "Monthly subscription",
-                    "startDate" => now()->addMonth(),
-                    "webhookUrl" => route('mollie.subscriptionWebhook') // Webhook für Subscription-Events
-                ]);
-
-                //\Log::info('Subscription created for customer: ' . $customer->id);
-           */
             }
             else
             {
                 // Falls kein gültiges Mandat existiert
-                //\Log::error('No valid mandate found for customer: ' . $hasValidMandate . ' ' . $customerId);
+                \Log::error('No valid mandate found for customer: ' . $hasValidMandate . ' ' . $customerId);
             }
+
+        }elseif ($payment->subscriptionId !== null)
+        {
+            $subscription = $this->getMollieSubscription($payment->subscriptionId, $payment->customerId);
+
+            // Aktualisiere oder speichere die Subscription in der Datenbank
+
+            $this->syncLocalSubscription($subscription);
 
         }
 
@@ -320,12 +301,14 @@ $customerId = 'cst_PXwmRFVnJr';
     private function getStartDate($product)
     {
         // Falls eine Testperiode existiert, füge die Testtage hinzu
-        if ($product->trial_period_days > 0) {
+        if ($product->trial_period_days > 0)
+        {
             return now()->addDays($product->trial_period_days)->toDateString();
         }
 
         // Falls keine Testperiode existiert, bestimme das Startdatum basierend auf dem Intervall
-        switch ($product->interval) {
+        switch ($product->interval)
+        {
             case 'daily':
                 return now()->addDay()->toDateString();
             case 'weekly':
@@ -347,7 +330,7 @@ $customerId = 'cst_PXwmRFVnJr';
     public function handleSubscriptionWebhook(Request $request)
     {
         \Log::info('<---------------------------------->');
-        \Log::info('Subscription Webhook: ' .$request->id.' -> '. json_encode($request->json()->all(), JSON_PRETTY_PRINT));
+        \Log::info('Subscription Webhook: ' . $request->id . ' -> ' . json_encode($request->json()->all(), JSON_PRETTY_PRINT));
         \Log::info('<---------------------------------->');
 
         // Erhalte die Subscription ID aus dem Webhook-Request
@@ -356,26 +339,38 @@ $customerId = 'cst_PXwmRFVnJr';
 
         $subscription = $this->getMollieSubscription($subscriptionId, $customerId);
 
-
-
         // Aktualisiere oder speichere die Subscription in der Datenbank
-        MollieSubscription::updateOrCreate(
-            ['subscription_id' => $subscription->id],
-            [
-                'customer_id' => $subscription->customerId,
-                'amount_value' => $subscription->amount->value,
-                'amount_currency' => $subscription->amount->currency,
-                'interval' => $subscription->interval,
-                'status' => $subscription->status,
-                'start_date' => $subscription->startDate,
-                'next_payment_date' => $subscription->nextPaymentDate ?? null,
-            ]
-        );
+
+        $this->syncLocalSubscription($subscription);
+
 
         // Logge die Aktion
         //\Log::info('Subscription webhook received for subscription ID: ' . $subscription->id);
     }
 
+
+    private function syncLocalSubscription($mollieSubscriptionResponse){
+
+        // Aktualisiere oder speichere die Subscription in der Datenbank
+        MollieSubscription::updateOrCreate(
+            ['subscription_id' => $mollieSubscriptionResponse->id],
+            [
+                'customer_id' => $mollieSubscriptionResponse->customerId,
+                'amount_value' => $mollieSubscriptionResponse->amount->value,
+                'amount_currency' => $mollieSubscriptionResponse->amount->currency,
+                'times' => $mollieSubscriptionResponse->times,
+                'times_remaining' => $mollieSubscriptionResponse->timesRemaining,
+                'interval' => $mollieSubscriptionResponse->interval,
+                'status' => $mollieSubscriptionResponse->status,
+                'start_date' => $mollieSubscriptionResponse->startDate,
+                'next_payment_date' => $mollieSubscriptionResponse->nextPaymentDate ?? null,
+                'description' => $mollieSubscriptionResponse->description, // Hinzufügen des description-Feldes
+                'metadata' => json_encode($mollieSubscriptionResponse->metadata), // Hinzufügen des metadata-Feldes als JSON
+            ]
+        );
+
+        return true;
+    }
 
     /**
      * @param $customerId
@@ -405,18 +400,25 @@ $customerId = 'cst_PXwmRFVnJr';
         return $mandates;
     }
 
+    /**
+     * @param $subscriptionId
+     * @param $customerId
+     * @return mixed|null
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function getMollieSubscription($subscriptionId, $customerId)
     {
         // Mollie API Schlüssel
         $apiKey = env('MOLLIE_KEY');
         $client = new Client();
 
-        try {
+        try
+        {
             // Sende eine GET-Anfrage an die Mollie-API
             $response = $client->request('GET', "https://api.mollie.com/v2/customers/{$customerId}/subscriptions/{$subscriptionId}", [
                 'headers' => [
                     'Authorization' => "Bearer {$apiKey}",
-                    'Accept'        => 'application/json',
+                    'Accept' => 'application/json',
                 ],
             ]);
 
@@ -428,12 +430,16 @@ $customerId = 'cst_PXwmRFVnJr';
 
             return $subscriptionData;
 
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e)
+        {
             // Fehlerbehandlung
             \Log::error('Error fetching Mollie subscription: ' . $e->getMessage());
+
             return null;
         }
     }
+
     /**
      * @param $customerId
      * @return mixed
