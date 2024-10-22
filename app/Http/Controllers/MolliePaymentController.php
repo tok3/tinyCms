@@ -23,7 +23,15 @@ class MolliePaymentController extends Controller
     public function test()
     {
 
-        /// user register test
+$subscriptionId = 'sub_B9HwzdPLVt';
+$customerId = 'cst_PXwmRFVnJr';
+        $subscription = $this->getMollieSubscription($subscriptionId, $customerId);
+
+        echo "<pre>";
+        print_r($subscription);
+        echo "</pre>";
+
+         /// user register test
 
         // Benutzer registrieren und in der Datenbank speichern
         // Erstelle einen Faker-Instanz
@@ -81,6 +89,13 @@ class MolliePaymentController extends Controller
     }
 
 
+    /**
+     * @param $subscriptionId
+     * @param $customerId
+     * @param $newAmount
+     * @return mixed|null
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     function updateSubscriptionAmount($subscriptionId, $customerId, $newAmount)
     {
         $client = new Client();
@@ -331,15 +346,16 @@ class MolliePaymentController extends Controller
      */
     public function handleSubscriptionWebhook(Request $request)
     {
-        // Erhalte die Subscription ID aus dem Webhook-Request
-        $subscriptionId = $request->input('id');
-
-        // Rufe die Subscription über Mollie API ab
-        $subscription = Mollie::api()->subscriptions()->get($subscriptionId);
-
         \Log::info('<---------------------------------->');
         \Log::info('Subscription Webhook: ' .$request->id.' -> '. json_encode($request->json()->all(), JSON_PRETTY_PRINT));
         \Log::info('<---------------------------------->');
+
+        // Erhalte die Subscription ID aus dem Webhook-Request
+        $subscriptionId = $request->input('id');
+        $customerId = $request->input('customerId');
+
+        $subscription = $this->getMollieSubscription($subscriptionId, $customerId);
+
 
 
         // Aktualisiere oder speichere die Subscription in der Datenbank
@@ -389,7 +405,35 @@ class MolliePaymentController extends Controller
         return $mandates;
     }
 
+    public function getMollieSubscription($subscriptionId, $customerId)
+    {
+        // Mollie API Schlüssel
+        $apiKey = env('MOLLIE_KEY');
+        $client = new Client();
 
+        try {
+            // Sende eine GET-Anfrage an die Mollie-API
+            $response = $client->request('GET', "https://api.mollie.com/v2/customers/{$customerId}/subscriptions/{$subscriptionId}", [
+                'headers' => [
+                    'Authorization' => "Bearer {$apiKey}",
+                    'Accept'        => 'application/json',
+                ],
+            ]);
+
+            // Den JSON-Body der Antwort als Array dekodieren
+            $subscriptionData = json_decode($response->getBody()->getContents(), true);
+
+            // Protokolliere oder arbeite mit den Daten
+            \Log::info('Mollie Subscription Data: ' . json_encode($subscriptionData, JSON_PRETTY_PRINT));
+
+            return $subscriptionData;
+
+        } catch (\Exception $e) {
+            // Fehlerbehandlung
+            \Log::error('Error fetching Mollie subscription: ' . $e->getMessage());
+            return null;
+        }
+    }
     /**
      * @param $customerId
      * @return mixed
