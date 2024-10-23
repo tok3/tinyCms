@@ -333,9 +333,16 @@ class MolliePaymentController extends Controller
         \Log::info('Subscription Webhook: ' . $request->id . ' -> ' . json_encode($request->json()->all(), JSON_PRETTY_PRINT));
         \Log::info('<---------------------------------->');
 
+        $payment = Mollie::api()->payments->get($request->id);
+
+        \Log::info('<---------------------------------->');
+        \Log::info('Subscription Webhook Pmnt: ' . $request->id . ' -> ' . json_encode($payment, JSON_PRETTY_PRINT));
+        \Log::info('<---------------------------------->');
+
+
         // Erhalte die Subscription ID aus dem Webhook-Request
-        $subscriptionId = $request->input('id');
-        $customerId = $request->input('customerId');
+        $subscriptionId = $payment->subscriptionId;
+        $customerId = $payment->customerId;
 
         $subscription = $this->getMollieSubscription($subscriptionId, $customerId);
 
@@ -620,6 +627,8 @@ class MolliePaymentController extends Controller
             session()->forget(['user', 'company']);
 
             session(['user_email' => $user->email]);
+
+            $tempData->delete();
         }
         else
         {
