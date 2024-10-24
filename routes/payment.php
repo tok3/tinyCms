@@ -41,6 +41,7 @@ Route::get('/get-product-details', [CheckoutController::class, 'getProductDetail
 // ende testroute
 
 Route::get('/preise', [CheckoutController::class, 'showPlans'])->name('view.plans');
+Route::get('/register', [CheckoutController::class, 'showPlans']);
 
 Route::post('/checkout', [CheckoutController::class, 'preparePayment'])->name('checkout.plan');
 Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('order.success');

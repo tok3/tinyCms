@@ -30,10 +30,14 @@ class InvoiceService
         $invoice->status = 'draft';
 
         // Speichere JSON-Daten für Rechnungspositionen
-        $invoice->data = json_encode($data['items']);
+        $invoice->data = json_encode($data['data']);
 
         // Speichere Zugferd und XRechnung-Daten
         $invoice->zugferd_data = $data['zugferd_data'] ?? null;
+
+
+       $data['xrechnung_data'] = $this->generateXRechnungData($invoice);
+
         $invoice->xrechnung_data = $data['xrechnung_data'] ?? null;
 
         // Speichere die Rechnung
@@ -97,9 +101,11 @@ class InvoiceService
     }
 
     // Methode zur Generierung der XRechnung-Daten
-    private function generateXRechnungData(array $invoiceData): string
+    private function generateXRechnungData(object $invoiceData): string
     {
-        $xml = new \SimpleXMLElement('<Invoice></Invoice>');
+       $company = Company::where('id',$invoiceData['company_id'])->first();
+
+       $xml = new \SimpleXMLElement('<Invoice></Invoice>');
 
         // XML-Namespace für XRechnung definieren
         $xml->addAttribute('xmlns', 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2');
@@ -114,13 +120,13 @@ class InvoiceService
 
         // Lieferantendaten
         $cacSupplierParty = $xml->addChild('cac:AccountingSupplierParty')->addChild('cac:Party');
-        $cacSupplierParty->addChild('cbc:Name', $invoiceData['supplier_name']);
-        $cacSupplierParty->addChild('cbc:CompanyID', $invoiceData['supplier_vat']);
+        $cacSupplierParty->addChild('cbc:Name', env('INVOICE_SUPPLIER_NAME'));
+        $cacSupplierParty->addChild('cbc:CompanyID', env('INVOICE_SUPPLIER_VAT_ID'));
 
         // Kundendaten
         $cacCustomerParty = $xml->addChild('cac:AccountingCustomerParty')->addChild('cac:Party');
-        $cacCustomerParty->addChild('cbc:Name', $invoiceData['customer_name']);
-        $cacCustomerParty->addChild('cbc:CompanyID', $invoiceData['customer_vat']);
+        $cacCustomerParty->addChild('cbc:Name', $company->name);
+        $cacCustomerParty->addChild('cbc:CompanyID', $company->vat_id);
 
         // Zahlungsinformationen
         $paymentMeans = $xml->addChild('cac:PaymentMeans');
@@ -139,7 +145,8 @@ class InvoiceService
         $taxTotal->addChild('cbc:TaxAmount', $invoiceData['total_tax'])->addAttribute('currencyID', $invoiceData['currency']);
 
         // Rechnungspositionen
-        foreach ($invoiceData['items'] as $item) {
+        $items = json_decode($invoiceData['data'], true)['items'];
+        foreach ($items as $item) {
             $line = $xml->addChild('cac:InvoiceLine');
             $line->addChild('cbc:ID', $item['id']);
             $line->addChild('cbc:InvoicedQuantity', $item['quantity']);
@@ -155,6 +162,7 @@ class InvoiceService
         // XML formatieren
         $formattedXml = $xml->asXML();
 
+        echo $formattedXml;
         return $formattedXml;
     }
 

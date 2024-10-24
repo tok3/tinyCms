@@ -76,7 +76,7 @@
 
                             <!---->
                             <p class="pt-4 small text-body-secondary">
-                                Don’t have an account yet? <a href="{{ url('/register') }}" class="ms-2 fw-semibold link-underline">Sign Up</a>
+                                Noch keinen Zugang? <a href="{{ route('view.plans') }}" class="ms-2 fw-semibold link-underline">Plan wählen</a>
                             </p>
 
                             {{--<!--Divider-->
