@@ -363,6 +363,20 @@ class MolliePaymentController extends Controller
      */
     private function syncLocalSubscription($mollieSubscriptionResponse){
 
+        \Log::info('<---------------------------------->');
+        \Log::info('Subscription syncLocalSubscription(): ' .__LINE__ . json_encode($mollieSubscriptionResponse, JSON_PRETTY_PRINT));
+        \Log::info('<---------------------------------->');
+        // Prüfen, ob $mollieSubscriptionResponse ein Array ist
+        if (is_array($mollieSubscriptionResponse)) {
+            // In ein Objekt umwandeln
+            $mollieSubscriptionResponse = json_decode(json_encode($mollieSubscriptionResponse));
+
+            \Log::info('<---------------------------------->');
+            \Log::info('Subscription array to object: ' .__LINE__ . json_encode($mollieSubscriptionResponse, JSON_PRETTY_PRINT));
+            \Log::info('<---------------------------------->');
+
+        }
+
         // Aktualisiere oder speichere die Subscription in der Datenbank
         MollieSubscription::updateOrCreate(
             ['subscription_id' => $mollieSubscriptionResponse->id],
