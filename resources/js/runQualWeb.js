@@ -11,9 +11,7 @@ import { QualWeb } from '@qualweb/core';
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',   // Reduces shared memory usage
-        '--disable-gpu',             // Disables GPU acceleration
-        '--window-size=1920,1080',   // Sets a fixed window size
+
       ]
     }
   });
