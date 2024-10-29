@@ -1,7 +1,7 @@
 //import { Cluster } from 'puppeteer-cluster';
-import { QualWeb } from '@qualweb/core';
+//import { QualWeb } from '@qualweb/core';
 
-//const { QualWeb } = require('@qualweb/core');
+const { QualWeb } = require('@qualweb/core');
 
 (async () => {
   const qualweb = new QualWeb();
