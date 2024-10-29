@@ -18,6 +18,7 @@ import { QualWeb } from '@qualweb/core';
     timeout: 5 * 60 * 1000, // Timeout for the whole task (5 minutes)
   });
 
+
   // Create a QualWeb instance (optional: pass QualWeb options)
   const qualweb = new QualWeb({
     crawl: false, // Example of a QualWeb-specific option (disable automatic crawling)
