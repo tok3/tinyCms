@@ -82,7 +82,7 @@ $(document).ready(function () {
             // Firmendaten holen und anzeigen
             var name = $('#name').val();
             var vorname = $('#vorname').val();
-            var companyName = $('#company_name').val();
+            var companyName = $('#compName').val();
             var companyEmail = $('#compEmail').val();
             var street = $('#str').val();
             var houseNumber = $('#haus_nr').val();
@@ -92,7 +92,7 @@ $(document).ready(function () {
 
             $('#customer-name').text(vorname + ' ' + name);
             $('#company-name').text(companyName);
-            $('#customer-address').text(street + ' ' + houseNumber);
+            $('#customer-address').text(street);
             $('#customer-plz-ort').text(plz + ' ' + ort);
             $('#customer-email').text(email);
             $('#company-email').text(companyEmail);

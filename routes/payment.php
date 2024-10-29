@@ -11,6 +11,17 @@ use App\Http\Controllers\CreateSubscriptionController;
 use App\Http\Controllers\MollieTestController;
 use App\Http\Controllers\MolliePaymentController;
 
+use App\Http\Controllers\InvoiceController;
+
+// invoiceing
+
+Route::get('invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
+
+
+
+// ende ivoices
+
+
 //subscriptiopn test
 Route::get('/subscription', [CheckoutController::class, 'subscription'])->name('subscription');
 
@@ -30,6 +41,7 @@ Route::get('/get-product-details', [CheckoutController::class, 'getProductDetail
 // ende testroute
 
 Route::get('/preise', [CheckoutController::class, 'showPlans'])->name('view.plans');
+Route::get('/register', [CheckoutController::class, 'showPlans']);
 
 Route::post('/checkout', [CheckoutController::class, 'preparePayment'])->name('checkout.plan');
 Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('order.success');
