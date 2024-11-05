@@ -25,6 +25,17 @@ class InvoiceResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    // Navigation Label ändern
+    public static function getNavigationLabel(): string
+    {
+        return 'Rechnungen'; // Name des Navigationseintrags
+    }
+
+    // Navigation Group ändern
+//    public static function getNavigationGroup(): ?string
+//    {
+//        return 'Finanzen'; // Name der Gruppe, in der der Eintrag erscheint
+//    }
     public static function form(Form $form): Form
     {
         return $form
@@ -41,7 +52,7 @@ class InvoiceResource extends Resource
                         TextInput::make('mollie_payment_id')
                             ->label('Mollie Payment ID')
                             ->disabled()
-                            ->visible(fn ($record) => !empty($record?->mollie_payment_id)),
+                            ->visible(fn($record) => !empty($record?->mollie_payment_id)),
                     ])->columns(3)
                         ->label('Rechnungsinformationen'),
                 ]),
@@ -57,7 +68,7 @@ class InvoiceResource extends Resource
                         DatePicker::make('payment_date')
                             ->label('Zahlungsdatum')
                             ->disabled()
-                            ->visible(fn ($record) => !empty($record?->payment_date)),
+                            ->visible(fn($record) => !empty($record?->payment_date)),
                     ])->columns(3)
                         ->label('Datum'),
                 ]),
@@ -119,7 +130,7 @@ class InvoiceResource extends Resource
 
                 ViewField::make('mollie_payment_id')
                     ->label('Mollie Payment ID')
-                    ->visible(fn ($record) => !empty($record->mollie_payment_id)), // nur wenn vorhanden
+                    ->visible(fn($record) => !empty($record->mollie_payment_id)), // nur wenn vorhanden
 
                 ViewField::make('issue_date')
                     ->label('Rechnungsdatum'),
@@ -129,23 +140,23 @@ class InvoiceResource extends Resource
 
                 ViewField::make('payment_date')
                     ->label('Zahlungsdatum')
-                    ->visible(fn ($record) => !empty($record->payment_date)),
+                    ->visible(fn($record) => !empty($record->payment_date)),
 
                 ViewField::make('total_net')
                     ->label('Nettobetrag')
-                    ->formatStateUsing(fn ($state) => number_format($state, 2, ',', '.') . ' €'),
+                    ->formatStateUsing(fn($state) => number_format($state, 2, ',', '.') . ' €'),
 
                 ViewField::make('tax')
                     ->label('MwSt.')
-                    ->formatStateUsing(fn ($state) => number_format($state, 2, ',', '.') . ' €'),
+                    ->formatStateUsing(fn($state) => number_format($state, 2, ',', '.') . ' €'),
 
                 ViewField::make('total_gross')
                     ->label('Bruttobetrag')
-                    ->formatStateUsing(fn ($state) => number_format($state, 2, ',', '.') . ' €'),
+                    ->formatStateUsing(fn($state) => number_format($state, 2, ',', '.') . ' €'),
 
                 ViewField::make('tax_rate')
                     ->label('Steuersatz')
-                    ->formatStateUsing(fn ($state) => $state . ' %'),
+                    ->formatStateUsing(fn($state) => $state . ' %'),
 
                 ViewField::make('currency')
                     ->label('Währung'),
@@ -155,63 +166,64 @@ class InvoiceResource extends Resource
 
                 ViewField::make('status')
                     ->label('Status')
-                    ->formatStateUsing(fn ($state) => ucfirst($state)),
+                    ->formatStateUsing(fn($state) => ucfirst($state)),
 
                 ViewField::make('data')
                     ->label('Zusätzliche Daten')
-                    ->visible(fn ($record) => !empty($record->data)),
+                    ->visible(fn($record) => !empty($record->data)),
 
                 ViewField::make('pdf_path')
                     ->label('Pfad zum PDF')
-                    ->url(fn ($record) => Storage::url($record->pdf_path))
-                    ->visible(fn ($record) => !empty($record->pdf_path)),
+                    ->url(fn($record) => Storage::url($record->pdf_path))
+                    ->visible(fn($record) => !empty($record->pdf_path)),
             ]);
     }
+
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('invoice_number')
-                    ->label('Rg-Nr')
-                    ->searchable()
-                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('company.kd_nr')
                     ->label('Kd-Nr.')
                     ->searchable()
                     ->sortable(),
-
+                Tables\Columns\TextColumn::make('invoice_number')
+                    ->label('Rg-Nr')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('company.name')
                     ->label('Firma')
                     ->searchable()
                     ->sortable(),
-           Tables\Columns\TextColumn::make('company.plz')
+                Tables\Columns\TextColumn::make('company.plz')
                     ->label('Plz')
                     ->searchable()
                     ->sortable(),
-           Tables\Columns\TextColumn::make('company.ort')
+                Tables\Columns\TextColumn::make('company.ort')
                     ->label('Ort')
                     ->searchable()
                     ->sortable(),
-           Tables\Columns\TextColumn::make('total_gross')
+                Tables\Columns\TextColumn::make('total_gross')
                     ->label('Betrag')
-                    ->formatStateUsing(fn (string $state) => number_format($state, 2, ',', '.'))
+                    ->formatStateUsing(fn(string $state) => number_format($state, 2, ',', '.'))
                     ->searchable()
                     ->sortable(),
-           Tables\Columns\TextColumn::make('currency')
+                Tables\Columns\TextColumn::make('currency')
                     ->label('Währung')
                     ->searchable()
                     ->sortable(),
-           Tables\Columns\TextColumn::make('status')
+                Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->searchable()
                     ->sortable(),
-           Tables\Columns\TextColumn::make('due_date')
-               ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('d.m.Y'))
+                Tables\Columns\TextColumn::make('due_date')
+                    ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y'))
                     ->label('Fälligkeit')
                     ->searchable()
                     ->sortable(),
-           Tables\Columns\TextColumn::make('payment_date')
-               ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('d.m.Y'))
+                Tables\Columns\TextColumn::make('payment_date')
+                    ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y'))
                     ->label('Zahlungsdatum')
                     ->searchable()
                     ->sortable(),
@@ -224,7 +236,7 @@ class InvoiceResource extends Resource
                 Action::make('Ansehen')
                     ->label('PDF anzeigen')
                     ->icon('heroicon-o-document-text')
-                    ->url(fn (Invoice $record) => route('invoices.pdf', $record->invoice_number))
+                    ->url(fn(Invoice $record) => route('invoices.pdf', $record->invoice_number))
                     ->openUrlInNewTab(), // Öffnet das PDF in einem neuen Tab
             ])
             ->bulkActions([
