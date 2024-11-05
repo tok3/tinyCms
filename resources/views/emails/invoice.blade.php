@@ -56,7 +56,7 @@
 
     {{ url('assets/img/logo/logo.png') }}
     <div class="header">
-        <img src="{{ url('assets/img/logo/logo.png') }}" alt="Logo Aktion Barrierefrei" style="width:200px;">
+        <img src="{!!url('assets/img/logo/logo.png') !!}" alt="Logo Aktion Barrierefrei" style="width:200px;">
     </div>
 
     <!-- Inhalt der E-Mail -->
