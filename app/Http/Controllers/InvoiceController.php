@@ -37,10 +37,10 @@ class InvoiceController extends Controller
      */
     public function create()
     {
-        $invoiceService = new InvoiceService();
-
-        $invoiceService->sendInvoiceEmail(1);
-        die();
+//        $invoiceService = new InvoiceService();
+//
+//        $invoiceService->sendInvoiceEmail(1);
+//        die();
 
 
         $paymentsWithoutInvoice = MolliePayment::withoutInvoice();
