@@ -5,6 +5,8 @@ if (file_exists($manifestPath)) {
     $manifest = json_decode(file_get_contents($manifestPath), true);
 }
 
+
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -91,7 +93,7 @@ return [
                   ],
 
               ],
-                'content_css'=>'/build/'.$manifest['resources/scss/tinyMCEtheme.scss']['file'],
+                'content_css'=> asset('/build/'.$manifest['resources/scss/tinyMCEtheme.scss']['file']),
                 'images_upload_url' => '/upload-image', // Direkte URL verwenden
                 'automatic_uploads' => true,
                 'images_upload_handler' => 'function (blobInfo, success, failure) {
