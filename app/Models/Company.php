@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Models;
+
 use Cviebrock\EloquentSluggable\Sluggable;
 use App\Helpers\QrPromoHelper;
 
@@ -22,6 +24,7 @@ class Company extends Model
         'web',
         'logo_image',
         'logo_orig_filename',
+        'kd_nr',
     ];
 
     protected static function boot()
@@ -31,7 +34,11 @@ class Company extends Model
 
         // Beim Erstellen
         static::creating(function ($item) {
+            // Finde den höchsten Wert der kd_nr in der Datenbank
+            $latestKdNr = Company::max('kd_nr');
 
+            // Inkrementiere um 1 oder starte bei 1000, falls kein Wert existiert
+            $item->kd_nr = $latestKdNr ? $latestKdNr + 1 : 1000;
         });
 
         static::created(function ($item) {
@@ -42,7 +49,6 @@ class Company extends Model
             // Prüfe, ob die parent_id geändert wurde
             if ($item->isDirty('slug'))
             {
-
 
 
             }
@@ -112,13 +118,13 @@ class Company extends Model
 
     public function getFullnameAttribute()
     {
-        return $this->name.' '.$this->name_2;
+        return $this->name . ' ' . $this->name_2;
     }
 
 
     public function company()
     {
-        return $this->belongsTo(Company::class,'id');
+        return $this->belongsTo(Company::class, 'id');
     }
 
 

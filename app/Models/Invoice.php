@@ -70,6 +70,30 @@ class Invoice extends Model
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function payment()
+    {
+        return $this->belongsTo(MolliePayment::class, 'mollie_payment_id', 'payment_id');
+    }
+
+    /**
+     * Gibt den Leistungszeitraum aus.
+     *
+     * Falls es ein Abonnement gibt, wird der Zeitraum aus `payment_date` und `next_payment_date` berechnet.
+     * Falls kein `next_payment_date` vorhanden ist, wird ein leerer String zurückgegeben.
+     */
+    public function getLeistungszeitraumAttribute()
+    {
+        if ($this->payment && $this->payment->subscription && $this->payment->subscription->next_payment_date) {
+            $paymentDate = $this->payment_date;
+            $nextPaymentDate = $this->payment->subscription->next_payment_date;
+            return "$paymentDate bis $nextPaymentDate";
+        }
+
+        return ''; // Leerer String für One-Off-Payments ohne Abonnement
+    }
+    /**
      * Rechnung hat viele Positionen (hier als JSON im data-Feld gespeichert).
      *
      * @return array

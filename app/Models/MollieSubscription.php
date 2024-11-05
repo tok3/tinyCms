@@ -22,7 +22,7 @@ class MollieSubscription extends Model
 
     public function payments()
     {
-        return $this->hasMany(MolliePayment::class, 'subscription_id');
+        return $this->hasMany(MolliePayment::class, 'subscription_id', 'subscription_id');
     }
 
     public function company()

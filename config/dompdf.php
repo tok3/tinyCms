@@ -186,7 +186,7 @@ return array(
          * Used if no suitable fonts can be found. This must exist in the font folder.
          * @var string
          */
-        "default_font" => "serif",
+        "default_font" => "san-serif",
 
         /**
          * Image DPI setting
@@ -269,7 +269,7 @@ return array(
         /**
          * A ratio applied to the fonts height to be more like browsers' line height
          */
-        "font_height_ratio" => 0.5,
+        "font_height_ratio" => 1.2,
 
         /**
          * Use the HTML5 Lib parser

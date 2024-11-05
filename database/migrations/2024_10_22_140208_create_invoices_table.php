@@ -28,7 +28,6 @@ class CreateInvoicesTable extends Migration
             $table->text('payment_terms')->nullable(); // Zahlungsbedingungen
             $table->enum('status', ['draft', 'sent', 'paid', 'canceled'])->default('draft'); // Status der Rechnung
             $table->text('data')->nullable(); // JSON-Daten für Rechnungspositionen
-            $table->text('zugferd_data')->nullable(); // ZUGFeRD-XML-Daten
             $table->text('xrechnung_data')->nullable(); // XRechnung-XML-Daten
             $table->string('pdf_path')->nullable(); // Pfad zur PDF-Datei, optional
             $table->timestamps(); // Erstellt am und Aktualisiert am

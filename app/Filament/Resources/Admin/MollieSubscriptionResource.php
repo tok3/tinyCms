@@ -182,7 +182,7 @@ class MollieSubscriptionResource extends Resource
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('start_date')
-                    ->label('Start DAte')
+                    ->label('Start Date')
                     ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('d.m.Y'))
                     ->sortable(),
 

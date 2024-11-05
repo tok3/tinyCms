@@ -82,4 +82,31 @@ class MolliePayment extends Model
         )->where('mollie_customers.model_type', Company::class);
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function invoice()
+    {
+        return $this->hasOne(Invoice::class, 'mollie_payment_id');
+    }
+
+    /**
+     * Relation zu MollieSubscription über `subscription_id`.
+     */
+    public function subscription()
+    {
+        return $this->belongsTo(MollieSubscription::class, 'subscription_id', 'subscription_id');
+    }
+
+    /**
+     * alle payments ohne invoice
+     *
+     * @return mixed
+     */
+    public static function withoutInvoice()
+    {
+        return self::doesntHave('invoice')->get();
+    }
+
+
 }

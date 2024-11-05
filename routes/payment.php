@@ -17,7 +17,8 @@ use App\Http\Controllers\InvoiceController;
 
 Route::get('invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
 
-
+Route::get('/invoice/pdf/{id}', [InvoiceController::class, 'generatePDF']);
+Route::get('/invoices/{rg_nr}/show', [InvoiceController::class, 'showInvoice'])->name('invoices.pdf');
 
 // ende ivoices
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Services\InvoiceService;
 use Illuminate\Http\Request;
 use Mollie\Laravel\Facades\Mollie;
 use App\Models\MolliePayment;
@@ -154,9 +155,11 @@ class MolliePaymentController extends Controller
 
         // Rufe die Zahlung über Mollie API ab
         $payment = Mollie::api()->payments->get($paymentId);
+
         \Log::info('<---------------------------------->');
         \Log::info('Payment: ' . $request->id . ' -> ' . json_encode($payment, JSON_PRETTY_PRINT));
         \Log::info('<---------------------------------->');
+
         // Decode metadata from the payment object
         $metadata = $payment->metadata; // Decode the metadata
 
@@ -211,8 +214,12 @@ class MolliePaymentController extends Controller
         );
 
 
+
         // firma und useraccount für firma initiieren
         $this->initCompanyAccount($payment->customerId);
+
+        // Rechnung erstellen
+        $this->prepareInvoice($payment->id);
 
 
         // Unterscheide, ob eine Subscription erstellt werden muss
@@ -281,7 +288,8 @@ class MolliePaymentController extends Controller
                 \Log::error('No valid mandate found for customer: ' . $hasValidMandate . ' ' . $customerId);
             }
 
-        }elseif ($payment->subscriptionId !== null)
+        }
+        elseif ($payment->subscriptionId !== null)
         {
             $subscription = $this->getMollieSubscription($payment->subscriptionId, $payment->customerId);
 
@@ -361,18 +369,20 @@ class MolliePaymentController extends Controller
      * @param $mollieSubscriptionResponse
      * @return true
      */
-    private function syncLocalSubscription($mollieSubscriptionResponse){
+    private function syncLocalSubscription($mollieSubscriptionResponse)
+    {
 
         \Log::info('<---------------------------------->');
-        \Log::info('Subscription syncLocalSubscription(): ' .__LINE__ . json_encode($mollieSubscriptionResponse, JSON_PRETTY_PRINT));
+        \Log::info('Subscription syncLocalSubscription(): ' . __LINE__ . json_encode($mollieSubscriptionResponse, JSON_PRETTY_PRINT));
         \Log::info('<---------------------------------->');
         // Prüfen, ob $mollieSubscriptionResponse ein Array ist
-        if (is_array($mollieSubscriptionResponse)) {
+        if (is_array($mollieSubscriptionResponse))
+        {
             // In ein Objekt umwandeln
             $mollieSubscriptionResponse = json_decode(json_encode($mollieSubscriptionResponse));
 
             \Log::info('<---------------------------------->');
-            \Log::info('Subscription array to object: ' .__LINE__ . json_encode($mollieSubscriptionResponse, JSON_PRETTY_PRINT));
+            \Log::info('Subscription array to object: ' . __LINE__ . json_encode($mollieSubscriptionResponse, JSON_PRETTY_PRINT));
             \Log::info('<---------------------------------->');
 
         }
@@ -424,6 +434,66 @@ class MolliePaymentController extends Controller
         $mandates = json_decode($response->getBody(), true);
 
         return $mandates;
+    }
+
+
+    public function prepareInvoice($paymentId)
+    {
+
+        $payment = MolliePayment::where('payment_id', $paymentId)->first();
+
+        if ($payment->amount_value > 0.00)
+        {
+
+            $customer = MollieCustomer::where('mollie_customer_id', $payment->customer_id)->first();
+
+
+            $total_gross = $payment->amount_value; // Bruttobetrag
+            $tax_rate = 19; // 19% Steuersatz
+
+            // Berechnungen
+            $total_net = round($total_gross / (1 + ($tax_rate / 100)), 2); // Nettobetrag
+            $tax = $total_gross - $total_net; // Steuerbetrag
+
+
+            $invoiceData = [
+                'company_id' => $customer->model_id, // Eine existierende company_id, um eine Firma zu verknüpfen
+                'issue_date' => now()->format('Y-m-d'),
+                'mollie_payment_id' => $payment->payment_id,
+                'due_date' => $payment->paid_at,
+                'payment_date' => $payment->paid_at,
+                'total_net' => $total_net,
+                'total_gross' => $total_gross, // Mit Mehrwertsteuer
+                'tax' => $tax, // Mit Mehrwertsteuer
+                'tax_rate' => $tax_rate, // 19% Mehrwertsteuer
+                'status' => 'paid', // 19% Mehrwertsteuer
+                'data' => [
+                    // Position 1
+                    'items' => [
+                        [
+                            'id' => '1', // Positionsnummer
+                            'description' => $payment->description, // Beschreibung
+                            'quantity' => 1, // Menge
+                            'line_total_amount' => $total_net, // Gesamtbetrag für diese Position
+                        ],
+                        /*   [
+                               'id' => '2', // Positionsnummer
+                               'description' => 'description',
+                               'quantity' => 1,
+                               'line_amount' => '199.00',
+                           ],*/
+                    ],
+
+                ]
+            ];
+            $invoiceService = new InvoiceService();
+
+
+            $invoiceService->createInvoice($invoiceData);
+
+            $invoiceService->sendInvoiceEmail();
+        }
+
     }
 
     /**
@@ -547,6 +617,45 @@ class MolliePaymentController extends Controller
         return true;
     }
 
+    public function createInvoice()
+    {
+
+        $invoiceService = new InvoiceService();
+
+        // Testdaten für die Rechnungspositionen
+        $invoiceData = [
+            'company_id' => 34, // Eine existierende company_id, um eine Firma zu verknüpfen
+            'issue_date' => now()->format('Y-m-d'),
+            'mollie_payment_id' => 'tr_poja9tpop',
+            'due_date' => now()->addDays(30),
+            'total_net' => 198.0,
+            'total_gross' => 235.62, // Mit Mehrwertsteuer
+            'tax' => 37.62, // Mit Mehrwertsteuer
+            'tax_rate' => 19, // 19% Mehrwertsteuer
+            'data' => [
+                // Position 1
+                'items' => [
+                    [
+                        'id' => '1', // Positionsnummer
+                        'description' => 'Seminarreihe: Expert - Fortbildung gem. der Makler- und Bauträgerverordnung (MaBV)', // Beschreibung
+                        'quantity' => 1, // Menge
+                        'line_total_amount' => '198.0', // Gesamtbetrag für diese Position
+                    ],
+                    /*   [
+                           'id' => '2', // Positionsnummer
+                           'description' => 'Seminarreihe: BASIS - Fortbildung gem. der Makler- und Bauträgerverordnung (MaBV)',
+                           'quantity' => 1,
+                           'line_amount' => '199.00',
+                       ],*/
+                ],
+                // Weitere Positionen können hier hinzugefügt werden
+            ]
+        ];
+
+        // Verwende den InvoiceService, um eine Rechnung zu erstellen
+        $invoiceService->createInvoice($invoiceData);
+
+    }
 
     /**
      * delete all subscriptions BE CAREFUL FOR CLEANING TESTDATA ONY

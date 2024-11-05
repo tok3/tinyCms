@@ -4,9 +4,16 @@ namespace App\Services;
 
 use App\Models\Invoice;
 use App\Models\Company;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use App\Models\InvoiceCounter;
-
+use horstoeko\zugferd\ZugferdDocumentBuilder;
+use horstoeko\zugferd\ZugferdProfiles;
+use horstoeko\zugferd\ZugferdDocumentPdfBuilder;
+use horstoeko\zugferd\ZugferdDocumentPdfMerger;
+use TCPDF;
+use App\Mail\InvoiceMail;
+use Illuminate\Support\Facades\Mail;
 class InvoiceService
 {
     /**
@@ -15,36 +22,85 @@ class InvoiceService
      * @param array $data
      * @return Invoice
      */
+
+    protected $invoiceId;
     public function createInvoice(array $data): Invoice
     {
+
         $invoice = new Invoice();
         $invoice->invoice_number = $this->generateInvoiceNumber();
         $invoice->company_id = $data['company_id'];
+        $invoice->mollie_payment_id = $data['mollie_payment_id'];
         $invoice->issue_date = Carbon::now();
-        $invoice->due_date = isset($data['due_date']) ? Carbon::parse($data['due_date']) : Carbon::now()->addDays(30);
+        $invoice->due_date = isset($data['due_date']) ? Carbon::parse($data['due_date']) : Carbon::now();
+        $invoice->payment_date = isset($data['payment_date']) ? Carbon::parse($data['due_date']) : Carbon::now();
         $invoice->total_net = $data['total_net'];
         $invoice->total_gross = $data['total_gross'];
         $invoice->tax_rate = $data['tax_rate'];
         $invoice->tax = $data['tax'];
         $invoice->currency = $data['currency'] ?? 'EUR';
-        $invoice->status = 'draft';
+        $invoice->status = $data['status'];
 
         // Speichere JSON-Daten für Rechnungspositionen
         $invoice->data = json_encode($data['data']);
 
-        // Speichere Zugferd und XRechnung-Daten
-        $invoice->zugferd_data = $data['zugferd_data'] ?? null;
-
-
-       $data['xrechnung_data'] = $this->generateXRechnungData($invoice);
+        $data['xrechnung_data'] = $this->generateXRechnungData($invoice);
 
         $invoice->xrechnung_data = $data['xrechnung_data'] ?? null;
 
         // Speichere die Rechnung
         $invoice->save();
 
+        $pdfInvoicePath = $this->generatePDF($invoice->id);
+
+        // Save merged PDF (existing original and XML) to a file
+        $existingXml = $data['xrechnung_data'];
+        $existingPdf = storage_path('app/'.$pdfInvoicePath);
+        $mergeToPdf =  storage_path('app/'.str_replace('-tmp','',$pdfInvoicePath));
+
+        file_exists($existingPdf);
+
+        (new ZugferdDocumentPdfMerger($existingXml, $existingPdf))->generateDocument()->saveDocument($mergeToPdf);
+
+        unlink($existingPdf);
+
+        $this->invoiceId = $invoice->id;
+
         return $invoice;
     }
+
+
+    /**
+     * @param $id
+     * @return string
+     */
+    public function generatePDF($id)
+    {
+        // Daten für die Rechnung abrufen
+        $invoice = Invoice::with('company')->findOrFail($id);
+
+        $additionalData = [];
+        $additionalData['hint'] = 'Die Rechnung ist bereits Bezahlt über unseren Zahlungsdienstleister Mollie Transaktions-ID <strong>' . $invoice['mollie_payment_id'] . '</strong>';
+
+        // PDF mit Blade-Template generieren
+        $pdf = Pdf::loadView('accounting.invoice-pdf', compact('invoice', 'additionalData'))
+            ->setPaper('a4', 'portrait');
+
+        // PDF anzeigen oder herunterladen
+        //return $pdf->stream("Rechnung-{$invoice->invoice_number}.pdf");
+
+
+        // PDF-Inhalt als String abrufen und im Storage speichern
+        $pdfContent = $pdf->output();
+        $pdfPath = "invoices/{$invoice->invoice_number}-tmp.pdf";
+
+        \Storage::put("$pdfPath", $pdfContent);
+
+        // Optional: Rückgabe oder weitere Aktionen
+        return $pdfPath;
+
+    }
+
 
     /**
      * Generiere eine Rechnungsnummer (einfache Implementierung, anpassbar).
@@ -65,7 +121,7 @@ class InvoiceService
             $year = date('y');
             $week = date('W');
 
-            $invoiceNumber = 'RG-' . $week.$year . '-' . str_pad($counter->current_value, 4, '0', STR_PAD_LEFT);
+            $invoiceNumber = 'RG' . $week . $year . '' . str_pad($counter->current_value, 4, '0', STR_PAD_LEFT);
 
             return $invoiceNumber;
         });
@@ -92,7 +148,6 @@ class InvoiceService
         }
 
         // Zugferd- und XRechnung-Daten aktualisieren
-        $invoice->zugferd_data = $data['zugferd_data'] ?? $invoice->zugferd_data;
         $invoice->xrechnung_data = $data['xrechnung_data'] ?? $invoice->xrechnung_data;
 
         $invoice->save();
@@ -100,223 +155,76 @@ class InvoiceService
         return $invoice;
     }
 
-    // Methode zur Generierung der XRechnung-Daten
+
+    /**
+     * Generierung der XRechnung-Daten
+     *
+     * @param object $invoiceData
+     * @return string
+     */
     private function generateXRechnungData(object $invoiceData): string
     {
-        $company = Company::where('id',$invoiceData['company_id'])->first();
+        // Aufruf der Funktion und Speicherort angeben
+        $companyDetails = config('accounting.company_details');
 
-        $xml = new \SimpleXMLElement('<Invoice></Invoice>');
 
-// XML-Namespace für XRechnung definieren
-        $xml->addAttribute('xmlns', 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2');
-        $xml->addAttribute('xmlns:cac', 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $xml->addAttribute('xmlns:cbc', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        $company = Company::where('id', $invoiceData['company_id'])->first();
 
-// CustomizationID und ProfileID (für XRechnung ab Version 3.0)
-        $xml->addChild('cbc:CustomizationID', 'urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0');
-        $xml->addChild('cbc:ProfileID', 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0');
+        // Erstelle ein DateTime-Objekt für das Dokumentdatum
+        $issueDate = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $invoiceData['issue_date'])->toDateTime();
 
-// Rechnungsnummer
-        $xml->addChild('cbc:ID', $invoiceData['invoice_number']);
+        $filePath = storage_path("XRechnung.xml");
 
-// Rechnungsdatum (nur Datum, kein Zeitstempel)
-        $xml->addChild('cbc:IssueDate', date('Y-m-d', strtotime($invoiceData['issue_date'])));
+        $data = json_decode($invoiceData['data'], true); // true sorgt dafür, dass es ein assoziatives Array wird
 
-// Lieferantendaten
-        $cacSupplierParty = $xml->addChild('cac:AccountingSupplierParty')->addChild('cac:Party');
-        $cacSupplierPartyName = $cacSupplierParty->addChild('cac:PartyName');
-        $cacSupplierPartyName->addChild('cbc:Name', env('INVOICE_SUPPLIER_NAME'));
-        $cacSupplierParty->addChild('cbc:CompanyID', env('INVOICE_SUPPLIER_VAT_ID'));
 
-// Kundendaten
-        $cacCustomerParty = $xml->addChild('cac:AccountingCustomerParty')->addChild('cac:Party');
-        $cacCustomerPartyName = $cacCustomerParty->addChild('cac:PartyName');
-        $cacCustomerPartyName->addChild('cbc:Name', $company->name);
-        $cacCustomerParty->addChild('cbc:CompanyID', $company->vat_id);
+        $document = ZugferdDocumentBuilder::CreateNew(ZugferdProfiles::PROFILE_XRECHNUNG);
 
-// Zahlungsinformationen
-        $paymentMeans = $xml->addChild('cac:PaymentMeans');
-        $paymentMeans->addChild('cbc:PaymentMeansCode', '30'); // Code für Überweisung oder Mollie als Payment Processor
-        $paymentMeans->addChild('cbc:PaymentID', $invoiceData['payment_id'] ?? $invoiceData['invoice_number']);
+        // ----------------------------------------------------------
+        // Add invoice and position information
 
-// Mollie spezifische Daten (wenn vorhanden)
-        $paymentMeans->addChild('cbc:InstructionNote', 'Paid via Mollie Payment Provider');
-        if (isset($invoiceData['mollie_method'])) {
-            $paymentMeans->addChild('cbc:InstructionNote', 'Payment Method: ' . $invoiceData['mollie_method']);
+        $document
+            ->setDocumentInformation($invoiceData['invoice_number'], "380", $issueDate, config('accounting.currency'))
+            ->setDocumentBusinessProcess($companyDetails['business_process'])
+            ->setDocumentSupplyChainEvent(new \DateTime())
+            ->setDocumentSeller($companyDetails['name'])
+            ->addDocumentSellerGlobalId($companyDetails['global_id']['id'], $companyDetails['global_id']['scheme'])
+            ->addDocumentSellerTaxRegistration("VA", $companyDetails['tax_registration']['vat_id'])
+            ->addDocumentSellerTaxRegistration("FC", $companyDetails['tax_registration']['tax_number'])
+            ->setDocumentSellerAddress(
+                $companyDetails['address']['street'],
+                "",
+                "",
+                $companyDetails['address']['postal_code'],
+                $companyDetails['address']['city'],
+                $companyDetails['address']['country']
+            )
+            ->setDocumentSellerCommunication('EM', $companyDetails['contact']['email'])
+            ->setDocumentBuyer(trim($company->name . ' ' . $company->name2), $company->id)
+            ->setDocumentBuyerAddress($company->str, "", "", $company->plz, $company->ort, "DE")
+            ->setDocumentBuyerCommunication('EM', $company->email)
+            ->addDocumentPaymentMean("59", "Mollie Payment ID: " . $invoiceData['mollie_payment_id']);
+
+
+        foreach ($data['items'] as $item)
+        {
+
+            $document->addNewPosition($item['id'])
+                ->setDocumentPositionProductDetails($item['description'], "", "", null, "0160", null)
+                ->setDocumentPositionNetPrice($item['line_total_amount'])
+                ->setDocumentPositionQuantity($item['quantity'], "H87")
+                ->addDocumentPositionTax('S', 'VAT', $invoiceData['tax_rate'])
+                ->setDocumentPositionLineSummation($item['line_total_amount']);
+
         }
+        $document
+            ->addDocumentTax("S", "VAT", $invoiceData['total_net'], $invoiceData['tax'], $invoiceData['tax_rate'])
+            ->setDocumentSummation($invoiceData['total_gross'], $invoiceData['total_gross'], $invoiceData['total_net'], 0.0, 0.0, $invoiceData['total_net'], $invoiceData['tax'], null, 0.0)
+            ->addDocumentPaymentTerm("", null, null);
 
-// Steuerinformationen
-        $taxTotal = $xml->addChild('cac:TaxTotal');
-        $taxTotal->addChild('cbc:TaxAmount', $invoiceData['total_tax'])->addAttribute('currencyID', $invoiceData['currency']);
-
-// Rechnungspositionen
-        $items = json_decode($invoiceData['data'], true)['items'];
-        foreach ($items as $item) {
-            $line = $xml->addChild('cac:InvoiceLine');
-            $line->addChild('cbc:ID', $item['id']);
-            $line->addChild('cbc:InvoicedQuantity', $item['quantity']);
-            $line->addChild('cbc:LineExtensionAmount', $item['line_amount'])->addAttribute('currencyID', $invoiceData['currency']);
-            $itemNode = $line->addChild('cac:Item');
-            $itemNode->addChild('cbc:Name', $item['description']);
-        }
-
-// Gesamtbetrag (vor den Rechnungspositionen hinzufügen)
-        $monetaryTotal = $xml->addChild('cac:LegalMonetaryTotal');
-        $monetaryTotal->addChild('cbc:PayableAmount', $invoiceData['total_gross'])->addAttribute('currencyID', $invoiceData['currency']);
-
-// XML formatieren
-        $dom = new \DOMDocument('1.0', 'UTF-8');
-        $dom->preserveWhiteSpace = false;
-        $dom->formatOutput = true;
-        $dom->loadXML($xml->asXML());
-        $formattedXml = $dom->saveXML();
+        return $document;
 
 
-        // test
-
-
-        // Erstelle ein DOMDocument-Objekt
-        $dom = new \DOMDocument;
-        $dom->preserveWhiteSpace = false;
-        $dom->formatOutput = true;
-        $dom->loadXML($formattedXml);
-
-
-
-
-// Ausgabe des formatierten XML
-//echo $dom->saveXML();
-// Initialisiere das XML-Dokument mit den entsprechenden Namespaces
-        // XML-Dokument mit den richtigen Namespaces erzeugen
-        // SimpleXML-Objekt erstellen
-        $xml = new \SimpleXMLElement('<ubl:Invoice xmlns:ubl="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"/>');
-
-// CustomizationID und ProfileID
-        $xml->addChild('cbc:CustomizationID', 'urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $xml->addChild('cbc:ProfileID', 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-
-// Rechnungsnummer, Datum, und andere Angaben
-        $xml->addChild('cbc:ID', '123456XX', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $xml->addChild('cbc:IssueDate', '2016-04-04', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $xml->addChild('cbc:InvoiceTypeCode', '380', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $xml->addChild('cbc:DocumentCurrencyCode', 'EUR', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $xml->addChild('cbc:BuyerReference', '04011000-12345-03', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-
-// Lieferantendaten
-        $cacSupplierParty = $xml->addChild('cac:AccountingSupplierParty', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $cacParty = $cacSupplierParty->addChild('cac:Party', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $cacParty->addChild('cbc:EndpointID', 'seller@email.de', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2')->addAttribute('schemeID', 'EM');
-        $partyName = $cacParty->addChild('cac:PartyName', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $partyName->addChild('cbc:Name', '[Seller trading name]', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $postalAddress = $cacParty->addChild('cac:PostalAddress', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $postalAddress->addChild('cbc:StreetName', '[Seller address line 1]', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $postalAddress->addChild('cbc:CityName', '[Seller city]', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $postalAddress->addChild('cbc:PostalZone', '12345', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $country = $postalAddress->addChild('cac:Country', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $country->addChild('cbc:IdentificationCode', 'DE', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-
-// Steuerinformationen des Lieferanten
-        $partyTaxScheme = $cacParty->addChild('cac:PartyTaxScheme', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $partyTaxScheme->addChild('cbc:CompanyID', 'DE123456789', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $taxScheme = $partyTaxScheme->addChild('cac:TaxScheme', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $taxScheme->addChild('cbc:ID', 'VAT', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-
-// Rechtliche Angaben des Lieferanten
-        $partyLegalEntity = $cacParty->addChild('cac:PartyLegalEntity', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $partyLegalEntity->addChild('cbc:RegistrationName', '[Seller name]', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $partyLegalEntity->addChild('cbc:CompanyID', '[HRA-Eintrag]', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $partyLegalEntity->addChild('cbc:CompanyLegalForm', '123/456/7890, HRA-Eintrag in [...]', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-
-// Kontaktinformationen des Lieferanten
-        $contact = $cacParty->addChild('cac:Contact', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $contact->addChild('cbc:Name', 'nicht vorhanden', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $contact->addChild('cbc:Telephone', '+49 1234-5678', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $contact->addChild('cbc:ElectronicMail', 'seller@email.de', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-
-// Kundendaten
-        $cacCustomerParty = $xml->addChild('cac:AccountingCustomerParty', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $cacParty = $cacCustomerParty->addChild('cac:Party', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $cacParty->addChild('cbc:EndpointID', 'buyer@info.de', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2')->addAttribute('schemeID', 'EM');
-        $partyIdentification = $cacParty->addChild('cac:PartyIdentification', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $partyIdentification->addChild('cbc:ID', '[Buyer identifier]', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $postalAddress = $cacParty->addChild('cac:PostalAddress', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $postalAddress->addChild('cbc:StreetName', '[Buyer address line 1]', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $postalAddress->addChild('cbc:CityName', '[Buyer city]', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $postalAddress->addChild('cbc:PostalZone', '12345', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $country = $postalAddress->addChild('cac:Country', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $country->addChild('cbc:IdentificationCode', 'DE', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $partyLegalEntity = $cacParty->addChild('cac:PartyLegalEntity', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $partyLegalEntity->addChild('cbc:RegistrationName', '[Buyer name]', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-
-// Zahlungsinformationen
-        $paymentMeans = $xml->addChild('cac:PaymentMeans', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $paymentMeans->addChild('cbc:PaymentMeansCode', '58', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $payeeFinancialAccount = $paymentMeans->addChild('cac:PayeeFinancialAccount', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $payeeFinancialAccount->addChild('cbc:ID', 'DE75512108001245126199', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-
-// Zahlungsbedingungen
-        $paymentTerms = $xml->addChild('cac:PaymentTerms', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $paymentTerms->addChild('cbc:Note', 'Zahlbar sofort ohne Abzug.', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-
-        // Steuerinformationen
-        $taxTotal = $xml->addChild('cac:TaxTotal', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $taxTotal->addChild('cbc:TaxAmount', '19.00', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2')->addAttribute('currencyID', 'EUR');
-        $taxSubtotal = $taxTotal->addChild('cac:TaxSubtotal', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $taxSubtotal->addChild('cbc:TaxableAmount', '100.00', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2')->addAttribute('currencyID', 'EUR');
-        $taxSubtotal->addChild('cbc:TaxAmount', '19.00', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2')->addAttribute('currencyID', 'EUR');
-        $taxCategory = $taxSubtotal->addChild('cac:TaxCategory', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $taxCategory->addChild('cbc:ID', 'S', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $taxCategory->addChild('cbc:Percent', '19', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $taxScheme = $taxCategory->addChild('cac:TaxScheme', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $taxScheme->addChild('cbc:ID', 'VAT', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-
-        // Steuerinformationen
-        $taxTotal = $xml->addChild('cac:TaxTotal', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $taxTotal->addChild('cbc:TaxAmount', '19.00', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2')->addAttribute('currencyID', 'EUR');
-        $taxSubtotal = $taxTotal->addChild('cac:TaxSubtotal', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $taxSubtotal->addChild('cbc:TaxableAmount', '100.00', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2')->addAttribute('currencyID', 'EUR');
-        $taxSubtotal->addChild('cbc:TaxAmount', '19.00', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2')->addAttribute('currencyID', 'EUR');
-        $taxCategory = $taxSubtotal->addChild('cac:TaxCategory', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $taxCategory->addChild('cbc:ID', 'S', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $taxCategory->addChild('cbc:Percent', '19', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $taxScheme = $taxCategory->addChild('cac:TaxScheme', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $taxScheme->addChild('cbc:ID', 'VAT', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-
-// Gesamtbetrag (LegalMonetaryTotal)
-        $legalMonetaryTotal = $xml->addChild('cac:LegalMonetaryTotal', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $legalMonetaryTotal->addChild('cbc:LineExtensionAmount', '100.00', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2')->addAttribute('currencyID', 'EUR');
-        $legalMonetaryTotal->addChild('cbc:TaxExclusiveAmount', '100.00', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2')->addAttribute('currencyID', 'EUR');
-        $legalMonetaryTotal->addChild('cbc:TaxInclusiveAmount', '119.00', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2')->addAttribute('currencyID', 'EUR');
-        $legalMonetaryTotal->addChild('cbc:PayableAmount', '119.00', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2')->addAttribute('currencyID', 'EUR');
-
-// Rechnungspositionen
-        $invoiceLine = $xml->addChild('cac:InvoiceLine', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $invoiceLine->addChild('cbc:ID', '1', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $invoiceLine->addChild('cbc:InvoicedQuantity', '1', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2')->addAttribute('unitCode', 'XPP');
-        $invoiceLine->addChild('cbc:LineExtensionAmount', '100.00', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2')->addAttribute('currencyID', 'EUR');
-        $item = $invoiceLine->addChild('cac:Item', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $item->addChild('cbc:Name', 'Artikelname Beispiel', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $classifiedTaxCategory = $item->addChild('cac:ClassifiedTaxCategory', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $classifiedTaxCategory->addChild('cbc:ID', 'S', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $classifiedTaxCategory->addChild('cbc:Percent', '19', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $taxScheme = $classifiedTaxCategory->addChild('cac:TaxScheme', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $taxScheme->addChild('cbc:ID', 'VAT', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-
-// Artikelpreis
-        $price = $invoiceLine->addChild('cac:Price', null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $price->addChild('cbc:PriceAmount', '100.00', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2')->addAttribute('currencyID', 'EUR');
-
-// Formatierte XML-Ausgabe
-        $dom = new \DOMDocument('1.0', 'UTF-8');
-        $dom->preserveWhiteSpace = false;
-        $dom->formatOutput = true;
-        $dom->loadXML($xml->asXML());
-        echo $dom->saveXML();
-
-
-
-        // ende test
-        return 'yo';
     }
 
     /**
@@ -332,4 +240,26 @@ class InvoiceService
 
         return $invoice;
     }
+
+    public  function sendInvoiceEmail($invoiceId = false)
+    {
+        if($invoiceId == false && $this->invoiceId > 0)
+        {
+            $invoiceId = $this->invoiceId;
+        }
+        // Beispiel-Invoice-Daten
+        $invoice = Invoice::where('id', $invoiceId)->first();
+
+         storage_path('app/invoices/');
+        // Pfad zur gespeicherten PDF-Rechnung
+        $pdfPath = storage_path('app/invoices/' . $invoice->invoice_number . '.pdf');
+
+
+        // Sende die E-Mail mit dem PDF-Anhang
+        Mail::to($invoice->company->email)->send(new InvoiceMail($invoice, $pdfPath));
+
+        return 'Rechnung wurde versendet!';
+    }
+
+
 }
