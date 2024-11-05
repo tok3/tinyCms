@@ -24,7 +24,7 @@ class SecureHeaders
         $response->headers->set('X-Content-Type-Options', 'nosniff');
 
         $response->headers->set('Content-Security-Policy', "
-    default-src 'self';script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline';style-src 'self' https://fonts.googleapis.com 'unsafe-inline';font-src 'self' https://fonts.gstatic.com data:;");
+    default-src 'self';script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline';style-src 'self' https://fonts.googleapis.com 'unsafe-inline';font-src 'self' https://fonts.gstatic.com;");
 
 
         $response->headers->set('Referrer-Policy', 'no-referrer-when-downgrade');
