@@ -1,11 +1,12 @@
 <?php
 $manifestPath = public_path('build/manifest.json');
 
+$editorCss = '';
 if (file_exists($manifestPath)) {
     $manifest = json_decode(file_get_contents($manifestPath), true);
+
+    $editorCss =  app()->runningInConsole() ? null : asset('/build/'.$manifest['resources/scss/tinyMCEtheme.scss']['file']);
 }
-
-
 
 return [
     /*
@@ -63,6 +64,7 @@ return [
             'inline'=> true,
             'toolbar' => 'fullscreen | code | undo redo removeformat | formatselect fontsizeselect | bold italic | rtl ltr | alignjustify alignright aligncenter alignleft | numlist bullist | forecolor backcolor | blockquote table toc hr | image link media codesample emoticons | wordcount ',
             'upload_directory' => 'storage',
+            'document_base_url' => config('app.url'),
             'custom_configs' => [
                 'allow_html_in_named_anchor' => true,
                 'link_default_target' => '_blank',
@@ -93,7 +95,7 @@ return [
                   ],
 
               ],
-                'content_css'=> asset('/build/'.$manifest['resources/scss/tinyMCEtheme.scss']['file']),
+              'content_css'=> $editorCss,
                 'images_upload_url' => '/upload-image', // Direkte URL verwenden
                 'automatic_uploads' => true,
                 'images_upload_handler' => 'function (blobInfo, success, failure) {
