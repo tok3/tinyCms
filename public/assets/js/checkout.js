@@ -5,6 +5,9 @@ $(document).ready(function () {
         backButtonSupport: true,
         theme: 'square',
         useURLhash: true,
+        keyboardSettings: {
+            keyNavigation: false, // Deaktiviert die Tastaturnavigation
+        },
         lang: { // Language variables for button
             next: 'Weiter',
             previous: 'Zurück'

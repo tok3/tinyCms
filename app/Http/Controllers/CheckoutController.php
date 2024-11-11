@@ -11,10 +11,12 @@ use App\Models\Subscription;
 use Faker\Factory as Faker;
 use GuzzleHttp\Client;
 use App\Models\TemporaryUserData;
+
 /**
  *
  */
-class CheckoutController extends Controller
+class CheckoutController extends MolliePaymentController
+
 {
 
 
@@ -27,9 +29,9 @@ class CheckoutController extends Controller
     {
 
 
-        $payment = $this->firstPayment($request);
+        $checkoutUrl = $this->firstPayment($request);
 
-        return redirect($payment->getCheckoutUrl(), 303);
+        return redirect($checkoutUrl, 303);
 
     }
 
@@ -45,7 +47,7 @@ class CheckoutController extends Controller
 
         $orderedProduct = Product::where('id', $request->input('product_id'))->first();
 
-        $name = $request->input('user')['vorname'] . ' '.$request->input('user')['name'];
+        $name = $request->input('user')['vorname'] . ' ' . $request->input('user')['name'];
         $email = $request->input('user')['email'];
         $billingEmail = $request->input('company')['email'];
 
@@ -61,8 +63,18 @@ class CheckoutController extends Controller
             'company_data' => json_encode($request->input('company')),
         ]);
 
+
+        if ($orderedProduct->payment_type == 'one_time' && $orderedProduct->price <= 0)
+        {
+
+            $this->initCompanyAccount($customer->id);
+
+            return route('view.plans') . '#step-4';
+
+        }
+
         $price = $orderedProduct->price;
-        if($orderedProduct->trial_period_days > 0)
+        if ($orderedProduct->trial_period_days > 0)
         {
             $price = 0.00;
         }
@@ -78,16 +90,16 @@ class CheckoutController extends Controller
             'description' => $orderedProduct->name,
             'redirectUrl' => url('preise#step-4'),
             'webhookUrl' => route('mollie.paymentWebhook'),
-            "method"      => ["creditcard","directdebit","sofort", "directdebit", "klarnapaylater", "ideal"],
+            "method" => ["creditcard", "directdebit", "sofort", "directdebit", "klarnapaylater", "ideal"],
             "metadata" => [
                 "product_id" => $orderedProduct->id,
                 "customer_id" => $customer->id,
-                "company" =>$request->input('company')['name'],
+                "company" => $request->input('company')['name'],
             ],
         ]);
 
 
-        return $payment;
+        return $payment->getCheckoutUrl();
 
     }
 
@@ -100,6 +112,7 @@ class CheckoutController extends Controller
     public function checkEmail(Request $request)
     {
         $emailExists = User::where('email', $request->email)->exists();
+
         return response()->json(['exists' => $emailExists]);
     }
 
@@ -127,14 +140,16 @@ class CheckoutController extends Controller
         // Produkt-ID aus der Session abrufen
         $productId = $request->input('product_id');
 
-        if (!$productId) {
+        if (!$productId)
+        {
             return response()->json(['error' => 'Kein Produkt ausgewählt.'], 400);
         }
 
         // Produktdetails anhand der Produkt-ID abrufen
         $product = Product::find($productId);
 
-        if (!$product) {
+        if (!$product)
+        {
             return response()->json(['error' => 'Produkt nicht gefunden.'], 404);
         }
 

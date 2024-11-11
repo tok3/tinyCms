@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Contract;
 use App\Models\Product;
 use App\Services\InvoiceService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Mollie\Laravel\Facades\Mollie;
 use App\Models\MolliePayment;
@@ -23,6 +25,72 @@ class MolliePaymentController extends Controller
 
     public function test()
     {
+
+$customerId = 'cst_ZYrQatF4wT';
+        $mandates = $this->getMandates($customerId);
+
+        // Überprüfe, ob ein gültiges Mandat vorhanden ist
+        $hasValidMandate = false;
+
+        //\Log::info('MANDATE: ' . json_encode($mandates, JSON_PRETTY_PRINT));
+        foreach ($mandates['_embedded']['mandates'] as $mandate)
+        {
+            if ($mandate['status'] === 'valid')
+            {
+                $hasValidMandate = true;
+                break;
+            }
+        }
+
+        echo "-->".$hasValidMandate;
+
+        if ($hasValidMandate)
+        {
+            echo "ja?";
+
+        }
+        $customer = Mollie::api()->customers->get($customerId);
+        $mandates = Mollie::api()->mandates->listFor($customer);
+        echo "<pre>";
+        print_r($mandates);
+        echo "</pre>";
+        die();
+
+//$this->deleteAllCustomers();
+        // Beispielwerte für das Testen
+        $product = (object) [
+            'name' => 'Produkt XYZ',
+            'description' => 'Beschreibung für Produkt XYZ',
+            'price' => 99.99
+        ];
+
+        $subscription = (object) [
+            'id' => 1234
+        ];
+
+        $startDate = Carbon::now()->startOfMonth();
+
+// Erstelle ein neues Contract-Objekt mit Testdaten
+        $contract = new Contract();
+        $contract->contractable_id = 2; // Beispiel-ID für das Unternehmen (Company)
+        $contract->contractable_type = Company::class;
+        $contract->product_name = $product->name;
+        $contract->product_description = $product->description;
+        $contract->price = $product->price;
+        $contract->setup_fee = 0; // Beispiel für Setup-Fee, falls vorhanden
+        $contract->interval = 'monthly'; // Beispielwert für den Intervall
+        $contract->subscription_id = $subscription->id;
+        $contract->iteration = 1;
+        $contract->data = json_encode(['extra_info' => 'Beispiel-Informationen']); // Beispiel für das JSON-Datenfeld
+        $contract->order_date = Carbon::now()->subDays(7); // Beispiel-Bestelldatum
+        $contract->start_date = $startDate;
+        $contract->duration = 24; // Dauer in Monaten
+        $contract->start_date = Carbon::now();
+        $contract->end_date = Carbon::now()->addMonths($contract->duration);
+
+        $contract->save();
+
+        die();
 
         $subscriptionId = 'sub_duoJE78NZG';
         $customerId = 'cst_2WvW4LzTNE';
@@ -83,12 +151,7 @@ class MolliePaymentController extends Controller
         print_r($resp);
         echo "</pre>";
 //$this->deleteAllSubscriptions();
-        $customer = Mollie::api()->customers->get('cst_mMnp2Khrbq');
-        $mandates = Mollie::api()->mandates->listFor($customer);
-        echo "<pre>";
-        print_r($mandates);
-        echo "</pre>";
-        die();
+
     }
 
 
@@ -165,6 +228,7 @@ class MolliePaymentController extends Controller
 
         // Access the product_id safely
         $productId = $metadata->product_id ?? null; // Safely access the product_id
+        $customerId = $payment->customerId ?? $metadata->customer_id ?? null; // Kunden-ID aus Payment oder Metadaten
 
         // Fetch the product based on the product_id
 
@@ -206,7 +270,7 @@ class MolliePaymentController extends Controller
                 'mandate_id' => $payment->mandateId ?? null,
                 'subscription_id' => $payment->subscriptionId ?? null,
                 'order_id' => $payment->orderId ?? null,
-                'customer_id' => $payment->customerId ?? null,
+                'customer_id' => $customerId ?? null,
                 'country_code' => $payment->countryCode ?? null,
                 'metadata' => json_encode($payment->metadata), // Metadaten als JSON speichern
                 'details' => json_encode($payment->details) // Details als JSON speichern
@@ -214,9 +278,8 @@ class MolliePaymentController extends Controller
         );
 
 
-
         // firma und useraccount für firma initiieren
-        $this->initCompanyAccount($payment->customerId);
+       $company = $this->initCompanyAccount($customerId);
 
         // Rechnung erstellen
         $this->prepareInvoice($payment->id);
@@ -226,24 +289,18 @@ class MolliePaymentController extends Controller
         if ($payment->sequenceType === 'first')
         {
 
-            // Dies ist die erste Zahlung für ein Mandat, erstelle die Subscription
-            $customerId = $payment->customerId;
-
             // Hole den Kunden anhand der Customer ID
             $mandates = $this->getMandates($customerId);
 
-            // Überprüfe, ob ein gültiges Mandat vorhanden ist
             $hasValidMandate = false;
-
-            //\Log::info('MANDATE: ' . json_encode($mandates, JSON_PRETTY_PRINT));
-            foreach ($mandates['_embedded']['mandates'] as $mandate)
-            {
-                if ($mandate['status'] === 'valid')
-                {
+            foreach ($mandates['_embedded']['mandates'] as $mandate) {
+                if ($mandate['status'] === 'valid') {
                     $hasValidMandate = true;
                     break;
                 }
             }
+
+
             $intervals['daily'] = '1 day';
             $intervals['weekly'] = '1 week';
             $intervals['monthly'] = '1 month';
@@ -252,7 +309,11 @@ class MolliePaymentController extends Controller
 
             $startDate = $this->getStartDate($product);
 
-            if ($hasValidMandate)
+            \Log::info('<---------------------------------->');
+            \Log::info('MANDATE '.$customerId.' '.$hasValidMandate . ' -> ' . json_encode($mandates, JSON_PRETTY_PRINT));
+            \Log::info('<---------------------------------->');
+
+            if ($hasValidMandate === true)
             {
                 // Erstelle die Subscription
                 // Subscription-Daten (Diese können je nach Bedarf angepasst werden)
@@ -280,6 +341,28 @@ class MolliePaymentController extends Controller
                 // Add the subscription_id for the specified payment
                 MolliePayment::where('payment_id', $payment->id)
                     ->update(['subscription_id' => $subscription->id]);
+
+                \Log::info('<---------------------------------->');
+                \Log::info('CONTRACT ERSTELLEN FÜR COMANY ');
+                \Log::info('<---------------------------------->');
+                // create contract
+                $contract = new Contract();
+                $contract->contractable_type = \App\Models\Company::class;
+                $contract->contractable_id = $company->id; // setzt die ID der erstellten Company
+                $contract->product_name = $product->name;
+                $contract->interval = $product->interval;
+                $contract->product_description = $product->description;
+                $contract->price = $product->price;
+                $contract->subscription_id = $subscription->id;
+                $contract->subscription_start_date = $startDate;
+                $contract->duration = 24;
+                $contract->data = json_encode([
+                    'ordered_product' => $product
+                ]);
+                $contract->order_date = Carbon::now();
+                $contract->start_date = Carbon::now();
+                $contract->end_date = Carbon::now()->addMonths(24); // Setzt das Enddatum 24 Monate später
+                $contract->save();
 
             }
             else
@@ -404,7 +487,9 @@ class MolliePaymentController extends Controller
                 'metadata' => json_encode($mollieSubscriptionResponse->metadata), // Hinzufügen des metadata-Feldes als JSON
             ]
         );
-
+        \Log::info('<---------------------------------->');
+        \Log::info('SUBSCRIPTION SYNCED: ' . __LINE__ ) ;
+        \Log::info('<---------------------------------->');
         return true;
     }
 
@@ -413,7 +498,39 @@ class MolliePaymentController extends Controller
      * @return mixed
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getMandates($customerId = 'cst_EuWP587Cqy')
+    public function getMandates($customerId = 'cst_EuWP587Cqy', $maxRetries = 3, $delaySeconds = 2)
+    {
+        $client = new Client();
+        $apiKey = env('MOLLIE_KEY');
+        $retryCount = 0;
+
+        while ($retryCount < $maxRetries) {
+            // API-Request für Mandate des Kunden
+            $response = $client->request('GET', "https://api.mollie.com/v2/customers/{$customerId}/mandates", [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $apiKey,
+                    'Accept' => 'application/json',
+                ],
+            ]);
+
+            // JSON-Antwort dekodieren
+            $mandates = json_decode($response->getBody(), true);
+
+            // Überprüfe, ob ein gültiges Mandat vorhanden ist
+            foreach ($mandates['_embedded']['mandates'] as $mandate) {
+                if ($mandate['status'] === 'valid') {
+                    return $mandates; // Gültiges Mandat gefunden, Rückgabe und Abbruch der Schleife
+                }
+            }
+
+            $retryCount++;
+            \Log::info("Retry #{$retryCount} für Mandat von Customer: {$customerId} nach {$delaySeconds} Sekunden.");
+            sleep($delaySeconds); // Wartezeit zwischen den Versuchen
+        }
+
+        return $mandates; // Gibt das Mandat (ob gültig oder nicht) nach max. Versuchen zurück
+    }
+    /*public function getMandates($customerId = 'cst_EuWP587Cqy')
     {
 
         $client = new Client();
@@ -434,9 +551,13 @@ class MolliePaymentController extends Controller
         $mandates = json_decode($response->getBody(), true);
 
         return $mandates;
-    }
+    }*/
 
 
+    /**
+     * @param $paymentId
+     * @return void
+     */
     public function prepareInvoice($paymentId)
     {
 
@@ -486,8 +607,8 @@ class MolliePaymentController extends Controller
 
                 ]
             ];
-            $invoiceService = new InvoiceService();
 
+            $invoiceService = new InvoiceService();
 
             $invoiceService->createInvoice($invoiceData);
 
@@ -544,25 +665,33 @@ class MolliePaymentController extends Controller
     public function createSubscription($customerId = 'cst_EuWP587Cqy', $subscriptionData)
     {
         $client = new Client();
-
-        // Authentifizierung mit deinem Mollie API Key
         $apiKey = env('MOLLIE_KEY');
 
-        // API-Request für die Erstellung der Subscription
-        $response = $client->request('POST', "https://api.mollie.com/v2/customers/{$customerId}/subscriptions", [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Accept' => 'application/json',
-            ],
-            'json' => $subscriptionData // Subscription-Daten im JSON-Format
-        ]);
+        try {
+            // API-Request für die Erstellung der Subscription
+            $response = $client->request('POST', "https://api.mollie.com/v2/customers/{$customerId}/subscriptions", [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $apiKey,
+                    'Accept' => 'application/json',
+                ],
+                'json' => $subscriptionData
+            ]);
 
-        // JSON-Antwort dekodieren
-        $subscription = json_decode($response->getBody(), false);
+            // JSON-Antwort dekodieren
+            $subscription = json_decode($response->getBody(), false);
 
-        //\Log::info('Subscription: ' . json_encode($subscription, JSON_PRETTY_PRINT));
+            return $subscription;
 
-        return $subscription;
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            // Logge den Fehler und seine Details
+            \Log::error('Error creating subscription: ' . $e->getMessage(), [
+                'customer_id' => $customerId,
+                'subscription_data' => $subscriptionData,
+            ]);
+
+            // Optional: Rückgabe einer spezifischen Fehlermeldung oder `null`, falls die Subscription nicht erstellt wurde
+            return null;
+        }
     }
 
 
@@ -589,28 +718,32 @@ class MolliePaymentController extends Controller
         $subscriptions = json_decode($response->getBody(), true);
 
         // 3. Überprüfe, ob Subscriptions vorhanden sind
-        if (isset($subscriptions['_embedded']['subscriptions']))
-        {
-            foreach ($subscriptions['_embedded']['subscriptions'] as $subscription)
-            {
-                // 4. Lösche jede Subscription
+        if (isset($subscriptions['_embedded']['subscriptions'])) {
+            foreach ($subscriptions['_embedded']['subscriptions'] as $subscription) {
+                // Lösche jede Subscription
                 $subscriptionId = $subscription['id'];
-                $client->request('DELETE', "https://api.mollie.com/v2/customers/{$customerId}/subscriptions/{$subscriptionId}", [
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . $apiKey,
-                        'Accept' => 'application/json',
-                    ],
-                ]);
 
-                // Logge das Ergebnis
-                //\Log::info("Deleted subscription: {$subscriptionId}");
+                try {
+                    $client->request('DELETE', "https://api.mollie.com/v2/customers/{$customerId}/subscriptions/{$subscriptionId}", [
+                        'headers' => [
+                            'Authorization' => 'Bearer ' . $apiKey,
+                            'Accept' => 'application/json',
+                        ],
+                    ]);
+
+                    // Logge das Ergebnis
+                    \Log::info("Deleted subscription: {$subscriptionId} for customer: {$customerId}");
+
+                } catch (\Exception $e) {
+                    // Logge den Fehler und fahre fort
+                    \Log::warning("Skipping subscription with ID: {$subscriptionId} for customer: {$customerId}. Reason: " . $e->getMessage());
+                    continue; // Überspringe diese Subscription und fahre mit der nächsten fort
+                }
             }
 
-            //\Log::info("All subscriptions for customer {$customerId} have been deleted.");
-        }
-        else
-        {
-            //\Log::info("No subscriptions found for customer {$customerId}.");
+            \Log::info("All subscriptions for customer {$customerId} have been processed.");
+        } else {
+            \Log::info("No subscriptions found for customer {$customerId}.");
         }
 
 
@@ -657,57 +790,8 @@ class MolliePaymentController extends Controller
 
     }
 
-    /**
-     * delete all subscriptions BE CAREFUL FOR CLEANING TESTDATA ONY
-     * @return string
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     */
-    public function deleteAllSubscriptions()
-    {
-        $client = new Client();
-        $apiKey = env('MOLLIE_KEY');
 
-        // 1. Hole alle Subscriptions
-        $response = $client->request('GET', 'https://api.mollie.com/v2/subscriptions', [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Accept' => 'application/json',
-            ],
-        ]);
-
-        // 2. JSON-Antwort dekodieren
-        $data = json_decode($response->getBody(), true);
-
-        // 3. Überprüfe, ob Subscriptions vorhanden sind
-        if (isset($data['_embedded']['subscriptions']))
-        {
-            foreach ($data['_embedded']['subscriptions'] as $subscription)
-            {
-                $subscriptionId = $subscription['id'];
-                $customerId = $subscription['customerId'];
-
-                // 4. Lösche die Subscription
-                $client->request('DELETE', "https://api.mollie.com/v2/customers/{$customerId}/subscriptions/{$subscriptionId}", [
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . $apiKey,
-                        'Accept' => 'application/json',
-                    ],
-                ]);
-
-                // Logge das Ergebnis
-                //\Log::info("Deleted subscription with ID: {$subscriptionId} for customer: {$customerId}");
-            }
-
-            return "All subscriptions have been deleted.";
-        }
-        else
-        {
-            return "No subscriptions found.";
-        }
-    }
-
-
-    private function initCompanyAccount($mollieCustomerId)
+    public function initCompanyAccount($mollieCustomerId)
     {
         $tempData = TemporaryUserData::where('mollie_customer_id', $mollieCustomerId)->first();
         if ($tempData)
@@ -752,6 +836,8 @@ class MolliePaymentController extends Controller
             session(['user_email' => $user->email]);
 
             $tempData->delete();
+
+            return $company;
         }
         else
         {
@@ -763,5 +849,118 @@ class MolliePaymentController extends Controller
 
 
     }
+
+
+
+
+    /**
+     * delete all subscriptions BE CAREFUL FOR CLEANING TESTDATA ONY
+     * @return string
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function deleteAllSubscriptions()
+    {
+
+        $apiKey = env('MOLLIE_KEY');
+
+        if (strpos($apiKey, 'test_') !== 0) {
+            // Falls der API-Key nicht mit 'test_' beginnt, wird die Ausführung verhindert
+            abort(403, 'Ungültiger API-Key. Nur Test-API-Keys sind erlaubt.');
+        }
+
+        $client = new Client();
+
+        // 1. Hole alle Subscriptions
+        $response = $client->request('GET', 'https://api.mollie.com/v2/subscriptions', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Accept' => 'application/json',
+            ],
+        ]);
+
+        // 2. JSON-Antwort dekodieren
+        $data = json_decode($response->getBody(), true);
+
+        // 3. Überprüfe, ob Subscriptions vorhanden sind
+        if (isset($data['_embedded']['subscriptions']))
+        {
+            foreach ($data['_embedded']['subscriptions'] as $subscription)
+            {
+                $subscriptionId = $subscription['id'];
+                $customerId = $subscription['customerId'];
+
+                // 4. Lösche die Subscription
+                $client->request('DELETE', "https://api.mollie.com/v2/customers/{$customerId}/subscriptions/{$subscriptionId}", [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $apiKey,
+                        'Accept' => 'application/json',
+                    ],
+                ]);
+
+                // Logge das Ergebnis
+                //\Log::info("Deleted subscription with ID: {$subscriptionId} for customer: {$customerId}");
+            }
+
+            return "All subscriptions have been deleted.";
+        }
+        else
+        {
+            return "No subscriptions found.";
+        }
+    }
+
+    public function deleteAllCustomers()
+    {
+        $apiKey = env('MOLLIE_KEY');
+
+        if (strpos($apiKey, 'test_') !== 0) {
+            // Falls der API-Key nicht mit 'test_' beginnt, wird die Ausführung verhindert
+            abort(403, 'Ungültiger API-Key. Nur Test-API-Keys sind erlaubt.');
+        }
+
+        $client = new Client();
+
+        // 1. Hole alle Kunden
+        $response = $client->request('GET', 'https://api.mollie.com/v2/customers', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Accept' => 'application/json',
+            ],
+        ]);
+
+        // 2. JSON-Antwort dekodieren
+        $data = json_decode($response->getBody(), true);
+
+        // 3. Überprüfe, ob Kunden vorhanden sind
+        if (isset($data['_embedded']['customers']))
+        {
+            foreach ($data['_embedded']['customers'] as $customer)
+            {
+                $customerId = $customer['id'];
+
+                // 4. Lösche alle Subscriptions für den Kunden
+                $this->deleteCustomerSubscriptions($customerId);
+
+                // 5. Lösche den Kunden
+                $client->request('DELETE', "https://api.mollie.com/v2/customers/{$customerId}", [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $apiKey,
+                        'Accept' => 'application/json',
+                    ],
+                ]);
+
+                // Logge das Ergebnis
+                \Log::info("Deleted customer with ID: {$customerId}");
+            }
+
+            return "All customers have been deleted.";
+        }
+        else
+        {
+            return "No customers found.";
+        }
+    }
+
+
 
 }

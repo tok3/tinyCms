@@ -5,6 +5,7 @@
 
         $paymentModality['annual'] ="pro Jahr </br>bei jährlicher Zahlung";
         $paymentModality['monthly'] ="pro Monat </br>bei Monatlicher Zahlung";
+        $paymentModality['one_time'] ="Einmalzahlung";
 @endphp
 
 <div class="container">

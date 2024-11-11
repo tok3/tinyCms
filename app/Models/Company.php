@@ -57,6 +57,12 @@ class Company extends Model
 
     }
 
+    // Polymorphe Beziehung zu Contracts
+    public function contracts()
+    {
+        return $this->morphMany(Contract::class, 'contractable');
+    }
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */

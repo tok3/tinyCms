@@ -64,7 +64,9 @@ return [
             'inline'=> true,
             'toolbar' => 'fullscreen | code | undo redo removeformat | formatselect fontsizeselect | bold italic | rtl ltr | alignjustify alignright aligncenter alignleft | numlist bullist | forecolor backcolor | blockquote table toc hr | image link media codesample emoticons | wordcount ',
             'upload_directory' => 'storage',
+            'relative_urls' => false,
             'document_base_url' => config('app.url'),
+            'convert_urls' => false,
             'custom_configs' => [
                 'allow_html_in_named_anchor' => true,
                 'link_default_target' => '_blank',

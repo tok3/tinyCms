@@ -14,6 +14,7 @@ use horstoeko\zugferd\ZugferdDocumentPdfMerger;
 use TCPDF;
 use App\Mail\InvoiceMail;
 use Illuminate\Support\Facades\Mail;
+
 class InvoiceService
 {
     /**
@@ -24,8 +25,17 @@ class InvoiceService
      */
 
     protected $invoiceId;
+
     public function createInvoice(array $data): Invoice
     {
+
+        // Prüfe, ob bereits eine Rechnung für die gegebene mollie_payment_id existiert
+        $existingInvoice = Invoice::where('mollie_payment_id', $data['mollie_payment_id'])->first();
+
+        // Falls bereits eine Rechnung existiert, gib sie zurück und überspringe die Erstellung
+        if ($existingInvoice) {
+            return $existingInvoice;
+        }
 
         $invoice = new Invoice();
         $invoice->invoice_number = $this->generateInvoiceNumber();
@@ -55,8 +65,8 @@ class InvoiceService
 
         // Save merged PDF (existing original and XML) to a file
         $existingXml = $data['xrechnung_data'];
-        $existingPdf = storage_path('app/'.$pdfInvoicePath);
-        $mergeToPdf =  storage_path('app/'.str_replace('-tmp','',$pdfInvoicePath));
+        $existingPdf = storage_path('app/' . $pdfInvoicePath);
+        $mergeToPdf = storage_path('app/' . str_replace('-tmp', '', $pdfInvoicePath));
 
         file_exists($existingPdf);
 
@@ -241,26 +251,29 @@ class InvoiceService
         return $invoice;
     }
 
-    public  function sendInvoiceEmail($invoiceId = false)
+    public function sendInvoiceEmail($invoiceId = false)
     {
-        if($invoiceId == false && $this->invoiceId > 0)
+        if ($invoiceId == false && $this->invoiceId > 0)
         {
             $invoiceId = $this->invoiceId;
+        }
+        if ($invoiceId == false && empty($this->invoiceId))
+        {
+            return false;
         }
         // Beispiel-Invoice-Daten
         $invoice = Invoice::where('id', $invoiceId)->first();
 
-         storage_path('app/invoices/');
+        storage_path('app/invoices/');
         // Pfad zur gespeicherten PDF-Rechnung
         $pdfPath = storage_path('app/invoices/' . $invoice->invoice_number . '.pdf');
 
 
         // Sende die E-Mail mit dem PDF-Anhang
-       // Mail::to($invoice->company->email)->send(new InvoiceMail($invoice, $pdfPath));
+        // Mail::to($invoice->company->email)->send(new InvoiceMail($invoice, $pdfPath));
 
         // mail mit 5 min versatz senden
         Mail::to($invoice->company->email)->later(now()->addMinutes(5), new InvoiceMail($invoice, $pdfPath));
-
 
 
         return 'Rechnung wurde versendet!';

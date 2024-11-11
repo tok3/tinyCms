@@ -169,6 +169,20 @@ class PageResource extends Resource
                                                     TextInput::make('heading')
                                                         ->label('Heading')
                                                         ->columnSpan(9),
+                                                    Select::make('levelHeading')
+                                                        ->options([
+                                                            'h1' => 'Heading 1',
+                                                            'h2' => 'Heading 2',
+                                                            'h3' => 'Heading 3',
+                                                            'h4' => 'Heading 4',
+                                                            'h5' => 'Heading 5',
+                                                            'h6' => 'Heading 6',
+                                                        ])
+                                                        ->default('h2')
+                                                        ->columnSpan(3),
+                                                    TextInput::make('heading2')
+                                                        ->label('Heading 2')
+                                                        ->columnSpan(9),
                                                     Select::make('levelHeading2')
                                                         ->options([
                                                             'h1' => 'Heading 1',
@@ -180,7 +194,6 @@ class PageResource extends Resource
                                                         ])
                                                         ->default('h4')
                                                         ->columnSpan(3),
-
                                                     Forms\Components\Textarea::make('teaser')
                                                         ->label('Teaser/Anriss')
                                                         ->columnSpan(12)

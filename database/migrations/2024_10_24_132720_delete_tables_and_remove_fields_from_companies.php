@@ -26,7 +26,7 @@ class DeleteTablesAndRemoveFieldsFromCompanies extends Migration
 
         // Felder aus der Tabelle 'companies' entfernen
         Schema::table('companies', function (Blueprint $table) {
-            $table->dropColumn(['mollie_customer_id', 'mollie_mandate_id', 'tax_percentage', 'trial_ends_at']);
+//            $table->dropColumn(['mollie_customer_id', 'mollie_mandate_id', 'tax_percentage', 'trial_ends_at']);
         });
     }
 
