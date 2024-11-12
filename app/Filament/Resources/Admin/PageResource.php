@@ -202,12 +202,28 @@ class PageResource extends Resource
                                                     TinyEditor::make('text')->profile('custom')->toolbarSticky(true)
                                                         ->columnSpan(12),
                                                 ])->label(function (?array $state): string {
-                                                    if ($state === null)
-                                                    {
-                                                        return 'Textbock';
+                                                    if ($state === null) {
+                                                        return 'Textblock';
                                                     }
 
-                                                    return $state['heading'] ?? 'Untitled Textblock';
+                                                    $label = $state['heading'] ?? '';
+
+                                                    if (empty($label)) {
+                                                        $label = $state['heading2'] ?? '';
+                                                    }
+
+                                                    if (empty($label)) {
+                                                        $label = $state['teaser'] ?? '';
+                                                        $label = trim(\Str::limit(html_entity_decode($label), 55, '[..]'));
+                                                    }
+
+                                                    if (empty($label)) {
+                                                        $label = $state['text'] ?? '';
+                                                        $label = trim(\Str::limit(html_entity_decode($label), 55, '[..]'));
+                                                    }
+
+
+                                                    return $label ?: 'Untitled Textblock';
                                                 })
                                                 ->columns(12),
 
