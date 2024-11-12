@@ -219,7 +219,8 @@ class PageResource extends Resource
 
                                                     if (empty($label)) {
                                                         $label = $state['text'] ?? '';
-                                                        $label = trim(\Str::limit(html_entity_decode($label), 55, '[..]'));
+                                                        // HTML-Tags entfernen und den Text auf 55 Zeichen begrenzen
+                                                        $label = trim(\Str::limit(html_entity_decode(strip_tags($label)), 55, '[..]'));
                                                     }
 
 
