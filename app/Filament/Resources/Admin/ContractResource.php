@@ -21,6 +21,7 @@ use Filament\Forms\Components\KeyValue;
 use App\Models\Company;
 use Filament\Forms\Components\ViewField;
 use Filament\Forms\Components\Placeholder;
+
 class ContractResource extends Resource
 {
     protected static ?string $model = Contract::class;
@@ -35,13 +36,12 @@ class ContractResource extends Resource
                     ->schema([
                         Placeholder::make('company_name')
                             ->label('')
-                            ->content(fn ($record) => $record->contractable?->name ."nl" .  $record->contractable?->name_2)
-                             ->columnSpan(4),
+                            ->content(fn($record) => $record->contractable?->name . "nl" . $record->contractable?->name_2)
+                            ->columnSpan(4),
 
                         Placeholder::make('company_plz')
                             ->label('')
-                            ->content(fn ($record) => ($record->contractable?->plz ?? 'N/A').' ' .$record->contractable?->ort ?? 'N/A'),
-
+                            ->content(fn($record) => ($record->contractable?->plz ?? 'N/A') . ' ' . $record->contractable?->ort ?? 'N/A'),
 
 
                     ])
@@ -51,31 +51,31 @@ class ContractResource extends Resource
                     ->schema([
                         Placeholder::make('product_name')
                             ->label('Product Name')
-                            ->content(fn ($record) => $record->product_name ?? 'N/A'),
+                            ->content(fn($record) => $record->product_name ?? 'N/A'),
 
                         Placeholder::make('product_description')
                             ->label('Product Description')
-                            ->content(fn ($record) => $record->product_description ?? 'N/A'),
+                            ->content(fn($record) => $record->product_description ?? 'N/A'),
 
                         Placeholder::make('price')
                             ->label('Price (€)')
-                            ->content(fn ($record) => number_format($record->price / 100, 2, ',', '.') . ' €'),
+                            ->content(fn($record) => number_format($record->price / 100, 2, ',', '.') . ' €'),
 
                         Placeholder::make('setup_fee')
                             ->label('Setup Fee (€)')
-                            ->content(fn ($record) => number_format($record->setup_fee / 100, 2, ',', '.') . ' €'),
+                            ->content(fn($record) => number_format($record->setup_fee / 100, 2, ',', '.') . ' €'),
 
                         Placeholder::make('interval')
                             ->label('Payment Interval')
-                            ->content(fn ($record) => $record->interval ?? 'N/A'),
+                            ->content(fn($record) => $record->interval ?? 'N/A'),
 
                         Placeholder::make('subscription_id')
                             ->label('Subscription ID')
-                            ->content(fn ($record) => $record->subscription_id ?? 'N/A'),
+                            ->content(fn($record) => $record->subscription_id ?? 'N/A'),
 
                         Placeholder::make('subscription_start_date')
                             ->label('Subscription Start Date')
-                            ->content(fn ($record) => $record->subscription_start_date ?? 'N/A'),
+                            ->content(fn($record) => $record->subscription_start_date ?? 'N/A'),
                     ])
                     ->columns(2),
 
@@ -83,23 +83,23 @@ class ContractResource extends Resource
                     ->schema([
                         Placeholder::make('order_date')
                             ->label('Order Date')
-                            ->content(fn ($record) => $record->order_date ?? 'N/A'),
+                            ->content(fn($record) => $record->order_date ?? 'N/A'),
 
                         Placeholder::make('start_date')
                             ->label('Start Date')
-                            ->content(fn ($record) => $record->start_date ?? 'N/A'),
+                            ->content(fn($record) => $record->start_date ?? 'N/A'),
 
                         Placeholder::make('duration')
                             ->label('Duration (in days)')
-                            ->content(fn ($record) => $record->duration ?? 'N/A'),
+                            ->content(fn($record) => $record->duration ?? 'N/A'),
 
                         Placeholder::make('end_date')
                             ->label('End Date')
-                            ->content(fn ($record) => $record->end_date ?? 'N/A'),
+                            ->content(fn($record) => $record->end_date ?? 'N/A'),
 
                         Placeholder::make('iteration')
                             ->label('Iteration')
-                            ->content(fn ($record) => $record->iteration ?? 'N/A'),
+                            ->content(fn($record) => $record->iteration ?? 'N/A'),
                     ])
                     ->columns(2),
             ]);
@@ -117,17 +117,17 @@ class ContractResource extends Resource
 
                 Tables\Columns\TextColumn::make('company_name')
                     ->label('Company Name')
-                    ->getStateUsing(fn ($record) => $record->contractable instanceof Company ? $record->contractable->name : '-')
+                    ->getStateUsing(fn($record) => $record->contractable instanceof Company ? $record->contractable->name : '-')
                     ->sortable(),
 
-         Tables\Columns\TextColumn::make('company_plz')
+                Tables\Columns\TextColumn::make('company_plz')
                     ->label('PLZ')
-                    ->getStateUsing(fn ($record) => $record->contractable instanceof Company ? $record->contractable->plz : '-')
+                    ->getStateUsing(fn($record) => $record->contractable instanceof Company ? $record->contractable->plz : '-')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('company_ort')
                     ->label('Ort')
-                    ->getStateUsing(fn ($record) => $record->contractable instanceof Company ? $record->contractable->ort : '-')
+                    ->getStateUsing(fn($record) => $record->contractable instanceof Company ? $record->contractable->ort : '-')
                     ->sortable(),
 
 
@@ -140,7 +140,7 @@ class ContractResource extends Resource
                 Tables\Columns\TextColumn::make('formatted_price')
                     ->searchable()
                     ->label('Preis')
-                    ->formatStateUsing(fn (string $state) => $state )
+                    ->formatStateUsing(fn(string $state) => $state)
                     ->alignment(Alignment::End),
 
 
@@ -151,17 +151,17 @@ class ContractResource extends Resource
 
                 Tables\Columns\TextColumn::make('subscription_start_date')
                     ->label('Subscription Start Date')
-                    ->formatStateUsing(fn ($state) => $state ? Carbon::parse($state)->format('d.m.Y') : null)
+                    ->formatStateUsing(fn($state) => $state ? Carbon::parse($state)->format('d.m.Y') : null)
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('order_date')
                     ->label('Order Date')
-                    ->formatStateUsing(fn ($state) => $state ? Carbon::parse($state)->format('d.m.Y') : null)
+                    ->formatStateUsing(fn($state) => $state ? Carbon::parse($state)->format('d.m.Y') : null)
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('start_date')
                     ->label('Start Date')
-                    ->formatStateUsing(fn ($state) => $state ? Carbon::parse($state)->format('d.m.Y') : null)
+                    ->formatStateUsing(fn($state) => $state ? Carbon::parse($state)->format('d.m.Y') : null)
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('duration')
@@ -170,10 +170,11 @@ class ContractResource extends Resource
 
                 Tables\Columns\TextColumn::make('end_date')
                     ->label('End Date')
-                    ->formatStateUsing(fn ($state) => $state ? Carbon::parse($state)->format('d.m.Y') : null)
+                    ->formatStateUsing(fn($state) => $state ? Carbon::parse($state)->format('d.m.Y') : null)
                     ->sortable(),
 
             ])
+            ->defaultSort('id', 'desc')
             ->filters([
                 //
             ])
@@ -202,7 +203,6 @@ class ContractResource extends Resource
             'edit' => Admin\ContractResource\Pages\EditContract::route('/{record}/edit'),
         ];
     }
-
 
 
 }

@@ -123,6 +123,8 @@ class Invoice extends Model
         return ($this->total_net * $this->tax_rate) / 100;
     }
 
+
+
     /**
      * Berechne den Gesamtbruttobetrag.
      *
@@ -130,6 +132,9 @@ class Invoice extends Model
      */
     public function getTotalGrossAttribute()
     {
+
+
+
         return $this->total_net + $this->tax_amount;
     }
 }

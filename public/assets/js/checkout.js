@@ -1,7 +1,7 @@
 $(document).ready(function () {
     // Smart Wizard Initialisierung
     $('#smartwizard').smartWizard({
-        autoAdjustHeight: true,
+        autoAdjustHeight: false,
         backButtonSupport: true,
         theme: 'square',
         useURLhash: true,
@@ -19,14 +19,14 @@ $(document).ready(function () {
         }
     });
 
-    // Smart Wizard: leaveStep Event
+
+        // Smart Wizard: leaveStep Event
     $("#smartwizard").on("leaveStep", function (e, anchorObject, currentStepIndex, nextStepIndex, stepDirection) {
         // Prüfen, ob der Benutzer vorwärts geht (nicht rückwärts)
         if (stepDirection === 'forward') {
 
             // Wenn sich der Benutzer im ersten Schritt befindet (z.B. Step 0 für Registrierung)
             if (currentStepIndex == 0) {
-
 
             }
             if (currentStepIndex === 1) {
@@ -81,6 +81,26 @@ $(document).ready(function () {
             behavior: 'smooth' // für sanftes Scrollen
         });
 
+
+        if (stepIndex === 0) {
+
+            // Überprüfe, ob `couponCode` und `selectedProductId` im sessionStorage existieren
+            const couponCode = sessionStorage.getItem('couponCode');
+            const selectedProductId = sessionStorage.getItem('selectedProductId');
+
+            if (couponCode || selectedProductId) {
+                // Lösche die Einträge aus dem sessionStorage
+                sessionStorage.removeItem('couponCode');
+                sessionStorage.removeItem('selectedProductId');
+
+                // AJAX-Call, um die PHP-Session-Variablen zu löschen
+                clearSessionVariables(['coupon_code', 'product_id']);
+
+                //removeHiddenInputs('product_id', 'coupon_code');
+            }
+
+        }
+
         if (stepIndex === 2) {
             // Firmendaten holen und anzeigen
             var name = $('#name').val();
@@ -110,19 +130,23 @@ $(document).ready(function () {
                 $.ajax({
                     url: '/get-product-details', // Route zum Abrufen der Produktdetails
                     type: 'GET',
-                    data: { product_id: selectedProductId },
-                    success: function(response) {
+                    data: {
+                        product_id: selectedProductId,
+                        coupon_code: sessionStorage.getItem('couponCode') || null // Abrufen des Rabattcodes aus sessionStorage
+                    },
+                    success: function (response) {
 
                         $('#product-name').text(response.name);
-                        $('#product-description').text(response.description);
-                        $('.total-price').text(response.formattedPrice + ' €');
+                        $('#product-description').html(response.description);
+                        $('.total-price').html(response.formattedPrice + ' €');
 
                         // Definiere das paymentModality-Objekt in JavaScript
                         const paymentModality = {
                             "weekly": "pro Woche </br>bei Monatlicher Zahlung",
                             "daily": "pro Tag </br>bei Monatlicher Zahlung",
                             "annual": "pro Jahr </br>bei jährlicher Zahlung",
-                            "monthly": "pro Monat </br>bei Monatlicher Zahlung"
+                            "monthly": "pro Monat </br>bei Monatlicher Zahlung",
+                            "one_time": "&nbsp;"
                         };
 
 
@@ -140,7 +164,7 @@ $(document).ready(function () {
                             $('#trial-period-row').hide();
                         }
                     },
-                    error: function(xhr) {
+                    error: function (xhr) {
 
                         console.log(xhr.responseText);
                     }
@@ -160,18 +184,23 @@ $(document).ready(function () {
             });
 
         } else if (stepIndex === 3) {
+
+            validateFixHeight(e, 'checkout');
+
             // Verberge alle Buttons im letzten Schritt (Step 4)
             $('#smartwizard').find('.sw-btn-next, .sw-btn-prev, .sw-btn-group-extra').hide();
         } else {
+
             // Bei jedem anderen Schritt sicherstellen, dass der "Next"-Button den Text "Next" hat
             var nextButton = $('#smartwizard').find('.sw-btn-next');
             nextButton.text('Weiter'); // Zurücksetzen auf "Next"
             nextButton.off('click'); // Entferne vorhandene Click-Events
         }
 
+
+
         // Wenn man zurückgeht, alle Buttons wieder einblenden
         if (stepIndex !== 3) {
-
 
 
             $('#smartwizard').find('.sw-btn-next, .sw-btn-prev, .sw-btn-group-extra').show();
@@ -352,17 +381,81 @@ $(document).ready(function () {
 //-----------
 
     $(document).on('change', 'input[name="product_id"]', function () {
-        var selectedProductId = $(this).val(); // Der ausgewählte product_id
-
-        // Speichere die Produkt-ID im sessionStorage
-        sessionStorage.setItem('selectedProductId', selectedProductId);
-
-        console.log('Produkt-ID in sessionStorage gespeichert: ' + sessionStorage.getItem('selectedProductId'));
+        saveProductAndCouponToSession($(this).val());
     });
 
+    $('#offerAccept').click(function () {
+        saveProductAndCouponToSession($(this).val());
+
+        window.location.href = redirectUrl;
+    });
+
+
 //-----------
-})
-;
+    function saveProductAndCouponToSession(selectedValue) {
+        // Speichern der übergebenen Produkt-ID im sessionStorage
+        if (selectedValue) {
+            sessionStorage.setItem('selectedProductId', selectedValue);
+        }
+
+        // Prüfen, ob das Eingabefeld mit der ID "code" existiert
+        if ($('#code').length > 0) {
+            var couponCode = $('#code').val();
+
+            // Speichern des Gutschein-Codes im sessionStorage
+            if (couponCode) {
+                sessionStorage.setItem('couponCode', couponCode);
+            }
+        }
+    }
+
+//-----------
+
+    function validateFixHeight(evt, formId) {
+
+        var height = $('.tab-pane').height();
+
+        $(".tab-content").height('3000px');
+    }
+
+//-----------
+
+    /**
+     * Löscht eine oder mehrere Session-Variablen auf dem Server.
+     * @param {string|array} sessionKeys - Ein einzelner Schlüssel als String oder mehrere Schlüssel als Array.
+     */
+    function clearSessionVariables(sessionKeys) {
+        // Konvertiere den Schlüssel in ein Array, falls es sich um einen einzelnen String handelt
+        const keys = Array.isArray(sessionKeys) ? sessionKeys : [sessionKeys];
+
+        $.ajax({
+            url: '/clear-session',
+            type: 'POST',
+            data: { keys: keys },
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function (response) {
+                console.log(response.message);
+            },
+            error: function (xhr) {
+                console.error('Fehler beim Löschen der Session-Variablen:', xhr.responseText);
+            }
+        });
+    }
+//-----------
+
+    // Funktion zum Entfernen der hidden Inputs aus dem Formular
+    function removeHiddenInputs(names) {
+        names.forEach(name => {
+            $(`input[name="${name}"]`).remove();
+        });
+    }
+
+
+//-----------
+});
+
 
 
 /*

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contract;
+use App\Models\Coupon;
 use App\Models\Product;
 use App\Services\InvoiceService;
 use Carbon\Carbon;
@@ -26,7 +27,7 @@ class MolliePaymentController extends Controller
     public function test()
     {
 
-$customerId = 'cst_ZYrQatF4wT';
+        $customerId = 'cst_ZYrQatF4wT';
         $mandates = $this->getMandates($customerId);
 
         // Überprüfe, ob ein gültiges Mandat vorhanden ist
@@ -42,7 +43,7 @@ $customerId = 'cst_ZYrQatF4wT';
             }
         }
 
-        echo "-->".$hasValidMandate;
+        echo "-->" . $hasValidMandate;
 
         if ($hasValidMandate)
         {
@@ -58,13 +59,13 @@ $customerId = 'cst_ZYrQatF4wT';
 
 //$this->deleteAllCustomers();
         // Beispielwerte für das Testen
-        $product = (object) [
+        $product = (object)[
             'name' => 'Produkt XYZ',
             'description' => 'Beschreibung für Produkt XYZ',
             'price' => 99.99
         ];
 
-        $subscription = (object) [
+        $subscription = (object)[
             'id' => 1234
         ];
 
@@ -279,7 +280,7 @@ $customerId = 'cst_ZYrQatF4wT';
 
 
         // firma und useraccount für firma initiieren
-       $company = $this->initCompanyAccount($customerId);
+        $company = $this->initCompanyAccount($customerId);
 
         // Rechnung erstellen
         $this->prepareInvoice($payment->id);
@@ -293,8 +294,10 @@ $customerId = 'cst_ZYrQatF4wT';
             $mandates = $this->getMandates($customerId);
 
             $hasValidMandate = false;
-            foreach ($mandates['_embedded']['mandates'] as $mandate) {
-                if ($mandate['status'] === 'valid') {
+            foreach ($mandates['_embedded']['mandates'] as $mandate)
+            {
+                if ($mandate['status'] === 'valid')
+                {
                     $hasValidMandate = true;
                     break;
                 }
@@ -310,8 +313,19 @@ $customerId = 'cst_ZYrQatF4wT';
             $startDate = $this->getStartDate($product);
 
             \Log::info('<---------------------------------->');
-            \Log::info('MANDATE '.$customerId.' '.$hasValidMandate . ' -> ' . json_encode($mandates, JSON_PRETTY_PRINT));
+            \Log::info('MANDATE ' . $customerId . ' ' . $hasValidMandate . ' -> ' . json_encode($mandates, JSON_PRETTY_PRINT));
             \Log::info('<---------------------------------->');
+
+            $productPriceDec = number_format($product->price / 100, 2, '.', '');
+
+            if (isset($metadata->coupon_code) && $metadata->coupon_code != 0)
+            {
+                $coupon = Coupon::where('code', $metadata->coupon_code)->first();
+
+                $cpCtrl = new CouponController;
+                $productPriceDec = number_format($cpCtrl->calculateTotalPrice($coupon->promotion, $product, false), 2, '.', '');
+                $coupon->redeem();
+            }
 
             if ($hasValidMandate === true)
             {
@@ -320,16 +334,14 @@ $customerId = 'cst_ZYrQatF4wT';
                 $subscriptionData = [
                     'amount' => [
                         'currency' => $product->currency,
-                        'value' => number_format($product->price / 100, 2, '.', '')  // Betrag der Subscription
+                        'value' => $productPriceDec,  // Betrag der Subscription
                     ],
                     'interval' => $intervals[$product->interval], // Intervall für wiederkehrende Zahlungen
                     'description' => $product->name . ' ' . $product->description, // Korrigierte Beschreibung
                     'startDate' => $startDate, // Startdatum der ersten Abonnementzahlung
                     //  'webhookUrl' => route('mollie.subscriptionWebhook'), // Webhook URL für Subscription-Events
                     'webhookUrl' => route('mollie.paymentWebhook'),
-                    'metadata' => [
-                        'order_id' => str_pad(mt_rand(0, 99999), 5, '0', STR_PAD_LEFT) // Hier kannst du zusätzliche Metadaten hinzufügen
-                    ],
+                    'metadata' => [],
                 ];
 
                 $subscription = $this->createSubscription($customerId, $subscriptionData);
@@ -339,31 +351,24 @@ $customerId = 'cst_ZYrQatF4wT';
                 $this->syncLocalSubscription($subscription);
 
                 // Add the subscription_id for the specified payment
-                MolliePayment::where('payment_id', $payment->id)
-                    ->update(['subscription_id' => $subscription->id]);
+                if (isset($subscription->id))
+                {
+                    MolliePayment::where('payment_id', $payment->id)
+                        ->update(['subscription_id' => $subscription->id]);
+                }
 
-                \Log::info('<---------------------------------->');
-                \Log::info('CONTRACT ERSTELLEN FÜR COMANY ');
-                \Log::info('<---------------------------------->');
-                // create contract
-                $contract = new Contract();
-                $contract->contractable_type = \App\Models\Company::class;
-                $contract->contractable_id = $company->id; // setzt die ID der erstellten Company
-                $contract->product_name = $product->name;
-                $contract->interval = $product->interval;
-                $contract->product_description = $product->description;
-                $contract->price = $product->price;
-                $contract->subscription_id = $subscription->id;
-                $contract->subscription_start_date = $startDate;
-                $contract->duration = 24;
-                $contract->data = json_encode([
-                    'ordered_product' => $product
-                ]);
-                $contract->order_date = Carbon::now();
-                $contract->start_date = Carbon::now();
-                $contract->end_date = Carbon::now()->addMonths(24); // Setzt das Enddatum 24 Monate später
-                $contract->save();
+                $product->price = $productPriceDec * 100; // $productPrice is decimal contract in database is integer format
 
+                // contract erstellen
+
+                $additionalData = [];
+                if (!empty($coupon))
+                {
+                    $additionalData['promotion'] = $coupon->promotion;
+                    $additionalData['bemerkung'] = 'Product über Promocode erworben';
+                }
+
+                $this->createContract($company, $product, $subscription, $startDate, $additionalData);
             }
             else
             {
@@ -374,15 +379,66 @@ $customerId = 'cst_ZYrQatF4wT';
         }
         elseif ($payment->subscriptionId !== null)
         {
+            \Log::error('subsctiption JA aber kein first payment ');
             $subscription = $this->getMollieSubscription($payment->subscriptionId, $payment->customerId);
 
             // Aktualisiere oder speichere die Subscription in der Datenbank
-
             $this->syncLocalSubscription($subscription);
 
         }
 
 
+    }
+
+
+    /**
+     * @param $company
+     * @param $product
+     * @param $subscription
+     * @param $startDate
+     * @return void
+     */
+    public function createContract($company, $product, $subscription = false, $startDate, array $additionalData = [])
+    {
+        // Füge das Produkt zu den zusätzlichen Daten hinzu
+        $additionalData['ordered_product'] = $product;
+
+        if (!is_object($subscription))
+        {
+            $subscriptionId = 'NULL';
+        }
+        else
+        {
+            $subscriptionId = $subscription->id;
+        }
+
+
+        \Log::info('<---------------------------------->');
+        \Log::info('CONTRACT ERSTELLEN FÜR COMPANY: ' . json_encode($company, JSON_PRETTY_PRINT));
+        \Log::info('<---------------------------------->');
+
+        // Erstelle und speichere den Vertrag
+        $contract = new Contract([
+            'contractable_type' => \App\Models\Company::class,
+            'contractable_id' => $company->id, // Verknüpfung mit der Company
+            'product_name' => $product->name,
+            'interval' => $product->interval,
+            'product_description' => $product->description,
+            'price' => $product->price,
+            'subscription_id' => $subscriptionId,
+            'subscription_start_date' => $startDate,
+            'duration' => 24,
+            'data' => json_encode($additionalData), // JSON-Daten speichern
+            'order_date' => Carbon::now(),
+            'start_date' => Carbon::now(),
+            'end_date' => Carbon::now()->addMonths(24), // Enddatum berechnen
+        ]);
+
+        $contract->save();
+
+        \Log::info('Contract erfolgreich erstellt: ' . json_encode($contract, JSON_PRETTY_PRINT));
+
+        return $contract;
     }
 
     /**
@@ -418,33 +474,34 @@ $customerId = 'cst_ZYrQatF4wT';
      * @param Request $request
      * @return void
      */
-    public function handleSubscriptionWebhook(Request $request)
-    {
-        \Log::info('<---------------------------------->');
-        \Log::info('Subscription Webhook: ' . $request->id . ' -> ' . json_encode($request->json()->all(), JSON_PRETTY_PRINT));
-        \Log::info('<---------------------------------->');
 
-        $payment = Mollie::api()->payments->get($request->id);
+    /*  public function handleSubscriptionWebhook(Request $request)
+      {
+          \Log::info('<---------------------------------->');
+          \Log::info('Subscription Webhook: ' . $request->id . ' -> ' . json_encode($request->json()->all(), JSON_PRETTY_PRINT));
+          \Log::info('<---------------------------------->');
 
-        \Log::info('<---------------------------------->');
-        \Log::info('Subscription Webhook Pmnt: ' . $request->id . ' -> ' . json_encode($payment, JSON_PRETTY_PRINT));
-        \Log::info('<---------------------------------->');
+          $payment = Mollie::api()->payments->get($request->id);
 
-
-        // Erhalte die Subscription ID aus dem Webhook-Request
-        $subscriptionId = $payment->subscriptionId;
-        $customerId = $payment->customerId;
-
-        $subscription = $this->getMollieSubscription($subscriptionId, $customerId);
-
-        // Aktualisiere oder speichere die Subscription in der Datenbank
-
-        $this->syncLocalSubscription($subscription);
+          \Log::info('<---------------------------------->');
+          \Log::info('Subscription Webhook Pmnt: ' . $request->id . ' -> ' . json_encode($payment, JSON_PRETTY_PRINT));
+          \Log::info('<---------------------------------->');
 
 
-        // Logge die Aktion
-        //\Log::info('Subscription webhook received for subscription ID: ' . $subscription->id);
-    }
+          // Erhalte die Subscription ID aus dem Webhook-Request
+          $subscriptionId = $payment->subscriptionId;
+          $customerId = $payment->customerId;
+
+          $subscription = $this->getMollieSubscription($subscriptionId, $customerId);
+
+          // Aktualisiere oder speichere die Subscription in der Datenbank
+
+          $this->syncLocalSubscription($subscription);
+
+
+          // Logge die Aktion
+          //\Log::info('Subscription webhook received for subscription ID: ' . $subscription->id);
+      }*/
 
 
     /** sync subscriptions in local database
@@ -470,27 +527,39 @@ $customerId = 'cst_ZYrQatF4wT';
 
         }
 
-        // Aktualisiere oder speichere die Subscription in der Datenbank
-        MollieSubscription::updateOrCreate(
-            ['subscription_id' => $mollieSubscriptionResponse->id],
-            [
-                'customer_id' => $mollieSubscriptionResponse->customerId,
-                'amount_value' => $mollieSubscriptionResponse->amount->value,
-                'amount_currency' => $mollieSubscriptionResponse->amount->currency,
-                'times' => $mollieSubscriptionResponse->times,
-                'times_remaining' => $mollieSubscriptionResponse->timesRemaining,
-                'interval' => $mollieSubscriptionResponse->interval,
-                'status' => $mollieSubscriptionResponse->status,
-                'start_date' => $mollieSubscriptionResponse->startDate,
-                'next_payment_date' => $mollieSubscriptionResponse->nextPaymentDate ?? null,
-                'description' => $mollieSubscriptionResponse->description, // Hinzufügen des description-Feldes
-                'metadata' => json_encode($mollieSubscriptionResponse->metadata), // Hinzufügen des metadata-Feldes als JSON
-            ]
-        );
-        \Log::info('<---------------------------------->');
-        \Log::info('SUBSCRIPTION SYNCED: ' . __LINE__ ) ;
-        \Log::info('<---------------------------------->');
-        return true;
+        if (isset($mollieSubscriptionResponse->id))
+        {
+            // Aktualisiere oder speichere die Subscription in der Datenbank
+            MollieSubscription::updateOrCreate(
+                ['subscription_id' => $mollieSubscriptionResponse->id],
+                [
+                    'customer_id' => $mollieSubscriptionResponse->customerId,
+                    'amount_value' => $mollieSubscriptionResponse->amount->value,
+                    'amount_currency' => $mollieSubscriptionResponse->amount->currency,
+                    'times' => $mollieSubscriptionResponse->times,
+                    'times_remaining' => $mollieSubscriptionResponse->timesRemaining,
+                    'interval' => $mollieSubscriptionResponse->interval,
+                    'status' => $mollieSubscriptionResponse->status,
+                    'start_date' => $mollieSubscriptionResponse->startDate,
+                    'next_payment_date' => $mollieSubscriptionResponse->nextPaymentDate ?? null,
+                    'description' => $mollieSubscriptionResponse->description, // Hinzufügen des description-Feldes
+                    'metadata' => json_encode($mollieSubscriptionResponse->metadata), // Hinzufügen des metadata-Feldes als JSON
+                ]
+            );
+            \Log::info('<---------------------------------->');
+            \Log::info('SUBSCRIPTION SYNCED: ' . __LINE__);
+            \Log::info('<---------------------------------->');
+
+            return true;
+        }
+        else
+        {
+            \Log::info('<---------------------------------->');
+            \Log::info('SUBSCRIPTION NOT SYNCED no subscription id ' . __LINE__);
+            \Log::info('<---------------------------------->');
+
+            return false;
+        }
     }
 
     /**
@@ -504,7 +573,8 @@ $customerId = 'cst_ZYrQatF4wT';
         $apiKey = env('MOLLIE_KEY');
         $retryCount = 0;
 
-        while ($retryCount < $maxRetries) {
+        while ($retryCount < $maxRetries)
+        {
             // API-Request für Mandate des Kunden
             $response = $client->request('GET', "https://api.mollie.com/v2/customers/{$customerId}/mandates", [
                 'headers' => [
@@ -517,8 +587,10 @@ $customerId = 'cst_ZYrQatF4wT';
             $mandates = json_decode($response->getBody(), true);
 
             // Überprüfe, ob ein gültiges Mandat vorhanden ist
-            foreach ($mandates['_embedded']['mandates'] as $mandate) {
-                if ($mandate['status'] === 'valid') {
+            foreach ($mandates['_embedded']['mandates'] as $mandate)
+            {
+                if ($mandate['status'] === 'valid')
+                {
                     return $mandates; // Gültiges Mandat gefunden, Rückgabe und Abbruch der Schleife
                 }
             }
@@ -530,28 +602,6 @@ $customerId = 'cst_ZYrQatF4wT';
 
         return $mandates; // Gibt das Mandat (ob gültig oder nicht) nach max. Versuchen zurück
     }
-    /*public function getMandates($customerId = 'cst_EuWP587Cqy')
-    {
-
-        $client = new Client();
-
-        // Authentifizierung mit deinem Mollie API Key
-        $apiKey = env('MOLLIE_KEY');
-
-
-        // API-Request für Mandate des Kunden
-        $response = $client->request('GET', "https://api.mollie.com/v2/customers/{$customerId}/mandates", [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Accept' => 'application/json',
-            ],
-        ]);
-
-        // JSON-Antwort dekodieren
-        $mandates = json_decode($response->getBody(), true);
-
-        return $mandates;
-    }*/
 
 
     /**
@@ -667,7 +717,8 @@ $customerId = 'cst_ZYrQatF4wT';
         $client = new Client();
         $apiKey = env('MOLLIE_KEY');
 
-        try {
+        try
+        {
             // API-Request für die Erstellung der Subscription
             $response = $client->request('POST', "https://api.mollie.com/v2/customers/{$customerId}/subscriptions", [
                 'headers' => [
@@ -682,9 +733,11 @@ $customerId = 'cst_ZYrQatF4wT';
 
             return $subscription;
 
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
+        }
+        catch (\GuzzleHttp\Exception\ClientException $e)
+        {
             // Logge den Fehler und seine Details
-            \Log::error('Error creating subscription: ' . $e->getMessage(), [
+            \Log::error('Error creating subscription: ' . __FILE__ . ' '. __LINE__. $e->getMessage(), [
                 'customer_id' => $customerId,
                 'subscription_data' => $subscriptionData,
             ]);
@@ -718,12 +771,15 @@ $customerId = 'cst_ZYrQatF4wT';
         $subscriptions = json_decode($response->getBody(), true);
 
         // 3. Überprüfe, ob Subscriptions vorhanden sind
-        if (isset($subscriptions['_embedded']['subscriptions'])) {
-            foreach ($subscriptions['_embedded']['subscriptions'] as $subscription) {
+        if (isset($subscriptions['_embedded']['subscriptions']))
+        {
+            foreach ($subscriptions['_embedded']['subscriptions'] as $subscription)
+            {
                 // Lösche jede Subscription
                 $subscriptionId = $subscription['id'];
 
-                try {
+                try
+                {
                     $client->request('DELETE', "https://api.mollie.com/v2/customers/{$customerId}/subscriptions/{$subscriptionId}", [
                         'headers' => [
                             'Authorization' => 'Bearer ' . $apiKey,
@@ -734,7 +790,9 @@ $customerId = 'cst_ZYrQatF4wT';
                     // Logge das Ergebnis
                     \Log::info("Deleted subscription: {$subscriptionId} for customer: {$customerId}");
 
-                } catch (\Exception $e) {
+                }
+                catch (\Exception $e)
+                {
                     // Logge den Fehler und fahre fort
                     \Log::warning("Skipping subscription with ID: {$subscriptionId} for customer: {$customerId}. Reason: " . $e->getMessage());
                     continue; // Überspringe diese Subscription und fahre mit der nächsten fort
@@ -742,7 +800,9 @@ $customerId = 'cst_ZYrQatF4wT';
             }
 
             \Log::info("All subscriptions for customer {$customerId} have been processed.");
-        } else {
+        }
+        else
+        {
             \Log::info("No subscriptions found for customer {$customerId}.");
         }
 
@@ -750,47 +810,11 @@ $customerId = 'cst_ZYrQatF4wT';
         return true;
     }
 
-    public function createInvoice()
-    {
 
-        $invoiceService = new InvoiceService();
-
-        // Testdaten für die Rechnungspositionen
-        $invoiceData = [
-            'company_id' => 34, // Eine existierende company_id, um eine Firma zu verknüpfen
-            'issue_date' => now()->format('Y-m-d'),
-            'mollie_payment_id' => 'tr_poja9tpop',
-            'due_date' => now()->addDays(30),
-            'total_net' => 198.0,
-            'total_gross' => 235.62, // Mit Mehrwertsteuer
-            'tax' => 37.62, // Mit Mehrwertsteuer
-            'tax_rate' => 19, // 19% Mehrwertsteuer
-            'data' => [
-                // Position 1
-                'items' => [
-                    [
-                        'id' => '1', // Positionsnummer
-                        'description' => 'Seminarreihe: Expert - Fortbildung gem. der Makler- und Bauträgerverordnung (MaBV)', // Beschreibung
-                        'quantity' => 1, // Menge
-                        'line_total_amount' => '198.0', // Gesamtbetrag für diese Position
-                    ],
-                    /*   [
-                           'id' => '2', // Positionsnummer
-                           'description' => 'Seminarreihe: BASIS - Fortbildung gem. der Makler- und Bauträgerverordnung (MaBV)',
-                           'quantity' => 1,
-                           'line_amount' => '199.00',
-                       ],*/
-                ],
-                // Weitere Positionen können hier hinzugefügt werden
-            ]
-        ];
-
-        // Verwende den InvoiceService, um eine Rechnung zu erstellen
-        $invoiceService->createInvoice($invoiceData);
-
-    }
-
-
+    /**
+     * @param $mollieCustomerId
+     * @return false
+     */
     public function initCompanyAccount($mollieCustomerId)
     {
         $tempData = TemporaryUserData::where('mollie_customer_id', $mollieCustomerId)->first();
@@ -851,8 +875,6 @@ $customerId = 'cst_ZYrQatF4wT';
     }
 
 
-
-
     /**
      * delete all subscriptions BE CAREFUL FOR CLEANING TESTDATA ONY
      * @return string
@@ -863,7 +885,8 @@ $customerId = 'cst_ZYrQatF4wT';
 
         $apiKey = env('MOLLIE_KEY');
 
-        if (strpos($apiKey, 'test_') !== 0) {
+        if (strpos($apiKey, 'test_') !== 0)
+        {
             // Falls der API-Key nicht mit 'test_' beginnt, wird die Ausführung verhindert
             abort(403, 'Ungültiger API-Key. Nur Test-API-Keys sind erlaubt.');
         }
@@ -913,7 +936,8 @@ $customerId = 'cst_ZYrQatF4wT';
     {
         $apiKey = env('MOLLIE_KEY');
 
-        if (strpos($apiKey, 'test_') !== 0) {
+        if (strpos($apiKey, 'test_') !== 0)
+        {
             // Falls der API-Key nicht mit 'test_' beginnt, wird die Ausführung verhindert
             abort(403, 'Ungültiger API-Key. Nur Test-API-Keys sind erlaubt.');
         }
@@ -960,7 +984,6 @@ $customerId = 'cst_ZYrQatF4wT';
             return "No customers found.";
         }
     }
-
 
 
 }

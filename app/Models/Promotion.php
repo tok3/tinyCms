@@ -26,4 +26,15 @@ class Promotion extends Model
     {
         return $this->belongsTo(Product::class, 'product_id');
     }
+
+    public function getFormattedDiscountAttribute($locale = "DE")
+    {
+        // Tausendertrennzeichen: '.', Dezimaltrennzeichen: ','
+        return number_format($this->discount_value, 2, ',', '.');
+    }
+
+    public function coupons()
+    {
+        return $this->hasMany(Coupon::class);
+    }
 }

@@ -39,8 +39,10 @@ class MollieSubscriptionResource extends Resource
             return 'Mollie Subscriptions';
 
         }
+
         return 'Abonnements';
     }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -51,7 +53,7 @@ class MollieSubscriptionResource extends Resource
                     TextInput::make('customer_id')->disabled(),
                     TextInput::make('amount_value')
                         ->label('Amount')
-                        ->formatStateUsing(fn (string $state) => number_format($state, 2, ',', '.')),
+                        ->formatStateUsing(fn(string $state) => number_format($state, 2, ',', '.')),
                     TextInput::make('description')->label('Description'),
                     DatePicker::make('start_date')->label('Start Date'),
                     DatePicker::make('next_payment_date')->label('Next Payment Date'),
@@ -66,11 +68,12 @@ class MollieSubscriptionResource extends Resource
         $client = new Client();
         $apiKey = env('MOLLIE_KEY');
 
-        try {
+        try
+        {
             $response = $client->request('GET', "https://api.mollie.com/v2/customers/{$record->customer_id}/subscriptions/{$record->subscription_id}", [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $apiKey,
-                    'Accept'        => 'application/json',
+                    'Accept' => 'application/json',
                 ],
             ]);
 
@@ -78,91 +81,93 @@ class MollieSubscriptionResource extends Resource
 
             // Update local database with API data
             $record->update([
-                'amount_value'      => $subscriptionData['amount']['value'],
-                'amount_currency'   => $subscriptionData['amount']['currency'],
-                'description'       => $subscriptionData['description'],
-                'status'            => $subscriptionData['status'],
-                'start_date'        => $subscriptionData['startDate'],
+                'amount_value' => $subscriptionData['amount']['value'],
+                'amount_currency' => $subscriptionData['amount']['currency'],
+                'description' => $subscriptionData['description'],
+                'status' => $subscriptionData['status'],
+                'start_date' => $subscriptionData['startDate'],
                 'next_payment_date' => $subscriptionData['nextPaymentDate'] ?? null,
             ]);
 
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e)
+        {
             \Log::error('Failed to fetch subscription data from Mollie: ' . $e->getMessage());
         }
     }
 
 
- /*   public static function form(Form $form): Form
-    {
+    /*   public static function form(Form $form): Form
+       {
 
-        // Hole die Subscription ID und Customer ID
-        $record = static::getModel()::find(request()->route('record'));
-        //$record = $this->record;
+           // Hole die Subscription ID und Customer ID
+           $record = static::getModel()::find(request()->route('record'));
+           //$record = $this->record;
 
-        $subscriptionId = $record->subscription_id;
-        $customerId = $record->customer_id;
+           $subscriptionId = $record->subscription_id;
+           $customerId = $record->customer_id;
 
-        // Abrufe der Zahlungen über die Mollie API
-        $payments = self::getSubscriptionPayments($customerId, $subscriptionId);
+           // Abrufe der Zahlungen über die Mollie API
+           $payments = self::getSubscriptionPayments($customerId, $subscriptionId);
 
 
-        return $form
-            ->schema([
-                Grid::make(4)->schema([
-                    TextInput::make('status')
-                        ->label('Status')
-                        ->disabled() // Nicht bearbeitbar
-                        ->required(),
+           return $form
+               ->schema([
+                   Grid::make(4)->schema([
+                       TextInput::make('status')
+                           ->label('Status')
+                           ->disabled() // Nicht bearbeitbar
+                           ->required(),
 
-                    TextInput::make('interval')
-                        ->label('Interval')
-                        ->disabled() // Nicht bearbeitbar
-                        ->required(),
+                       TextInput::make('interval')
+                           ->label('Interval')
+                           ->disabled() // Nicht bearbeitbar
+                           ->required(),
 
-                    DatePicker::make('start_date')
-                        ->label('Start Date')
-                        ->required(),
+                       DatePicker::make('start_date')
+                           ->label('Start Date')
+                           ->required(),
 
-                    DatePicker::make('next_payment_date')
-                        ->disabled()
-                        ->label('Next Payment Date')
-                        ->required(),
-                ]),
+                       DatePicker::make('next_payment_date')
+                           ->disabled()
+                           ->label('Next Payment Date')
+                           ->required(),
+                   ]),
 
-                TextInput::make('amount_value')
-                    ->label('Amount Value')
-                    ->required(),
+                   TextInput::make('amount_value')
+                       ->label('Amount Value')
+                       ->required(),
 
-                TextInput::make('amount_currency')
-                    ->label('Currency')
-                    ->disabled(),
+                   TextInput::make('amount_currency')
+                       ->label('Currency')
+                       ->disabled(),
 
-                TextInput::make('description')
-                    ->label('Description'),
+                   TextInput::make('description')
+                       ->label('Description'),
 
-                Card::make() // Zahlungen in einer Liste anzeigen
-                ->schema([
-                    Repeater::make('payments') // Zahlungen als Repeater-Elemente anzeigen
-                    ->schema([
-                        TextInput::make('id')
-                            ->label('Payment ID')
-                            ->disabled(),
-                        TextInput::make('amount')
-                            ->label('Amount')
-                            ->disabled(),
-                        TextInput::make('status')
-                            ->label('Status')
-                            ->disabled(),
-                        TextInput::make('created_at')
-                            ->label('Date Created')
-                            ->disabled(),
-                    ])
-                        ->columns(4) // Anzahl der Spalten im Grid für die Zahlungen
-                        ->disableItemCreation() // Keine neuen Zahlungen im Frontend hinzufügen
-                        ->default($payments), // Zahlungen aus der API als Standardwert setzen
-                ])
-            ]);
-    }*/
+                   Card::make() // Zahlungen in einer Liste anzeigen
+                   ->schema([
+                       Repeater::make('payments') // Zahlungen als Repeater-Elemente anzeigen
+                       ->schema([
+                           TextInput::make('id')
+                               ->label('Payment ID')
+                               ->disabled(),
+                           TextInput::make('amount')
+                               ->label('Amount')
+                               ->disabled(),
+                           TextInput::make('status')
+                               ->label('Status')
+                               ->disabled(),
+                           TextInput::make('created_at')
+                               ->label('Date Created')
+                               ->disabled(),
+                       ])
+                           ->columns(4) // Anzahl der Spalten im Grid für die Zahlungen
+                           ->disableItemCreation() // Keine neuen Zahlungen im Frontend hinzufügen
+                           ->default($payments), // Zahlungen aus der API als Standardwert setzen
+                   ])
+               ]);
+       }*/
 
     public static function table(Table $table): Table
     {
@@ -170,6 +175,7 @@ class MollieSubscriptionResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label('ID')
+                    ->sortable()
                     ->searchable(),
                 // Display Company Name
                 Tables\Columns\TextColumn::make('company.name')
@@ -178,17 +184,17 @@ class MollieSubscriptionResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('start_date')
                     ->label('Start Date')
-                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('d.m.Y'))
+                    ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y'))
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('start_date')
                     ->label('Start Date')
-                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('d.m.Y'))
+                    ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y'))
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('next_payment_date')
                     ->label('Next Payment Date')
-                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('d.m.Y'))
+                    ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('status')
                     ->searchable(),
@@ -202,11 +208,11 @@ class MollieSubscriptionResource extends Resource
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Created At')
-                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('d.m.Y'))
+                    ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y'))
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('amount_value')
-                    ->formatStateUsing(fn (string $state) => number_format($state, 2, ',', '.'))
+                    ->formatStateUsing(fn(string $state) => number_format($state, 2, ',', '.'))
                     ->alignment(Alignment::End)
                     ->label('Amount')
                     ->sortable(),
@@ -221,10 +227,8 @@ class MollieSubscriptionResource extends Resource
                     ->searchable(),
 
 
-
-
-
             ])
+            ->defaultSort('id', 'desc')
             ->filters([
                 //
             ])
@@ -235,7 +239,8 @@ class MollieSubscriptionResource extends Resource
                     ->color('danger')
                     ->requiresConfirmation()
                     ->action(function (MollieSubscription $record) {
-                        try {
+                        try
+                        {
                             // Guzzle-Client initialisieren
                             $client = new Client();
 
@@ -249,12 +254,13 @@ class MollieSubscriptionResource extends Resource
                             $response = $client->request('DELETE', $url, [
                                 'headers' => [
                                     'Authorization' => 'Bearer ' . $apiKey,
-                                    'Accept'        => 'application/json',
+                                    'Accept' => 'application/json',
                                 ]
                             ]);
 
                             // Überprüfung auf erfolgreiche Anfrage
-                            if ($response->getStatusCode() === 204) {
+                            if ($response->getStatusCode() === 204)
+                            {
                                 // Optional: Setze den Status in der Datenbank, um die Kündigung zu vermerken
                                 $record->update(['status' => 'canceled']);
 
@@ -263,11 +269,15 @@ class MollieSubscriptionResource extends Resource
                                     ->title('Subscription erfolgreich gekündigt')
                                     ->success()
                                     ->send();
-                            } else {
+                            }
+                            else
+                            {
                                 throw new \Exception('Fehler bei der Anfrage: ' . $response->getBody()->getContents());
                             }
 
-                        } catch (\Exception $e) {
+                        }
+                        catch (\Exception $e)
+                        {
                             Notification::make()
                                 ->title('Fehler beim Kündigen der Subscription')
                                 ->danger()
@@ -279,9 +289,9 @@ class MollieSubscriptionResource extends Resource
 
             ])
             ->bulkActions([
-             /*   Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),*/
+                /*   Tables\Actions\BulkActionGroup::make([
+                       Tables\Actions\DeleteBulkAction::make(),
+                   ]),*/
             ]);
     }
 
@@ -307,19 +317,24 @@ class MollieSubscriptionResource extends Resource
         $client = new Client();
         $apiKey = env('MOLLIE_KEY');
 
-        try {
+        try
+        {
             $response = $client->request('GET', "https://api.mollie.com/v2/customers/{$customerId}/subscriptions/{$subscriptionId}/payments", [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $apiKey,
-                    'Accept'        => 'application/json',
+                    'Accept' => 'application/json',
                 ],
             ]);
 
             $payments = json_decode($response->getBody(), true);
+
             return $payments['_embedded']['payments'] ?? [];
 
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e)
+        {
             \Log::error('Fehler beim Abrufen der Zahlungen von Mollie: ' . $e->getMessage());
+
             return [];
         }
     }

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 class Contract extends Model
 {
     protected $fillable = [
+        'contractable_type',
+        'contractable_id',
         'product_name',
         'product_description',
         'price',

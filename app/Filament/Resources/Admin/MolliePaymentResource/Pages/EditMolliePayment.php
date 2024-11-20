@@ -16,6 +16,11 @@ class EditMolliePayment extends EditRecord
     // Get the actions that should be available in the header (like Save, Delete, Chargeback)
     protected function getHeaderActions(): array
     {
+
+        return [
+            //     Actions\DeleteAction::make(),
+        ];
+
         $record = $this->record; // Get the current record being edited
         $paymentData = MolliePaymentResource::getPaymentDataFromApi($record->payment_id);
 

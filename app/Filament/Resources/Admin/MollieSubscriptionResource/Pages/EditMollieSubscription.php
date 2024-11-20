@@ -21,6 +21,7 @@ class EditMollieSubscription extends EditRecord
     // Funktion zur Aktualisierung der Subscription-Daten von Mollie
     protected function updateLocalSubscriptionData()
     {
+        return null;
         $record = $this->record;
 
         $subscriptionId = $record->subscription_id;

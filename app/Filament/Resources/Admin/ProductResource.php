@@ -23,57 +23,89 @@ class ProductResource extends Resource
     {
         return $form
             ->schema([
+                // Name des Produkts
                 TextInput::make('name')
+                    ->label('Produktname')
                     ->required()
                     ->maxLength(255),
+
+                // Beschreibung des Produkts
                 Textarea::make('description')
+                    ->label('Beschreibung')
                     ->nullable(),
+
+                // Preis des Produkts
                 TextInput::make('price')
-                    ->label('Preis')
+                    ->label('Preis (€)')
                     ->string()
                     ->required()
                     ->afterStateHydrated(function ($set, $state) {
-                        // Show the price as euros in the form (from cents)
+                        // Preis im Formular als Euro anzeigen (von Cent zu Euro)
                         $set('price', number_format($state / 100, 2, ',', '.'));
                     })
                     ->dehydrateStateUsing(function ($state) {
-                        // Before saving, convert euros back to cents
+                        // Vor dem Speichern, Euro wieder in Cent umrechnen
                         return intval(str_replace(',', '.', str_replace('.', '', $state)) * 100);
-                    })
-                  ,
+                    }),
+
+                // Währungsauswahl
                 Select::make('currency')
+                    ->label('Währung')
                     ->options([
-                        'USD' => 'USD',
-                        'EUR' => 'EUR',
-                        'GBP' => 'GBP',
-                        // Add other currencies as needed
+                        'USD' => 'USD - US Dollar',
+                        'EUR' => 'EUR - Euro',
+                        'GBP' => 'GBP - Britisches Pfund',
                     ])
-                    ->required()
-                    ->label('Currency'),
-                TextInput::make('trial_period_days')
-                    ->required()
-                    ->numeric()
-                    ->label('Trial Period (Days)'),
-                Select::make('payment_type')
-                    ->options([
-                        'one_time' => 'One-time',
-                        'recurrent' => 'Recurrent',
-                    ])
-                    ->required()
-                    ->label('Payment Type')
-                    ->reactive()
-                    ->afterStateUpdated(fn ($state, callable $set) => $state === 'one_time' ? $set('interval', null) : null),
-                Select::make('interval')
-                    ->options([
-                        'daily' => 'Daily',
-                        'weekly' => 'Weekly',
-                        'monthly' => 'Monthly',
-                        'annual' => 'Annual',
-                    ])
-                    ->label('Interval')
-                    ->hidden(fn (callable $get) => $get('payment_type') !== 'recurrent'),
-                Toggle::make('active')
                     ->required(),
+
+                // Testzeitraum in Tagen
+                TextInput::make('trial_period_days')
+                    ->label('Testzeitraum (Tage)')
+                    ->numeric()
+                    ->required(),
+
+                // Zahlungstyp
+                Select::make('payment_type')
+                    ->label('Zahlungstyp')
+                    ->options([
+                        'one_time' => 'Einmalzahlung',
+                        'recurrent' => 'Wiederkehrend',
+                    ])
+                    ->required()
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        if ($state === 'one_time') {
+                            // Wenn Zahlungstyp auf "Einmalzahlung" gesetzt wird, Intervall zurücksetzen
+                            $set('interval', 'one_time');
+                        }
+                    }),
+
+                // Zahlungsintervall
+                Select::make('interval')
+                    ->label('Zahlungsintervall')
+                    ->options([
+                        'daily' => 'Täglich',
+                        'weekly' => 'Wöchentlich',
+                        'monthly' => 'Monatlich',
+                        'annual' => 'Jährlich',
+                        'one_time' => 'Einmalig',
+                    ])
+                    ->hidden(fn (callable $get) => $get('payment_type') === 'one_time'), // Nur anzeigen, wenn der Zahlungstyp wiederkehrend ist
+
+                // Status und Sichtbarkeit (in einer Zeile)
+                Forms\Components\Fieldset::make('Status')
+                    ->schema([
+                        Toggle::make('active')
+                            ->label('Aktiv')
+                            ->default(true)
+                            ->required(),
+
+                        Toggle::make('visible')
+                            ->label('Öffentlich sichtbar')
+                            ->default(true)
+                            ->required(),
+                    ])
+                    ->columns(4),
             ]);
     }
 

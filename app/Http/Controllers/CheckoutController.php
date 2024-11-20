@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\Coupon;
 use Mollie\Laravel\Facades\Mollie;
 use App\Models\User;
 use App\Models\Company;
@@ -31,6 +33,7 @@ class CheckoutController extends MolliePaymentController
 
         $checkoutUrl = $this->firstPayment($request);
 
+
         return redirect($checkoutUrl, 303);
 
     }
@@ -46,6 +49,7 @@ class CheckoutController extends MolliePaymentController
 
 
         $orderedProduct = Product::where('id', $request->input('product_id'))->first();
+        $couponCode = $request->input('coupon_code') ?? '0';
 
         $name = $request->input('user')['vorname'] . ' ' . $request->input('user')['name'];
         $email = $request->input('user')['email'];
@@ -63,22 +67,54 @@ class CheckoutController extends MolliePaymentController
             'company_data' => json_encode($request->input('company')),
         ]);
 
-
+        // 0.00 Zahler, Gratis Accounts, gehen nicht über payment gateway
         if ($orderedProduct->payment_type == 'one_time' && $orderedProduct->price <= 0)
         {
 
-            $this->initCompanyAccount($customer->id);
+           $company =  $this->initCompanyAccount($customer->id);
+
+            $additionalData = [];
+
+            if($couponCode)
+            {
+                $coupon = Coupon::where('code', $couponCode)->first();
+
+                $additionalData['promotion'] = $coupon->promotion;
+                $additionalData['bemerkung'] = 'Product über Promocode erworben';
+            }
+
+            $this->createContract($company, $orderedProduct, false, Carbon::now(), $additionalData);
 
             return route('view.plans') . '#step-4';
 
         }
 
         $price = $orderedProduct->price;
+
+        if($couponCode)
+        {
+            $coupon = Coupon::where('code', $couponCode)->first();
+
+            $cpCtrl = new CouponController;
+            $price = $cpCtrl->calculateTotalPrice($coupon->promotion, $orderedProduct,false) * 100 ?? null;
+        }
+
         if ($orderedProduct->trial_period_days > 0)
         {
             $price = 0.00;
         }
         // Zahlung erstellen
+       $metadata = [
+           "product_id" => $orderedProduct->id,
+           "customer_id" => $customer->id,
+           "company" => $request->input('company')['name'],
+           "coupon_code" => $request->input('coupon_code') ?? '0',
+       ];
+
+        if ($couponCode) {
+            $metadata['coupon_code'] = $couponCode;
+        }
+
         $payment = Mollie::api()->payments->create([
             "amount" => [
                 "currency" => $orderedProduct->currency,
@@ -91,11 +127,7 @@ class CheckoutController extends MolliePaymentController
             'redirectUrl' => url('preise#step-4'),
             'webhookUrl' => route('mollie.paymentWebhook'),
             "method" => ["creditcard", "directdebit", "sofort", "directdebit", "klarnapaylater", "ideal"],
-            "metadata" => [
-                "product_id" => $orderedProduct->id,
-                "customer_id" => $customer->id,
-                "company" => $request->input('company')['name'],
-            ],
+            "metadata" => $metadata,
         ]);
 
 
@@ -124,8 +156,9 @@ class CheckoutController extends MolliePaymentController
     public function showPlans(Request $request)
     {
 
-        $products = Product::where('active', 1)
+        $products = Product::where(['active' => 1, 'visible' => 1])
             ->orderBy('payment_type')->orderBy('id')->orderBy('sequence')->get();
+
 
         return view('checkout', ['products' => $products]);
     }
@@ -139,6 +172,7 @@ class CheckoutController extends MolliePaymentController
     {
         // Produkt-ID aus der Session abrufen
         $productId = $request->input('product_id');
+        $couponCode = $request->input('coupon_code');
 
         if (!$productId)
         {
@@ -161,6 +195,29 @@ class CheckoutController extends MolliePaymentController
             'interval' => $product->interval,
             'trial_period_days' => $product->trial_period_days
         ];
+
+        if ($couponCode)
+        {
+            // Hier kannst du den Rabattcode validieren
+            $coupon = Coupon::where('code', $couponCode)->first();
+
+            // Produktdaten für die Ausgabe vorbereiten
+
+            $dicType = ($coupon->promotion->discount_type === 'fixed' ? $coupon->promotion->formatted_discount . ' €' : $coupon->promotion->formatted_discount . ' %');
+
+            $cpCtrl = new CouponController;
+            $subtotal = $cpCtrl->calculateTotalPrice($coupon->promotion, $product) ?? null;
+
+            $productDetails = [
+                'name' => $coupon->name,
+                'description' => $product->description . "<br> Aktionscode: <b>" . $coupon->code . '</b> angewendet.<br> ' . $coupon->promotion->description . '<br><span style="width:auto !important; display:inline-block; text-align:right;"><b>' . number_format($product->price / 100, 2, ',', '.') . ' &euro;</b><br><b>&minus; ' . $dicType . '</span>',
+                'formattedPrice' => $subtotal, // Preis in € formatieren
+                'interval' => $product->interval,
+                'trial_period_days' => $product->trial_period_days
+            ];
+
+
+        }
 
         // Rückgabe der Produktdetails als JSON
         return response()->json($productDetails);

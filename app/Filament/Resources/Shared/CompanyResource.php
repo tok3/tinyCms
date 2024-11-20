@@ -135,6 +135,10 @@ class CompanyResource extends Resource
         return $table
             ->columns([
 
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('name')
                     ->label('Name')
                     ->searchable()
@@ -148,7 +152,7 @@ class CompanyResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('created_at')->dateTime('d.m.Y H:i')->label('Erstellt'),
+                Tables\Columns\TextColumn::make('created_at')->dateTime('d.m.Y H:i')->label('Erstellt')->sortable(),
 
             ])
             ->filters([

@@ -10,7 +10,8 @@ use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\ReferrerController;
-
+use App\Http\Controllers\CouponController;
+use Illuminate\Http\Request;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -132,13 +133,32 @@ Route::get('/contact', [ContactController::class, 'show'])->name('contact.show')
 
 
 // -----------------------------------------------
-
 // Sitemap
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);
+
+// -----------------------------------------------
+// code einlösen
+Route::get('/code/einloesen', [CouponController::class, 'showRedeemForm'])->name('coupon.redeem');
+Route::post('/code/einloesen', [CouponController::class, 'redeem'])->name('coupon.redeem');
+
+// -----------------------------------------------
+Route::post('/clear-session', function (Request $request) {
+    $keys = $request->input('keys');
+
+    if ($keys && is_array($keys)) {
+        foreach ($keys as $key) {
+            session()->forget($key);
+        }
+        return response()->json(['status' => 'success', 'message' => 'Session variables removed']);
+    }
+
+    return response()->json(['status' => 'error', 'message' => 'No session keys provided or invalid format'], 400);
+});
 // -----------------------------------------------
 
 Route::get('/{slug}', [PageController::class, 'getIndex'])->name('frontend');
 Route::get('/', [PageController::class, 'getIndex'])->name('home');
+
 
 //Route::get('/home/impressum-page', [PageController::class, 'getIndex'])->name('page.show2');
 // Definieren der Route

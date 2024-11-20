@@ -17,7 +17,9 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\DatePicker;
 use Filament\Support\Enums\Alignment;
 use Filament\Tables\Columns\IconColumn;
-Use App\Models\Product;
+use Filament\Notifications\Notification;
+use App\Models\Coupon;
+use App\Models\Product;
 class PromotionResource extends Resource
 {
     protected static ?string $model = Promotion::class;
@@ -63,9 +65,15 @@ class PromotionResource extends Resource
 
                 Select::make('product_id')
                     ->label('Produkt')
-                    ->nullable()
-                    ->relationship('product', 'name')
-                    ->searchable(),
+                    ->options(
+                        \App\Models\Product::orderBy('name')->get()->mapWithKeys(function ($product) {
+                            return [$product->id => $product->name . ' - ' . \Str::limit(strip_tags($product->description), 55). ' ('.$product->interval.') '];
+                        })
+                    )
+                    ->placeholder('Wähle ein Produkt aus')
+                    ->searchable()
+                    ->nullable(),
+
             ]);
     }
 
@@ -90,7 +98,11 @@ class PromotionResource extends Resource
                 TextColumn::make('discount_value')
                     ->label('Rabattwert')
                     ->sortable()
-                    ->formatStateUsing(fn ($state) => number_format($state, 2) . ' €'),
+                    ->formatStateUsing(fn ($record) =>
+                    $record->discount_type === 'fixed'
+                        ? $record->formatted_discount . ' €'
+                        : $record->formatted_discount . ' %'
+                    ),
 
                 IconColumn::make('is_active')
                     ->label('Aktiv')
@@ -106,11 +118,8 @@ class PromotionResource extends Resource
                     ->date('d.m.Y')
                     ->sortable(),
 
-                Select::make('product_id')
-                    ->label('Produkt')
-                    ->relationship('product', 'name')
-                    ->searchable()
-                    ->nullable(),
+
+
             ]);
     }
 

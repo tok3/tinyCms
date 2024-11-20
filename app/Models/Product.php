@@ -9,8 +9,17 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'description', 'price', 'currency', 'payment_type', 'interval', 'active','trial_period_days'
+        'name', 'description', 'price', 'currency', 'payment_type', 'interval', 'active', 'visible','trial_period_days'
     ];
+
+    public static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($model) {
+            $model->updateIntervalBasedOnPaymentType();
+        });
+    }
 
     // Accessor to get the price in a formatted way
     public function getPriceAttribute($value)
@@ -24,5 +33,13 @@ class Product extends Model
     {
         // Tausendertrennzeichen: '.', Dezimaltrennzeichen: ','
         return number_format($this->price / 100, 2, ',', '.');
+    }
+
+
+    public function updateIntervalBasedOnPaymentType()
+    {
+        if ($this->payment_type === 'one_time') {
+            $this->interval = 'one_time';
+        }
     }
 }

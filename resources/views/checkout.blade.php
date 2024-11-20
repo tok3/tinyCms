@@ -11,11 +11,13 @@
         $paymentModality['daily'] ="pro Tag </br>bei Monatlicher Zahlung";
         $paymentModality['annual'] ="pro Jahr </br>bei jährlicher Zahlung";
         $paymentModality['monthly'] ="pro Monat </br>bei Monatlicher Zahlung";
+        $paymentModality['one_time'] ="";
     @endphp
-        <script>
+    <script>
 
 
-        </script>
+    </script>
+
     <section class="mt-40 jarallax text-white position-relative overflow-hidden bg-gradient-blue-dark" data-speed=".2">
         <!--Section background image parallax-->
         <!--Overlay-->
@@ -57,8 +59,16 @@
         <div class="container py-9 py-lg-11 position-relative z-1" id="smartWizzardContainer">
             <div class="row pb-5 align-items-start">
 
-                    <form action="{{ route('checkout.plan')}}" id="checkout" method="POST">
-                        @csrf
+                <form action="{{ route('checkout.plan')}}" id="checkout" method="POST">
+                    @csrf
+
+                    @if (session()->has('coupon_code'))
+                        <input type="hidden" name="coupon_code" value="{{ session('coupon_code') }}">
+                    @endif
+                    @if (session()->has('product_id'))
+                        <input type="hidden" name="product_id" value="{{ session('product_id') }}">
+                    @endif
+
                     <!-- SmartWizard html -->
                     <div id="smartwizard" class="sw sw-theme-arrows sw-justified">
                         <ul class="nav">
@@ -102,6 +112,7 @@
                             <div id="step-4" class="tab-pane" role="tabpanel" aria-labelledby="step-4">
                                 <x-site-partials.checkout.complete :products="$products" :paymentModality="$paymentModality"/>
                             </div>
+
                         </div>
 
                         <!-- Include optional progressbar HTML -->
@@ -143,8 +154,8 @@
     @push('scripts')
 
         <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js?v1.1.9"></script>
-            <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js?v1.1.9"></script>
-            <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/localization/messages_de.js"></script>
+        <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js?v1.1.9"></script>
+        <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/localization/messages_de.js"></script>
         <script src="{{ URL::asset('js/jquery-smartwizard/dist/js/jquery.smartWizard.min.js') }}"></script>
         <script src="{{ URL::asset('assets/js/checkout.js') }}"></script>
 

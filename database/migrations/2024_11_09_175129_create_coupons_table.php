@@ -16,9 +16,7 @@ class CreateCouponsTable extends Migration
             $table->id();
             $table->foreignId('promotion_id')->constrained('promotions')->onDelete('cascade'); // Verknüpfung zur promotions Tabelle
             $table->string('code')->unique();
-            $table->boolean('redeemed')->default(0);
             $table->dateTime('redeemed_at')->nullable();
-            $table->dateTime('valid_till')->nullable();
             $table->timestamps();
         });
     }

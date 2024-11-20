@@ -83,6 +83,7 @@ class InvoiceResource extends Resource
                             ->disabled(),
                         TextInput::make('total_gross')
                             ->label('Bruttobetrag')
+                            ->formatStateUsing(fn($state) => number_format($state, 2, ',', '.') . ' €')
                             ->disabled(),
                         TextInput::make('tax_rate')
                             ->label('Steuersatz')

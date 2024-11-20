@@ -10,7 +10,10 @@
         <!-- Main CSS -->
         @vite(['resources/scss/theme.scss'])
 
+
+
         <title>{{ isset($title) ? $title : '' }}</title>
+
     </head>
 
     <body>
@@ -30,6 +33,12 @@
         </a>
         <!-- scripts -->
         <script src="{{ URL::asset('assets/js/theme.bundle.js') }}"></script>
+
+        <!--Mastert Slider start (Include jquery before master slider js)-->
+        <script src="{{ URL::asset('assets/vendor/node_modules/js/jquery.min.js') }}"></script>
+        <script src="{{ URL::asset('assets/js/theme.bundle.js') }}"></script>
+        @stack('scripts')
+
     </body>
 
 </html>
