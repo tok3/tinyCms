@@ -19,16 +19,18 @@
             </svg>
 
             <!--Image-->
-            <img src="http://localhost:8004/assets/img/backgrounds/inclusion-7304412_1280.png" alt="" class="bg-image">
+
+            <img src="{{url('assets/img/backgrounds/inclusion-7304412_1280.png')}}" alt="" class="bg-image">
+
         </div>
         <div class="container z-2 position-relative">
             <div class="row align-items-center vh-100">
                 <div class="col-lg-4 pt-3 pb-4 pb-lg-5 pt-lg-5 me-auto col-md-6 z-2">
                     <div>
                         <!--:Logo:-->
-                        <a class="navbar-brand" href="http://localhost:8004/index.html">
-                            <img src="http://localhost:8004/assets/img/logo/logo.svg" alt="" class="width-10x navbar-brand-light mb-5">
-                            <img src="http://localhost:8004/assets/img/logo/logo-white.svg" alt="" class="width-10x navbar-brand-dark mb-5">
+                        <a class="navbar-brand" href="{{url('index.html')}}">
+                            <img src="{{url('assets/img/logo/logo.svg')}}" alt="logo" class="width-10x navbar-brand-light mb-5">
+                            <img src="{{url('assets/img/logo/logo-white.svg')}}" alt="logo" class="width-10x navbar-brand-dark mb-5">
                         </a>
 
                         @if ($errors->any())
