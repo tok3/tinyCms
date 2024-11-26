@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Collection;
 
 use Filament\Facades\Filament;
+use App\Notifications\VerifyEmail;
 
 /**
  * Class User
@@ -81,6 +82,10 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
     ];
 
 
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new VerifyEmail);
+    }
     // In App\Models\User
 
     public function company()

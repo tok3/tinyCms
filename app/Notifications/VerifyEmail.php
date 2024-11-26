@@ -1,69 +1,46 @@
 <?php
-
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Config;
 
 class VerifyEmail extends Notification
 {
-    use Queueable;
 
     /**
-     * Erstelle eine neue Benachrichtigung.
+     * Bestimmt, wie die Notification gesendet wird.
+     *
+     * @param  mixed  $notifiable
+     * @return array
      */
-    public function __construct()
+    public function via($notifiable)
     {
-        //
+        return ['mail']; // Gibt an, dass die Notification per E-Mail gesendet wird
     }
 
-    /**
-     * Liefert die Kanäle, über die die Benachrichtigung gesendet wird.
-     */
-    public function via(object $notifiable): array
-    {
-        return ['mail'];
-    }
-
-    /**
-     * Erstelle die Benachrichtigungs-E-Mail.
-     */
-    public function toMail(object $notifiable): MailMessage
+    public function toMail($notifiable): MailMessage
     {
         $verificationUrl = $this->verificationUrl($notifiable);
 
         return (new MailMessage)
-            ->greeting(__('Guten Tag,')) // Überschriebene Begrüßung
-            ->subject(__('E-Mail-Adresse bestätigen'))
-            ->line(__('Bitte klicken Sie auf die Schaltfläche unten, um Ihre E-Mail-Adresse zu bestätigen.'))
-            ->action(__('E-Mail-Adresse bestätigen'), $verificationUrl)
-            ->line(__('Wenn Sie kein Konto erstellt haben, sind keine weiteren Maßnahmen erforderlich.'))
-            //->salutation(__('Mit freundlichen Grüßen'))
-            ->line(__('Mit freundlichen Grüßen,')) // HTML im Text
-            ->line(__( config('app.name') . ' - Team'))
-            ; // Überschriebener Gruß
+            ->subject(__('notifications.verify_subject'))
+            ->line(__('notifications.verify_line_1'))
+            ->action(__('notifications.verify_action'), $verificationUrl)
+            ->line(__('notifications.verify_line_2'));
     }
 
-    /**
-     * Liefert die Verifizierungs-URL für die E-Mail-Adresse.
-     */
-    protected function verificationUrl($notifiable): string
+    protected function verificationUrl($notifiable)
     {
-        return url(route('verification.verify', [
-            'id' => $notifiable->getKey(),
-            'hash' => sha1($notifiable->getEmailForVerification()),
-        ], false));
-    }
-
-    /**
-     * Liefert die array-basierte Repräsentation der Benachrichtigung.
-     */
-    public function toArray(object $notifiable): array
-    {
-        return [
-            //
-        ];
+        return URL::temporarySignedRoute(
+            'verification.verify',
+            Carbon::now()->addMinutes(Config::get('auth.verification.expire', 60)),
+            [
+                'id' => $notifiable->getKey(),
+                'hash' => sha1($notifiable->getEmailForVerification()),
+            ]
+        );
     }
 }

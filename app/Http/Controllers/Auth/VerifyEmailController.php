@@ -24,10 +24,7 @@ class VerifyEmailController extends Controller
         $expires = \Request::input('expires');
         $user = User::where('id', $id)->first();
 
-      /*  echo $expires;
-        echo "<br>";
-        echo time();
-        die();*/
+
         if ($expires > time())
         {
 

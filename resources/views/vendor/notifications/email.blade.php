@@ -1,14 +1,14 @@
 <x-mail::message>
-{{-- Greeting --}}
-@if (! empty($greeting))
-# {{ $greeting }}
-@else
-@if ($level === 'error')
-# @lang('Whoops!')
-@else
-# @lang('Hello!')
-@endif
-@endif
+    {{-- Greeting --}}
+    @if (! empty($greeting))
+        # {{ $greeting }}
+    @else
+        @if ($level === 'error')
+            # @lang('notifications.greeting')
+        @else
+            # @lang('notifications.greeting')
+        @endif
+    @endif
 
 {{-- Intro Lines --}}
 @foreach ($introLines as $line)

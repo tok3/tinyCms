@@ -59,12 +59,13 @@ class DashboardPanelProvider extends PanelProvider
 
                 // Weitere Ressourcen können hier hinzugefügt werden
             ])
-//            ->discoverWidgets(in: app_path('Filament/Dashboard/Widgets'), for: 'App\\Filament\\Dashboard\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+       //         Widgets\FilamentInfoWidget::class,
 
             ])
+            ->discoverWidgets(in: app_path('Filament/Dashboard/Widgets'), for: 'App\\Filament\\Dashboard\\Widgets')
+
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
