@@ -31,6 +31,10 @@ class InvoiceResource extends Resource
         return 'Rechnungen'; // Name des Navigationseintrags
     }
 
+    public static function getPluralModelLabel(): string
+    {
+        return 'Rechnungen';
+    }
     // Navigation Group ändern
 //    public static function getNavigationGroup(): ?string
 //    {

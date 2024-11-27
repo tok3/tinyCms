@@ -45,7 +45,6 @@ class DashboardPanelProvider extends PanelProvider
             ->icons(MinimalTheme::getIcons())
             ->sidebarCollapsibleOnDesktop()
             ->sidebarWidth('15rem')
-            //->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverResources(in: app_path('Filament/Resources/User'), for: 'App\\Filament\\Resources\\User')
             ->discoverResources(in: app_path('Filament/Resources/Shared'), for: 'App\\Filament\\Resources\\Shared')
             ->discoverPages(in: app_path('Filament/Dashboard/Pages'), for: 'App\\Filament\\Dashboard\\Pages')

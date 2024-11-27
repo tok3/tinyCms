@@ -43,6 +43,17 @@ class MollieSubscriptionResource extends Resource
         return 'Abonnements';
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+
+        if (auth()->user()->is_admin == 1)
+        {
+            return true;
+
+        }
+        return false;
+    }
+
     public static function form(Form $form): Form
     {
         return $form

@@ -19,6 +19,10 @@ class ProductResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-cube';
 
+    public static function getPluralModelLabel(): string
+    {
+        return 'Produkte';
+    }
     public static function form(Form $form): Form
     {
         return $form

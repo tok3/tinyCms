@@ -1,13 +1,13 @@
 $(document).ready(function () {
     // Smart Wizard Initialisierung
     $('#smartwizard').smartWizard({
+        keyboardSettings: {
+            keyNavigation: false, // Enable/Disable keyboard navigation(left and right keys are used if enabled)
+        },
         autoAdjustHeight: false,
         backButtonSupport: true,
         theme: 'square',
         useURLhash: true,
-        keyboardSettings: {
-            keyNavigation: false, // Deaktiviert die Tastaturnavigation
-        },
         lang: { // Language variables for button
             next: 'Weiter',
             previous: 'Zurück'
@@ -22,6 +22,13 @@ $(document).ready(function () {
 
         // Smart Wizard: leaveStep Event
     $("#smartwizard").on("leaveStep", function (e, anchorObject, currentStepIndex, nextStepIndex, stepDirection) {
+
+
+            if(event.keyCode == 39 || event.keyCode == 37) {
+                event.preventDefault();
+                return false;
+            }
+
         // Prüfen, ob der Benutzer vorwärts geht (nicht rückwärts)
         if (stepDirection === 'forward') {
 

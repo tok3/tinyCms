@@ -20,6 +20,11 @@ class CompanyResource extends Resource
   //  protected static bool $shouldRegisterNavigation = true;
     protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
 
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Firmen';
+    }
 /*
 
     public static function getNavigationItems(): array
