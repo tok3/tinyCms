@@ -7,6 +7,7 @@ use App\Helpers\QrPromoHelper;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Company extends Model
 {
@@ -39,6 +40,11 @@ class Company extends Model
 
             // Inkrementiere um 1 oder starte bei 1000, falls kein Wert existiert
             $item->kd_nr = $latestKdNr ? $latestKdNr + 1 : 1000;
+
+            if (empty($item->ulid)) {
+                $item->ulid = (string) Str::ulid();
+            }
+
         });
 
         static::created(function ($item) {
@@ -131,6 +137,13 @@ class Company extends Model
     public function company()
     {
         return $this->belongsTo(Company::class, 'id');
+    }
+
+    public function hasAccessToTool()
+    {
+
+
+        return true;
     }
 
 

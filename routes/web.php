@@ -12,6 +12,7 @@ use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\ReferrerController;
 use App\Http\Controllers\CouponController;
 use Illuminate\Http\Request;
+use App\Http\Controllers\ScriptController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -68,6 +69,10 @@ Route::get('/dashboard/logout', function () {
 */
 
 // ---
+
+Route::get('/service/{ulid}/{tool}.js', [ScriptController::class, 'serveScript'])
+    ->name('serveScript')
+    ->middleware('service');
 
 Route::post('storeReferrer', [ReferrerController::class, 'storeReferrer'])->name('storeReferrer');
 Route::post('storeDownloadReferrer', [ReferrerController::class, 'storeDownloadReferrer'])->name('storeDownloadReferrer');

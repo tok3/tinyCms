@@ -145,7 +145,8 @@
 
 </script>
 @stack('scripts')
-<script src="{{ URL::asset('assets/js/aktion-bf.js') }}"></script>
+<!--<script src="{{ URL::asset('assets/js/aktion-bf.js') }}"></script>-->
+<script src="{{ route('serveScript', ['ulid' => 'e89bacea-b0ab-11ef-bf07-b6', 'tool' => 'aktion-bf']) }}"></script>
 
 </body>
 
