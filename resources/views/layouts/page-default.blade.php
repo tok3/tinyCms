@@ -147,7 +147,7 @@
 @stack('scripts')
 
 <link rel="stylesheet" href="{!! url('service/fixstern.css') !!}">
-<script src="{!! 'service/01JE6A5H2NQZCT4P9N3FEZG2CX/fixstern.js?pos=tr&valX=10px&valY=10px' !!}"></script>
+<script src="{!! 'service/01JE6A5H2NQZCT4P9N3FEZG2CX/fixstern.js?pos=tr&valX=10px&valY=100px' !!}"></script>
 
 </body>
 
