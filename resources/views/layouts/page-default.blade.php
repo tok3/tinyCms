@@ -143,12 +143,33 @@
         }
     });
 
+
+    function isMobileDevice() {
+        return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+    }
+
+    function isMobileDevice() {
+        return window.matchMedia("(max-width: 768px)").matches;
+    }
 </script>
 @stack('scripts')
 
-<link rel="stylesheet" href="{!! url('service/fixstern.css') !!}">
-<script src="{!! 'service/01JE6A5H2NQZCT4P9N3FEZG2CX/fixstern.js?pos=tr&valX=10px&valY=100px' !!}"></script>
+<link rel="stylesheet" href="{!! url('service/fixstern.css?t=').time() !!}">
+<script src="{!! 'service/01JE6A5H2NQZCT4P9N3FEZG2CX/fixstern.js?t='.time().'&pos=tr&valX=10px&valY=100px' !!}"></script>
+<script>
 
+    if (isMobileDevice()) {
+        const element = document.querySelector("#ini-bf-trigger-button");
+
+        if (element) {
+            element.style.position = "fixed";
+            element.style.bottom = "10px"; // Abstand vom unteren Rand
+            element.style.right = "10px"; // Abstand vom rechten Rand
+            element.style.zIndex = "1000";
+        }
+    }
+
+</script>
 </body>
 
 </html>
