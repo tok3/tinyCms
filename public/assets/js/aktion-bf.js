@@ -3035,7 +3035,7 @@ var iniBfPreferences = {
         valY = queryParams.get('valY');
         nobutton = queryParams.get('nobutton');
         if(nobutton != 'true' && nobutton != 'false') nobutton = null;
-        console.log({ pos, valX, valY, nobutton });
+        //console.log({ pos, valX, valY, nobutton });
     }
 
     console.log(document.referrer), document.referrer ? fetch("https://aktion-barrierefrei.de/storeDownloadReferrer", {
