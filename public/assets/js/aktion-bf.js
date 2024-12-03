@@ -3016,6 +3016,28 @@ var iniBfPreferences = {
 };/*! License information can be found in ini-bf.js.LICENSE.txt */
 (() => {
     "use strict";
+    const scripts = document.getElementsByTagName('script');
+
+    // Find the current script (the one with the src "myscript.js")
+    const currentScript = Array.from(scripts).find(script => script.src.includes('aktion-bf.js'));
+    let pos = null;
+    let nobutton = null;
+    let valX = null;
+    let valY = null;
+    if (currentScript) {
+        // Parse the query string from the script's src
+        const queryParams = new URLSearchParams(currentScript.src.split('?')[1]);
+
+        // Access individual parameters
+        pos = queryParams.get('pos');
+        if(pos != 'tl' && pos != 'tr' && pos != 'bl' && pos != 'br') pos = null;
+        valX = queryParams.get('valX');
+        valY = queryParams.get('valY');
+        nobutton = queryParams.get('nobutton');
+        if(nobutton != 'true' && nobutton != 'false') nobutton = null;
+        console.log({ pos, valX, valY, nobutton });
+    }
+
     console.log(document.referrer), document.referrer ? fetch("https://aktion-barrierefrei.de/storeDownloadReferrer", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
@@ -3030,8 +3052,69 @@ var iniBfPreferences = {
     const keyboardBox = document.createElement("div");
     keyboardBox.innerHTML = '\n    <div id="ini-bf-keyboard-box"> <div class="simple-keyboard"></div> </div>\n    ', document.body.appendChild(keyboardBox.firstElementChild);
     const triggerButton = document.createElement("div");
-    triggerButton.innerHTML = '\n    <div class="ini-bf-trigger-button-box bottom-left ini-bf-initfade" data-nosnippet> <button tabindex=0 id="ini-bf-trigger-button" class="ini-bf-icon-position-before" aria-label="Barrierefreiheit Öffnen" title="Accessibility" data-bf-ini-trigger=""> <span class="ini-bf-trigger-button-icon"><svg width="200%" height="100%" viewBox="0 0 800 800" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><g id="Ebene1"></g><path d="M218.703,48.94c-30.68,16.027 -59.001,35.964 -84.301,59.152l-56.084,84.299l63.082,-30.154l49.143,85.886l8.106,-98.836l65.141,-22.391l-54.578,-40.347l9.491,-37.609c54.67,-28.56 116.81,-44.708 182.692,-44.708c218.224,0 395.394,177.171 395.394,395.395c0,130.716 -63.569,246.703 -161.465,318.713l9.307,49.791l-78.743,21.869l-7.282,-27.515c27.303,-11.855 53.011,-26.705 76.718,-44.145l-62.176,-332.641c70.449,-22.238 138.497,-44.654 205.512,-71.348l-22.338,-71.073c-93.29,24.493 -166.909,43.737 -268.059,43.737c-101.151,0 -174.769,-19.244 -268.06,-43.737l-22.338,69.707c67.015,28.06 135.021,48.057 205.512,72.714l-71.482,382.432l78.742,21.869l63.664,-240.558l27.923,0l56.382,213.043c-48.213,20.935 -101.368,32.537 -157.211,32.537c-218.225,-0 -395.395,-177.171 -395.395,-395.395c0,-115.353 49.505,-219.235 128.402,-291.535l1.379,-2.073l-21.443,-82.514l47.266,40.202l68.774,-61.029l-11.675,46.262Zm269.56,194.338c-42.891,-0 -78.184,-34.552 -78.184,-76.542c-0,-41.989 35.293,-76.541 78.184,-76.541c42.89,0 78.184,34.552 78.184,76.541c-0.046,41.973 -35.311,76.497 -78.184,76.542Z"/></svg></span> </button> </div>    \n    ', document.body.appendChild(triggerButton.firstElementChild);
-    window.iniBfPreferences;
+
+
+    //triggerButton.innerHTML = '\n    <div class="ini-bf-trigger-button-box bottom-left ini-bf-initfade" data-nosnippet> <button tabindex=0 id="ini-bf-trigger-button" class="ini-bf-icon-position-before" aria-label="Barrierefreiheit Öffnen" title="Accessibility" data-bf-ini-trigger=""> <span class="ini-bf-trigger-button-icon"><svg width="200%" height="100%" viewBox="0 0 800 800" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><g id="Ebene1"></g><path d="M218.703,48.94c-30.68,16.027 -59.001,35.964 -84.301,59.152l-56.084,84.299l63.082,-30.154l49.143,85.886l8.106,-98.836l65.141,-22.391l-54.578,-40.347l9.491,-37.609c54.67,-28.56 116.81,-44.708 182.692,-44.708c218.224,0 395.394,177.171 395.394,395.395c0,130.716 -63.569,246.703 -161.465,318.713l9.307,49.791l-78.743,21.869l-7.282,-27.515c27.303,-11.855 53.011,-26.705 76.718,-44.145l-62.176,-332.641c70.449,-22.238 138.497,-44.654 205.512,-71.348l-22.338,-71.073c-93.29,24.493 -166.909,43.737 -268.059,43.737c-101.151,0 -174.769,-19.244 -268.06,-43.737l-22.338,69.707c67.015,28.06 135.021,48.057 205.512,72.714l-71.482,382.432l78.742,21.869l63.664,-240.558l27.923,0l56.382,213.043c-48.213,20.935 -101.368,32.537 -157.211,32.537c-218.225,-0 -395.395,-177.171 -395.395,-395.395c0,-115.353 49.505,-219.235 128.402,-291.535l1.379,-2.073l-21.443,-82.514l47.266,40.202l68.774,-61.029l-11.675,46.262Zm269.56,194.338c-42.891,-0 -78.184,-34.552 -78.184,-76.542c-0,-41.989 35.293,-76.541 78.184,-76.541c42.89,0 78.184,34.552 78.184,76.541c-0.046,41.973 -35.311,76.497 -78.184,76.542Z"/></svg></span> </button> </div>    \n    ', document.body.appendChild(triggerButton.firstElementChild);
+    triggerButton.innerHTML = `
+    <div class="ini-bf-trigger-button-box bottom-left ini-bf-initfade" data-nosnippet> <button tabindex=0 id="ini-bf-trigger-button" class="ini-bf-icon-position-before" aria-label="Barrierefreiheit Öffnen" title="Accessibility" data-bf-ini-trigger=""> <span class="ini-bf-trigger-button-icon"><svg role="img" aria-label="Barrierefreiht öffnen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 293.05 349.63"> <path d="M95.37,51.29a51.23,51.23,0,1,1,51.29,51.16h-.07A51.19,51.19,0,0,1,95.37,51.29ZM293,134.59A25.61,25.61,0,0,0,265.49,111h-.13l-89.64,8c-3.06.28-6.13.42-9.19.42H126.65q-4.59,0-9.16-.41L27.7,111a25.58,25.58,0,0,0-4.23,51l.22,0,72.45,6.56a8.55,8.55,0,0,1,7.77,8.48v19.62a33.82,33.82,0,0,1-2.36,12.45L60.48,313.66a25.61,25.61,0,1,0,46.85,20.71h0l39.14-95.61L186,334.63A25.61,25.61,0,0,0,232.86,314L191.63,209.14a34.14,34.14,0,0,1-2.35-12.44V177.09a8.55,8.55,0,0,1,7.77-8.49l72.33-6.55A25.61,25.61,0,0,0,293,134.59Z" /> </svg></span> </button> </div>
+    `;
+    if(pos != null && valX != null && valY != null){
+        triggerButton.innerHTML = `
+        <div id="ini-bf-trigger-button-box" class="ini-bf-trigger-button-box  ini-bf-initfade" data-nosnippet> <button tabindex=0 id="ini-bf-trigger-button" class="ini-bf-icon-position-before" aria-label="Barrierefreiheit Öffnen" title="Accessibility" data-bf-ini-trigger=""> <span class="ini-bf-trigger-button-icon"><svg role="img" aria-label="Barrierefreiht öffnen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 293.05 349.63"> <path d="M95.37,51.29a51.23,51.23,0,1,1,51.29,51.16h-.07A51.19,51.19,0,0,1,95.37,51.29ZM293,134.59A25.61,25.61,0,0,0,265.49,111h-.13l-89.64,8c-3.06.28-6.13.42-9.19.42H126.65q-4.59,0-9.16-.41L27.7,111a25.58,25.58,0,0,0-4.23,51l.22,0,72.45,6.56a8.55,8.55,0,0,1,7.77,8.48v19.62a33.82,33.82,0,0,1-2.36,12.45L60.48,313.66a25.61,25.61,0,1,0,46.85,20.71h0l39.14-95.61L186,334.63A25.61,25.61,0,0,0,232.86,314L191.63,209.14a34.14,34.14,0,0,1-2.35-12.44V177.09a8.55,8.55,0,0,1,7.77-8.49l72.33-6.55A25.61,25.61,0,0,0,293,134.59Z" /> </svg></span> </button> </div>
+        `;
+    }
+
+    if(nobutton != "true"){
+        document.body.appendChild(triggerButton.firstElementChild);
+        let trigbut = document.getElementById("ini-bf-trigger-button-box");
+        if(pos != null && valX != null && valY != null){
+            switch(pos){
+                case "tl":
+                    trigbut.style.top = valY;
+                    trigbut.style.left = valX;
+                    break;
+                case "tr":
+                    trigbut.style.top = valY;
+                    trigbut.style.right = valX;
+                    break;
+                case "bl":
+                    trigbut.style.bottom = valY;
+                    trigbut.style.left = valX;
+                    break;
+                case "br":
+                    trigbut.style.bottom = valY;
+                    trigbut.style.right = valX;
+                    break;
+            }
+
+        }
+    }
+
+    function sendRefs(){
+        const referrer = document.referrer;
+        if (referrer) {
+            // Send the referrer to the server
+            //fetch('https://ad-hoc.test/akb/referrers', {
+            fetch('https://aktion-barrierefrei.de/storeReferrer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ referrer: referrer }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        } else {
+            console.log('No referrer found');
+        }
+    }
+
+    let prefs = window.iniBfPreferences;
     const clickModiSpecificVisualSwitches = function (target) {
         document.querySelectorAll("#ini-bf-visual-adjustment-section .ini-bf-switch-box.ini-bf-active").forEach((n => {
             target.id !== n.id && n.click()
