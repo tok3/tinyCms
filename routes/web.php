@@ -74,6 +74,12 @@ Route::get('/service/{ulid}/{tool}.js', [ScriptController::class, 'serveScript']
     ->name('serveScript')
     ->middleware('service');
 
+Route::get('/service/{tool}.css', [ScriptController::class, 'serveCss'])->name('serve.css');
+
+
+// -----------------------------------------------
+
+
 Route::post('storeReferrer', [ReferrerController::class, 'storeReferrer'])->name('storeReferrer');
 Route::post('storeDownloadReferrer', [ReferrerController::class, 'storeDownloadReferrer'])->name('storeDownloadReferrer');
 

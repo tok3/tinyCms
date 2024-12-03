@@ -3,6 +3,9 @@
 namespace App\Filament\Dashboard\Widgets;
 
 use Filament\Widgets\Widget;
+use Illuminate\Support\Facades\Auth;
+use Filament\Facades\Filament;
+
 
 class FixsternIntegrationWidget extends Widget
 {
@@ -19,8 +22,10 @@ class FixsternIntegrationWidget extends Widget
         &nbsp;&nbsp;&nbsp;&nbsp;&lt;img src="'.$code .'" alt="newsletter abonnieren"&gt;<br>
         &lt;/a&gt;';
 
-        return view(static::$view, [
+        $ulid = Filament::getTenant()->ulid;
 
+        return view(static::$view, [
+            'fixsternLink'=>"service/".$ulid . '/fixstern.js',
             'embedCode' => $embedCode,
 
         ]);
