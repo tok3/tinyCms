@@ -15,7 +15,7 @@
     <!--Swiper slider-->
     <link rel="stylesheet" href="{{ URL::asset('assets/vendor/node_modules/css/swiper-bundle.min.css') }}">
 
-    <link rel="stylesheet" href="{{ URL::asset('assets/css/aktion-bf.min.css') }}">
+{{--    <link rel="stylesheet" href="{{ URL::asset('assets/css/aktion-bf.min.css') }}">--}}
 
     <!-- Main CSS -->
     {{--    <link href="{{ URL::asset('assets/css/theme.min.css')}}" rel="stylesheet">--}}
@@ -145,8 +145,9 @@
 
 </script>
 @stack('scripts')
-<!--<script src="{{ URL::asset('assets/js/aktion-bf.js') }}"></script>-->
-<script src="{{ route('serveScript', ['ulid' => 'e89bacea-b0ab-11ef-bf07-b6', 'tool' => 'aktion-bf']) }}"></script>
+
+<link rel="stylesheet" href="http://localhost:8004/service/fixstern.css?mt=50&mr=100">
+<script src="http://localhost:8004/service/110120fc-b0ca-11ef-b1a2-34/fixstern.js"></script>
 
 </body>
 

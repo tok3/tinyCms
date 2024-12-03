@@ -163,7 +163,7 @@
 #ini-bf-panel #ini-bf-panel-footer button:not(#ini-bf-statement-btn) {
     border-radius: 16px;
     flex-grow: 1;
-    font-size: 16px;
+    font-size: 116px !im;
     font-weight: 600;
     letter-spacing: normal;
     margin: 0;
@@ -422,6 +422,7 @@
     animation-duration: .6s;
     animation-name: inibf-bounce;
 }
+
 
 
 .ini-bf-trigger-button-box button {
