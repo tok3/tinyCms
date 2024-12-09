@@ -47,7 +47,7 @@
 
                 <x-filament::link
                     color="gray"
-                    href="{{url('assets/downloads/fixstern-datenschuts.pdf')}}"
+                    href="{{url('assets/downloads/fixstern-datenschutz.pdf')}}"
                     icon-alias="panels::widgets.filament-info.open-github-button"
                     rel="noopener noreferrer"
                     target="_blank"
