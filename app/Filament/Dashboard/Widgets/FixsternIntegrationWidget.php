@@ -5,7 +5,7 @@ namespace App\Filament\Dashboard\Widgets;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
 use Filament\Facades\Filament;
-
+use App\Models\Company;
 
 class FixsternIntegrationWidget extends Widget
 {
@@ -17,6 +17,7 @@ class FixsternIntegrationWidget extends Widget
     public function render(): \Illuminate\Contracts\View\View
     {
 
+
         $code = 'httpf:futtode-zum-einbinden';
         $embedCode = '&lt;a href="' . $code . '"&gt;' . "<br>" . '
         &nbsp;&nbsp;&nbsp;&nbsp;&lt;img src="'.$code .'" alt="newsletter abonnieren"&gt;<br>
@@ -27,6 +28,7 @@ class FixsternIntegrationWidget extends Widget
         return view(static::$view, [
             'fixsternLink'=>"service/".$ulid . '/fixstern.js',
             'embedCode' => $embedCode,
+
 
         ]);
 
