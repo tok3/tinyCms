@@ -100,8 +100,8 @@
                     <span title="Tel">Fon</span> +49 6021-130 712-8<br>
                     <span title="Fax">Fax</span> +49 6021-130 712-1<br>
                     <span title="mail">Web</span> www.camindu.de<br>
-                    <span title="mail">USt-Id </span> DE275889 289<br>
-                    <span title="mail">Str-Nr </span> 20412300425<br>
+                    <span title="mail">USt-Id: </span> DE275889 289<br>
+                    <span title="mail">Str-Nr: </span> 20412300425<br>
                     <br>
                 </address>
 
