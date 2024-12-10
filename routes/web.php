@@ -13,6 +13,7 @@ use App\Http\Controllers\ReferrerController;
 use App\Http\Controllers\CouponController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ScriptController;
+use App\Http\Controllers\PdfController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -77,6 +78,9 @@ Route::get('/service/{ulid}/{tool}.js', [ScriptController::class, 'serveScript']
 Route::get('/service/{tool}.css', [ScriptController::class, 'serveCss'])->name('serve.css');
 
 
+// -----------------------------------------------
+
+Route::get('/documents/fixstern-integration/{ulid}', [PdfController::class, 'generateInstruction'])->name('download.instruction')->middleware(['auth']);
 // -----------------------------------------------
 
 

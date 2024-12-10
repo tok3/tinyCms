@@ -5,15 +5,16 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
+
 class ScriptController extends Controller
 {
     public function serveScript(Request $request, $ulid, $tool)
     {
 
-if($tool == 'fixstern')
-{
-        $tool = 'aktion-bf';
-}
+        if ($tool == 'fixstern')
+        {
+            $tool = 'aktion-bf';
+        }
         // Bestimme den Dateipfad für das gewünschte Tool
         $scriptPath = "scripts/{$tool}.js";
 
@@ -38,7 +39,8 @@ if($tool == 'fixstern')
     // Liefert das CSS aus
     public function serveCss(Request $request, $tool)
     {
-        if ($tool == 'fixstern') {
+        if ($tool == 'fixstern')
+        {
             $tool = 'aktion-bf';
         }
 
@@ -46,7 +48,8 @@ if($tool == 'fixstern')
         $cssPath = public_path("assets/css/{$tool}.min.css");
 
         // Prüfen, ob die Datei existiert
-        if (!file_exists($cssPath)) {
+        if (!file_exists($cssPath))
+        {
             return response('CSS file not found', 404);
         }
 
@@ -67,8 +70,10 @@ if($tool == 'fixstern')
 
         // Dynamische CSS-Regeln für #ini-bf-trigger-button generieren
         $customCss .= "#ini-bf-trigger-button {\n";
-        foreach ($styles as $property => $value) {
-            if ($value !== null) {
+        foreach ($styles as $property => $value)
+        {
+            if ($value !== null)
+            {
                 $customCss .= "    {$property}: {$value}{$unit};\n";
             }
         }
