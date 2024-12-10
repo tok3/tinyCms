@@ -60,7 +60,7 @@ class DashboardPanelProvider extends PanelProvider
             ])
             ->widgets([
                 Widgets\AccountWidget::class,
-       //         Widgets\FilamentInfoWidget::class,
+                //Widgets\FilamentInfoWidget::class,
 
             ])
             ->discoverWidgets(in: app_path('Filament/Dashboard/Widgets'), for: 'App\\Filament\\Dashboard\\Widgets')

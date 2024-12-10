@@ -45,7 +45,7 @@
                 <pre id="embedCode-aktion-bf" style="line-height: 1.4; padding: 1em; padding-bottom: 0px; margin: 0; color: white; text-align: left; border-radius: 5px;">
 <code class="language-html" id="code-block-text-aktion-bf">
 <span style="color: #569CD6">&lt;link</span> <span style="color: #4EC9B0">rel=</span><span style="color: #CE9178">"stylesheet"</span> <span style="color: #4EC9B0">href=</span><span
-        style="color: #CE9178">"{!! url('/assets/css/aktion-bf.min.css') !!}"</span><span style="color: #569CD6">&gt;</span><br>
+        style="color: #CE9178">"{!! url('/service/fixstern.css') !!}"</span><span style="color: #569CD6">&gt;</span><br>
 <span style="color: #569CD6">&lt;script</span> <span style="color: #4EC9B0">src=</span><span style="color: #CE9178">"{!! url($fixsternLink) !!}"</span><span
         style="color: #569CD6">&gt;&lt;/script&gt;</span>
 </code>

@@ -31,7 +31,7 @@ use Filament\Forms\Components\Group;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\ViewField;
 
-class PageResource extends Resource
+class   PageResource extends Resource
 {
     protected static ?string $model = Page::class;
 
@@ -202,22 +202,26 @@ class PageResource extends Resource
                                                     TinyEditor::make('text')->profile('custom')->toolbarSticky(true)
                                                         ->columnSpan(12),
                                                 ])->label(function (?array $state): string {
-                                                    if ($state === null) {
+                                                    if ($state === null)
+                                                    {
                                                         return 'Textblock';
                                                     }
 
                                                     $label = $state['heading'] ?? '';
 
-                                                    if (empty($label)) {
+                                                    if (empty($label))
+                                                    {
                                                         $label = $state['heading2'] ?? '';
                                                     }
 
-                                                    if (empty($label)) {
+                                                    if (empty($label))
+                                                    {
                                                         $label = $state['teaser'] ?? '';
                                                         $label = trim(\Str::limit(html_entity_decode($label), 55, '[..]'));
                                                     }
 
-                                                    if (empty($label)) {
+                                                    if (empty($label))
+                                                    {
                                                         $label = $state['text'] ?? '';
                                                         // HTML-Tags entfernen und den Text auf 55 Zeichen begrenzen
                                                         $label = trim(\Str::limit(html_entity_decode(strip_tags($label)), 55, '[..]'));
@@ -469,7 +473,8 @@ class PageResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->defaultSort('created_at', 'desc');
     }
 
     public static function getRelations(): array
