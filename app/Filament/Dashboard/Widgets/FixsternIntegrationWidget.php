@@ -28,6 +28,7 @@ class FixsternIntegrationWidget extends Widget
         return view(static::$view, [
             'fixsternLink'=>"service/".$ulid . '/fixstern.js',
             'embedCode' => $embedCode,
+            'ulid' => $ulid,
 
 
         ]);
