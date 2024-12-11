@@ -14,6 +14,8 @@ use App\Http\Controllers\CouponController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ScriptController;
 use App\Http\Controllers\PdfController;
+use App\Http\Controllers\AccessibilityEvaluationController;
+use App\Http\Controllers\CrawlerController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -70,6 +72,9 @@ Route::get('/dashboard/logout', function () {
 */
 
 // ---
+
+Route::get('evaluateUrl/{domain_url_id}', 'App\Http\Controllers\AccessibilityEvaluationController@evaluateUrl', [AccessibilityEvaluationController::class, 'evaluateUrl'])->name('evaluateUrl');
+Route::get('storeCrawled', [CrawlerController::class, 'storeCrawled'])->name('storeCrawled');
 
 Route::get('/service/{ulid}/{tool}.js', [ScriptController::class, 'serveScript'])
     ->name('serveScript')

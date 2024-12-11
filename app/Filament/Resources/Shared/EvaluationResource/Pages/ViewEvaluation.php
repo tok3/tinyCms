@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Filament\Resources\Shared\EvaluationResource\Pages;
+
+use App\Filament\Resources\Shared\EvaluationResource;
+use Filament\Resources\Pages\Page;
+use \App\Models\Evaluation;
+use \App\Models\Domainurl;
+
+class ViewEvaluation extends Page
+{
+    protected static string $resource = EvaluationResource::class;
+
+    protected static string $view = 'filament.resources.shared.evaluation-resource.pages.view-evaluation';
+
+    protected function getViewData(): array
+    {
+        $latest = Evaluation::where('domainurl_id', request()->route('record'))->latest()->first();
+        $domurl = Domainurl::where('id', $latest->domainurl_id)->first();
+
+
+        return [
+            'evaluation' => json_decode($latest->evaluation, true, 2147483647),
+            'url' => $domurl->url,
+            'created_at' => $latest->created_at,
+            'passed' => $latest->passed,
+            'warning' => $latest->warning,
+            'failed' => $latest->failed,
+            'inapplicable' => $latest->inapplicable,
+        ];
+    }
+
+
+}
