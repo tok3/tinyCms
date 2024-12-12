@@ -60,7 +60,26 @@ class Company extends Model
             }
         });
 
+        static::deleting(function ($company) {
+            // Lösche verknüpfte Contracts
+            \App\Models\Contract::where('contractable_id', $company->id)
+                ->where('contractable_type', 'App\\Models\\Company')
+                ->delete();
 
+            // Lösche Einträge aus company_user
+            \DB::table('company_user')->where('company_id', $company->id)->delete();
+
+            // Finde Benutzer, die nur mit dieser Company verknüpft sind und KEINE Admins sind
+            $userIdsToDelete = \DB::table('users')
+                ->select('users.id')
+                ->leftJoin('company_user', 'users.id', '=', 'company_user.user_id')
+                ->whereNull('company_user.company_id')
+                ->where('users.is_admin', '!=', 1) // Admins auslassen
+                ->pluck('id');
+
+            // Lösche diese Benutzer
+            \App\Models\User::whereIn('id', $userIdsToDelete)->delete();
+        });
     }
 
     // Polymorphe Beziehung zu Contracts
