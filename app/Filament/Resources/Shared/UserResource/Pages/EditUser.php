@@ -40,7 +40,9 @@ class EditUser extends EditRecord
                         ->send();
                 })
                 ->requiresConfirmation()
-                ->icon('heroicon-o-envelope'),
+                ->icon('heroicon-o-envelope')
+                ->visible(fn () => !$this->record->hasVerifiedEmail()),
+
         ];
     }
 }

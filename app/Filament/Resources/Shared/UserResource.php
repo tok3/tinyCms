@@ -30,12 +30,7 @@ class UserResource extends Resource
                     ->required()
                     ->label('Email')
                     ->email(),
-                Forms\Components\TextInput::make('password')
-                    ->label('Password')
-                    ->password()
-                    ->rules(['nullable', 'min:8'])
-                    ->dehydrated(fn($state) => filled($state)),
-            ]);
+                ]);
     }
 
     public static function table(Tables\Table $table): Tables\Table
