@@ -61,7 +61,7 @@ class Company extends Model
         });
 
         static::deleting(function ($company) {
-            // Lösche verknüpfte Contracts
+       /*     // Lösche verknüpfte Contracts
             \App\Models\Contract::where('contractable_id', $company->id)
                 ->where('contractable_type', 'App\\Models\\Company')
                 ->delete();
@@ -78,7 +78,7 @@ class Company extends Model
                 ->pluck('id');
 
             // Lösche diese Benutzer
-            \App\Models\User::whereIn('id', $userIdsToDelete)->delete();
+            \App\Models\User::whereIn('id', $userIdsToDelete)->delete();*/
         });
     }
 

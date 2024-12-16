@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Shared;
 
-use App\Filament\Resources\Pages;
+use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
 use Carbon\Carbon;
 use Filament\Forms;
@@ -11,7 +11,8 @@ use Filament\Resources\Resource;
 use Filament\Resources\Table;
 use Filament\Support\Enums\Alignment;
 use Filament\Tables;
-
+use Filament\Resources\Pages\EditRecord;
+use Illuminate\Auth\Notifications\VerifyEmail;
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
@@ -121,3 +122,4 @@ class UserResource extends Resource
     }*/
 
 }
+
