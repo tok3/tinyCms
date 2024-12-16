@@ -19,8 +19,17 @@ class ViewEvaluation extends Page
         $domurl = Domainurl::where('id', $latest->domainurl_id)->first();
 
 
+        /*
+        $tmp = json_decode($latest->evaluation, null, 2147483647);
+        foreach($tmp->{$domurl->url}->modules as $modulekey => $module) {
+            foreach($module->assertions as $assertionkey => $assertion) {
+                var_dump($assertion->metadata->url);
+            }
+        }
+        die();
+        */
         return [
-            'evaluation' => json_decode($latest->evaluation, true, 2147483647),
+            'evaluation' => json_decode($latest->evaluation, false, 2147483647),
             'url' => $domurl->url,
             'created_at' => $latest->created_at,
             'passed' => $latest->passed,
