@@ -1,8 +1,10 @@
 <?php
+
 namespace App\Filament\Resources\Admin;
 
 use App\Models\Referrer;
 use App\Models\Company;
+use Carbon\Carbon;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
@@ -21,14 +23,14 @@ class ReferrerResource extends Resource
                 TextColumn::make('referrer')
                     ->label('Referrer URL')
                     ->sortable()
-                    ->url(fn (Referrer $record) => $record->referrer)
+                    ->url(fn(Referrer $record) => $record->referrer)
                     ->openUrlInNewTab()
                     ->placeholder('No Referrer Provided'),
 
                 TextColumn::make('company.name')
-                    ->label('Company')
+                    ->label('Firma')
                     ->sortable()
-                    ->url(fn (Referrer $record) => $record->company
+                    ->url(fn(Referrer $record) => $record->company
                         ? \App\Filament\Resources\Shared\CompanyResource::getUrl('edit', ['record' => $record->company->id])
                         : null)
                     ->openUrlInNewTab()
@@ -38,10 +40,18 @@ class ReferrerResource extends Resource
                     ->label('Count')
                     ->sortable(),
 
+                TextColumn::make('created_at')
+                    ->label('erstellt')
+                    ->sortable()
+                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('d.m.Y H:i')) ,
+
                 TextColumn::make('updated_at')
-                    ->label('Last Updated')
-                    ->dateTime(),
+                    ->label('aktualisiert')
+                    ->sortable()
+                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('d.m.Y H:i')) ,
             ])
+            ->defaultSort('updated_at', 'desc')
+
             ->filters([
                 // Falls erforderlich: Filter hinzufügen
             ])
