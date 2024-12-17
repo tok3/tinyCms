@@ -27,6 +27,7 @@ class MolliePaymentController extends Controller
     public function test()
     {
 
+        echo date('M.d.Y H:i:s',1734435259);
         $user = User::find(157); // Benutzer-Id hier ersetzen
         $user->email_verified_at = NULL;
         $user->save();

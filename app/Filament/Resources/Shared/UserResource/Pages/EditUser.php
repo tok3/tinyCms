@@ -14,23 +14,19 @@ class EditUser extends EditRecord
     {
         return [
             Action::make('resendVerification')
-                ->label('Verifikationslink senden')
+                ->label(fn () => $this->record->hasVerifiedEmail()
+                    ? 'Verifikationslink erneut senden'
+                    : 'Verifikationslink senden') // Dynamische Beschriftung
                 ->action(function () {
                     $user = $this->record;
 
+                    // Setze die Verifizierung zurück, falls bereits verifiziert
                     if ($user->hasVerifiedEmail()) {
-                        Notification::make()
-                            ->title('Warnung')
-                            ->body('Dieser Benutzer hat seine E-Mail bereits verifiziert.')
-                            ->warning()
-                            ->send();
-
-                        return;
+                        $user->email_verified_at = null;
+                        $user->save();
                     }
 
-                    $user->email_verified_at = null;
-                    $user->save();
-
+                    // Sende den Verifikationslink
                     $user->sendEmailVerificationNotification();
 
                     Notification::make()
@@ -40,9 +36,7 @@ class EditUser extends EditRecord
                         ->send();
                 })
                 ->requiresConfirmation()
-                ->icon('heroicon-o-envelope')
-                ->visible(fn () => !$this->record->hasVerifiedEmail()),
-
+                ->icon('heroicon-o-envelope'),
         ];
     }
 }
