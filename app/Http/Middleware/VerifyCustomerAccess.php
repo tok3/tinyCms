@@ -34,8 +34,12 @@ class VerifyCustomerAccess
         if ($httpReferrer) {
             // Benutze updateOrCreate, um count hochzuzählen
             Referrer::updateOrInsert(
-                ['referrer' => $httpReferrer], // Suchkriterien
-                ['count' => \DB::raw('count + 1'), 'updated_at' => now()] // Aktualisiere count und updated_at
+                ['referrer' => $httpReferrer, 'ulid' => $customerUuid], // Suchkriterien
+                [
+                    'count' => \DB::raw('count + 1'), // Inkrementiere count
+                    'updated_at' => now(), // Aktualisiere updated_at
+                    'created_at' => now(), // Setze created_at beim Insert
+                ]
             );
         }
 

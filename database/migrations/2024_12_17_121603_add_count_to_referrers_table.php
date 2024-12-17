@@ -12,6 +12,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('referrers', function (Blueprint $table) {
+            $table->string('ulid', 36)->nullable()->after('id'); // ULID-Feld nach 'id'
             $table->integer('count')->default(1)->after('referrer'); // Neues Feld 'count'
         });
     }
@@ -19,6 +20,7 @@ return new class extends Migration
     public function down()
     {
         Schema::table('referrers', function (Blueprint $table) {
+            $table->dropColumn('ulid');
             $table->dropColumn('count');
         });
     }

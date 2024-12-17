@@ -165,5 +165,9 @@ class Company extends Model
         return true;
     }
 
+    public function referrers()
+    {
+        return $this->hasMany(Referrer::class, 'ulid', 'ulid');
+    }
 
 }
