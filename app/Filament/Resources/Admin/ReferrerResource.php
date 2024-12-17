@@ -43,15 +43,14 @@ class ReferrerResource extends Resource
                 TextColumn::make('created_at')
                     ->label('erstellt')
                     ->sortable()
-                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('d.m.Y H:i')) ,
+                    ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y H:i')),
 
                 TextColumn::make('updated_at')
                     ->label('aktualisiert')
                     ->sortable()
-                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('d.m.Y H:i')) ,
+                    ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y H:i')),
             ])
             ->defaultSort('updated_at', 'desc')
-
             ->filters([
                 // Falls erforderlich: Filter hinzufügen
             ])
