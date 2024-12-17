@@ -28,7 +28,7 @@ class VerifyCustomerAccess
         }
 
 /*
-        // HTTP-Referer aus dem Request
+        // TEST HTTP-Referer aus dem Request
         $httpReferrer = $request->header('referer');
 
         if ($httpReferrer) {
