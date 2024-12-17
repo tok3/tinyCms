@@ -7,15 +7,24 @@ use  App\Models\Domain;
 use App\Models\Domainurl;
 use App\Models\Evaluation;
 use Illuminate\Support\Facades\Log;
+use App\Services\CrawlerService;
 class CompanyObserver
 {
+    protected $service;
+
+    public function __construct(CrawlerService $service)
+    {
+        $this->service = $service;
+    }
     public function created(Company $company)
     {
+
         $domid = Domain::updateOrCreate(
             ['company_id' => $company->id],
             ['name' => $company->web]
         );
-        $this->triggerCrawler($domid->id, $company->web);
+        //$this->triggerCrawler($domid->id, $company->web);
+        $this->service->crawlDomain($domid->id, $company->web);
     }
 
     public function updated(Company $company){
@@ -32,10 +41,11 @@ class CompanyObserver
             ['name' => $company->web]
         );
 
-        $this->triggerCrawler($domid->id, $company->web);
+        //$this->triggerCrawler($domid->id, $company->web);
+        $this->service->crawlDomain($domid->id, $company->web);
 
     }
-
+/*
     private function triggerCrawler($domain_id, $name){
 
         $data = [
@@ -56,10 +66,11 @@ class CompanyObserver
 
         if ($result === FALSE) {
             //die('Error calling crawler');
-            Log::info('Error calling evaluator');
+            Log::info('Error calling crawler');
         }
         //TODO: Add error handling
 
         return;
     }
+        */
 }

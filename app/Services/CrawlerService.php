@@ -1,30 +1,54 @@
 <?php
+namespace App\Services;
 
-namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\File;
 use App\Models\Domain;
 use App\Models\Domainurl;
 use Illuminate\Support\Facades\DB;
-use App\Services\CrawlerService;
 
-class CrawlerController extends Controller
+class CrawlerService
 {
-    protected $service;
 
-    public function __construct(CrawlerService $service)
+    public function crawlRefresh():void
     {
-        $this->service = $service;
+
+    }
+    public function crawlDomain($domain_id, $name)
+    {
+        $data = [
+            'domain' => $name,
+            'id' => $domain_id,
+        ];
+
+        $options = [
+            'http' => [
+                'header'  => "Content-Type: application/json\r\n",
+                'method'  => 'POST',
+                'content' => json_encode($data),
+            ],
+        ];
+
+        $context  = stream_context_create($options);
+        $result = file_get_contents('http://localhost:4000/start-crawl', false, $context);
+
+        if ($result === FALSE) {
+            //die('Error calling crawler');
+            Log::info('Error calling crawler');
+        }
+        //TODO: Add error handling
+
+        if ($result === FALSE) {
+            return "{'status': 1}"; // erronious
+        }
+
+        return "{'status': 0}";
+
     }
 
     public function storeCrawled():void
     {
-        $this->service->storeCrawled();
-
-        //following to be found in Crawler Service
-        /*
         $folderPath = storage_path('app/crawled_sites');
 
         $files = File::files($folderPath);
@@ -61,7 +85,12 @@ class CrawlerController extends Controller
             }
 
 
-
+            /*
+            var_dump( [
+                'deleted' => count($urlsToDelete),
+                'added' => count($urlsToAdd),
+            ]);
+            */
 
 
             //TODO reinnehmen
@@ -71,43 +100,6 @@ class CrawlerController extends Controller
         //return response()->json(['status' => 'Files processed and removed successfully']);
         }
         return;
-        */
     }
-
-    public function crawlSite($domain_id, $name)
-    {
-
-        return $this->service->crawlDomain($domain_id, $name);
-        //following to be found in Crawler Service
-        /*
-        Log::info('start crawling ' . $domain);
-
-        $data = [
-            'domain' => $domain,
-            'id' => $id,
-        ];
-
-        $options = [
-            'http' => [
-                'header'  => "Content-Type: application/json\r\n",
-                'method'  => 'POST',
-                'content' => json_encode($data),
-            ],
-        ];
-
-        $context  = stream_context_create($options);
-        $result = file_get_contents('http://localhost:4000/start-crawl', false, $context);
-
-        if ($result === FALSE) {
-            return "{'status': 1}"; // erronious
-        }
-
-        return "{'status': 0}";
-        */
-    }
-
 
 }
-
-
-
