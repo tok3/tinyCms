@@ -27,7 +27,7 @@ class VerifyCustomerAccess
             return response('Unauthorized', 403);
         }
 
-
+/*
         // HTTP-Referer aus dem Request
         $httpReferrer = $request->header('referer');
 
@@ -37,7 +37,7 @@ class VerifyCustomerAccess
                 ['referrer' => $httpReferrer], // Suchkriterien
                 ['count' => \DB::raw('count + 1'), 'updated_at' => now()] // Aktualisiere count und updated_at
             );
-        }
+        }*/
 
         return $next($request);
     }
