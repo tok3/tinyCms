@@ -21,7 +21,7 @@ class ViewEvaluation extends Page
         if($latest == null){
             return [
                 'evaluation' => '',
-                'url' => $domurl->url,
+                'url' => '',
                 'created_at' => '',
                 'passed' => '',
                 'warning' => '',
