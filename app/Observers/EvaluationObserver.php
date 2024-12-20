@@ -7,6 +7,7 @@ use \App\Models\Domainurl;
 use Illuminate\Support\Facades\Log;
 class EvaluationObserver
 {
+    /*
     public function created(Evaluation $evaluation)
     {
         $url = Domainurl::where('id', $evaluation->domainurl_id)->first();
@@ -39,7 +40,7 @@ class EvaluationObserver
 
 
     }
-
+    */
     public function updated(Evaluation $evaluation)
     {
         $url = Domainurl::where('id', $evaluation->domainurl_id)->first();

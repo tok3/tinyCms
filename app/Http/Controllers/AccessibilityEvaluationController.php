@@ -71,4 +71,9 @@ class AccessibilityEvaluationController extends Controller
         return;
         */
     }
+
+    public function storeEvaluated()
+    {
+        $this->service->storeEvaluated();
+    }
 }

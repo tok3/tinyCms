@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\View;
 use App\Http\ViewComposers\TopNavigationComposer;
 use Filament\Forms\Components\Actions;
 use App\Models\Company;
+use App\Models\Evaluation;
+use App\Observers\CompanyObserver;
+use App\Observers\EvaluationObserver;
 use Laravel\Cashier\Cashier;
 use Illuminate\Support\Facades\URL;
 class AppServiceProvider extends ServiceProvider
@@ -37,7 +40,8 @@ class AppServiceProvider extends ServiceProvider
         if (env(key: 'APP_ENV') === 'local' && request()->server(key: 'HTTP_X_FORWARDED_PROTO') === 'https') {
             Url::forceScheme(scheme: 'https');
         }
-
+        Company::observe(CompanyObserver::class);
+        Evaluation::observe(EvaluationObserver::class);
        // Cashier::useSubscriptionModel(Subscription::class);
 
         FilamentAsset::register([

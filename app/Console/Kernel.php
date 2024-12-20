@@ -21,6 +21,10 @@ class Kernel extends ConsoleKernel
             // Call the service directly
             app(\App\Services\EvaluationService::class)->EvaluateUrls();
         })->hourly();
+        $schedule->call(function () {
+            // Call the service directly
+            app(\App\Services\EvaluationService::class)->storeEvaluated();
+        })->everyThreeMinutes();
     }
 
     /**
