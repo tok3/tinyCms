@@ -8,6 +8,7 @@ use App\Models\Domainurl;
 use App\Models\Evaluation;
 use Illuminate\Support\Facades\Log;
 use App\Services\CrawlerService;
+use Illuminate\Support\Str;
 class CompanyObserver
 {
     protected $service;
@@ -18,11 +19,22 @@ class CompanyObserver
     }
     public function created(Company $company)
     {
+        $domid = (object)[];
+        $tmp = Domain::where('company_id', $company->id)->first();
+        if(!$tmp){
+            $domid = Domain::create([
+                'id' => (string) Str::ulid(),
+                'company_id' => $company->id,
+                'name' => $company->web,
+            ]);
 
-        $domid = Domain::updateOrCreate(
-            ['company_id' => $company->id],
-            ['name' => $company->web]
-        );
+        } else {
+            $domid = Domain::updateOrCreate(
+                ['company_id' => $company->id],
+                ['name' => $company->web]
+            );
+        }
+
         //$this->triggerCrawler($domid->id, $company->web);
         $this->service->crawlDomain($domid->id, $company->web);
     }
@@ -35,6 +47,7 @@ class CompanyObserver
 
             return;
         }
+
 
 
         Domainurl::where('domain_id', $dom->id)->delete();
