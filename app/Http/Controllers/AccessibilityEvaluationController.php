@@ -7,14 +7,24 @@ use App\Models\Evaluation;
 use App\Models\Domainurl;
 use GuzzleHttp\Client;
 use Illuminate\Support\Str;
-
+use App\Services\EvaluationService;
 
 
 class AccessibilityEvaluationController extends Controller
 {
+    protected $service;
+
+
+    public function __construct(EvaluationService $service)
+    {
+        $this->service = $service;
+    }
+
     public function evaluateUrl(Request $request)
     {
 
+        $this->service->evaluateUrl($request->domain_url_id);
+    /*
        $domainurl = Domainurl::where('id', '=', $request->domain_url_id)->first();
 
 
@@ -59,5 +69,6 @@ class AccessibilityEvaluationController extends Controller
 
 
         return;
+        */
     }
 }

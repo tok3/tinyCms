@@ -30,7 +30,7 @@ class CompanyObserver
     public function updated(Company $company){
         //check if domain name has really changed
         $dom = Domain::where('company_id', $company->id)->first();
-        if($dom->name == $company->web){
+        if($dom->name == $company->web || $company->web == '' || $company->web == null){
             return;
         }
 
