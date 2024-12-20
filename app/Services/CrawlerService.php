@@ -49,6 +49,7 @@ class CrawlerService
 
     public function storeCrawled():void
     {
+        Log::info('store crawled urls');
         $folderPath = storage_path('app/crawled_sites');
 
         $files = File::files($folderPath);
