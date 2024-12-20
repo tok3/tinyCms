@@ -16,7 +16,7 @@ class ViewEvaluation extends Page
     protected function getViewData(): array
     {
         $latest = Evaluation::where('domainurl_id', request()->route('record'))->latest()->first();
-        $domurl = Domainurl::where('id', $latest->domainurl_id)->first();
+
 
         if($latest == null){
             return [
@@ -29,6 +29,8 @@ class ViewEvaluation extends Page
                 'inapplicable' => '',
             ];
         } else {
+
+            $domurl = Domainurl::where('id', $latest->domainurl_id)->first();
             return [
                 'evaluation' => json_decode($latest->evaluation, false, 2147483647),
                 'url' => $domurl->url,
