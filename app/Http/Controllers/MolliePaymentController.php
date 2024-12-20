@@ -27,6 +27,20 @@ class MolliePaymentController extends Controller
     public function test()
     {
 
+        echo date('M.d.Y H:i:s',1734435259);
+        $user = User::find(157); // Benutzer-Id hier ersetzen
+        $user->email_verified_at = NULL;
+        $user->save();
+        $user->sendEmailVerificationNotification();
+        die();
+        echo sha1('157tommel@tubechunks.de');
+echo "<br>";
+        echo $expires = strtotime(Carbon::now()->addWeek()->toDateString());
+        echo "<br>";
+
+        echo '157/'.sha1('tommel@tubechunks.de').'?expires='.$expires.'&signature=0d08a2b794ed64c7ce7ee4c6fc277d172aec39b9eeae711e54da3121ad83f67e';
+
+        die();
         $customerId = 'cst_ZYrQatF4wT';
         $mandates = $this->getMandates($customerId);
 
