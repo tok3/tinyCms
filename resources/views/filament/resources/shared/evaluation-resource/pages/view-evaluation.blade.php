@@ -1,4 +1,8 @@
 <x-filament-panels::page>
+    @if($url == ''){
+        <h3>URL: <i>Not available</i></h3>
+    }
+    @else
     <h3>URL: <i>{{ $url }}</i></h3>
     <div class="columns-2">
         <div>
@@ -211,4 +215,5 @@
 
 @endforeach
     </div>
+    @endif
 </x-filament-panels::page>
