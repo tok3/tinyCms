@@ -116,6 +116,7 @@ class EvaluationService
     public function  evaluateUrls():void
     {
 
+        Log::info('evaluate urls');
         $domainurls = Domainurl::all();
         foreach($domainurls as $domainurl) {
             $evaluation = Evaluation::where('domainurl_id', $domainurl->id)->latest()->first();
@@ -129,6 +130,7 @@ class EvaluationService
 
     public function storeEvaluated()
     {
+        Log::info('store evaluated urls');
         $folderPath = storage_path('app/evaluated_urls');
 
         $files = File::files($folderPath);
