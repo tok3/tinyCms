@@ -31,7 +31,7 @@ class CrawlerService
         ];
 
         $context  = stream_context_create($options);
-        $result = file_get_contents('http://localhost:4000/start-crawl', false, $context);
+        $result = file_get_contents('http://127.0.0.1:4000/start-crawl', false, $context);
 
         if ($result === FALSE) {
             //die('Error calling crawler');
