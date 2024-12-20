@@ -38,7 +38,6 @@ class VerifyCustomerAccess
                 [
                     'count' => \DB::raw('count + 1'), // Inkrementiere count
                     'updated_at' => now(), // Aktualisiere updated_at
-                    'created_at' => now(), // Setze created_at beim Insert
                 ]
             );
         }

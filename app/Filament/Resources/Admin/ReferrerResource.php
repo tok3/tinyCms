@@ -44,6 +44,7 @@ class ReferrerResource extends Resource
                     ->label('erstellt')
                     ->sortable()
                     ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y H:i')),
+
                 TextColumn::make('updated_at')
                     ->label('aktualisiert')
                     ->sortable()
