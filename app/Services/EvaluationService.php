@@ -18,7 +18,7 @@ class EvaluationService
     public  function evaluateUrlFilebased($domainurl_id):void
     {
         $domainurl = Domainurl::where('id', '=', $domainurl_id)->first();
-
+        Log::info('evaluate url '.$domainurl->id);
 
         $client = new Client();
         $res = null;
