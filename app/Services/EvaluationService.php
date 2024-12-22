@@ -52,7 +52,7 @@ class EvaluationService
                 'company_id' => $domainurl->company_id,
                 'domain_id' => $domainurl->domain_id,
                 //'evaluation' => $responseArray['data'],
-                'evaluation' => '',
+                //'evaluation' => '',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
