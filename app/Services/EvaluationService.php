@@ -123,6 +123,7 @@ class EvaluationService
             if($evaluation == null || $evaluation->created_at < now()->subDays(2)) {
                 $this->evaluateUrlFilebased($domainurl->id);
             }
+            break;
         }
 
 
