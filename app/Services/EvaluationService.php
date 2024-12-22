@@ -124,8 +124,9 @@ class EvaluationService
             if($evaluation == null || $evaluation->created_at < now()->subDays(2)) {
                 Log::info($evaluation);
                 $this->evaluateUrlFilebased($domainurl->id);
+                break;
             }
-            break;
+
         }
 
 
