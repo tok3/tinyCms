@@ -29,7 +29,7 @@ class EvaluationService
         try {
             // Send GET request to the program on port 3000
             $response = $client->get('http://127.0.0.1:3000/evaluate', [
-                'query' => ['url' => $domainurl->url], // Add the parameter to the query string
+                'query' => ['url' => $domainurl->url, 'outputFileName' => $domainurl->id], // Add the parameter to the query string
             ]);
 
             // Get the response body and status code
