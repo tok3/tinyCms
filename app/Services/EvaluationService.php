@@ -120,10 +120,11 @@ class EvaluationService
         $domainurls = Domainurl::all();
         foreach($domainurls as $domainurl) {
             $evaluation = Evaluation::where('domainurl_id', $domainurl->id)->latest()->first();
-            Log::info($evaluation);
-            if($evaluation == null || $evaluation->created_at < now()->subDays(2)) {
+
+            //if($evaluation == null || $evaluation->created_at < now()->subDays(2)) {
+                Log::info($evaluation);
                 $this->evaluateUrlFilebased($domainurl->id);
-            }
+            //}
             break;
         }
 
