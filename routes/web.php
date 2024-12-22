@@ -72,6 +72,7 @@ Route::get('/dashboard/logout', function () {
 */
 
 // ---
+Route::get('evaluateUrls/', 'App\Http\Controllers\AccessibilityEvaluationController@evaluateUrls', [AccessibilityEvaluationController::class, 'evaluateUrls'])->name('evaluateUrls');
 Route::get('storeEvaluated/', 'App\Http\Controllers\AccessibilityEvaluationController@storeEvaluated', [AccessibilityEvaluationController::class, 'storeEvaluated'])->name('storeEvaluated');
 Route::get('evaluateUrl/{domain_url_id}', 'App\Http\Controllers\AccessibilityEvaluationController@evaluateUrl', [AccessibilityEvaluationController::class, 'evaluateUrl'])->name('evaluateUrl');
 Route::get('storeCrawled', [CrawlerController::class, 'storeCrawled'])->name('storeCrawled');
