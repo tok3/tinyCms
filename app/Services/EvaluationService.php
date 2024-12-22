@@ -117,7 +117,7 @@ class EvaluationService
     {
 
         Log::info('evaluate urls');
-        $domainurls = Domainurl::all();
+        $domainurls = Domainurl::all()->limit(1);
         foreach($domainurls as $domainurl) {
             $evaluation = Evaluation::where('domainurl_id', $domainurl->id)->latest()->first();
             if($evaluation == null || $evaluation->created_at < now()->subDays(2)) {
