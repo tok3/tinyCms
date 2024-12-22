@@ -19,7 +19,11 @@ class EvaluationService
     {
         $domainurl = Domainurl::where('id', '=', $domainurl_id)->first();
         Log::info('evaluate url '.$domainurl->id);
+        $evaluation = Evaluation::where('domainurl_id', $domainurl->id)->latest()->first();
 
+        if($evaluation != null && $evaluation->evaluation != null) {
+            return;
+        }
         $client = new Client();
         $res = null;
         try {
@@ -119,13 +123,13 @@ class EvaluationService
         Log::info('evaluate urls');
         $domainurls = Domainurl::all();
         foreach($domainurls as $domainurl) {
-            $evaluation = Evaluation::where('domainurl_id', $domainurl->id)->latest()->first();
+            //$evaluation = Evaluation::where('domainurl_id', $domainurl->id)->latest()->first();
 
-            if($evaluation == null || $evaluation->created_at < now()->subDays(2)) {
-                Log::info($evaluation);
+            //if($evaluation == null || $evaluation->created_at < now()->subDays(2)) {
+                //Log::info($evaluation);
                 $this->evaluateUrlFilebased($domainurl->id);
                 break;
-            }
+            //}
 
         }
 
