@@ -170,4 +170,9 @@ class Company extends Model
         return $this->hasMany(Referrer::class, 'ulid', 'ulid');
     }
 
+    public function pa11yUrls()
+    {
+        return $this->hasMany(Pa11yUrl::class);
+    }
+
 }

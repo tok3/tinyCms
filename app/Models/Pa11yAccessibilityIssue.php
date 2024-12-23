@@ -2,7 +2,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use App\Services\MessageTranslationService;
 class Pa11yAccessibilityIssue extends Model
 {
     protected $fillable = [
@@ -23,6 +23,10 @@ class Pa11yAccessibilityIssue extends Model
         return $this->belongsTo(Pa11yUrl::class);
     }
 
+    public function getTranslatedMessageAttribute()
+    {
+        return MessageTranslationService::translate($this->issue, 'de_DE');
+    }
 
     /**
      * Liefert die Links zur W3C-Dokumentation basierend auf den WCAG-Codes.

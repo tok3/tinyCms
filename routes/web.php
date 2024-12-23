@@ -14,6 +14,8 @@ use App\Http\Controllers\CouponController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ScriptController;
 use App\Http\Controllers\PdfController;
+use App\Http\Controllers\Pa11yUrlController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -81,6 +83,11 @@ Route::get('/service/{tool}.css', [ScriptController::class, 'serveCss'])->name('
 // -----------------------------------------------
 
 Route::get('/documents/fixstern-integration/{ulid}', [PdfController::class, 'generateInstruction'])->name('download.instruction')->middleware(['auth']);
+// -----------------------------------------------
+// pa11y - wcag
+
+Route::post('/pa11y/url/{url}/rescan', [Pa11yUrlController::class, 'rescan'])->name('pa11y.url.rescan');
+Route::post('pa11y/urls/rescan/all', [Pa11yUrlController::class, 'rescanAllUrls'])->name('pa11y.urls.rescan.all');
 // -----------------------------------------------
 
 

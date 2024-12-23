@@ -22,8 +22,21 @@
             });
         });
     </script>
+    {{--<!-- Rescan Button für spezifische URL -->
+    <form action="{{ route('pa11y.url.rescan', $url->id) }}" method="POST">
+        @csrf
+        <button type="submit" class="filament-button filament-button-primary">
+            Rescan URL
+        </button>
+    </form>
 
-    <h2 class="text-lg font-bold mb-4">Scan Results for {{ $url->url }}</h2>
+    <form action="{{ route('pa11y.urls.rescan.all') }}" method="POST">
+        @csrf
+        <button type="submit" class="filament-button filament-button-primary">
+            Rescan All URLs
+        </button>
+    </form>--}}
+    <h2 class="text-lg font-bold mb-4">{{ \App\Services\MessageTranslationService::translate('Scan Results for', 'de_DE') }}</p> {{ $url->url }}</h2>
     <p class="text-sm text-gray-600">Last Checked: {{ $url->last_checked }}</p>
 
     @php
@@ -72,7 +85,7 @@
                         </span>
                         <span class="ml-auto text-gray-500 text-xs">WCAG Level: {{ $issue->wcag_level ?? 'Not specified' }}</span>
                     </div>
-                    <h3 class="font-bold text-lg">{{ $issue->issue }}</h3>
+                    <h3 class="font-bold text-lg">{{ $issue->translated_message }}</h3>
                     <p class="text-sm text-gray-600 mt-2"><strong>Selector:</strong></p>
                     <pre><code class="language-html">{{ $issue->selector }}</code></pre>
                     @if($issue->context)
