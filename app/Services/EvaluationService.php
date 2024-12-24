@@ -158,10 +158,14 @@ class EvaluationService
 
             $evaluation = Evaluation::where('domainurl_id', $filename)->latest()->first();
 
+            $eval = Evaluation::find($evaluation->id);
+            $eval->evaluation = json_encode($data);
+            $eval->save();
+            /*
             Evaluation::where('id', $evaluation->id)->update(
                ['evaluation' => json_encode($data)]
             );
-
+            */
             File::delete($file->getPathname());
 
         }
