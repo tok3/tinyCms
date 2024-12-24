@@ -10,6 +10,7 @@ class EvaluationObserver
 
     public function created(Evaluation $evaluation)
     {
+        Log::info('created evaluation is triggered');
         $url = Domainurl::where('id', $evaluation->domainurl_id)->first();
         $json = json_decode($evaluation->evaluation);
         if($json != null){
@@ -42,9 +43,10 @@ class EvaluationObserver
         }
 
     }
-    */
+
     public function updated(Evaluation $evaluation)
     {
+        Log::info('updated evaluation is triggered');
         $url = Domainurl::where('id', $evaluation->domainurl_id)->first();
         $json = json_decode($evaluation->evaluation);
         Evaluation::where('id' , $evaluation->id)->update(
