@@ -24,7 +24,7 @@ use App\Models\Company;
 use Filament\Navigation\NavigationItem;
 use Filament\Pages\Dashboard;
 use Filament\MinimalTheme;
-
+use Filament\Support\Enums\MaxWidth;
 class DashboardPanelProvider extends PanelProvider
 {
 
@@ -36,6 +36,7 @@ class DashboardPanelProvider extends PanelProvider
 
         $panel->id('dashboard')
             ->path('dashboard')
+            ->maxContentWidth(MaxWidth::Full)
             ->profile()
             ->tenant(Company::class)
             ->login()
