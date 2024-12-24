@@ -103,7 +103,7 @@
             </div>
             <div style="width:100%; clear:both; height: 10px;"></div>
             <x-filament::section collapsible collapsed
-                icon="heroicon-c-queue-list"
+                icon="heroicon-c-chevron-double-down"
                 icon-color="info"
                 icon-size="sm"
             >
