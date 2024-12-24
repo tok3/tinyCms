@@ -6,6 +6,7 @@ use App\Filament\Resources\Shared\EvaluationResource;
 use Filament\Resources\Pages\Page;
 use \App\Models\Evaluation;
 use \App\Models\Domainurl;
+use \App\Services\EvaluationService;
 
 class ViewEvaluation extends Page
 {
@@ -13,13 +14,13 @@ class ViewEvaluation extends Page
 
     protected static string $view = 'filament.resources.shared.evaluation-resource.pages.view-evaluation';
 
+
     protected function getViewData(): array
     {
         $latest = Evaluation::where('domainurl_id', request()->route('record'))->latest()->first();
 
-
         if($latest == null){
-            return [
+            /*return [
                 'evaluation' => '',
                 'url' => '',
                 'created_at' => '',
@@ -27,8 +28,11 @@ class ViewEvaluation extends Page
                 'warning' => '',
                 'failed' => '',
                 'inapplicable' => '',
-            ];
-        } else {
+            ];*/
+            $service = new EvaluationService();
+            $service->evaluateUrl(request()->route('record'));
+            $latest = Evaluation::where('domainurl_id', request()->route('record'))->latest()->first();
+        }
 
             $domurl = Domainurl::where('id', $latest->domainurl_id)->first();
             return [
@@ -40,7 +44,7 @@ class ViewEvaluation extends Page
                 'failed' => $latest->failed,
                 'inapplicable' => $latest->inapplicable,
             ];
-        }
+
         /*
         $tmp = json_decode($latest->evaluation, null, 2147483647);
         foreach($tmp->{$domurl->url}->modules as $modulekey => $module) {

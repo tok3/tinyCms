@@ -31,7 +31,7 @@
     @foreach($module->assertions as $assertionkey => $assertion)
 
 
-        <div class=" pt-4 mt-6 border-4 border-t-black-500 border-b-transparent border-l-transparent border-r-transparent">
+        <div class=" pt-2 mt-2 border-4 border-t-black-500 border-b-transparent border-l-transparent border-r-transparent">
             <div style="width: 100%;">
                 <div style="width: 80%; float: left;">
 
@@ -101,113 +101,119 @@
                         <span class="text-sm text-gray-500">{{ $assertion->metadata->inapplicable }} Inapplicable</span>
                 </div>
             </div>
-            <div style="width:100%; clear:both;"></div>
+            <div style="width:100%; clear:both; height: 10px;"></div>
+            <x-filament::section collapsible collapsed
+                icon="heroicon-c-queue-list"
+                icon-color="info"
+                icon-size="sm"
+            >
+            <x-slot name="heading">
+                <p class="text-sm pt-1"><span class="font-bold">SUCCESS CRITERIA:</span></p>
+            </x-slot>
+                <p class="text-sm pt-1">
+                    <ul>
+                        @php
+                        $succ = "success-criteria";
+                        //var_dump($assertion->metadata->{$succ});
+                        if(property_exists($assertion->metadata, 'success-criteria')){
 
-            <p class="text-sm pt-1"><span class="font-bold">SUCCESS CRITERIA:</span></p>
-            <p class="text-sm pt-1">
-                <ul>
-                    @php
-                    $succ = "success-criteria";
-                    //var_dump($assertion->metadata->{$succ});
-                    if(property_exists($assertion->metadata, 'success-criteria')){
+                            foreach($assertion->metadata->{$succ} as $succCriteria){
+                                echo "<li>";
 
-                        foreach($assertion->metadata->{$succ} as $succCriteria){
-                            echo "<li>";
-
-                                if(property_exists($succCriteria, 'name')){
-                                    if(is_string($succCriteria->name)){
-                                        echo $succCriteria->name;
+                                    if(property_exists($succCriteria, 'name')){
+                                        if(is_string($succCriteria->name)){
+                                            echo $succCriteria->name;
+                                        }
+                                        if(is_array($succCriteria->name)){
+                                            echo implode(', ', $succCriteria->name);
+                                        }
+                                    } else {
+                                        echo "";
                                     }
-                                    if(is_array($succCriteria->name)){
-                                        echo implode(', ', $succCriteria->name);
+                                    if(property_exists($succCriteria, 'url_tr')){
+                                        if(is_string($succCriteria->url_tr)){
+                                            echo " ".explode('#', $succCriteria->url_tr)[1];
+                                        }
+                                        if(is_array($succCriteria->url_tr)){
+                                            echo " ".implode(', ', explode('#', $succCriteria->url_tr)[1]);
+                                        }
+                                    } else {
+                                        echo "";
                                     }
-                                } else {
-                                    echo "";
-                                }
-                                if(property_exists($succCriteria, 'url_tr')){
-                                    if(is_string($succCriteria->url_tr)){
-                                        echo " ".explode('#', $succCriteria->url_tr)[1];
+                                    if(property_exists($succCriteria, 'level')){
+                                        if(is_string($succCriteria->level)){
+                                            echo " (Level ".$succCriteria->level.")";
+                                        }
+                                        if(is_array($succCriteria->level)){
+                                            echo " (Level".implode(', ', $succCriteria->level).")";
+                                        }
+                                    } else {
+                                        echo "";
                                     }
-                                    if(is_array($succCriteria->url_tr)){
-                                        echo " ".implode(', ', explode('#', $succCriteria->url_tr)[1]);
-                                    }
-                                } else {
-                                    echo "";
-                                }
-                                if(property_exists($succCriteria, 'level')){
-                                    if(is_string($succCriteria->level)){
-                                        echo " (Level ".$succCriteria->level.")";
-                                    }
-                                    if(is_array($succCriteria->level)){
-                                        echo " (Level".implode(', ', $succCriteria->level).")";
-                                    }
-                                } else {
-                                    echo "";
-                                }
-                            echo "</li>";
-                        }
-                    }
-
-                    @endphp
-                </ul>
-            </p>
-            <div style="width: 100%; clear:both;"></div>
-
-            @if(property_exists($assertion, 'results'))
-
-                 @foreach($assertion->results as $result)
-                    @php
-                        $color = "";
-                        $verdict = "";
-                        $description = "";
-                        if(property_exists($result, 'verdict')){
-                            switch($result->verdict){
-                                case 'passed':
-                                    $color = "green";
-                                    $verdict = "passed";
-                                    break;
-                                case 'failed':
-                                    $color = "red";
-                                    $verdict = "failed";
-                                    break;
-                                case 'inapplicable':
-                                    $color = "gray";
-                                    $verdict = "inapplicable";
-                                    break;
-                                case 'warning':
-                                    $color = "yellow";
-                                    $verdict = "warning";
-                                    break;
-                                default:
-                                    $color = "gray";
-                                    $verdict = "inapplicable";
-                                    break;
+                                echo "</li>";
                             }
                         }
-                        if(property_exists($result, 'description')){
-                            $description = $result->description;
-                        }
-/*
-                        $elems = new stdClass();
-                        if(property_exists($result, 'elements')){
-                            $elems = $result->elements;
-                        }
-                            */
-                    @endphp
 
-                    <div style="width: 100%; clear:both; mt-3 "></div>
+                        @endphp
+                    </ul>
+                </p>
+                <div style="width: 100%; clear:both;"></div>
 
-                    <h6 class="mt-4">{{ $description }} <span class="text-{{$color}}-500">({{$verdict}})</span></h6>
-                    @foreach($result->elements as $elem)
-                    <div style="padding: 1em; background-color: #292D3E; border-radius: 0.5rem; color: white;">
-                        <code>{{ substr($elem->htmlCode, 0, 150) }}</code>
-                    </div>
-                    <span class="text-sm text-gray-500">Pointer: {{ $elem->pointer }}</span>
+                @if(property_exists($assertion, 'results'))
+
+                    @foreach($assertion->results as $result)
+                        @php
+                            $color = "";
+                            $verdict = "";
+                            $description = "";
+                            if(property_exists($result, 'verdict')){
+                                switch($result->verdict){
+                                    case 'passed':
+                                        $color = "green";
+                                        $verdict = "passed";
+                                        break;
+                                    case 'failed':
+                                        $color = "red";
+                                        $verdict = "failed";
+                                        break;
+                                    case 'inapplicable':
+                                        $color = "gray";
+                                        $verdict = "inapplicable";
+                                        break;
+                                    case 'warning':
+                                        $color = "yellow";
+                                        $verdict = "warning";
+                                        break;
+                                    default:
+                                        $color = "gray";
+                                        $verdict = "inapplicable";
+                                        break;
+                                }
+                            }
+                            if(property_exists($result, 'description')){
+                                $description = $result->description;
+                            }
+    /*
+                            $elems = new stdClass();
+                            if(property_exists($result, 'elements')){
+                                $elems = $result->elements;
+                            }
+                                */
+                        @endphp
+
+                        <div style="width: 100%; clear:both; mt-3 "></div>
+
+                        <h6 class="mt-4">{{ $description }} <span class="text-{{$color}}-500">({{$verdict}})</span></h6>
+                        @foreach($result->elements as $elem)
+                        <div style="padding: 1em; background-color: #292D3E; border-radius: 0.5rem; color: white;">
+                            <code>{{ substr($elem->htmlCode, 0, 150) }}</code>
+                        </div>
+                        <span class="text-sm text-gray-500">Pointer: {{ $elem->pointer }}</span>
+                        @endforeach
                     @endforeach
-                @endforeach
-            @endif
+                @endif
 
-
+            </x-filament::section>
         </div>
 
     @endforeach
