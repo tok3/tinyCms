@@ -49,18 +49,10 @@ class DomainurlResource extends Resource
     {
         return $table
             ->columns([
-                /*
-                Tables\Columns\TextColumn::make('id')
-                    ->label('ID')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('domain_id')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('company_id')
-                    ->numeric()
-                    ->sortable(),
-                */
+
                 Tables\Columns\TextColumn::make('url')
                     ->searchable()
+                    ->wrap()
                     ->label('URL'),
                 Tables\Columns\TextColumn::make('failed_oldest')
                     ->sortable()
@@ -91,7 +83,7 @@ class DomainurlResource extends Resource
             ])
             ->actions([
                 Action::make('evaluationReport')
-                    ->label('Evaluations - Report')
+                    ->label('Evaluation')
                     ->url(fn ($record) => route('filament.dashboard.resources.shared.evaluations.view', ['tenant' => Filament::getTenant()->id, 'record' => $record]))
 
                     ->openUrlInNewTab(),
