@@ -24,6 +24,8 @@ class DomainurlResource extends Resource
 
     protected static ?string $navigationLabel = 'URLs';
 
+    protected static ?string $navigationGroup = 'Accessibility Tools';
+
 
     public static function form(Form $form): Form
     {
