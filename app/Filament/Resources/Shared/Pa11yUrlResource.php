@@ -45,6 +45,7 @@ class Pa11yUrlResource extends Resource
     {
 
 
+
         return $table
             ->columns([
                 // Company Name anzeigen, wenn der User ein Admin ist

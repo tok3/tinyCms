@@ -18,12 +18,12 @@ class VerifyCustomerAccess
      */
     public function handle(Request $request, Closure $next)
     {
-        $customerUuid = $request->route('ulid');
+        $company_id = $request->route('ulid');
         $tool = $request->route('tool'); // Tool-Name oder Typ aus der URL
 
         // Prüfe, ob der Kunde existiert
-        //$customer = \App\Models\Customer::where('uuid', $customerUuid)->first();
-        $customer = \App\Models\Company::where('ulid', $customerUuid)->first();
+        //$customer = \App\Models\Customer::where('uuid', $company_id)->first();
+        $customer = \App\Models\Company::where('ulid', $company_id)->first();
 
         if (!$customer || !$customer->hasAccessToTool($tool)) {
             // Zugriff verweigern, wenn der Kunde keinen Zugang hat
@@ -34,21 +34,28 @@ class VerifyCustomerAccess
         // HTTP-Referer aus dem Request
         $httpReferrer = $request->header('referer');
 
+
         if ($httpReferrer) {
-            // Benutze updateOrCreate, um count hochzuzählen
-            $referrer =  Referrer::updateOrInsert(
-                ['referrer' => $httpReferrer, 'ulid' => $customerUuid], // Suchkriterien
-                [
-                    'count' => \DB::raw('count + 1'), // Inkrementiere count
-                    'updated_at' => now(), // Aktualisiere updated_at
-                ]
-            );
+            $referrer = Referrer::where('referrer', $httpReferrer)
+                ->where('ulid', $company_id)
+                ->first();
+            $this->createPa11yUrlAndScan($customer->id, $httpReferrer);
+            if (!$referrer) {
+                // Referrer nicht vorhanden, also neu erstellen
+                Referrer::create([
+                    'referrer' => $httpReferrer,
+                    'ulid' => $company_id,
+                    'count' => 1,
+                ]);
 
 
-//            // Wenn ein neuer Referrer erstellt wurde, die URL speichern und den Scan starten
-//            if ($referrer && $referrer->wasRecentlyCreated) {
-//                $this->createPa11yUrlAndScan($customerUuid, $httpReferrer);
-//            }
+
+
+            } else {
+                // Referrer existiert, also nur count aktualisieren
+                $referrer->increment('count');
+            }
+
 
         }
 
@@ -58,26 +65,28 @@ class VerifyCustomerAccess
     /**
      * Speichert die URL und startet den Scan für die neue URL.
      *
-     * @param string $customerUuid
+     * @param string $company_id
      * @param string $httpReferrer
      * @return void
      */
-    protected function createPa11yUrlAndScan(string $customerUuid, string $httpReferrer)
+    /**
+     * Erstelle einen neuen Pa11yUrl-Eintrag und starte den Scan.
+     *
+     * @param int $companyId
+     * @param string $referrer
+     * @return void
+     */
+    private function createPa11yUrlAndScan(int $companyId, string $referrer): void
     {
-        // Speichern der URL in der Pa11yUrl-Tabelle
-        $pa11yUrl = Pa11yUrl::create([
-            'url' => $httpReferrer,
-            'company_id' => $customerUuid, // Die ID der Company, die dem Referrer zugeordnet ist
+        // Pa11yUrl erstellen
+        $url = Pa11yUrl::create([
+            'company_id' => $companyId,
+            'url' => $referrer,
         ]);
 
-        // Logge die URL-ID und starte den Scan für diese URL
-        \Log::info('Starting scan for newly added Pa11yUrl', ['url_id' => $pa11yUrl->id]);
-
-        // Starte den Artisan-Befehl für diese URL
-        Artisan::call('scan:accessibility', [
-            'urls' => [$pa11yUrl->id],  // Nur die neu erstellte URL-ID übergeben
-            '--levels' => 'A,AA,AAA'   // Alle Levels scannen
-        ]);
+        // Artisan-Befehl im Hintergrund ausführen (ohne den Webserver zu blockieren)
+        $command = "php ".base_path('artisan')." scan:accessibility --urls={$url->id} --levels=A,AA,AAA > /dev/null 2>&1 &";
+        exec($command);
     }
 
 }
