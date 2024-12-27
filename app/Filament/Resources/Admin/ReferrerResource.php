@@ -20,12 +20,6 @@ class ReferrerResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('referrer')
-                    ->label('Referrer URL')
-                    ->sortable()
-                    ->url(fn(Referrer $record) => $record->referrer)
-                    ->openUrlInNewTab()
-                    ->placeholder('No Referrer Provided'),
 
                 TextColumn::make('company.name')
                     ->label('Firma')
@@ -34,7 +28,19 @@ class ReferrerResource extends Resource
                         ? \App\Filament\Resources\Shared\CompanyResource::getUrl('edit', ['record' => $record->company->id])
                         : null)
                     ->openUrlInNewTab()
-                    ->placeholder('No Company Linked'),
+                    ->placeholder('No Company Linked')
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('referrer')
+                    ->label('Referrer URL')
+                    ->sortable()
+                    ->url(fn(Referrer $record) => $record->referrer)
+                    ->openUrlInNewTab()
+                    ->placeholder('No Referrer Provided')
+                    ->searchable()
+                    ->sortable(),
+
 
                 TextColumn::make('count')
                     ->label('Count')
