@@ -10,6 +10,7 @@ use Symfony\Component\Process\Process;
 
 class ScanAccessibility extends Command
 {
+
     // Signature mit den zusätzlichen Optionen: URLs, Levels, Notices und Warnings
     protected $signature = 'scan:accessibility {urls?*} {--levels=A,AA,AAA} {--notices} {--no-notices} {--warnings} {--no-warnings}';
     protected $description = 'Scan URLs for accessibility issues';
