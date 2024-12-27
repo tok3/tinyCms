@@ -40,7 +40,10 @@ class VerifyCustomerAccess
                 ->where('ulid', $company_id)
                 ->first();
 
+
+            // verschieben !
             $this->createPa11yUrlAndScan($customer->id, $httpReferrer);
+
 
 
             if (!$referrer) {
