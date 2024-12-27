@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Shared;
 
 use App\Models\Pa11yUrl;
+use Carbon\Carbon;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Forms;
@@ -10,6 +11,7 @@ use App\Filament\Resources\Shared\Pa11yUrlResource\Pages;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\Action;
 use Illuminate\Support\Facades\Artisan;
+use App\Models\Company;
 class Pa11yUrlResource extends Resource
 {
     protected static ?string $model = Pa11yUrl::class;
@@ -20,27 +22,44 @@ class Pa11yUrlResource extends Resource
 
     public static function form(Forms\Form $form): Forms\Form
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('url')
-                    ->label('URL')
-                    ->required(),
-                Forms\Components\DateTimePicker::make('last_checked')
-                    ->label('Last Checked'),
-            ]);
+        // Grundschema des Formulars
+        $formSchema = [
+            Forms\Components\TextInput::make('url')
+                ->label('URL')
+                ->required(),
+        ];
+
+        // Wenn der Benutzer ein Admin ist, füge das Dropdown für Company hinzu
+        if (auth()->user()->is_admin) {
+            $formSchema[] = Forms\Components\Select::make('company_id') // Dropdown für Company
+            ->label('Company')
+                ->placeholder('Firma wählen')
+                ->options(Company::all()->pluck('name', 'id')) // Alle Companies anzeigen
+                ->required();
+        }
+
+        return $form->schema($formSchema);
     }
 
     public static function table(Tables\Table $table): Tables\Table
     {
 
+
         return $table
             ->columns([
+                // Company Name anzeigen, wenn der User ein Admin ist
+                Tables\Columns\TextColumn::make('company.name')
+                    ->label('Company Name')
+                    ->visible(fn () => auth()->user()->is_admin)  // Nur sichtbar, wenn der User ein Admin ist
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('url')
                     ->label('URL')
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('last_checked')
                     ->label('Last Checked')
+                    ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y H:i'))
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('error_count')

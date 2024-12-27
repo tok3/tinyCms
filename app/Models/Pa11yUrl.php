@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pa11yUrl extends Model
 {
-    protected $fillable = ['url', 'last_checked'];
+    protected $fillable = ['company_id','url', 'last_checked'];
 
     use HasFactory;
 
