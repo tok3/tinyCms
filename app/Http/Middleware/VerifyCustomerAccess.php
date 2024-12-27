@@ -45,10 +45,10 @@ class VerifyCustomerAccess
             );
 
 
-            // Wenn ein neuer Referrer erstellt wurde, die URL speichern und den Scan starten
-            if ($referrer && $referrer->wasRecentlyCreated) {
-                $this->createPa11yUrlAndScan($customerUuid, $httpReferrer);
-            }
+//            // Wenn ein neuer Referrer erstellt wurde, die URL speichern und den Scan starten
+//            if ($referrer && $referrer->wasRecentlyCreated) {
+//                $this->createPa11yUrlAndScan($customerUuid, $httpReferrer);
+//            }
 
         }
 
