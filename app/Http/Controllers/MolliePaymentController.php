@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Faker\Factory as Faker;
 use App\Models\MollieCustomer;
-
+use App\Services\MessageTranslationService;
 class MolliePaymentController extends Controller
 {
 
@@ -27,11 +27,15 @@ class MolliePaymentController extends Controller
     public function test()
     {
 
-        echo date('M.d.Y H:i:s',1734435259);
-        $user = User::find(157); // Benutzer-Id hier ersetzen
-        $user->email_verified_at = NULL;
-        $user->save();
-        $user->sendEmailVerificationNotification();
+
+// Beispiel: Eine Nachricht ins Deutsche übersetzen
+        $message = "a squirrel is not an oak horn ";
+        $translated = MessageTranslationService::translate($message, 'de_DE');
+
+        echo "Original: $message\n";
+        echo "Übersetzt: $translated\n";
+
+
         die();
         echo sha1('157tommel@tubechunks.de');
 echo "<br>";
