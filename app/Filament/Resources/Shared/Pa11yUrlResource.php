@@ -102,11 +102,20 @@ class Pa11yUrlResource extends Resource
                         foreach ($levels as $level) {
                             \Log::info('Starting scan for level', ['level' => $level]);
 
-                            // Starte das Artisan Kommando für die URL und das Level
-                            Artisan::call('scan:accessibility', [
-                                'urls' => [$record->id],  // URL-ID übergeben
-                                '--levels' => $level,   // Level übergeben
-                            ]);
+                            try {
+                                // Starte das Artisan Kommando für die URL und das Level
+                                $exitCode = Artisan::call('scan:accessibility', [
+                                    'urls' => [$record->id],  // URL-ID übergeben
+                                    '--levels' => $level,     // Level übergeben
+                                ]);
+
+                                // Logge den Exit Code, um sicherzustellen, dass der Befehl erfolgreich ausgeführt wurde
+                                \Log::info('Artisan command executed with exit code', ['exit_code' => $exitCode]);
+
+                            } catch (\Exception $e) {
+                                // Fehlerbehandlung falls das Kommando fehlschlägt
+                                \Log::error('Error during Artisan call', ['error' => $e->getMessage()]);
+                            }
                         }
 
                         session()->flash('success', 'Rescan initiated for ' . $record->url);
