@@ -39,13 +39,6 @@ class VerifyCustomerAccess
             $referrer = Referrer::where('referrer', $httpReferrer)
                 ->where('ulid', $company_id)
                 ->first();
-
-
-            // verschieben !
-            $this->createPa11yUrlAndScan($customer->id, $httpReferrer);
-
-
-
             if (!$referrer) {
                 // Referrer nicht vorhanden, also neu erstellen
                 Referrer::create([
@@ -53,7 +46,7 @@ class VerifyCustomerAccess
                     'ulid' => $company_id,
                     'count' => 1,
                 ]);
-
+                //$this->createPa11yUrlAndScan($customer->id, $httpReferrer);
 
             } else {
                 // Referrer existiert, also nur count aktualisieren
