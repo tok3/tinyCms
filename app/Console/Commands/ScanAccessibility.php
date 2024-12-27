@@ -17,8 +17,8 @@ class ScanAccessibility extends Command
 
     public function handle()
     {
-        \Log::info('Received URLs:', [$this->argument('urls')]);
-        \Log::info('Received Levels:', [$this->option('levels')]);
+        //\Log::info('Received URLs:', [$this->argument('urls')]);
+        //\Log::info('Received Levels:', [$this->option('levels')]);
 
         // URLs holen, falls übergeben, ansonsten alle URLs
         $urls = $this->argument('urls') ? Pa11yUrl::whereIn('id', (array) $this->argument('urls'))->get() : Pa11yUrl::all();
