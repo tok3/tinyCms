@@ -39,6 +39,7 @@ class ReferrerResource extends Resource
                     ->openUrlInNewTab()
                     ->placeholder('No Referrer Provided')
                     ->searchable()
+                    ->formatStateUsing(fn($state) => strlen($state) > 55 ? substr($state, 0, 55) . '...' : $state) // Zeigt "..." an, wenn die URL länger als 55 Zeichen ist
                     ->sortable(),
 
 
