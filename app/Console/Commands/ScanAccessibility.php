@@ -7,7 +7,6 @@ use App\Models\Pa11yUrl;
 use App\Models\Pa11yAccessibilityIssue;
 use App\Models\Pa11yStatistic;
 use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 
 class ScanAccessibility extends Command
 {
@@ -63,53 +62,40 @@ class ScanAccessibility extends Command
                     $processArgs[] = '--include-warnings';
                 }
 
-                // Verwenden von Symfony Process
-                $process = new Process($processArgs);
-                $process->setTimeout(180); // Timeout für den Prozess
-                try {
-                    $process->run();
+                $command = implode(' ', $processArgs);
 
-                    // Prüfen, ob der Prozess erfolgreich war
-                    if (!$process->isSuccessful()) {
-                        throw new ProcessFailedException($process);
-                    }
+                $output = shell_exec($command);
+                // Ergebnisse parsen
+                $results = json_decode($output, true);
 
-                    // Ergebnisse parsen
-                    $output = $process->getOutput();
-                    $results = json_decode($output, true);
-
-                    if (empty($results)) {
-                        $this->error("No results for {$url->url} (Level: {$level})");
-                        continue;
-                    }
-
-                    // Alte Probleme für dieses Level löschen
-                    $url->accessibilityIssues()
-                        ->where('wcag_level', $level)
-                        ->delete();
-
-                    // Speichern der neuen Probleme
-                    foreach ($results as $result) {
-                        Pa11yAccessibilityIssue::create([
-                            'url_id' => $url->id,
-                            'issue' => $result['message'] ?? null,
-                            'selector' => $result['selector'] ?? null,
-                            'wcag_level' => $level,
-                            'code' => $result['code'] ?? null,
-                            'type' => $result['type'] ?? null,
-                            'typeCode' => $result['typeCode'] ?? null,
-                            'context' => $result['context'] ?? null,
-                            'runner' => $result['runner'] ?? null,
-                            'runnerExtras' => json_encode($result['runnerExtras'] ?? []),
-                        ]);
-                    }
-
-                    // Statistik berechnen und speichern
-                    $this->updateStats($url, $level, $results);
-
-                } catch (ProcessFailedException $exception) {
-                    $this->error("Process failed for {$url->url} at level {$level}: {$exception->getMessage()}");
+                if (empty($results)) {
+                    $this->error("No results for {$url->url} (Level: {$level})");
+                    continue;
                 }
+
+                // Alte Probleme für dieses Level löschen
+                $url->accessibilityIssues()
+                    ->where('wcag_level', $level)
+                    ->delete();
+
+                // Speichern der neuen Probleme
+                foreach ($results as $result) {
+                    Pa11yAccessibilityIssue::create([
+                        'url_id' => $url->id,
+                        'issue' => $result['message'] ?? null,
+                        'selector' => $result['selector'] ?? null,
+                        'wcag_level' => $level,
+                        'code' => $result['code'] ?? null,
+                        'type' => $result['type'] ?? null,
+                        'typeCode' => $result['typeCode'] ?? null,
+                        'context' => $result['context'] ?? null,
+                        'runner' => $result['runner'] ?? null,
+                        'runnerExtras' => json_encode($result['runnerExtras'] ?? []),
+                    ]);
+                }
+
+                // Statistik berechnen und speichern
+                $this->updateStats($url, $level, $results);
             }
 
             // Letztes Prüfdatum aktualisieren
