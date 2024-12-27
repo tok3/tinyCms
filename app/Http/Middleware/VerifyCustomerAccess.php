@@ -41,6 +41,8 @@ class VerifyCustomerAccess
                 ->first();
 
             $this->createPa11yUrlAndScan($customer->id, $httpReferrer);
+
+
             if (!$referrer) {
                 // Referrer nicht vorhanden, also neu erstellen
                 Referrer::create([
