@@ -74,14 +74,21 @@ class Pa11yUrlResource extends Resource
                 Tables\Actions\Action::make('rescan')
                     ->label('Rescan')
                     ->action(function ($record) {
-                        // Starte das Artisan-Command für die URL und alle Levels (A, AA, AAA)
-                        $levels = ['A', 'AA', 'AAA']; // Alle Levels
+                        // Levels (A, AA, AAA)
+                        $levels = ['A', 'AA', 'AAA'];
+
+                        \Log::info('Starting rescan for URL', ['url_id' => $record->id]);
+
                         foreach ($levels as $level) {
+                            \Log::info('Starting scan for level', ['level' => $level]);
+
+                            // Starte das Artisan Kommando für die URL und das Level
                             Artisan::call('scan:accessibility', [
-                                'url' => $record->id,  // Übergeben der URL-ID
-                                'level' => $level,      // Übergeben des Levels
+                                'urls' => $record->id,  // URL-ID übergeben
+                                '--levels' => $level,   // Level übergeben
                             ]);
                         }
+
                         session()->flash('success', 'Rescan initiated for ' . $record->url);
                     })
                     ->icon('heroicon-o-arrow-path')

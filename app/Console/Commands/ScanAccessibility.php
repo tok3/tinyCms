@@ -3,58 +3,74 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
 use App\Models\Pa11yUrl;
 use App\Models\Pa11yAccessibilityIssue;
 use App\Models\Pa11yStatistic;
-
-// Statistiken
 use Symfony\Component\Process\Process;
 
 class ScanAccessibility extends Command
 {
-    protected $signature = 'scan:accessibility {url?}';
+    // Signature mit den zusätzlichen Optionen: URLs, Levels, Notices und Warnings
+    protected $signature = 'scan:accessibility {urls?*} {--levels=A,AA,AAA} {--notices} {--no-notices} {--warnings} {--no-warnings}';
     protected $description = 'Scan URLs for accessibility issues';
 
-    public function handle($urls = [])
+    public function handle()
     {
-        if (empty($urls)) {
-            // Wenn keine URLs übergeben wurden, alle URLs scannen
-            $urls = Pa11yUrl::all();
+        \Log::info('Received URLs:', [$this->argument('urls')]);
+        \Log::info('Received Levels:', [$this->option('levels')]);
+
+        // URLs holen, falls übergeben, ansonsten alle URLs
+        $urls = $this->argument('urls') ? Pa11yUrl::whereIn('id', (array) $this->argument('urls'))->get() : Pa11yUrl::all();
+
+        // Levels holen (Option: z.B. A, AA, AAA)
+        $levels = explode(',', $this->option('levels'));
+
+        // Standardmäßig Notices und Warnings sind an, aber sie können über die Optionen ausgeschaltet werden
+        $includeNotices = $this->option('notices') !== null;
+        $includeWarnings = $this->option('warnings') !== null;
+
+        // Wenn --no-notices oder --no-warnings übergeben wird, die entsprechenden Optionen deaktivieren
+        if ($this->option('no-notices')) {
+            $includeNotices = false;
         }
 
+        if ($this->option('no-warnings')) {
+            $includeWarnings = false;
+        }
 
-        foreach ($urls as $url)
-        {
+        // Scannen der URLs und Levels
+        foreach ($urls as $url) {
             $this->info("Scanning -> {$url->url}...");
 
-            foreach (['A', 'AA', 'AAA'] as $level)
-            {
+            foreach ($levels as $level) {
                 $this->info("Scanning {$url->url} for Level {$level}...");
 
-                $process = new Process([
-                    'pa11y',
-                    $url->url,
-                    '--reporter', 'json',
-                    '--reporter', 'json',
-                    '--include-notices',
-                    '--include-warnings',
-                    '--standard', "WCAG2{$level}"
-                ]);
-                $process->run();
+                // Befehl zusammenstellen
+                $processArgs = [
+                    '/opt/homebrew/bin/pa11y', // Pa11y-Befehl mit dem absoluten Pfad
+                    $url->url, // Die zu scannende URL
+                    '--reporter', 'json', // JSON-Ausgabe
+                    '--standard', "WCAG2{$level}"  // WCAG Level (z.B. A, AA, AAA)
+                ];
 
-                $results = json_decode($process->getOutput(), true);
+                if ($includeNotices) {
+                    $processArgs[] = '--include-notices';
+                }
 
-                if (empty($results))
-                {
-                    Log::warning("No results returned for {$url->url} (Level: {$level})");
+                if ($includeWarnings) {
+                    $processArgs[] = '--include-warnings';
+                }
+
+                $command = implode(' ', $processArgs);
+
+                $output = shell_exec($command);
+                // Ergebnisse parsen
+                $results = json_decode($output, true);
+
+                if (empty($results)) {
                     $this->error("No results for {$url->url} (Level: {$level})");
                     continue;
                 }
-
-                Log::info("Pa11y succeeded for {$url->url} (Level: {$level})", [
-                    'output' => $results
-                ]);
 
                 // Alte Probleme für dieses Level löschen
                 $url->accessibilityIssues()
@@ -62,8 +78,7 @@ class ScanAccessibility extends Command
                     ->delete();
 
                 // Speichern der neuen Probleme
-                foreach ($results as $result)
-                {
+                foreach ($results as $result) {
                     Pa11yAccessibilityIssue::create([
                         'url_id' => $url->id,
                         'issue' => $result['message'] ?? null,
@@ -82,6 +97,7 @@ class ScanAccessibility extends Command
                 $this->updateStats($url, $level, $results);
             }
 
+            // Letztes Prüfdatum aktualisieren
             $url->update(['last_checked' => now()]);
             $this->info("Finished scanning {$url->url}");
         }
@@ -89,6 +105,9 @@ class ScanAccessibility extends Command
         $this->info('All URLs have been scanned.');
     }
 
+    /**
+     * Statistik für den aktuellen Scan berechnen und speichern.
+     */
     private function updateStats(Pa11yUrl $url, string $level, array $results)
     {
         $totalErrors = count(array_filter($results, fn($r) => $r['type'] === 'error'));
@@ -105,10 +124,8 @@ class ScanAccessibility extends Command
         if ($existingSnapshot &&
             $existingSnapshot->error_count == $totalErrors &&
             $existingSnapshot->warning_count == $totalWarnings &&
-            $existingSnapshot->notice_count == $totalNotices)
-        {
+            $existingSnapshot->notice_count == $totalNotices) {
             $this->info("No changes detected for {$url->url} (Level: {$level}).");
-
             return;
         }
 
