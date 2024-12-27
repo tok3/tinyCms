@@ -7,6 +7,7 @@ use App\Models\Pa11yUrl;
 use App\Models\Pa11yAccessibilityIssue;
 use App\Models\Pa11yStatistic;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 
 class ScanAccessibility extends Command
 {
@@ -48,7 +49,7 @@ class ScanAccessibility extends Command
 
                 // Befehl zusammenstellen
                 $processArgs = [
-                    '/home/admintfc/.nvm/versions/node/v22.5.1/bin/pa11y', // Pa11y-Befehl mit dem absoluten Pfad
+                    'pa11y', // Pa11y-Befehl mit dem absoluten Pfad
                     $url->url, // Die zu scannende URL
                     '--reporter', 'json', // JSON-Ausgabe
                     '--standard', "WCAG2{$level}"  // WCAG Level (z.B. A, AA, AAA)
@@ -62,40 +63,53 @@ class ScanAccessibility extends Command
                     $processArgs[] = '--include-warnings';
                 }
 
-                $command = implode(' ', $processArgs);
+                // Verwenden von Symfony Process
+                $process = new Process($processArgs);
+                $process->setTimeout(180); // Timeout für den Prozess
+                try {
+                    $process->run();
 
-                $output = shell_exec($command);
-                // Ergebnisse parsen
-                $results = json_decode($output, true);
+                    // Prüfen, ob der Prozess erfolgreich war
+                    if (!$process->isSuccessful()) {
+                        throw new ProcessFailedException($process);
+                    }
 
-                if (empty($results)) {
-                    $this->error("No results for {$url->url} (Level: {$level})");
-                    continue;
+                    // Ergebnisse parsen
+                    $output = $process->getOutput();
+                    $results = json_decode($output, true);
+
+                    if (empty($results)) {
+                        $this->error("No results for {$url->url} (Level: {$level})");
+                        continue;
+                    }
+
+                    // Alte Probleme für dieses Level löschen
+                    $url->accessibilityIssues()
+                        ->where('wcag_level', $level)
+                        ->delete();
+
+                    // Speichern der neuen Probleme
+                    foreach ($results as $result) {
+                        Pa11yAccessibilityIssue::create([
+                            'url_id' => $url->id,
+                            'issue' => $result['message'] ?? null,
+                            'selector' => $result['selector'] ?? null,
+                            'wcag_level' => $level,
+                            'code' => $result['code'] ?? null,
+                            'type' => $result['type'] ?? null,
+                            'typeCode' => $result['typeCode'] ?? null,
+                            'context' => $result['context'] ?? null,
+                            'runner' => $result['runner'] ?? null,
+                            'runnerExtras' => json_encode($result['runnerExtras'] ?? []),
+                        ]);
+                    }
+
+                    // Statistik berechnen und speichern
+                    $this->updateStats($url, $level, $results);
+
+                } catch (ProcessFailedException $exception) {
+                    $this->error("Process failed for {$url->url} at level {$level}: {$exception->getMessage()}");
                 }
-
-                // Alte Probleme für dieses Level löschen
-                $url->accessibilityIssues()
-                    ->where('wcag_level', $level)
-                    ->delete();
-
-                // Speichern der neuen Probleme
-                foreach ($results as $result) {
-                    Pa11yAccessibilityIssue::create([
-                        'url_id' => $url->id,
-                        'issue' => $result['message'] ?? null,
-                        'selector' => $result['selector'] ?? null,
-                        'wcag_level' => $level,
-                        'code' => $result['code'] ?? null,
-                        'type' => $result['type'] ?? null,
-                        'typeCode' => $result['typeCode'] ?? null,
-                        'context' => $result['context'] ?? null,
-                        'runner' => $result['runner'] ?? null,
-                        'runnerExtras' => json_encode($result['runnerExtras'] ?? []),
-                    ]);
-                }
-
-                // Statistik berechnen und speichern
-                $this->updateStats($url, $level, $results);
             }
 
             // Letztes Prüfdatum aktualisieren
