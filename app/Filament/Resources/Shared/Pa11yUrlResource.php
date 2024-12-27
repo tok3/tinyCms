@@ -94,28 +94,24 @@ class Pa11yUrlResource extends Resource
                 Tables\Actions\Action::make('rescan')
                     ->label('Rescan')
                     ->action(function ($record) {
-                        // Levels (A, AA, AAA)
+                        // Definiere die Levels (A, AA, AAA)
                         $levels = ['A', 'AA', 'AAA'];
 
                         \Log::info('Starting rescan for URL', ['url_id' => $record->id]);
 
-                        foreach ($levels as $level) {
-                            \Log::info('Starting scan for level', ['level' => $level]);
+                        try {
+                            // Starte das Artisan Kommando mit allen Levels gleichzeitig
+                            $exitCode = Artisan::call('scan:accessibility', [
+                                'urls' => [$record->id],  // URL-ID übergeben
+                                '--levels' => implode(',', $levels),  // Mehrere Levels als kommaseparierte Liste
+                            ]);
 
-                            try {
-                                // Starte das Artisan Kommando für die URL und das Level
-                                $exitCode = Artisan::call('scan:accessibility', [
-                                    'urls' => [$record->id],  // URL-ID übergeben
-                                    '--levels' => $level,     // Level übergeben
-                                ]);
+                            // Logge den Exit Code, um sicherzustellen, dass der Befehl erfolgreich ausgeführt wurde
+                            \Log::info('Artisan command executed with exit code', ['exit_code' => $exitCode]);
 
-                                // Logge den Exit Code, um sicherzustellen, dass der Befehl erfolgreich ausgeführt wurde
-                                \Log::info('Artisan command executed with exit code', ['exit_code' => $exitCode]);
-
-                            } catch (\Exception $e) {
-                                // Fehlerbehandlung falls das Kommando fehlschlägt
-                                \Log::error('Error during Artisan call', ['error' => $e->getMessage()]);
-                            }
+                        } catch (\Exception $e) {
+                            // Fehlerbehandlung, falls das Kommando fehlschlägt
+                            \Log::error('Error during Artisan call', ['error' => $e->getMessage()]);
                         }
 
                         session()->flash('success', 'Rescan initiated for ' . $record->url);
