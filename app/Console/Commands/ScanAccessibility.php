@@ -109,6 +109,7 @@ class ScanAccessibility extends Command
         }
 
         $this->info('All URLs have been scanned.');
+        return $jsonLength;
     }
 
     /**
