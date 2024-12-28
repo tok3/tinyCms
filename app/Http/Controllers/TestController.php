@@ -8,6 +8,9 @@ class TestController extends Controller
 {
     public function testArtisanCommand($id = 65, Request $request)
     {
+
+        echo ini_get('disable_functions');
+
         // Beispielwert für die URL
         $record = (object) ['id' => $id, 'url' => 'https://example.com'];  // Verwendung der ID aus der URL oder Standardwert
 
