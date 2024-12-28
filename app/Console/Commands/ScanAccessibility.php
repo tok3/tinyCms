@@ -44,59 +44,61 @@ class ScanAccessibility extends Command
             $this->info("Scanning -> {$url->url}...");
 
             foreach ($levels as $level) {
-                $this->info("scanning {$url->url} for level {$level}...");
+                $this->info("Scanning {$url->url} for Level {$level}...");
 
-                // befehl zusammenstellen
-                $processargs = [
-                    'pa11y', // pa11y-befehl mit dem absoluten pfad
-                    $url->url, // die zu scannende url
-                    '--reporter', 'json', // json-ausgabe
-                    '--standard', "wcag2{$level}"  // wcag level (z.b. a, aa, aaa)
+                // Befehl zusammenstellen
+                $processArgs = [
+                    'pa11y', // Pa11y-Befehl mit dem absoluten Pfad
+                    $url->url, // Die zu scannende URL
+                    '--reporter', 'json', // JSON-Ausgabe
+                    '--standard', "WCAG2{$level}"  // WCAG Level (z.B. A, AA, AAA)
                 ];
 
                 if ($includeNotices) {
-                    $processargs[] = '--include-notices';
+                    $processArgs[] = '--include-notices';
                 }
 
                 if ($includeWarnings) {
-                    $processargs[] = '--include-warnings';
+                    $processArgs[] = '--include-warnings';
                 }
 
-                $phpPath = '/usr/bin/php8.2';
-                $command = implode(' ', $processargs);
+                $command = implode(' ', $processArgs);
 
-                $output = shell_exec($phpPath . ' ' .$command);
-                // ergebnisse parsen
+                $phpPath = '/usr/bin/php8.2';
+
+
+                $output = shell_exec($phpPath.' '.$command);
+                // Ergebnisse parsen
                 $results = json_decode($output, true);
 
                 if (empty($results)) {
-                    $this->error("no results for {$url->url} (level: {$level})");
+                    $this->error("No results for {$url->url} (Level: {$level})");
                     continue;
                 }
 
-                // alte probleme für dieses level löschen
-                $url->accessibilityissues()
+                // Alte Probleme für dieses Level löschen
+                $url->accessibilityIssues()
                     ->where('wcag_level', $level)
                     ->delete();
 
-                // speichern der neuen probleme
+                // Speichern der neuen Probleme
                 foreach ($results as $result) {
-                    pa11yaccessibilityissue::create([
+                    Pa11yAccessibilityIssue::create([
                         'url_id' => $url->id,
                         'issue' => $result['message'] ?? null,
                         'selector' => $result['selector'] ?? null,
                         'wcag_level' => $level,
                         'code' => $result['code'] ?? null,
                         'type' => $result['type'] ?? null,
-                        'typecode' => $result['typecode'] ?? null,
+                        'typeCode' => $result['typeCode'] ?? null,
                         'context' => $result['context'] ?? null,
                         'runner' => $result['runner'] ?? null,
-                        'runnerextras' => json_encode($result['runnerextras'] ?? []),
+                        'runnerExtras' => json_encode($result['runnerExtras'] ?? []),
                     ]);
                 }
 
-                // statistik berechnen und speichern
-                $this->updatestats($url, $level, $results);
+                // Statistik berechnen und speichern
+                $this->updateStats($url, $level, $results);
             }
 
             // Letztes Prüfdatum aktualisieren
