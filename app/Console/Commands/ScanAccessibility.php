@@ -64,12 +64,14 @@ class ScanAccessibility extends Command
 
                 $command = implode(' ', $processArgs);
 
-                $phpPath = '/usr/bin/php8.2';
 
-
-                $output = shell_exec($phpPath.' '.$command);
+                $output = shell_exec($command);
                 // Ergebnisse parsen
                 $results = json_decode($output, true);
+
+                // Logge die Ergebnisse in einem formatierten JSON-String
+                \Log::info('Scan Results:', [json_encode($results, JSON_PRETTY_PRINT)]);
+
 
                 if (empty($results)) {
                     $this->error("No results for {$url->url} (Level: {$level})");
