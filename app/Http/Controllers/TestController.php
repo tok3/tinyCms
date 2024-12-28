@@ -9,7 +9,6 @@ class TestController extends Controller
     public function testArtisanCommand($id = 65, Request $request)
     {
 
-        echo ini_get('disable_functions');
 
         // Beispielwert für die URL
         $record = (object) ['id' => $id, 'url' => 'https://example.com'];  // Verwendung der ID aus der URL oder Standardwert
@@ -29,7 +28,7 @@ class TestController extends Controller
         \Log::info('Artisan Command Output', ['result' => $result]);
 
         return response()->json([
-            'success' => true,
+            'success' => $result > 0, // Erfolgreich, wenn das Resultat größer als 0 ist
             'result' => $result,
             'log' => 'check the logs for the full output',
         ]);
