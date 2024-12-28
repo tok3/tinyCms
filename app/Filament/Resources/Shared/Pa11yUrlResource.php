@@ -104,7 +104,7 @@ class Pa11yUrlResource extends Resource
 
                             // Starte das Artisan Kommando für die URL und das Level
                             Artisan::call('scan:accessibility', [
-                                'urls' => [$record->id],  // URL-ID übergeben
+                                'urls' => $record->id,  // URL-ID übergeben
                                 '--levels' => $level,   // Level übergeben
                             ]);
                         }
