@@ -79,7 +79,9 @@ Route::get('/service/{ulid}/{tool}.js', [ScriptController::class, 'serveScript']
 
 Route::get('/service/{tool}.css', [ScriptController::class, 'serveCss'])->name('serve.css');
 
+use App\Http\Controllers\TestController;
 
+Route::get('test-artisan-command/{id?}', [TestController::class, 'testArtisanCommand']);
 // -----------------------------------------------
 
 Route::get('/documents/fixstern-integration/{ulid}', [PdfController::class, 'generateInstruction'])->name('download.instruction')->middleware(['auth']);
