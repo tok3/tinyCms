@@ -54,11 +54,11 @@ class ScanAccessibility extends Command
                     '--standard', "wcag2{$level}"  // wcag level (z.b. a, aa, aaa)
                 ];
 
-                if ($includenotices) {
+                if ($includeNotices) {
                     $processargs[] = '--include-notices';
                 }
 
-                if ($includewarnings) {
+                if ($includeWarnings) {
                     $processargs[] = '--include-warnings';
                 }
 
