@@ -69,8 +69,8 @@ class ScanAccessibility extends Command
                 // Ergebnisse parsen
                 $results = json_decode($output, true);
 
-                // Logge die Ergebnisse in einem formatierten JSON-String
-                \Log::info('Scan Results:', [json_encode($results, JSON_PRETTY_PRINT)]);
+                $jsonLength = strlen($output);
+                \Log::info('JSON result length:', [$jsonLength]);
 
 
                 if (empty($results)) {
