@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\Action;
 use Illuminate\Support\Facades\Artisan;
 use App\Models\Company;
+
 class Pa11yUrlResource extends Resource
 {
     protected static ?string $model = Pa11yUrl::class;
@@ -30,7 +31,8 @@ class Pa11yUrlResource extends Resource
         ];
 
         // Wenn der Benutzer ein Admin ist, füge das Dropdown für Company hinzu
-        if (auth()->user()->is_admin) {
+        if (auth()->user()->is_admin)
+        {
             $formSchema[] = Forms\Components\Select::make('company_id') // Dropdown für Company
             ->label('Company')
                 ->placeholder('Firma wählen')
@@ -45,13 +47,12 @@ class Pa11yUrlResource extends Resource
     {
 
 
-
         return $table
             ->columns([
                 // Company Name anzeigen, wenn der User ein Admin ist
                 Tables\Columns\TextColumn::make('company.name')
                     ->label('Company Name')
-                    ->visible(fn () => auth()->user()->is_admin)  // Nur sichtbar, wenn der User ein Admin ist
+                    ->visible(fn() => auth()->user()->is_admin)  // Nur sichtbar, wenn der User ein Admin ist
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('url')
@@ -95,19 +96,15 @@ class Pa11yUrlResource extends Resource
                     ->label('Rescan')
                     ->action(function ($record) {
                         // Levels (A, AA, AAA)
-                        $levels = ['A', 'AA', 'AAA'];
+                        $levels = 'A,AA,AAA'; // Alle Levels zusammengefasst
 
                         \Log::info('Starting rescan for URL', ['url_id' => $record->id]);
 
-                        foreach ($levels as $level) {
-                            \Log::info('Starting scan for level', ['level' => $level]);
-
-                            // Starte das Artisan Kommando für die URL und das Level
-                            Artisan::call('scan:accessibility', [
-                                'urls' => $record->id,  // URL-ID übergeben
-                                '--levels' => $level,   // Level übergeben
-                            ]);
-                        }
+                        // Starte das Artisan Kommando für die URL und die Levels
+                        Artisan::call('scan:accessibility', [
+                            'urls' => [$record->id],  // URL-ID übergeben
+                            '--levels' => $levels,     // Levels zusammen übergeben
+                        ]);
 
                         session()->flash('success', 'Rescan initiated for ' . $record->url);
                     })
