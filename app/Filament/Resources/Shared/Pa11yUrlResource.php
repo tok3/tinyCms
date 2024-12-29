@@ -10,6 +10,7 @@ use Filament\Forms;
 use App\Filament\Resources\Shared\Pa11yUrlResource\Pages;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\BulkAction;
 use Illuminate\Support\Facades\Artisan;
 use App\Models\Company;
 use Filament\Tables\Columns\TextColumn;
@@ -50,6 +51,8 @@ class Pa11yUrlResource extends Resource
 
         return $table
             ->columns([
+
+
                 // Company Name anzeigen, wenn der User ein Admin ist
                 Tables\Columns\TextColumn::make('company.name')
                     ->label('Company Name')
@@ -119,6 +122,46 @@ class Pa11yUrlResource extends Resource
                     })
                     ->icon('heroicon-o-arrow-path')
                     ->color('primary'),
+
+                // Edit-Action (automatisch verfügbar)
+                Tables\Actions\EditAction::make()
+                    ->label('Edit')
+                    ->icon('heroicon-o-pencil'),
+
+                // Delete-Action
+              /*  Tables\Actions\DeleteAction::make()
+                    ->label('Delete')
+                    ->icon('heroicon-o-trash')
+                    ->color('danger')
+                    ->action(function ($record) {
+                        $record->delete();
+                    })*/
+            ]) ->bulkActions([
+                // Bulk Delete Action
+                BulkAction::make('bulk_delete')
+                    ->label('Delete Selected')
+                    ->icon('heroicon-o-trash')
+                    ->action(function ($records) {
+                        foreach ($records as $record) {
+                            $record->delete(); // Löscht alle ausgewählten URLs
+                        }
+                    }),
+
+                // Bulk Rescan Action
+                BulkAction::make('bulk_rescan')
+                    ->label('Rescan Selected')
+                    ->icon('heroicon-o-arrow-path')
+                    ->action(function ($records) {
+                        foreach ($records as $record) {
+                            $levels = 'A,AA,AAA';
+                            \Log::info('Starting bulk rescan for URL', ['url_id' => $record->id]);
+                            Artisan::call('scan:accessibility', [
+                                'urls' => [$record->id],
+                                '--levels' => $levels,
+                            ]);
+                        }
+                        session()->flash('success', 'Bulk Rescan initiated for selected URLs.');
+                    }),
             ]);
     }
 
