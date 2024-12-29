@@ -63,9 +63,10 @@ class ScanAccessibility extends Command
                 }
 
                 $command = implode(' ', $processArgs);
-
-
-                $output = shell_exec($command);
+                $command = 'PATH=/usr/bin:' . getenv('PATH') . ' /usr/bin/pa11y ' . $url->url . ' --reporter json --standard WCAG2' . $level;
+                $output = shell_exec($command . ' 2>&1'); // Fehler und Standardausgabe zusammen
+                \Log::info('pa11y output: ' . $output);
+                //$output = shell_exec($command);
                 // Ergebnisse parsen
                 $results = json_decode($output, true);
 
