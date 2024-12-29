@@ -14,7 +14,7 @@ class VerifyCustomerAccess
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response) $next
      */
     public function handle(Request $request, Closure $next)
     {
@@ -25,7 +25,8 @@ class VerifyCustomerAccess
         //$customer = \App\Models\Customer::where('uuid', $company_id)->first();
         $customer = \App\Models\Company::where('ulid', $company_id)->first();
 
-        if (!$customer || !$customer->hasAccessToTool($tool)) {
+        if (!$customer || !$customer->hasAccessToTool($tool))
+        {
             // Zugriff verweigern, wenn der Kunde keinen Zugang hat
             return response('Unauthorized', 403);
         }
@@ -35,20 +36,25 @@ class VerifyCustomerAccess
         $httpReferrer = $request->header('referer');
 
 
-        if ($httpReferrer) {
+        if ($httpReferrer)
+        {
             $referrer = Referrer::where('referrer', $httpReferrer)
                 ->where('ulid', $company_id)
                 ->first();
-            if (!$referrer) {
+            if (!$referrer)
+            {
                 // Referrer nicht vorhanden, also neu erstellen
                 Referrer::create([
                     'referrer' => $httpReferrer,
                     'ulid' => $company_id,
                     'count' => 1,
                 ]);
-                //$this->createPa11yUrlAndScan($customer->id, $httpReferrer);
 
-            } else {
+                $this->createPa11yUrlAndScan($customer->id, $httpReferrer);
+
+            }
+            else
+            {
                 // Referrer existiert, also nur count aktualisieren
                 $referrer->increment('count');
             }
@@ -75,15 +81,31 @@ class VerifyCustomerAccess
      */
     private function createPa11yUrlAndScan(int $companyId, string $referrer): void
     {
-        // Pa11yUrl erstellen
-        $url = Pa11yUrl::create([
-            'company_id' => $companyId,
-            'url' => $referrer,
-        ]);
+        // Überprüfen, ob die URL bereits existiert
+        $existingUrl = Pa11yUrl::where('company_id', $companyId)
+            ->where('url', $referrer)
+            ->first();
 
-        // Artisan-Befehl im Hintergrund ausführen (ohne den Webserver zu blockieren)
-        $command = "php ".base_path('artisan')." scan:accessibility --urls={$url->id} --levels=A,AA,AAA > /dev/null 2>&1 &";
-        exec($command);
+        // Wenn die URL nicht existiert, erstelle sie
+        if (!$existingUrl)
+        {
+            // Pa11yUrl erstellen
+            $url = Pa11yUrl::create([
+                'company_id' => $companyId,
+                'url' => $referrer,
+            ]);
+
+            // Artisan-Befehl im Hintergrund ausführen
+            $command = "php ".base_path('artisan')." scan:accessibility {$url->id} > /dev/null 2>&1 &";
+            // Befehl ausführen
+            shell_exec($command);
+
+        }
+        else
+        {
+            // Falls die URL bereits existiert, optional eine Log-Meldung oder Fehlerbehandlung hinzufügen
+           // \Log::info("URL already exists for company {$companyId}: {$referrer}");
+        }
     }
 
 }

@@ -11,7 +11,15 @@ class TestController extends Controller
     {
 
 
+// Artisan-Befehl im Hintergrund ausführen (ohne den Webserver zu blockieren)
+        // Artisan-Befehl im Hintergrund ausführen (ohne den Webserver zu blockieren)
+        // Artisan-Befehl im Hintergrund ausführen
+        $command = "php ".base_path('artisan')." scan:accessibility 81 > /dev/null 2>&1 &";
 
+        // Befehl ausführen
+        shell_exec($command);
+
+        die();
         // Beispielwert für die URL
         $record = (object) ['id' => $id, 'url' => 'https://example.com'];  // Verwendung der ID aus der URL oder Standardwert
 

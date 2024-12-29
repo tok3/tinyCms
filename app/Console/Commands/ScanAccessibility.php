@@ -52,7 +52,7 @@ class ScanAccessibility extends Command
 
                 // Befehl zusammenstellen
                 $processArgs = [
-                    '/usr/bin/pa11y', // Pa11y-Befehl mit dem absoluten Pfad
+                    'pa11y', // Pa11y-Befehl mit dem absoluten Pfad
                     $url->url, // Die zu scannende URL
                     '--reporter', 'json', // JSON-Ausgabe
                     '--standard', "WCAG2{$level}"  // WCAG Level (z.B. A, AA, AAA)
