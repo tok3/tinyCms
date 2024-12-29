@@ -3,11 +3,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Artisan;
+use Symfony\Component\Process\Process;
 
 class TestController extends Controller
 {
     public function testArtisanCommand($id = 65, Request $request)
     {
+
 
 
         // Beispielwert für die URL
@@ -17,7 +19,7 @@ class TestController extends Controller
         $levels = 'A,AA,AAA';
 
         \Log::info('Testing Artisan call for URL', ['url_id' => $record->id]);
-
+echo phpinfo();
         // Starte das Artisan Kommando mit den übergebenen Werten
         $result = Artisan::call('scan:accessibility', [
             'urls' => [$record->id],  // URL-ID übergeben
