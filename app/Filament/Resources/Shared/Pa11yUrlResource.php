@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\Action;
 use Illuminate\Support\Facades\Artisan;
 use App\Models\Company;
+use Filament\Tables\Columns\TextColumn;
 
 class Pa11yUrlResource extends Resource
 {
@@ -55,10 +56,18 @@ class Pa11yUrlResource extends Resource
                     ->visible(fn() => auth()->user()->is_admin)  // Nur sichtbar, wenn der User ein Admin ist
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('url')
+                TextColumn::make('url')
                     ->label('URL')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->limit(50)  // Zeigt nur die ersten 50 Zeichen an
+                    ->tooltip(function ($record) {
+                        return $record->url;  // Zeigt die volle URL im Tooltip
+                    })
+                    ->formatStateUsing(function ($state) {
+                        return strlen($state) > 50 ? substr($state, 0, 50) . ' [...]' : $state; // Kürzt die URL und fügt '...' hinzu
+                    }),
+
                 Tables\Columns\TextColumn::make('last_checked')
                     ->label('Last Checked')
                     ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y H:i'))
