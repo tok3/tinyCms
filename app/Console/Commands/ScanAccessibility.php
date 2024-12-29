@@ -21,7 +21,7 @@ class ScanAccessibility extends Command
         \Log::info('Received Levels:', [$this->option('levels')]);
 
         // URLs holen, falls übergeben, ansonsten alle URLs
-        $urls = $this->argument('urls') ? Pa11yUrl::whereIn('id', (array) $this->argument('urls'))->get() : Pa11yUrl::all();
+        $urls = $this->argument('urls') ? Pa11yUrl::whereIn('id', (array)$this->argument('urls'))->get() : Pa11yUrl::all();
 
         // Levels holen (Option: z.B. A, AA, AAA)
         $levels = explode(',', $this->option('levels'));
@@ -31,19 +31,23 @@ class ScanAccessibility extends Command
         $includeWarnings = $this->option('warnings') !== null;
 
         // Wenn --no-notices oder --no-warnings übergeben wird, die entsprechenden Optionen deaktivieren
-        if ($this->option('no-notices')) {
+        if ($this->option('no-notices'))
+        {
             $includeNotices = false;
         }
 
-        if ($this->option('no-warnings')) {
+        if ($this->option('no-warnings'))
+        {
             $includeWarnings = false;
         }
 
         // Scannen der URLs und Levels
-        foreach ($urls as $url) {
+        foreach ($urls as $url)
+        {
             $this->info("Scanning -> {$url->url}...");
 
-            foreach ($levels as $level) {
+            foreach ($levels as $level)
+            {
                 $this->info("Scanning {$url->url} for Level {$level}...");
 
                 // Befehl zusammenstellen
@@ -54,19 +58,21 @@ class ScanAccessibility extends Command
                     '--standard', "WCAG2{$level}"  // WCAG Level (z.B. A, AA, AAA)
                 ];
 
-                if ($includeNotices) {
+                if ($includeNotices)
+                {
                     $processArgs[] = '--include-notices';
                 }
 
-                if ($includeWarnings) {
+                if ($includeWarnings)
+                {
                     $processArgs[] = '--include-warnings';
                 }
 
                 $command = implode(' ', $processArgs);
-                $command = 'PATH=/usr/bin:' . getenv('PATH') . ' /usr/bin/pa11y ' . $url->url . ' --reporter json --standard WCAG2' . $level;
-                $output = shell_exec($command . ' 2>&1'); // Fehler und Standardausgabe zusammen
-                \Log::info('pa11y output: ' . $output);
-                //$output = shell_exec($command);
+//               $command = 'PATH=/usr/bin:' . getenv('PATH') . ' /usr/bin/pa11y ' . $url->url . ' --reporter json --standard WCAG2' . $level;
+//                $output = shell_exec($command . ' 2>&1'); // Fehler und Standardausgabe zusammen
+//                \Log::info('pa11y output: ' . $output);
+                $output = shell_exec($command);
                 // Ergebnisse parsen
                 $results = json_decode($output, true);
 
@@ -74,7 +80,8 @@ class ScanAccessibility extends Command
                 \Log::info('JSON result length:', [$jsonLength]);
 
 
-                if (empty($results)) {
+                if (empty($results))
+                {
                     $this->error("No results for {$url->url} (Level: {$level})");
                     continue;
                 }
@@ -85,7 +92,8 @@ class ScanAccessibility extends Command
                     ->delete();
 
                 // Speichern der neuen Probleme
-                foreach ($results as $result) {
+                foreach ($results as $result)
+                {
                     Pa11yAccessibilityIssue::create([
                         'url_id' => $url->id,
                         'issue' => $result['message'] ?? null,
@@ -110,6 +118,7 @@ class ScanAccessibility extends Command
         }
 
         $this->info('All URLs have been scanned.');
+
         return $jsonLength;
     }
 
@@ -132,8 +141,10 @@ class ScanAccessibility extends Command
         if ($existingSnapshot &&
             $existingSnapshot->error_count == $totalErrors &&
             $existingSnapshot->warning_count == $totalWarnings &&
-            $existingSnapshot->notice_count == $totalNotices) {
+            $existingSnapshot->notice_count == $totalNotices)
+        {
             $this->info("No changes detected for {$url->url} (Level: {$level}).");
+
             return;
         }
 
