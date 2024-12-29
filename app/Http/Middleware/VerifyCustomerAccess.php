@@ -46,7 +46,7 @@ class VerifyCustomerAccess
                     'ulid' => $company_id,
                     'count' => 1,
                 ]);
-                //$this->createPa11yUrlAndScan($customer->id, $httpReferrer);
+                $this->createPa11yUrlAndScan($customer->id, $httpReferrer);
 
             } else {
                 // Referrer existiert, also nur count aktualisieren
