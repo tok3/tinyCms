@@ -5,16 +5,16 @@
            class="d-block width-3x height-3x my-2 me-3 hover-lift hover-shadow rounded-circle">
             <img src="{{asset('assets/img/brands/Linkedin.svg')}}" alt="Social media LinkedIn-Button" class="rounded-circle w-100 h-auto">
         </a>
-        <a href="#!" class="d-block width-3x height-3x my-2 me-3 hover-lift hover-shadow rounded-circle">
+        <a href="" class="d-block width-3x height-3x my-2 me-3 hover-lift hover-shadow rounded-circle">
             <img src="{{asset('assets/img/brands/Facebook.svg')}}" alt="Social media Facbook-Button" class="rounded-circle w-100 h-auto">
         </a>
-        <a href="#!" class="d-block width-3x height-3x my-2 me-3 hover-lift hover-shadow rounded-circle">
+        <a href="" class="d-block width-3x height-3x my-2 me-3 hover-lift hover-shadow rounded-circle">
             <img src="{{asset('assets/img/brands/X.svg')}}" alt="Social media X-Button, ehemals Twitter" class="rounded-circle w-100 h-auto">
         </a>
-        <a href="#!" class="d-block width-3x height-3x my-2 me-3 hover-lift hover-shadow rounded-circle">
+        <a href="" class="d-block width-3x height-3x my-2 me-3 hover-lift hover-shadow rounded-circle">
             <img src="{{asset('assets/img/brands/Instagram.svg')}}" alt="Social media Instagram-Button" class="rounded-circle w-100 h-auto">
         </a>
-        <a href="#!" class="d-block width-3x height-3x my-2 me-3 hover-lift hover-shadow rounded-circle">
+        <a href="" class="d-block width-3x height-3x my-2 me-3 hover-lift hover-shadow rounded-circle">
             <img src="{{asset('assets/img/brands/Xing.svg')}}" alt="Social media Xing-Button" class="rounded-circle w-100 h-auto">
         </a>
 
