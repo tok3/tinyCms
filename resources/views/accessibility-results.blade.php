@@ -23,6 +23,8 @@
         });
     </script>
 
+
+
     {{--<!-- Rescan Button für spezifische URL -->
     <form action="{{ route('pa11y.url.rescan', $url->id) }}" method="POST">
         @csrf
