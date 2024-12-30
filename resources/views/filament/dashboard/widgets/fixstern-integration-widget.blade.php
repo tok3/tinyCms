@@ -7,7 +7,6 @@
 
         </div>
 
-
         <div class="text-left bg-gray p-4 ">
 
             <!-- -->
