@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Models\Pa11yStatistic;
 use Illuminate\Http\Request;
 use Artisan;
 use Symfony\Component\Process\Process;
@@ -11,6 +12,51 @@ class TestController extends Controller
     {
 
 
+        $companyId = auth()->user()->company_id; // Hier kannst du je nach User die richtige CompanyID verwenden
+
+        // Hier holen wir die Werte für Fehler, Warnungen und Notices
+        // Holen der Daten für die letzten 14 Tage
+        $statistics = Pa11yStatistic::where('scanned_at', '>=', now()->subDays(14))
+            ->select('scanned_at', 'error_count', 'warning_count', 'notice_count')
+            ->orderBy('scanned_at')
+            ->get();
+
+        // Extrahieren der Labels und der Daten
+        $labels = $statistics->pluck('scanned_at')->map(function ($date) {
+            return $date; // Formatieren des Datums
+        });
+
+        $errors = $statistics->pluck('error_count');
+        $warnings = $statistics->pluck('warning_count');
+        $notices = $statistics->pluck('notice_count');
+
+        return [
+            'labels' => $labels, // Labels (Datum)
+            'datasets' => [
+                [
+                    'label' => 'Errors',
+                    'data' => $errors, // Fehlerdaten
+                    'borderColor' => 'red',
+                    'backgroundColor' => 'rgba(255, 99, 132, 0.2)',
+                    'fill' => false,
+                ],
+                [
+                    'label' => 'Warnings',
+                    'data' => $warnings, // Warnungsdaten
+                    'borderColor' => 'yellow',
+                    'backgroundColor' => 'rgba(255, 159, 64, 0.2)',
+                    'fill' => false,
+                ],
+                [
+                    'label' => 'Notices',
+                    'data' => $notices, // Hinweisdaten
+                    'borderColor' => 'blue',
+                    'backgroundColor' => 'rgba(54, 162, 235, 0.2)',
+                    'fill' => false,
+                ],
+            ],
+        ];
+        die();
 // Artisan-Befehl im Hintergrund ausführen (ohne den Webserver zu blockieren)
         // Artisan-Befehl im Hintergrund ausführen (ohne den Webserver zu blockieren)
         // Artisan-Befehl im Hintergrund ausführen

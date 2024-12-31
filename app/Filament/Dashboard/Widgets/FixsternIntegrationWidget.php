@@ -18,7 +18,7 @@ class FixsternIntegrationWidget extends Widget
     {
 
 
-        $code = 'httpf:futtode-zum-einbinden';
+        $code = 'httpf:testcode-zum-einbinden';
         $embedCode = '&lt;a href="' . $code . '"&gt;' . "<br>" . '
         &nbsp;&nbsp;&nbsp;&nbsp;&lt;img src="'.$code .'" alt="newsletter abonnieren"&gt;<br>
         &lt;/a&gt;';
