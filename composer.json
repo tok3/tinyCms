@@ -19,7 +19,7 @@
         "calebporzio/sushi": "^2.5",
         "cviebrock/eloquent-sluggable": "^10.0",
         "filament/actions": "^3.2",
-        "filament/filament": "^3.0-stable",
+        "filament/filament": "^3.2",
         "filament/minimal-theme": "^3.0",
         "filament/notifications": "^3.2",
         "filament/spatie-laravel-tags-plugin": "^3.2",

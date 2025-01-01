@@ -21,6 +21,7 @@ class ViewPa11yUrl extends Page
 
     public function getData(): array
     {
+
         return [
             'url' => $this->url,
         ];
