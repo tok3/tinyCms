@@ -14,14 +14,20 @@ use Filament\Tables\Actions\BulkAction;
 use Illuminate\Support\Facades\Artisan;
 use App\Models\Company;
 use Filament\Tables\Columns\TextColumn;
-
+use App\Filament\Resources\Shared\Pa11yAccessibilityIssueResource;
 class Pa11yUrlResource extends Resource
 {
     protected static ?string $model = Pa11yUrl::class;
 
+    public static function getSlug(): string
+    {
+        return 'firmament-urls';
+    }
+
+
     protected static ?string $navigationIcon = 'heroicon-o-link';
     protected static ?string $navigationLabel = 'URLs';
-    protected static ?string $navigationGroup = 'Accessibility Tools';
+    protected static ?string $navigationGroup = 'Firmament';
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -100,10 +106,19 @@ class Pa11yUrlResource extends Resource
 
             ])
             ->actions([
-                Tables\Actions\Action::make('view_results')
+                /*Tables\Actions\Action::make('view_results')
                     ->label('View Results')
                     ->url(fn($record) => static::getUrl('view', ['record' => $record->id]))
+                    ->icon('heroicon-o-eye'),*/
+
+                Tables\Actions\Action::make('view_issues')
+                    ->label('View Results')
+                    ->url(fn($record) => Pa11yAccessibilityIssueResource::getUrl('index', [
+                        'url_id' => $record->id,
+                    ]))
                     ->icon('heroicon-o-eye'),
+
+
                 Tables\Actions\Action::make('rescan')
                     ->label('Rescan')
                     ->action(function ($record) {

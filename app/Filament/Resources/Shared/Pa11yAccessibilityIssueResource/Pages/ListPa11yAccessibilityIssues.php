@@ -3,17 +3,100 @@
 namespace App\Filament\Resources\Shared\Pa11yAccessibilityIssueResource\Pages;
 
 use App\Filament\Resources\Shared\Pa11yAccessibilityIssueResource;
-use Filament\Actions;
-use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\Shared\Pa11yUrlResource;
+use App\Models\Pa11yAccessibilityIssue;
+use Filament\Resources\Pages\Page;
+use App\Models\Pa11yUrl;
 
-class ListPa11yAccessibilityIssues extends ListRecords
+class ListPa11yAccessibilityIssues extends Page
 {
     protected static string $resource = Pa11yAccessibilityIssueResource::class;
 
-    protected function getHeaderActions(): array
+    protected static string $view = 'filament.resources.pa11y-accessibility-issues.list';
+
+    public function getTitle(): string
+    {
+        return __('Observer Ergebnisse'); // Angepasster Seitentitel
+    }
+
+    public  function getBreadcrumb(): string
+    {
+        return 'Accessibility Issues'; // Neuer Name für die aktuelle Seite
+    }
+
+     function getBreadcrumbs(): array
     {
         return [
-            Actions\CreateAction::make(),
+            // Link zur Index-Seite der Pa11yUrlResource
+            Pa11yUrlResource::getUrl('index') => 'Firmament Urls',
+
+            // Breadcrumb für die aktuelle Seite
+            url()->current() => 'Scan-Results',
         ];
+    }
+    /**
+     * Liefert die Basisabfrage mit Filterung nach `url_id`.
+     */
+    private function getBaseQuery()
+    {
+        $levelMap = ['1' => 'A', '2' => 'AA', '3' => 'AAA'];
+        $selectedLevels = str_split(request()->get('levels', '123'));
+        $wcagLevels = array_map(fn($level) => $levelMap[$level], $selectedLevels);
+
+        // Validierung der Anfrageparameter
+        $type = in_array(request('type'), ['error', 'warning', 'notice']) ? request('type') : null;
+
+        return Pa11yAccessibilityIssue::query()
+            ->when(request('url_id'), fn($query) => $query->where('url_id', request('url_id')))
+            ->when($wcagLevels, fn($query) => $query->whereIn('wcag_level', $wcagLevels))
+            ->when($type, fn($query) => $query->where('type', $type));
+    }
+
+    /**
+     * Holen der Datensätze für die Kartenanzeige.
+     */
+    public function getRecords()
+    {
+        $perPage = request('perPage', 30); // Standard: 50 Einträge pro Seite
+        return $this->getBaseQuery()->paginate($perPage);
+    }
+
+
+    public function fetchUrl()
+    {
+        $url = Pa11yUrl::with('accessibilityIssues')->findOrFail(request('url_id'));
+
+        // Zähle die verschiedenen Typen
+        $url->error_count = $url->accessibilityIssues->where('type', 'error')->count();
+        $url->warning_count = $url->accessibilityIssues->where('type', 'warning')->count();
+        $url->notice_count = $url->accessibilityIssues->where('type', 'notice')->count();
+
+        return $url;
+    }
+
+    public function fetchUrlWithCounts()
+    {
+        $url = Pa11yUrl::findOrFail(request('url_id'));
+        $levelMap = ['1' => 'A', '2' => 'AA', '3' => 'AAA'];
+        $selectedLevels = array_map(fn($level) => $levelMap[$level], str_split(request()->get('levels', '123')));
+
+        // Zähler für jeden Typ unabhängig berechnen
+        $url->error_count = $url->accessibilityIssues()
+            ->where('type', 'error')
+            ->whereIn('wcag_level', $selectedLevels)
+            ->count();
+
+        $url->warning_count = $url->accessibilityIssues()
+            ->where('type', 'warning')
+            ->whereIn('wcag_level', $selectedLevels)
+            ->count();
+
+        $url->notice_count = $url->accessibilityIssues()
+            ->where('type', 'notice')
+            ->whereIn('wcag_level', $selectedLevels)
+            ->count();
+
+        $url->all_count =  $url->error_count + $url->warning_count + $url->notice_count;
+        return $url;
     }
 }

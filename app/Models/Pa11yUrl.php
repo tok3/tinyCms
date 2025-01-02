@@ -66,4 +66,7 @@ class Pa11yUrl extends Model
 
         return $stats;
     }
+
+
+
 }

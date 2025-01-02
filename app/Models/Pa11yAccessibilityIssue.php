@@ -3,6 +3,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Services\MessageTranslationService;
+
 class Pa11yAccessibilityIssue extends Model
 {
     protected $fillable = [
@@ -73,5 +74,6 @@ class Pa11yAccessibilityIssue extends Model
 
         return $links;
     }
+
 
 }
