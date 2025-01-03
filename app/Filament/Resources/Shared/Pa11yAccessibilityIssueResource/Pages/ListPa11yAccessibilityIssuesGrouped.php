@@ -8,11 +8,11 @@ use App\Models\Pa11yAccessibilityIssue;
 use Filament\Resources\Pages\Page;
 use App\Models\Pa11yUrl;
 
-class ListPa11yAccessibilityIssues extends Page
+class ListPa11yAccessibilityIssuesGrouped extends Page
 {
     protected static string $resource = Pa11yAccessibilityIssueResource::class;
 
-    protected static string $view = 'filament.resources.pa11y-accessibility-issues.list';
+    protected static string $view = 'filament.resources.pa11y-accessibility-issues.list-grouped';
 
     public function getTitle(): string
     {
@@ -24,7 +24,7 @@ class ListPa11yAccessibilityIssues extends Page
         return 'Accessibility Issues'; // Neuer Name für die aktuelle Seite
     }
 
-    function getBreadcrumbs(): array
+     function getBreadcrumbs(): array
     {
         return [
             // Link zur Index-Seite der Pa11yUrlResource
@@ -34,22 +34,26 @@ class ListPa11yAccessibilityIssues extends Page
             url()->current() => 'Scan-Results',
         ];
     }
+
+
+    private function prepareQuery()
+    {
+        $levelMap = ['1' => 'A', '2' => 'AA', '3' => 'AAA'];
+        $selectedLevels = array_map(fn($level) => $levelMap[$level], str_split(request()->get('levels', '123')));
+
+        $type = in_array(request('type'), ['error', 'warning', 'notice']) ? request('type') : null;
+
+        return Pa11yAccessibilityIssue::query()
+            ->when(request('url_id'), fn($query) => $query->where('url_id', request('url_id')))
+            ->when($selectedLevels, fn($query) => $query->whereIn('wcag_level', $selectedLevels))
+            ->when($type, fn($query) => $query->where('type', $type));
+    }
     /**
      * Liefert die Basisabfrage mit Filterung nach `url_id`.
      */
     private function getBaseQuery()
     {
-        $levelMap = ['1' => 'A', '2' => 'AA', '3' => 'AAA'];
-        $selectedLevels = str_split(request()->get('levels', '123'));
-        $wcagLevels = array_map(fn($level) => $levelMap[$level], $selectedLevels);
-
-        // Validierung der Anfrageparameter
-        $type = in_array(request('type'), ['error', 'warning', 'notice']) ? request('type') : null;
-
-        return Pa11yAccessibilityIssue::query()
-            ->when(request('url_id'), fn($query) => $query->where('url_id', request('url_id')))
-            ->when($wcagLevels, fn($query) => $query->whereIn('wcag_level', $wcagLevels))
-            ->when($type, fn($query) => $query->where('type', $type));
+        return $this->prepareQuery();
     }
 
     /**
@@ -57,10 +61,30 @@ class ListPa11yAccessibilityIssues extends Page
      */
     public function getRecords()
     {
-        $perPage = request('perPage', 30); // Standard: 50 Einträge pro Seite
-        return $this->getBaseQuery()->paginate($perPage);
+        $perPage = request('perPage', 30);
+        return $this->prepareQuery()->paginate($perPage);
     }
 
+    public function getGroupedRecords()
+    {
+        return $this->prepareQuery()
+            ->get()
+            ->groupBy('code'); // Gruppierung auf Anwendungsebene
+    }
+
+    public function getProcessedGroupedRecords()
+    {
+        $groupedRecords = $this->getGroupedRecords();
+
+        return $groupedRecords->map(function ($issues, $code) {
+            return [
+                'code' => $code,
+                'issue_count' => $issues->count(),
+                'description' => $issues->issue, // Verwende den Mutator hier
+                'issues' => $issues, // Alle Issues der Gruppe
+            ];
+        });
+    }
 
     public function fetchUrl()
     {
@@ -107,5 +131,4 @@ class ListPa11yAccessibilityIssues extends Page
             'slugIndex' => Pa11yAccessibilityIssueResource::getUrl('index'),
         ];
     }
-
 }

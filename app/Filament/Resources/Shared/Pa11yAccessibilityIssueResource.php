@@ -35,6 +35,7 @@ class Pa11yAccessibilityIssueResource extends Resource
     {
         return [
             'index' => Pages\ListPa11yAccessibilityIssues::route('/'),
+            'grouped' => Pages\ListPa11yAccessibilityIssuesGrouped::route('/grouped'),
         ];
     }
 }
