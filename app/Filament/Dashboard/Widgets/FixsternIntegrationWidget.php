@@ -18,16 +18,11 @@ class FixsternIntegrationWidget extends Widget
     {
 
 
-        $code = 'httpf:testcode-zum-einbinden';
-        $embedCode = '&lt;a href="' . $code . '"&gt;' . "<br>" . '
-        &nbsp;&nbsp;&nbsp;&nbsp;&lt;img src="'.$code .'" alt="newsletter abonnieren"&gt;<br>
-        &lt;/a&gt;';
 
         $ulid = Filament::getTenant()->ulid;
 
         return view(static::$view, [
             'fixsternLink'=>"service/".$ulid . '/fixstern.js',
-            'embedCode' => $embedCode,
             'ulid' => $ulid,
 
 

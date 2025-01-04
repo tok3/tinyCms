@@ -1,29 +1,23 @@
 <x-filament-widgets::widget class="fi-filament-info-widget">
     <x-filament::section>
 
+
         <div class="flex items-center gap-x-3">
             <div class="flex-1">
 
                 <img width="120px" id="mode-icon" src="{{ asset('assets/css/svgs/fixstern-logo.svg') }}" alt="Logo" />
                 <script>
-                    // Funktion zum Wechseln des Logos je nach Modus
+                    const darkModeLogo = "{{ asset('assets/css/svgs/fixstern-logo-light.svg') }}";
+                    const lightModeLogo = "{{ asset('assets/css/svgs/fixstern-logo.svg') }}";
+
                     function updateLogo() {
                         const modeIcon = document.getElementById('mode-icon');
-                        if (document.documentElement.classList.contains('dark')) {
-                            // Wenn der Dark Mode aktiv ist, lade das Light Mode Logo
-                            modeIcon.src = '{{ asset('assets/css/svgs/fixstern-logo-light.svg') }}';
-                        } else {
-                            // Ansonsten lade das Standard Logo (Dunkles Logo für Light Mode)
-                            modeIcon.src = '{{ asset('assets/css/svgs/fixstern-logo.svg') }}';
-                        }
+                        modeIcon.src = document.documentElement.classList.contains('dark') ? darkModeLogo : lightModeLogo;
                     }
 
-                    // Beim Laden der Seite den Modus prüfen und das Logo setzen
                     window.addEventListener('DOMContentLoaded', updateLogo);
 
-                    // MutationObserver einrichten, um Änderungen der Klasse 'dark' zu erkennen
                     const observer = new MutationObserver(updateLogo);
-
                     observer.observe(document.documentElement, {
                         attributes: true,
                         attributeFilter: ['class']

@@ -8,7 +8,7 @@ use Filament\Facades\Filament;
 
 class FixsternInfoWidget extends Widget
 {
-    protected static ?int $sort = -2;
+    protected static ?int $sort = -1;
 
     protected static bool $isLazy = false;
 
@@ -22,17 +22,10 @@ class FixsternInfoWidget extends Widget
     public function render(): \Illuminate\Contracts\View\View
     {
 
-
-        $code = 'httpf:futtode-zum-einbinden';
-        $embedCode = '&lt;a href="' . $code . '"&gt;' . "<br>" . '
-        &nbsp;&nbsp;&nbsp;&nbsp;&lt;img src="'.$code .'" alt="newsletter abonnieren"&gt;<br>
-        &lt;/a&gt;';
-
         $ulid = Filament::getTenant()->ulid;
 
         return view(static::$view, [
             'fixsternLink'=>"service/".$ulid . '/fixstern.js',
-            'embedCode' => $embedCode,
             'ulid' => $ulid,
 
 

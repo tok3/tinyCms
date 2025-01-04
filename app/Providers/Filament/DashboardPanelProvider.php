@@ -60,10 +60,16 @@ class DashboardPanelProvider extends PanelProvider
             ])
             ->widgets([
                 Widgets\AccountWidget::class,
+                \App\Filament\Dashboard\Widgets\FixsternInfoWidget::class,
+                \App\Filament\Dashboard\Widgets\FixsternIntegrationWidget::class,
+
+                //\App\Filament\Dashboard\Widgets\Pa11yStatChart::class,
+                \App\Filament\Dashboard\Widgets\FirmamentInfoWidget::class,
+
                 //Widgets\FilamentInfoWidget::class,
 
             ])
-            ->discoverWidgets(in: app_path('Filament/Dashboard/Widgets'), for: 'App\\Filament\\Dashboard\\Widgets')
+            //->discoverWidgets(in: app_path('Filament/Dashboard/Widgets'), for: 'App\\Filament\\Dashboard\\Widgets')
 
             ->middleware([
                 EncryptCookies::class,

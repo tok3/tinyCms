@@ -2,18 +2,29 @@
 
 namespace App\Filament\Dashboard\Widgets;
 
-use Filament\Widgets\ChartWidget;
-use App\Models\Pa11yStatistic;
 use Carbon\Carbon;
+use Filament\Widgets\Widget;
 use Filament\Facades\Filament;
-class Pa11yStatChart extends ChartWidget
+use App\Models\Pa11yStatistic;
+use App\Filament\Resources\Shared\Pa11yUrlResource;
+use Illuminate\Support\Facades\DB;
+class FirmamentInfoWidget extends Widget
 {
-    protected static ?string $heading = 'Firmament Scan Result Chart ';
+    // Reihenfolge des Widgets im Dashboard
+    protected static ?int $sort = -0;
 
-    protected static ?int $sort = 2; // Wird als zweites Widget angezeigt
-    protected function getData(): array
+    protected int|string|array $columnSpan = 1;
+    // Kein Lazy Loading
+    protected static bool $isLazy = false;
+
+    /**
+     * Verknüpfte Blade-View
+     * @var view-string
+     */
+    protected static string $view = 'filament.dashboard.widgets.firmament-info-widget';
+
+    public function render(): \Illuminate\Contracts\View\View
     {
-
 
         // Holen der Daten für die letzten 14 Tage
         // Holen der Daten für die letzten 14 Tage
@@ -47,14 +58,14 @@ class Pa11yStatChart extends ChartWidget
 
         $labels = $statistics->map(function ($stat) {
             $formattedDate = Carbon::parse($stat->scan_date)->format('d.m.Y');
-            return "{$formattedDate} ({$stat->total_urls} URLs)";
+            return [$formattedDate, "({$stat->total_urls} URLs)"]; // Als Array zurückgeben
         });
         $errors = $statistics->pluck('total_errors');
         $warnings = $statistics->pluck('total_warnings');
         $notices = $statistics->pluck('total_notices');
 
         // Rückgabe der Daten im gewünschten Format
-        return [
+        $chartData = [
             'labels' => $labels->toArray(), // Labels (Datum)
             'datasets' => [
                 [
@@ -83,10 +94,13 @@ class Pa11yStatChart extends ChartWidget
 
 
 
-    }
-
-    protected function getType(): string
-    {
-        return 'line';
+        // Beispiel: Abruf von Daten über den Tenant
+        $ulid = Filament::getTenant()?->ulid;
+        $pa11yUrlIndex = Pa11yUrlResource::getUrl('index');
+        return view(static::$view, [
+            'firmamentLink' => $pa11yUrlIndex,
+            'ulid' => $ulid,
+            'chartData' => $chartData,
+        ]);
     }
 }
