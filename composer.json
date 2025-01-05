@@ -38,6 +38,7 @@
         "mohamedsabil83/filament-forms-tinyeditor": "^2.3",
         "mollie/laravel-cashier-mollie": "^2.0",
         "mollie/laravel-mollie": "^3.0",
+        "openai-php/client": "^0.10.3",
         "psr/simple-cache": "^2.0",
         "pxlrbt/filament-excel": "^2.3",
         "simplesoftwareio/simple-qrcode": "~4",
