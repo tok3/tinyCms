@@ -5,9 +5,27 @@ use App\Models\Pa11yStatistic;
 use Illuminate\Http\Request;
 use Artisan;
 use Symfony\Component\Process\Process;
-
+use App\Services\OpenAIService;
 class TestController extends Controller
 {
+
+    public function testCommand()
+    {
+
+
+
+        $openAIService = new OpenAIService();
+
+        $errorCode = 'WCAG2A.Principle4.Guideline4_1.4_1_2.H91.Button.Name';
+        $description = $openAIService->generateErrorDescription($errorCode,'de');
+
+        $page = 'https://aktion-barrierefrei.de/';
+        $description = $openAIService->checkPage($page,'de');
+
+        dd($description);
+
+
+    }
     public function testArtisanCommand($id = 65, Request $request)
     {
 
