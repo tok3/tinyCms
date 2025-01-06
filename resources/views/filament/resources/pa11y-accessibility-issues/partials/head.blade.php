@@ -149,6 +149,7 @@
     </div>
 </div>
 
+{{--
 <div class="flex justify-between items-center mb-4">
     <form method="GET" action="{{ url()->current() }}" class="flex items-center space-x-2">
         <!-- Übergebene Query-Parameter beibehalten -->
@@ -165,3 +166,4 @@
         </button>
     </form>
 </div>
+--}}
