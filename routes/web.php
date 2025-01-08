@@ -29,7 +29,7 @@ use App\Http\Controllers\Pa11yUrlController;
 
 use App\Http\Controllers\TestController;
 
-Route::get('test-ai-service', [TestController::class, 'testCommand']);
+Route::get('test-ai-service', [TestController::class, 'aiFixSuggestion']);
 // -----------------------------------------------
 
 // redirect all logins from filament dashbord logins to centralized login
