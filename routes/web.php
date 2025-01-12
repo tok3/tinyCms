@@ -84,6 +84,14 @@ use App\Http\Controllers\TestController;
 Route::get('test-artisan-command/{id?}', [TestController::class, 'testArtisanCommand']);
 // -----------------------------------------------
 
+use App\Http\Controllers\PublicAccessibilityCheckController;
+
+Route::get('/public-check', [PublicAccessibilityCheckController::class, 'showForm'])->name('accessibility.check.form');
+Route::post('/public-check', [PublicAccessibilityCheckController::class, 'check'])->name('accessibility.check');
+Route::get('/public-check/progress', [PublicAccessibilityCheckController::class, 'getProgress'])->name('accessibility.check.progress');
+
+// -----------------------------------------------
+
 Route::get('/documents/fixstern-integration/{ulid}', [PdfController::class, 'generateInstruction'])->name('download.instruction')->middleware(['auth']);
 // -----------------------------------------------
 // pa11y - wcag

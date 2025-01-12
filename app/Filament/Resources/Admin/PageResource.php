@@ -275,15 +275,11 @@ class   PageResource extends Resource
                                                 ])
                                                 ->columns(12),
                                             //-------------------------------------
-                                            Forms\Components\Builder\Block::make('countdown-timer')
+                                            Forms\Components\Builder\Block::make('countdown-timer'),
+                                            Forms\Components\Builder\Block::make('wcag-check-form')
                                                 ->schema([
                                                     // Erste Zeile: Datetimepicker und Dropdown
                                                     Forms\Components\Grid::make(12)->schema([
-                                                        Forms\Components\DateTimePicker::make('endDate')
-                                                            ->label('Ende Datum')
-                                                            ->required()
-                                                            ->columnSpan(3), // Schmaler Bereich oben
-
                                                         // Dropdown für Erscheinungsbild
                                                         Forms\Components\Select::make('background')
                                                             ->label('Erscheinungsbild')
@@ -293,8 +289,8 @@ class   PageResource extends Resource
                                                                 'bg-gradient-blue' => 'Blauer Verlauf',
                                                                 'bg-gradient-primary' => 'Primärer Verlauf',
                                                             ])
-                                                            ->required() // Optional, falls eine Auswahl erforderlich ist
-                                                            ->columnSpan(3), // Schmaler Bereich für den Dropdown
+                                                            ->required()
+                                                            ->columnSpan(3),
                                                     ]),
 
                                                     // Zweite Zeile: Überschrift untereinander
@@ -302,28 +298,69 @@ class   PageResource extends Resource
                                                         Forms\Components\Textarea::make('heading')
                                                             ->label('Überschrift')
                                                             ->required()
-                                                            ->columnSpan(8), // Volle Breite
+                                                            ->columnSpan(8),
                                                     ]),
 
                                                     // Dritte Zeile: Subtext unter Überschrift
                                                     Forms\Components\Grid::make(12)->schema([
                                                         Forms\Components\TextInput::make('subtext')
                                                             ->label('Subtext')
-                                                            ->columnSpan(8), // Volle Breite
+                                                            ->columnSpan(8),
                                                     ]),
 
+                                                    // Text nach Result rechts
+                                                    Forms\Components\Grid::make(12)->schema([
+                                                        TinyEditor::make('resulttext')->profile('custom')->toolbarSticky(true)
+                                                            ->label('Text nach Ergebniss')
+                                                            ->required()
+                                                            ->columnSpan(8),
+                                                    ]),
 
-                                                    // Vierte Zeile: Button Text, Button Target und Dropdown für Button-Erscheinungsbild auf eine Breite von 8 beschränkt
-                                                    Forms\Components\Grid::make(8)->schema([ // Ändere das Grid auf 8 Spalten
+                                                    // Checkbox und Felder für CTA
+                                                    Forms\Components\Grid::make(12)->schema([
+                                                        // Schalter für CTA anzeigen
+                                                        Forms\Components\Checkbox::make('showCta')
+                                                            ->label('CTA nach Prüfung anzeigen')
+                                                            ->reactive() // Macht das Feld reaktiv, um die Sichtbarkeit der Felder zu steuern
+                                                            ->columnSpan(3),
+
+                                                        // Bedingte Felder für CTA
+                                                        Forms\Components\TextInput::make('ctaHeadingSmall')
+                                                            ->label('CTA Heading Small')
+                                                            ->columnSpan(3)
+                                                            ->visible(fn ($get) => $get('showCta')), // Sichtbarkeit hängt vom Schalter ab
+
+                                                        Forms\Components\Textarea::make('ctaHeading')
+                                                            ->label('CTA Heading')
+                                                            ->columnSpan(6)
+                                                            ->visible(fn ($get) => $get('showCta')),
+
+                                                        Forms\Components\Textarea::make('ctaText')
+                                                            ->label('CTA Text')
+                                                            ->columnSpan(6)
+                                                            ->visible(fn ($get) => $get('showCta')),
+
+                                                        Forms\Components\TextInput::make('ctaButtonText')
+                                                            ->label('CTA Button Text')
+                                                            ->columnSpan(3)
+                                                            ->visible(fn ($get) => $get('showCta')),
+
+                                                        Forms\Components\TextInput::make('ctaButtonTarget')
+                                                            ->label('CTA Button Target')
+                                                            ->columnSpan(3)
+                                                            ->visible(fn ($get) => $get('showCta')),
+                                                    ]),
+
+                                                    // Felder für Button-Text, Button-Target und Erscheinungsbild
+                                                    Forms\Components\Grid::make(8)->schema([
                                                         Forms\Components\TextInput::make('buttonText')
                                                             ->label('Button Text')
-                                                            ->columnSpan(2), // Verteilt die Breite gleichmäßig innerhalb von 8 Spalten
+                                                            ->columnSpan(2),
 
                                                         Forms\Components\TextInput::make('buttonTarget')
                                                             ->label('Button Target')
-                                                            ->columnSpan(2), // Verteilt die Breite gleichmäßig innerhalb von 8 Spalten
+                                                            ->columnSpan(2),
 
-                                                        // Dropdown für Button-Erscheinungsbild
                                                         Forms\Components\Select::make('buttonAppearance')
                                                             ->label('Button Erscheinungsbild')
                                                             ->options([
@@ -332,8 +369,8 @@ class   PageResource extends Resource
                                                                 'btn-primary' => 'Primär',
                                                                 'btn-secondary' => 'Sekundär',
                                                             ])
-                                                            ->required() // Optional, falls eine Auswahl erforderlich ist
-                                                            ->columnSpan(2), // Verteilt die Breite gleichmäßig innerhalb von 8 Spalten
+                                                            ->required()
+                                                            ->columnSpan(2),
                                                     ]),
                                                 ])
                                                 ->columns(12), // Definiert die Anzahl der Spalten im Grid // Definiert die Anzahl der Spalten im Grid
@@ -432,6 +469,9 @@ class   PageResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('author.name')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('updated_at')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\ToggleColumn::make('published'),
