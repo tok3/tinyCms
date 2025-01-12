@@ -149,21 +149,3 @@
     </div>
 </div>
 
-{{--
-<div class="flex justify-between items-center mb-4">
-    <form method="GET" action="{{ url()->current() }}" class="flex items-center space-x-2">
-        <!-- Übergebene Query-Parameter beibehalten -->
-        @foreach (request()->except('search') as $key => $value)
-            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-        @endforeach
-
-        <!-- Suchfeld -->
-        <input type="text" name="search" value="{{ request('search') }}" placeholder="Suchen..."
-               class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
-
-        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-            Suchen
-        </button>
-    </form>
-</div>
---}}

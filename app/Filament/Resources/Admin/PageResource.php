@@ -342,7 +342,7 @@ class   PageResource extends Resource
                                             Forms\Components\Builder\Block::make('wcag-check-form')
                                                 ->schema([
                                                     // Erste Zeile: Dropdown für Erscheinungsbild
-                                                    Forms\Components\Grid::make(12)->schema([
+                                                   /* Forms\Components\Grid::make(12)->schema([
                                                         Forms\Components\Select::make('background')
                                                             ->label('Erscheinungsbild')
                                                             ->options([
@@ -353,7 +353,7 @@ class   PageResource extends Resource
                                                             ])
                                                             ->required()
                                                             ->columnSpan(3),
-                                                    ]),
+                                                    ]),*/
 
                                                     // Zweite Zeile: Überschrift
                                                     Forms\Components\Grid::make(12)->schema([
