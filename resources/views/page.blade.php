@@ -177,7 +177,12 @@
                         }, 500); // Schneller Fade-Out passend zur Transition
                     }
 
+
+
+
+
                 });
+
 
 
             </script>

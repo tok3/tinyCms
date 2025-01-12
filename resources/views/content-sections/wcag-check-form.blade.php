@@ -78,6 +78,7 @@
         text-shadow: 0 0 5px rgba(255, 87, 34, 0.8), 0 0 10px rgba(255, 87, 34, 0.6);
     }
 }
+
 </style>
 
 
@@ -104,7 +105,7 @@
                 <form novalidate="" class="needs-validation">
                     <div class="d-flex flex-column flex-md-row">
                         <div class="mb-2 flex-grow-1 mb-md-0 me-md-2">
-                            <input type="url"  id="urlInput" name="url" required="required" class="form-control" placeholder="Webseiten-URL" value="https://aktion-barrierefrei.de">
+                            <input type="url"  id="urlInput" name="url" required="required" class="form-control" placeholder="https://ihre-domain.de" {{--value="https://aktion-barrierefrei.de"--}}>
                         </div>
                         <div class="flex-shrink-0">
                             <button type="submit" class="btn btn-primary">Prüfung starten</button>
@@ -123,8 +124,8 @@
     </div>
 
     <!-- Errors Card -->
-{{--    <div id="summaryOutput" class="mt-5" style="display:none;" data-aos="fade-right">--}}
-<div>
+    <div id="summaryOutput" class="mt-5" style="display:none;" data-aos="fade-right">
+
         <div class="row row justify-content-between align-items-center">
             <!-- Linke Spalte (9 Spalten breit) -->
             <div class="col-7 ">
@@ -165,9 +166,6 @@
                         </div>
                     </div>
                 </div>
-            <!-- cta -->
-
-
 
             </div>
 
@@ -179,35 +177,35 @@
             </div>
         </div>
 
+
     <!-- cta -->
-    <div class="container py-4 py-lg-6">
-        <div class="bg-body overflow-hidden shadow-lg px-4 py-6 px-lg-5">
-            <div class="row align-items-center justify-content-center">
-                <div class="col-lg-9 col-md-8">
-                    <!--Sub-heading-->
-                    <h6 data-aos="zoom-in" class="mb-3 text-success aos-init aos-animate">Are you interested?</h6>
-                    <!--Heading-->
-                    <h2 class="mb-3 display-5 aos-init aos-animate" data-aos="zoom-in-up" data-aos-delay="100">
-                        Let's build something awesome
-                    </h2>
-                    <!--Text-->
-                    <p class="mb-5 mb-md-0 pe-lg-11 aos-init aos-animate" data-aos="fade-up" data-aos-delay="150">
-                        Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing
-                        industries for previewing layouts and visual mockups.
-                    </p>
-                </div>
-                <!--End Col-->
-                <div class="col-lg-3 col-md-4 text-md-end">
-                    <!--Action-->
-                    <div data-aos="fade-left" data-aos-delay="200" class="aos-init aos-animate">
-                        <a href="#!" class="btn btn-primary btn-lg">
-                            <span>Get started</span>
-                        </a>
+    @if($data['showCta'] == 1)
+        <div id="ctaSection" class="container py-4 py-lg-6 cta-hidden">
+            <div class="bg-body overflow-hidden shadow-lg px-4 py-6 px-lg-5">
+                <div class="row align-items-center justify-content-center">
+                    <div class="col-lg-9 col-md-8">
+                        <!--Sub-heading-->
+                        <h6 class="mb-3 text-success">{!! $data['ctaHeadingSmall'] !!}</h6>
+                        <!--Heading-->
+                        <h2 class="mb-3 display-5">
+                            {!! $data['ctaHeading'] !!}
+                        </h2>
+                        <!--Text-->
+                        <p class="mb-5 mb-md-0 pe-lg-11">
+                            {!! $data['ctaText'] !!}
+                        </p>
+                    </div>
+                    <!--End Col-->
+                    <div class="col-lg-3 col-md-4 text-md-end">
+                        <!--Action-->
+                        <div>
+                            <a href="{!! $data['ctaButtonTarget'] !!}" class="btn {!! $data['ctaButtonAppearance'] !!} btn-lg">{!! $data['ctaButtonText'] !!}</a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div> <!-- / .row -->
-    </div>
+        </div>
+    @endif
 <!-- ende cta -->
     </div>
 </div>
