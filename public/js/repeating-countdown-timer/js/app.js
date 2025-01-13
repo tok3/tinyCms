@@ -153,6 +153,7 @@ $(document).ready(function () {
         // Neue Bedingung hinzufügen, um die Klasse daysPlus hinzuzufügen, wenn days >= 100
         updateDaysClass(days);
 
+
         $(`.${typeInput}`).remove();
         $("button.begin").css("display", "none");
         // $("form").append(`<button class="stop">Stop Countdown</button>`);
