@@ -155,7 +155,7 @@ $(document).ready(function () {
 
         $(`.${typeInput}`).remove();
         $("button.begin").css("display", "none");
-        $("form").append(`<button class="stop">Stop Countdown</button>`);
+        // $("form").append(`<button class="stop">Stop Countdown</button>`);
 
         const validationPrint = (timeUnit) => {
             return timeUnit < 10 ? `0${timeUnit}` : timeUnit;

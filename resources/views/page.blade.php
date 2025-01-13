@@ -12,6 +12,7 @@
 @push('scripts')
 
     <script src="{{url('js/repeating-countdown-timer/js/app.js')}}"></script>
+            <script src="{{url('js/wcag-check.js')}}"></script>
 
 
             <script>
