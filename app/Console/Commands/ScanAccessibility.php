@@ -6,195 +6,160 @@ use Illuminate\Console\Command;
 use App\Models\Pa11yUrl;
 use App\Models\Pa11yAccessibilityIssue;
 use App\Models\Pa11yStatistic;
+use Symfony\Component\Process\Process;
 
 class ScanAccessibility extends Command
 {
-    protected $signature = 'scan:accessibility {urls?*} {--levels=A,AA,AAA} {--standard=2.0} {--notices} {--no-notices} {--warnings} {--no-warnings}';
+
+    // Signature mit den zusätzlichen Optionen: URLs, Levels, Notices und Warnings
+    protected $signature = 'scan:accessibility {urls?*} {--levels=A,AA,AAA} {--notices} {--no-notices} {--warnings} {--no-warnings}';
     protected $description = 'Scan URLs for accessibility issues';
 
     public function handle()
     {
+        \Log::info('Received URLs:', [$this->argument('urls')]);
+        \Log::info('Received Levels:', [$this->option('levels')]);
+
+        // URLs holen, falls übergeben, ansonsten alle URLs
         $urls = $this->argument('urls') ? Pa11yUrl::whereIn('id', (array)$this->argument('urls'))->get() : Pa11yUrl::all();
+
+        // Levels holen (Option: z.B. A, AA, AAA)
         $levels = explode(',', $this->option('levels'));
-        $standard = $this->option('standard');
+
+        // Standardmäßig Notices und Warnings sind an, aber sie können über die Optionen ausgeschaltet werden
         $includeNotices = $this->option('notices') !== null;
         $includeWarnings = $this->option('warnings') !== null;
 
-        if ($this->option('no-notices')) {
+        // Wenn --no-notices oder --no-warnings übergeben wird, die entsprechenden Optionen deaktivieren
+        if ($this->option('no-notices'))
+        {
             $includeNotices = false;
         }
 
-        if ($this->option('no-warnings')) {
+        if ($this->option('no-warnings'))
+        {
             $includeWarnings = false;
         }
 
-        foreach ($urls as $url) {
-            $this->info("Scanning {$url->url} with standard WCAG {$standard}...");
+        // Scannen der URLs und Levels
+        foreach ($urls as $url)
+        {
+            $this->info("Scanning -> {$url->url}...");
 
-            $this->deleteOldIssues($url->id,$standard);
+            foreach ($levels as $level)
+            {
+                $this->info("Scanning {$url->url} for Level {$level}...");
 
-            if ($standard == '2.1') {
-                $this->scanWithAxe($url, $includeWarnings, $includeNotices);
-            } else {
-                $this->scanWithHtmlcs($url, $levels, $includeWarnings, $includeNotices);
+                // Befehl zusammenstellen
+                $processArgs = [
+                    'pa11y', // Pa11y-Befehl mit dem absoluten Pfad
+                    $url->url, // Die zu scannende URL
+                    '--reporter', 'json', // JSON-Ausgabe
+                    '--standard', "WCAG2{$level}"  // WCAG Level (z.B. A, AA, AAA)
+                ];
+
+                if ($includeNotices)
+                {
+                    $processArgs[] = '--include-notices';
+                }
+
+                if ($includeWarnings)
+                {
+                    $processArgs[] = '--include-warnings';
+                }
+
+                $command = implode(' ', $processArgs);
+//               $command = 'PATH=/usr/bin:' . getenv('PATH') . ' /usr/bin/pa11y ' . $url->url . ' --reporter json --standard WCAG2' . $level;
+//                $output = shell_exec($command . ' 2>&1'); // Fehler und Standardausgabe zusammen
+//                \Log::info('pa11y output: ' . $output);
+                $output = shell_exec($command);
+                // Ergebnisse parsen
+                $results = json_decode($output, true);
+
+                $jsonLength = strlen($output);
+                \Log::info('JSON result length:', [$jsonLength]);
+
+
+                if (empty($results))
+                {
+                    $this->error("No results for {$url->url} (Level: {$level})");
+                    continue;
+                }
+
+                // Alte Probleme für dieses Level löschen
+                $url->accessibilityIssues()
+                    ->where('wcag_level', $level)
+                    ->delete();
+
+                // Speichern der neuen Probleme
+                foreach ($results as $result)
+                {
+                    Pa11yAccessibilityIssue::create([
+                        'url_id' => $url->id,
+                        'issue' => $result['message'] ?? null,
+                        'selector' => $result['selector'] ?? null,
+                        'wcag_level' => $level,
+                        'code' => $result['code'] ?? null,
+                        'type' => $result['type'] ?? null,
+                        'typeCode' => $result['typeCode'] ?? null,
+                        'context' => $result['context'] ?? null,
+                        'runner' => $result['runner'] ?? null,
+                        'runnerExtras' => json_encode($result['runnerExtras'] ?? []),
+                    ]);
+                }
+
+                // Statistik berechnen und speichern
+                $this->updateStats($url, $level, $results);
             }
 
+            // Letztes Prüfdatum aktualisieren
             $url->update(['last_checked' => now()]);
+            $this->info("Finished scanning {$url->url}");
         }
 
         $this->info('All URLs have been scanned.');
+
+        return $jsonLength;
     }
 
-    private function scanWithAxe($url, $includeWarnings, $includeNotices)
-    {
-        $processArgs = [
-            'pa11y', $url->url,
-            '--runner', 'axe',
-            '--reporter', 'json',
-        ];
-
-        if ($includeWarnings) {
-            $processArgs[] = '--include-warnings';
-        }
-
-        $command = implode(' ', $processArgs);
-        $this->info("Executing: $command");
-        $output = shell_exec($command . ' 2>&1');
-        $results = json_decode($output, true);
-
-        if ($includeNotices) {
-            $this->info("Performing additional scan for WCAG 2.0 AAA Notices...");
-            $this->scanHtmlcsForNotices($url);
-        }
-
-        $this->storeResults($url, '2.1', 'axe', $results);
-        $this->updateStats($url, '2.1', $results);
-    }
-
-    private function scanWithHtmlcs($url, $levels, $includeWarnings, $includeNotices)
-    {
-        foreach ($levels as $level) {
-            $processArgs = [
-                'pa11y', $url->url,
-                '--reporter', 'json',
-                '--standard', "WCAG2{$level}",
-            ];
-
-            if ($includeWarnings) {
-                $processArgs[] = '--include-warnings';
-            }
-            if ($includeNotices) {
-                $processArgs[] = '--include-notices';
-            }
-
-            $command = implode(' ', $processArgs);
-            $this->info("Executing: $command");
-            $output = shell_exec($command . ' 2>&1');
-            $results = json_decode($output, true);
-
-            $this->storeResults($url, "2.0", 'htmlcs', $results, $level);
-            $this->updateStats($url, "2.0", $results, $level);
-        }
-    }
-
-    private function scanHtmlcsForNotices($url)
-    {
-        $processArgs = [
-            'pa11y', $url->url,
-            '--runner', 'htmlcs',
-            '--reporter', 'json',
-            '--standard', 'WCAG2AAA',
-            '--include-notices',
-        ];
-
-        $command = implode(' ', $processArgs);
-        $this->info("Executing: $command");
-        $output = shell_exec($command . ' 2>&1');
-        $results = json_decode($output, true);
-
-        if (empty($results)) {
-            $this->warn("No notices found for {$url->url} (WCAG2AAA).");
-        } else {
-            $this->storeResults($url, "2.0", 'htmlcs', $results, 'AAA');
-            $this->updateStats($url, "2.0", $results, 'AAA');
-        }
-    }
-
-    private function storeResults($url, $standard, $runner, $results, $level = null)
-    {
-        $this->info("Storing results for {$url->url} (Standard: WCAG {$standard}, Level: {$level}).");
-
-        foreach ($results as $result) {
-            $wcagStandard = $standard;
-
-            // Falls WCAG 2.1 und zusätzlicher Notice-Scan, die Notices als 2.1 simulieren
-            if ($standard === '2.0' && $runner === 'htmlcs' && $level === 'AAA') {
-                $wcagStandard = '2.1';
-            }
-
-            Pa11yAccessibilityIssue::create([
-                'url_id' => $url->id,
-                'issue' => $result['message'] ?? null,
-                'selector' => $result['selector'] ?? null,
-                'wcag_level' => $level,
-                'code' => $result['code'] ?? null,
-                'type' => $result['type'] ?? null,
-                'typeCode' => $result['typeCode'] ?? null,
-                'context' => $result['context'] ?? null,
-                'runner' => $runner,
-                'runnerExtras' => json_encode($result['runnerExtras'] ?? []),
-                'standard' => $wcagStandard,
-            ]);
-        }
-
-        $this->info("Results stored for {$url->url} (Standard: WCAG {$standard}, Level: {$level}).");
-    }
-
-    private function updateStats($url, $standard, $results, $level = null)
+    /**
+     * Statistik für den aktuellen Scan berechnen und speichern.
+     */
+    private function updateStats(Pa11yUrl $url, string $level, array $results)
     {
         $totalErrors = count(array_filter($results, fn($r) => $r['type'] === 'error'));
         $totalWarnings = count(array_filter($results, fn($r) => $r['type'] === 'warning'));
         $totalNotices = count(array_filter($results, fn($r) => $r['type'] === 'notice'));
 
-        // Falls WCAG 2.0 AAA-Durchlauf, füge Notices zu WCAG 2.1 hinzu
-        if ($standard === '2.0' && $level === 'AAA') {
-            $standard = '2.1';
-            $level = 'combined';
+        // Prüfen, ob ein Snapshot für heute existiert
+        $existingSnapshot = Pa11yStatistic::where('url_id', $url->id)
+            ->where('wcag_level', $level)
+            ->whereDate('scanned_at', now()->toDateString())
+            ->first();
+
+        // Wenn sich die Werte nicht geändert haben, überspringen
+        if ($existingSnapshot &&
+            $existingSnapshot->error_count == $totalErrors &&
+            $existingSnapshot->warning_count == $totalWarnings &&
+            $existingSnapshot->notice_count == $totalNotices)
+        {
+            $this->info("No changes detected for {$url->url} (Level: {$level}).");
+
+            return;
         }
 
-        Pa11yStatistic::updateOrCreate(
-            [
-                'company_id' => $url->company_id,
-                'url_id' => $url->id,
-                'standard' => $standard,
-                'wcag_level' => $level,
-            ],
-            [
-                'error_count' => $totalErrors,
-                'warning_count' => $totalWarnings,
-                'notice_count' => $totalNotices,
-                'scanned_at' => now(),
-            ]
-        );
+        // Neuer Snapshot erstellen
+        Pa11yStatistic::create([
+            'company_id' => $url->company_id,
+            'url_id' => $url->id,
+            'wcag_level' => $level,
+            'standard' => '2.0',
+            'error_count' => $totalErrors,
+            'warning_count' => $totalWarnings,
+            'notice_count' => $totalNotices,
+            'scanned_at' => now(),
+        ]);
 
-        $this->info("Statistics updated for {$url->url} (Standard: WCAG {$standard}, Level: {$level}).");
+        $this->info("New snapshot created for {$url->url} (Level: {$level}).");
     }
-
-    private function deleteOldIssues($urlId, $standard, $level = null)
-    {
-        $query = Pa11yAccessibilityIssue::where('url_id', $urlId)
-            ->where('standard', $standard);
-
-        if ($level) {
-            $query->where('wcag_level', $level);
-        }
-
-        $this->info("Query: " . $query->toSql()); // Debugging der SQL-Query
-        $this->info("Bindings: " . json_encode($query->getBindings())); // Debugging der Bindings
-
-        $deletedCount = $query->delete();
-
-        $this->info("Deleted $deletedCount old issues for URL ID: {$urlId}, Standard: {$standard}, Level: {$level}");
-    }
-
 }

@@ -83,25 +83,41 @@ class Pa11yUrlResource extends Resource
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('error_count')
-                    ->label('Errors')
+                    ->label('Fehler')
                     ->sortable()
                     ->badge()
                     ->color(fn($state): string => $state > 0 ? 'danger' : 'gray')
                     ->formatStateUsing(fn($record) => $record->error_count),
 
+
                 Tables\Columns\TextColumn::make('warning_count')
-                    ->label('Warnings')
+                    ->label('Warnungen')
                     ->sortable()
                     ->badge()
                     ->color(fn($state): string => $state > 0 ? 'warning' : 'gray')
                     ->formatStateUsing(fn($record) => $record->warning_count),
 
-                Tables\Columns\TextColumn::make('notice_count')
-                    ->label('Notices')
+                Tables\Columns\TextColumn::make('error_count_20')
+                    ->label('Fehler (2.0)')
+                    ->sortable()
+                    ->badge()
+                    ->color(fn($state): string => $state > 0 ? 'danger' : 'gray')
+                    ->formatStateUsing(fn($record) => $record->error_count_20),
+
+                Tables\Columns\TextColumn::make('warning_count_20')
+                    ->label('Warnings (2.0)')
+                    ->sortable()
+                    ->badge()
+                    ->color(fn($state): string => $state > 0 ? 'warning' : 'gray')
+                    ->formatStateUsing(fn($record) => $record->warning_count_20), //
+
+                Tables\Columns\TextColumn::make('notice_count_20')
+                    ->label('Notices (2.0)')
                     ->sortable()
                     ->badge()
                     ->color(fn($state): string => $state > 0 ? 'info' : 'gray')
-                    ->formatStateUsing(fn($record) => $record->notice_count), //
+                    ->formatStateUsing(fn($record) => $record->notice_count_20), //
+
 
 
             ])
@@ -109,21 +125,19 @@ class Pa11yUrlResource extends Resource
                 Tables\Actions\Action::make('rescan21')
                     ->label('Rescan (2.1)')
                     ->action(function ($record) {
-                        $standard = '2.1'; // Standard festlegen
+
                         $includeNotices = true; // Notices aktivieren
                         $includeWarnings = true; // Warnings aktivieren
 
                         \Log::info('Starting rescan for URL', ['url_id' => $record->id]);
 
                         // Starte das Artisan-Kommando
-                        Artisan::call('scan:accessibility', [
+                        Artisan::call('scan:accessibility-21', [
                             'urls' => [$record->id],      // URL-ID übergeben
-                            '--standard' => $standard,    // Standard 2.1
-                            '--notices' => $includeNotices,
                             '--warnings' => $includeWarnings,
                         ]);
 
-                        session()->flash('success', "Rescan initiated for {$record->url} (Standard: {$standard})");
+                        session()->flash('success', "Rescan initiated for {$record->url} (Standard: 2.1)");
                     }),
                 /*Tables\Actions\Action::make('view_results')
                     ->label('View Results')
@@ -141,7 +155,7 @@ class Pa11yUrlResource extends Resource
                 Tables\Actions\Action::make('rescan')
                     ->label('Rescan')
                     ->action(function ($record) {
-                        $standard = '2.0'; // Standard festlegen
+
                         $levels = 'A,AA,AAA'; // Levels für 2.0
 
                         \Log::info('Starting rescan for URL', ['url_id' => $record->id]);
@@ -149,11 +163,10 @@ class Pa11yUrlResource extends Resource
                         // Starte das Artisan-Kommando
                         Artisan::call('scan:accessibility', [
                             'urls' => [$record->id],      // URL-ID übergeben
-                            '--standard' => $standard,    // Standard übergeben
                             '--levels' => $levels,        // Levels übergeben
                         ]);
 
-                        session()->flash('success', "Rescan initiated for {$record->url} (Standard: {$standard})");
+                        session()->flash('success', "Rescan initiated for {$record->url} (Standard: 2.0");
                     })
                     ->icon('heroicon-o-arrow-path')
                     ->color('primary'),
@@ -212,9 +225,18 @@ class Pa11yUrlResource extends Resource
                     $query->where('type', 'warning')
                         ->where('standard', '2.1');
                 },
-                'accessibilityIssues as notice_count' => function ($query) {
+                'accessibilityIssues as error_count_20' => function ($query) {
+                    $query->where('type', 'error')
+                        ->where('standard', '2.0');
+                },
+                'accessibilityIssues as warning_count_20' => function ($query) {
+                    $query->where('type', 'warning')
+                        ->where('standard', '2.0');
+                },
+
+                'accessibilityIssues as notice_count_20' => function ($query) {
                     $query->where('type', 'notice')
-                        ->where('standard', '2.1');
+                        ->where('standard', '2.0');
                 },
             ]);
     }
