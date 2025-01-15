@@ -38,6 +38,7 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
 
     private function prepareQuery()
     {
+        $standard = $this->getStandard(); // Standard aus der Route abrufen
         $levelMap = ['1' => 'A', '2' => 'AA', '3' => 'AAA'];
         $selectedLevels = array_map(fn($level) => $levelMap[$level], str_split(request()->get('levels', '123')));
 
@@ -45,7 +46,8 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
 
         return Pa11yAccessibilityIssue::query()
             ->when(request('url_id'), fn($query) => $query->where('url_id', request('url_id')))
-            ->when($selectedLevels, fn($query) => $query->whereIn('wcag_level', $selectedLevels))
+            ->when($standard, fn($query) => $query->where('standard', $standard)) // Filter für den Standard
+            ->when($standard === '2.0', fn($query) => $query->whereIn('wcag_level', $selectedLevels)) // Nur für 2.0 Level berücksichtigen
             ->when($type, fn($query) => $query->where('type', $type));
     }
     /**
@@ -55,6 +57,7 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
     {
         return $this->prepareQuery();
     }
+
 
     /**
      * Holen der Datensätze für die Kartenanzeige.
@@ -104,24 +107,31 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
         $levelMap = ['1' => 'A', '2' => 'AA', '3' => 'AAA'];
         $selectedLevels = array_map(fn($level) => $levelMap[$level], str_split(request()->get('levels', '123')));
 
-        // Zähler für jeden Typ unabhängig berechnen
         $url->error_count = $url->accessibilityIssues()
             ->where('type', 'error')
             ->whereIn('wcag_level', $selectedLevels)
+            ->where('standard', $this->getStandard()) // Filter nach Standard
             ->count();
 
         $url->warning_count = $url->accessibilityIssues()
             ->where('type', 'warning')
             ->whereIn('wcag_level', $selectedLevels)
+            ->where('standard', $this->getStandard()) // Filter nach Standard
             ->count();
 
         $url->notice_count = $url->accessibilityIssues()
             ->where('type', 'notice')
             ->whereIn('wcag_level', $selectedLevels)
+            ->where('standard', $this->getStandard()) // Filter nach Standard
             ->count();
 
-        $url->all_count =  $url->error_count + $url->warning_count + $url->notice_count;
+        $url->all_count = $url->error_count + $url->warning_count + $url->notice_count;
         return $url;
+    }
+
+    protected function getStandard(): string
+    {
+        return request()->route('standard', '2.1'); // Standard ist 2.1
     }
 
     protected function getViewData(): array

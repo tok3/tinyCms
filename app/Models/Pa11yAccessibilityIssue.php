@@ -17,6 +17,7 @@ class Pa11yAccessibilityIssue extends Model
         'context',
         'runner',
         'runnerExtras',
+        'standard',
     ];
 
     public function url()

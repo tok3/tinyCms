@@ -39,17 +39,16 @@ class ListPa11yAccessibilityIssues extends Page
      */
     private function getBaseQuery()
     {
+        $standard = $this->getStandard(); // Aktuellen Standard bestimmen
         $levelMap = ['1' => 'A', '2' => 'AA', '3' => 'AAA'];
         $selectedLevels = str_split(request()->get('levels', '123'));
         $wcagLevels = array_map(fn($level) => $levelMap[$level], $selectedLevels);
 
-        // Validierung der Anfrageparameter
-        $type = in_array(request('type'), ['error', 'warning', 'notice']) ? request('type') : null;
-
         return Pa11yAccessibilityIssue::query()
             ->when(request('url_id'), fn($query) => $query->where('url_id', request('url_id')))
-            ->when($wcagLevels, fn($query) => $query->whereIn('wcag_level', $wcagLevels))
-            ->when($type, fn($query) => $query->where('type', $type));
+            ->when($standard === '2.0', fn($query) => $query->whereIn('wcag_level', $wcagLevels)) // Filter für 2.0
+            ->when($standard === '2.1', fn($query) => $query->where('standard', '2.1')) // Filter für 2.1
+            ->when(in_array(request('type'), ['error', 'warning', 'notice']), fn($query) => $query->where('type', request('type')));
     }
 
     /**
@@ -106,6 +105,11 @@ class ListPa11yAccessibilityIssues extends Page
             'slugGrouped' => Pa11yAccessibilityIssueResource::getUrl('grouped'),
             'slugIndex' => Pa11yAccessibilityIssueResource::getUrl('index'),
         ];
+    }
+
+    protected function getStandard(): string
+    {
+        return request()->route('standard', '2.1'); // Standard ist 2.1
     }
 
 }

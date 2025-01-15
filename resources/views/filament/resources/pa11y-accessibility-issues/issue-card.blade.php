@@ -20,6 +20,7 @@
                         <text x="12" y="16" text-anchor="middle" fill="currentColor" font-size="12" font-weight="bold">!</text>
                     </svg>
                 @endif
+             id:{{$issue->id}} standard: {{$issue->standard}}<br>
                 {{ ucfirst($issue->type) }}
             </span>
         <span class="ml-auto text-gray-500 dark:text-gray-400 text-xs">WCAG Level: {{ $issue->wcag_level ?? 'Not specified' }}</span>

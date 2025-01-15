@@ -106,6 +106,25 @@ class Pa11yUrlResource extends Resource
 
             ])
             ->actions([
+                Tables\Actions\Action::make('rescan21')
+                    ->label('Rescan (2.1)')
+                    ->action(function ($record) {
+                        $standard = '2.1'; // Standard festlegen
+                        $includeNotices = true; // Notices aktivieren
+                        $includeWarnings = true; // Warnings aktivieren
+
+                        \Log::info('Starting rescan for URL', ['url_id' => $record->id]);
+
+                        // Starte das Artisan-Kommando
+                        Artisan::call('scan:accessibility', [
+                            'urls' => [$record->id],      // URL-ID übergeben
+                            '--standard' => $standard,    // Standard 2.1
+                            '--notices' => $includeNotices,
+                            '--warnings' => $includeWarnings,
+                        ]);
+
+                        session()->flash('success', "Rescan initiated for {$record->url} (Standard: {$standard})");
+                    }),
                 /*Tables\Actions\Action::make('view_results')
                     ->label('View Results')
                     ->url(fn($record) => static::getUrl('view', ['record' => $record->id]))
@@ -122,18 +141,19 @@ class Pa11yUrlResource extends Resource
                 Tables\Actions\Action::make('rescan')
                     ->label('Rescan')
                     ->action(function ($record) {
-                        // Levels (A, AA, AAA)
-                        $levels = 'A,AA,AAA'; // Alle Levels zusammengefasst
+                        $standard = '2.0'; // Standard festlegen
+                        $levels = 'A,AA,AAA'; // Levels für 2.0
 
                         \Log::info('Starting rescan for URL', ['url_id' => $record->id]);
 
-                        // Starte das Artisan Kommando für die URL und die Levels
+                        // Starte das Artisan-Kommando
                         Artisan::call('scan:accessibility', [
-                            'urls' => [$record->id],  // URL-ID übergeben
-                            '--levels' => $levels,     // Levels zusammen übergeben
+                            'urls' => [$record->id],      // URL-ID übergeben
+                            '--standard' => $standard,    // Standard übergeben
+                            '--levels' => $levels,        // Levels übergeben
                         ]);
 
-                        session()->flash('success', 'Rescan initiated for ' . $record->url);
+                        session()->flash('success', "Rescan initiated for {$record->url} (Standard: {$standard})");
                     })
                     ->icon('heroicon-o-arrow-path')
                     ->color('primary'),
@@ -185,13 +205,16 @@ class Pa11yUrlResource extends Resource
         return parent::getEloquentQuery()
             ->withCount([
                 'accessibilityIssues as error_count' => function ($query) {
-                    $query->where('type', 'error');
+                    $query->where('type', 'error')
+                        ->where('standard', '2.1');
                 },
                 'accessibilityIssues as warning_count' => function ($query) {
-                    $query->where('type', 'warning');
+                    $query->where('type', 'warning')
+                        ->where('standard', '2.1');
                 },
                 'accessibilityIssues as notice_count' => function ($query) {
-                    $query->where('type', 'notice');
+                    $query->where('type', 'notice')
+                        ->where('standard', '2.1');
                 },
             ]);
     }
