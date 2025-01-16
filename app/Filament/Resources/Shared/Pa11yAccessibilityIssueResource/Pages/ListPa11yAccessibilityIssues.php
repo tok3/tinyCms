@@ -125,6 +125,7 @@ class ListPa11yAccessibilityIssues extends Page
         return [
             'slugGrouped' => Pa11yAccessibilityIssueResource::getUrl('grouped'),
             'slugIndex' => Pa11yAccessibilityIssueResource::getUrl('index'),
+            'standard' => $this->getStandard(),
         ];
     }
 

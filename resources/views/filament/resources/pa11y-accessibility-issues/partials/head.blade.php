@@ -1,43 +1,14 @@
+@php
+    $queryES = request()->except(['standard']); // Alle Parameter außer `standard`
+    $currentStandard = request()->route('standard', '2.1'); // Aktueller Standard
 
-<div class="inline-flex rounded-md shadow-sm" role="group">
-    @php
-        $query = request()->except(['standard']); // Alle Parameter außer `standard`
-        $currentStandard = request()->route('standard', '2.1'); // Aktueller Standard
-    @endphp
-
-        <!-- WCAG 2.1 Tab -->
-    <a href="{{ url('/admin/firmament-issues/2.1') . '?' . http_build_query($query) }}"
-       class="inline-flex items-center px-4 py-2 text-sm font-medium {{ $currentStandard === '2.1' ? 'bg-blue-200' : 'bg-white' }}">
-        WCAG 2.1
-    </a>
-
-    <!-- WCAG 2.0 Tab -->
-    <a href="{{ url('/admin/firmament-issues/2.0') . '?' . http_build_query($query) }}"
-       class="inline-flex items-center px-4 py-2 text-sm font-medium {{ $currentStandard === '2.0' ? 'bg-blue-200' : 'bg-white' }}">
-        WCAG 2.0
-    </a>
-</div>
-
-<div class="inline-flex rounded-md shadow-sm" role="group">
-
-    @php
-        $query = request()->getQueryString() ? '?' . request()->getQueryString() : '';
-        $currentRoute = Route::currentRouteName(); // Aktuelle Route
-    @endphp
-
-        <!-- Link zur gruppierten Ansicht -->
-    <a  href="{{ $slugGrouped . $query }}"
-        class="inline-flex items-center px-4 py-2 text-sm font-medium border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white  {{ $currentRoute === 'filament.admin.resources.firmament-issues.grouped' ? 'bg-gray-200 text-gray-900 dark:text-gray-400' : 'bg-white dark:text-white'  }}">
-        Anzeige: Gruppiert
-    </a>
-
-    <!-- Link zur einzelnen Ansicht -->
-    <a disabled href="{{ $slugIndex . $query }}"
-       class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900  border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700  dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white {{ $currentRoute === 'filament.admin.resources.firmament-issues.index' ? 'bg-gray-200 text-gray-900 dark:text-gray-400' : 'bg-white dark:text-white' }}">
-        Anzeige: Einzeln
-    </a>
-</div>
-
+    if(Route::currentRouteName() === 'filament.admin.resources.firmament-issues.grouped'){
+        $grouped='grouped/' ;
+    }
+        else{
+             $grouped = '';
+        }
+@endphp
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
     <!-- Linke Spalte -->
@@ -50,11 +21,43 @@
         <!-- -->
         <div class="flex items-start mb-2">
             <!-- Datum oben -->
-            <p class="text-sm text-gray-600 font-bold">
-                Letzter Scan: {{ \Illuminate\Support\Carbon::parse($this->fetchUrl()->last_checked)->locale(app()->getLocale())->isoFormat('LLL') }}
+            <table>
+                <tr>
+                    <td>
+                        <p class="text-sm text-gray-600 font-bold">
 
-            </p>
+                            Letzter Scan: {{ \Illuminate\Support\Carbon::parse($this->fetchUrl()->last_checked)->locale(app()->getLocale())->isoFormat('LLL') }}
 
+
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="mt-3" role="group">
+
+                            @php
+                                $query = request()->getQueryString() ? '?' . request()->getQueryString() : '';
+                                $currentRoute = Route::currentRouteName(); // Aktuelle Route
+
+                            @endphp
+
+                                <!-- Link zur gruppierten Ansicht -->
+                            <a href="{{ $slugGrouped .'/'.$currentStandard. $query }}"
+                               class="text-xs font-medium inline-flex items-center px-4 py-2 text-sm font-medium border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white  {{ $currentRoute === 'filament.admin.resources.firmament-issues.grouped' ? 'bg-gray-200 text-gray-900 dark:text-gray-400' : 'bg-white dark:text-white'  }}">
+                                Anzeige: Gruppiert
+                            </a>
+
+                            <!-- Link zur einzelnen Ansicht -->
+                            <a disabled href="{{ $slugIndex .'/'.$currentStandard . $query }}"
+                               class="text-xs font-medium inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900  border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700  dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white {{ $currentRoute === 'filament.admin.resources.firmament-issues.index' ? 'bg-gray-200 text-gray-900 dark:text-gray-400' : 'bg-white dark:text-white' }}">
+                                Anzeige: Einzeln
+                            </a>
+
+                        </div>
+                    </td>
+                </tr>
+            </table>
             <!-- Dynamische Zählung -->
             <span class="ml-auto text-gray-500 dark:text-gray-400 text-xs">
         <div class="space-y-2">
@@ -69,7 +72,22 @@
         <!-- -->
 
         <!-- wcag filter -->
-        @if(request()->route('standard', '2.1') === '2.0')
+        <h3 class="mb-4 font-semibold text-gray-900 dark:text-white">WCAG Level</h3><div class="inline-flex rounded-md shadow-sm" role="group">
+
+            <!-- WCAG 2.1 Tab -->
+            <a href="{{ url('/admin/firmament-issues/'.$grouped.'2.1') . '?' . http_build_query($queryES) }}"
+               class="text-xs inline-flex items-center px-4 py-2 text-sm border border-dark rounded-s-lg font-medium {{ $currentStandard === '2.1' ? 'bg-blue-200' : 'bg-white dark:text-gray-700' }}">
+                WCAG 2.1
+            </a>
+
+            <!-- WCAG 2.0 Tab -->
+            <a href="{{ url('/admin/firmament-issues/'.$grouped.'2.0') . '?' . http_build_query($queryES) }}"
+               class="text-xs inline-flex items-center px-4 py-2 text-sm border border-dark rounded-e-lg font-medium {{ $currentStandard === '2.0' ? 'bg-blue-200' : 'bg-white dark:text-gray-700' }}">
+                WCAG 2.0
+            </a>
+        </div>
+
+    @if(request()->route('standard', '2.1') === '2.0')
             @include('filament.resources.pa11y-accessibility-issues.partials.level_filters')
         @endif
 

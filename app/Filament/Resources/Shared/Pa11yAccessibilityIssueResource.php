@@ -33,6 +33,7 @@ class Pa11yAccessibilityIssueResource extends Resource
     }
     public static function getPages(): array
     {
+
         return [
             'index' => Pages\ListPa11yAccessibilityIssues::route('/{standard?}'),
             'grouped' => Pages\ListPa11yAccessibilityIssuesGrouped::route('/grouped/{standard?}'),
