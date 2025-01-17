@@ -18,7 +18,7 @@
 
         <!-- Karten-Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4">
-            @foreach ($this->getRecords() as $issue)
+            @foreach ($records as $issue)
                 @include('filament.resources.pa11y-accessibility-issues.issue-card', ['issue' => $issue])
             @endforeach
         </div>
@@ -42,6 +42,7 @@
                 </script>--}}
         <!-- Pagination -->
         <div>
+
             {{ $this->getRecords()->appends(request()->query())->links() }}
         </div>
 

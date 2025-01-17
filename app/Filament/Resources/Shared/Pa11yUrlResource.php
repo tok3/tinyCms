@@ -247,7 +247,7 @@ class Pa11yUrlResource extends Resource
             'index' => Pages\ListPa11yUrls::route('/'),
             'create' => Pages\CreatePa11yUrl::route('/create'),
             'edit' => Pages\EditPa11yUrl::route('/{record}/edit'),
-            'view' => Pages\ViewPa11yUrl::route('/{record}/view'), // Neue View-Seite
+
         ];
     }
 

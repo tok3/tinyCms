@@ -122,11 +122,27 @@ class ListPa11yAccessibilityIssues extends Page
 
     protected function getViewData(): array
     {
+
         return [
             'slugGrouped' => Pa11yAccessibilityIssueResource::getUrl('grouped'),
             'slugIndex' => Pa11yAccessibilityIssueResource::getUrl('index'),
             'standard' => $this->getStandard(),
+            'records' => $this->prepedRecords(),
         ];
+    }
+
+    protected function prepedRecords()
+    {
+        $records = $this->getRecords();
+
+        /*if($this->getStandard() == '2.1')
+        {
+$axeExtra = json_decode($this->)
+            die();
+
+        }*/
+
+return $records;
     }
 
     protected function getStandard(): string
