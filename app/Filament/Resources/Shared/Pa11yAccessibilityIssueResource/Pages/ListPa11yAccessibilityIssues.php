@@ -135,6 +135,9 @@ class ListPa11yAccessibilityIssues extends Page
     {
         $records = $this->getRecords();
 
+
+
+
         /*if($this->getStandard() == '2.1')
         {
 $axeExtra = json_decode($this->)

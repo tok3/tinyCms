@@ -39,6 +39,13 @@ class Pa11yAccessibilityIssue extends Model
         return MessageTranslationService::translate($msg, 'de_DE');
     }
 
+
+    // Relation zu AccessibilityRule
+    public function accessibilityRule()
+    {
+        return $this->belongsTo(AccessibilityRule::class, 'code', 'rule_id');
+    }
+
     /**
      * Liefert die Links zur W3C-Dokumentation basierend auf den WCAG-Codes.
      *

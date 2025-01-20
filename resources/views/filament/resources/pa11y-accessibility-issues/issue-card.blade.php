@@ -78,9 +78,6 @@
 
     @if (!empty($issue->wcag_links))
         <p class="text-sm text-gray-600 dark:text-gray-300 mt-2"><strong>Info:</strong></p>
-       @if($issue->runnerExtras > 0)
-        <a href="{{json_decode($issue->runnerExtras)->helpUrl}}"class="text-blue-500 dark:text-blue-300 underline" target="_blank">[Hilfe : {{$issue->code}}]</a><br>
-        @endif
         @foreach ($issue->wcag_links as $link)
             <a href="{{ $link }}" class="text-blue-500 dark:text-blue-300 underline" target="_blank">{{ $link }}</a><br>
         @endforeach

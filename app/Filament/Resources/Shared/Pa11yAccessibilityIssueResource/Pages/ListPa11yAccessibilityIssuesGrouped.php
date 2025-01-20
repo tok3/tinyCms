@@ -7,6 +7,7 @@ use App\Filament\Resources\Shared\Pa11yUrlResource;
 use App\Models\Pa11yAccessibilityIssue;
 use Filament\Resources\Pages\Page;
 use App\Models\Pa11yUrl;
+use App\Models\AccessibilityRule;
 
 class ListPa11yAccessibilityIssuesGrouped extends Page
 {
@@ -104,31 +105,62 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
     public function fetchUrlWithCounts()
     {
         $url = Pa11yUrl::findOrFail(request('url_id'));
-        $levelMap = ['1' => 'A', '2' => 'AA', '3' => 'AAA'];
-        $selectedLevels = array_map(fn($level) => $levelMap[$level], str_split(request()->get('levels', '123')));
+        $standard = $this->getStandard();
 
-        $url->error_count = $url->accessibilityIssues()
-            ->where('type', 'error')
-            ->whereIn('wcag_level', $selectedLevels)
-            ->where('standard', $this->getStandard()) // Filter nach Standard
-            ->count();
+        if ($standard === '2.1') {
+            // Zählung für 2.1
+            $url->error_count = $url->accessibilityIssues()
+                ->where('type', 'error')
+                ->where('standard', '2.1')
+                ->count();
 
-        $url->warning_count = $url->accessibilityIssues()
-            ->where('type', 'warning')
-            ->whereIn('wcag_level', $selectedLevels)
-            ->where('standard', $this->getStandard()) // Filter nach Standard
-            ->count();
+            $url->warning_count = $url->accessibilityIssues()
+                ->where('type', 'warning')
+                ->where('standard', '2.1')
+                ->count();
 
-        $url->notice_count = $url->accessibilityIssues()
-            ->where('type', 'notice')
-            ->whereIn('wcag_level', $selectedLevels)
-            ->where('standard', $this->getStandard()) // Filter nach Standard
-            ->count();
+            // Notices gibt es in 2.1 nicht
+            $url->notice_count = 0;
+        } else {
+            // Zählung für 2.0 mit Level-Filter
+            $levelMap = ['1' => 'A', '2' => 'AA', '3' => 'AAA'];
+            $selectedLevels = array_map(fn($level) => $levelMap[$level], str_split(request()->get('levels', '123')));
+
+            $url->error_count = $url->accessibilityIssues()
+                ->where('type', 'error')
+                ->where('standard', '2.0')
+                ->whereIn('wcag_level', $selectedLevels)
+                ->count();
+
+            $url->warning_count = $url->accessibilityIssues()
+                ->where('type', 'warning')
+                ->where('standard', '2.0')
+                ->whereIn('wcag_level', $selectedLevels)
+                ->count();
+
+            $url->notice_count = $url->accessibilityIssues()
+                ->where('type', 'notice')
+                ->where('standard', '2.0')
+                ->whereIn('wcag_level', $selectedLevels)
+                ->count();
+        }
 
         $url->all_count = $url->error_count + $url->warning_count + $url->notice_count;
         return $url;
     }
 
+    protected function prepedRecords()
+    {
+        $records = $this->getRecords();
+
+       // $records = Pa11yAccessibilityIssue::with('accessibilityRule')->get();
+        foreach ($records as $record) {
+            $ruleId = $record->accessibilityRule->description ?? null;
+            echo $ruleId;
+        }
+
+        return $records;
+    }
     protected function getStandard(): string
     {
         return request()->route('standard', '2.1'); // Standard ist 2.1
@@ -136,9 +168,14 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
 
     protected function getViewData(): array
     {
+
+
         return [
             'slugGrouped' => Pa11yAccessibilityIssueResource::getUrl('grouped'),
             'slugIndex' => Pa11yAccessibilityIssueResource::getUrl('index'),
+            'standard' => $this->getStandard(),
+            'records' => $this->prepedRecords(),
+
         ];
     }
 }

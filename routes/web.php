@@ -83,6 +83,13 @@ use App\Http\Controllers\TestController;
 
 Route::get('test-artisan-command/{id?}', [TestController::class, 'testArtisanCommand']);
 // -----------------------------------------------
+use App\Http\Controllers\AccessibilityRuleScraperController;
+
+Route::get('/scrape/{ruleId}', [AccessibilityRuleScraperController::class, 'fetchAdditionalData'])->middleware(['auth']);
+Route::get('/scrape-update', [AccessibilityRuleScraperController::class, 'updateAllAdditionalData'])->middleware(['auth']);
+
+Route::get('/test-output/{ruleId}', [AccessibilityRuleScraperController::class, 'testOutput'])->middleware(['auth']);
+// -----------------------------------------------
 
 use App\Http\Controllers\PublicAccessibilityCheckController;
 

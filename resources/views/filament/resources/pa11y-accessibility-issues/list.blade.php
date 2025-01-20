@@ -22,24 +22,7 @@
                 @include('filament.resources.pa11y-accessibility-issues.issue-card', ['issue' => $issue])
             @endforeach
         </div>
-        {{--
-                <!-- Dropdown für Kartenanzahl -->
-                <div class="mb-4">
-                    <label for="perPage" class="block text-sm font-medium text-gray-700">Karten pro Seite:</label>
-                    <select id="perPage" name="perPage" class="mt-1 block w-32 pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" onchange="updatePerPage(this.value)">
-                        <option value="4" {{ request('perPage') == 4 ? 'selected' : '' }}>4</option>
-                        <option value="6" {{ request('perPage') == 6 ? 'selected' : '' }}>6</option>
-                        <option value="8" {{ request('perPage') == 8 ? 'selected' : '' }}>8</option>
-                    </select>
-                </div>
 
-                <script>
-                    function updatePerPage(perPage) {
-                        const url = new URL(window.location.href);
-                        url.searchParams.set('perPage', perPage);
-                        window.location.href = url.toString();
-                    }
-                </script>--}}
         <!-- Pagination -->
         <div>
 

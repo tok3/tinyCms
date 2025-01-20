@@ -20,6 +20,7 @@
 
         <div class="space-y-8 ">
             @foreach ($this->getGroupedRecords() as $code => $issues)
+
                 <!-- Hauptkarte für den Fehlertyp -->
                 <div class="issue-group bg-white dark:bg-gray-800 border-l-4 shadow p-4 rounded mb-4
             @if ($issues->first()->type === 'error') border-red-500 dark:border-red-700
@@ -49,6 +50,8 @@
                     @endif
 
                     {{ ucfirst($issues->first()->type) }}
+
+
                 </span>
 
                         <!-- WCAG Level -->
@@ -72,6 +75,9 @@
                         </summary>
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4 mt-4">
                             @foreach ($issues as $issue)
+
+
+
                                 @include('filament.resources.pa11y-accessibility-issues.issue-card-grouped', ['issue' => $issue])
                             @endforeach
                         </div>

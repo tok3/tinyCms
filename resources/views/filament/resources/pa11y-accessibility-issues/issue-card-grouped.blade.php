@@ -26,7 +26,7 @@
 
     </div>
 
-
+{{$issue->accessibilityRule->rule_id}}
     <p class="text-sm text-gray-600 dark:text-gray-300 mt-2"><strong>Selector:</strong></p>
     @if ($issue->selector)
     <pre><code class="language-html">{{ $issue->selector }}</code></pre>
