@@ -38,7 +38,6 @@
 
     @yield('add-head')
     @stack('add-head')
-    <meta name="google-site-verification" content="z0LDocdlVMWGFPRsqXFjUk8KctwBCIt7FVgSLgztD2E" />
     <title>{{ isset(json_decode($page, true)['title']) ? json_decode($page, true)['title'] : '' }}</title>
 
 </head>
