@@ -39,47 +39,5 @@
     <p class="text-sm text-gray-600 dark:text-gray-300 mt-2">
 
         <strong>Code:</strong> {{ $issue->code }}</p>
-    <!-- -->
-    {{--  <div class="flex items-center mb-2">
-              <span class="text-sm font-bold uppercase flex items-center">
-                      <p class="text-sm text-gray-600 dark:text-gray-300 mt-2"><strong>Info:</strong></p>
-                 </span>
-          <span class="ml-auto text-gray-500 dark:text-gray-400 text-xs">@if($issue->wcag_level == 'A')
-                  <a class="ml-auto" href="https://www.w3.org/WAI/WCAG2A-Conformance"
-                     title="Explanation of WCAG 2 Level A Conformance">
-                  <img height="32" width="88"
-                       src="https://www.w3.org/WAI/wcag2A-blue"
-                       alt="Level A conformance,
-              W3C WAI Web Content Accessibility Guidelines 2.0">
-              </a>
-              @endif
-              @if($issue->wcag_level == 'AA')
-                  <a class="ml-auto" href="https://www.w3.org/WAI/WCAG2AA-Conformance"
-                     title="Explanation of WCAG 2 Level AA conformance">
-                  <img height="32" width="88"
-                       src="{{asset('assets/img/wcag2AA-blue')}}"
-                       alt="Level AA conformance,
-              W3C WAI Web Content Accessibility Guidelines 2.0">
-              </a>
-              @endif
-              @if($issue->wcag_level == 'AAA')
 
-                  <a href="https://www.w3.org/WAI/WCAG2AAA-Conformance"
-                     title="Explanation of WCAG 2 Level AAA conformance">
-                  <img class="" height="32" width="88"
-                       src="https://www.w3.org/WAI/wcag2AAA-blue"
-                       alt="Level AAA conformance,
-              W3C WAI Web Content Accessibility Guidelines 2.0">
-              </a>
-              @endif</span>
-
-      </div>--}}
-    <!-- -->
-
-  {{--  @if (!empty($issue->wcag_links))
-        <p class="text-sm text-gray-600 dark:text-gray-300 mt-2"><strong>Info:</strong></p>
-        @foreach ($issue->wcag_links as $link)
-            <a href="{{ $link }}" class="text-blue-500 dark:text-blue-300 underline" target="_blank">{{ $link }}</a><br>
-        @endforeach
-    @endif--}}
 </div>

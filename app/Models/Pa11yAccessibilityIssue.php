@@ -26,6 +26,7 @@ class Pa11yAccessibilityIssue extends Model
         return $this->belongsTo(Pa11yUrl::class);
     }
 
+
     public function getTranslatedMessageAttribute()
     {
         $msg = $this->issue;

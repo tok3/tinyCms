@@ -13,7 +13,22 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
 {
     protected static string $resource = Pa11yAccessibilityIssueResource::class;
 
-    protected static string $view = 'filament.resources.pa11y-accessibility-issues.list-grouped';
+
+    // Diese Methode entscheidet, welcher View geladen wird
+    protected function determineView(): string
+    {
+        $standard = $this->getStandard();
+
+        return $standard === '2.1'
+            ? 'filament.resources.pa11y-accessibility-issues.list-grouped-21'
+            : 'filament.resources.pa11y-accessibility-issues.list-grouped';
+    }
+
+    public function mount(): void
+    {
+        // Setze die View dynamisch
+        static::$view = $this->determineView();
+    }
 
     public function getTitle(): string
     {
@@ -46,6 +61,7 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
         $type = in_array(request('type'), ['error', 'warning', 'notice']) ? request('type') : null;
 
         return Pa11yAccessibilityIssue::query()
+            ->when($standard === '2.1', fn($query) => $query->with('accessibilityRule')) // Eager Loading nur für 2.1
             ->when(request('url_id'), fn($query) => $query->where('url_id', request('url_id')))
             ->when($standard, fn($query) => $query->where('standard', $standard)) // Filter für den Standard
             ->when($standard === '2.0', fn($query) => $query->whereIn('wcag_level', $selectedLevels)) // Nur für 2.0 Level berücksichtigen
@@ -152,12 +168,6 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
     protected function prepedRecords()
     {
         $records = $this->getRecords();
-
-       // $records = Pa11yAccessibilityIssue::with('accessibilityRule')->get();
-        foreach ($records as $record) {
-            $ruleId = $record->accessibilityRule->description ?? null;
-            echo $ruleId;
-        }
 
         return $records;
     }
