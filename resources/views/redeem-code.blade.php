@@ -28,7 +28,7 @@
                 <div class="col-lg-4 pt-3 pb-4 pb-lg-5 pt-lg-5 me-auto col-md-6 z-2">
                     <div>
                         <!--:Logo:-->
-                        <a class="navbar-brand" href="{{url('index.html')}}">
+                        <a class="navbar-brand" href="{{url('/')}}">
                             <img src="{{url('assets/img/logo/logo.svg')}}" alt="logo" class="width-10x navbar-brand-light mb-5">
                             <img src="{{url('assets/img/logo/logo-white.svg')}}" alt="logo" class="width-10x navbar-brand-dark mb-5">
                         </a>
