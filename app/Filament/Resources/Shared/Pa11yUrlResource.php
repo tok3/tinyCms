@@ -14,6 +14,8 @@ use Filament\Tables\Actions\BulkAction;
 use Illuminate\Support\Facades\Artisan;
 use App\Models\Company;
 use Filament\Tables\Columns\TextColumn;
+use Illuminate\Support\HtmlString;
+
 use App\Filament\Resources\Shared\Pa11yAccessibilityIssueResource;
 class Pa11yUrlResource extends Resource
 {
