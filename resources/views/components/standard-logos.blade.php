@@ -49,7 +49,7 @@
 </style>
 <div class="standard-logos-container">
     <!-- Logos -->
-    <div class="logos flex flex-wrap gap-2">
+    <div class="logos flex flex-wrap gap-4">
         @foreach ($processedStandards['logos'] as $logo)
             <a href="{{ $logo['link'] }}" title="{{ $logo['alt'] }}" class="logo-item">
                 <img src="{{ $logo['img'] }}" alt="{{ $logo['alt'] }}" class="logo-img">

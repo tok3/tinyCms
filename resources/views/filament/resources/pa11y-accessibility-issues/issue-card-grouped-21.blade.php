@@ -22,14 +22,14 @@
                 @endif
 
             </span><span class="text-gray-500 dark:text-gray-400 text-xs">#{{$issue->id}}</span>
-        <span class="ml-auto text-gray-500 dark:text-gray-400 text-xs">WCAG Level: {{ $issue->wcag_level ?? 'Not specified' }}</span>
+        <span class="ml-auto text-gray-500 dark:text-gray-400 text-xs">Type: {{ $issue->accessibilityRule->issue_type ?? 'Not specified' }}</span>
 
     </div>
 
 
     <p class="text-sm text-gray-600 dark:text-gray-300 mt-2"><strong>Selector:</strong></p>
     @if ($issue->selector)
-    <pre><code class="language-html">{{ $issue->selector }}</code></pre>
+    <pre><code class="issueHint language-html">{{ $issue->selector }}</code></pre>
     @endif
     @if ($issue->context)
         <p class="text-sm text-gray-600 dark:text-gray-300 mt-2"><strong>Context:</strong></p>
