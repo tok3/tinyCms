@@ -81,14 +81,22 @@ class VerifyCustomerAccess
      */
     private function createPa11yUrlAndScan(int $companyId, string $referrer): void
     {
+        // Prüfen, wie viele URLs die Firma bereits hat
+        $urlCount = Pa11yUrl::where('company_id', $companyId)->count();
+
+        // Falls die Firma bereits 10 URLs hat, keine weitere speichern
+        if ($urlCount >= 10) {
+            \Log::info("Company {$companyId} hat bereits 10 URLs. Keine weitere URL wird gespeichert.");
+            return;
+        }
+
         // Überprüfen, ob die URL bereits existiert
         $existingUrl = Pa11yUrl::where('company_id', $companyId)
             ->where('url', $referrer)
             ->first();
 
         // Wenn die URL nicht existiert, erstelle sie
-        if (!$existingUrl)
-        {
+        if (!$existingUrl) {
             // Pa11yUrl erstellen
             $url = Pa11yUrl::create([
                 'company_id' => $companyId,
@@ -96,15 +104,8 @@ class VerifyCustomerAccess
             ]);
 
             // Artisan-Befehl im Hintergrund ausführen
-            $command = "php ".base_path('artisan')." scan:accessibility-21 {$url->id} > /dev/null 2>&1 &";
-            // Befehl ausführen
+            $command = "php " . base_path('artisan') . " scan:accessibility-21 {$url->id} > /dev/null 2>&1 &";
             shell_exec($command);
-
-        }
-        else
-        {
-            // Falls die URL bereits existiert, optional eine Log-Meldung oder Fehlerbehandlung hinzufügen
-           // \Log::info("URL already exists for company {$companyId}: {$referrer}");
         }
     }
 
