@@ -1,47 +1,70 @@
+@php
+    $queryES = request()->except(['standard']); // Alle Parameter außer `standard`
+    $currentStandard = request()->route('standard', '2.1'); // Aktueller Standard
 
-<div class="inline-flex rounded-md shadow-sm" role="group">
-
-    @php
-        $query = request()->getQueryString() ? '?' . request()->getQueryString() : '';
-        $currentRoute = Route::currentRouteName(); // Aktuelle Route
-    @endphp
-
-        <!-- Link zur gruppierten Ansicht -->
-    <a  href="{{ $slugGrouped . $query }}"
-        class="inline-flex items-center px-4 py-2 text-sm font-medium border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white  {{ $currentRoute === 'filament.admin.resources.firmament-issues.grouped' ? 'bg-gray-200 text-gray-900 dark:text-gray-400' : 'bg-white dark:text-white'  }}">
-        Anzeige: Gruppiert
-    </a>
-
-    <!-- Link zur einzelnen Ansicht -->
-    <a disabled href="{{ $slugIndex . $query }}"
-       class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900  border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700  dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white {{ $currentRoute === 'filament.admin.resources.firmament-issues.index' ? 'bg-gray-200 text-gray-900 dark:text-gray-400' : 'bg-white dark:text-white' }}">
-        Anzeige: Einzeln
-    </a>
-</div>
-
-
+    if(Route::currentRouteName() === 'filament.admin.resources.firmament-issues.grouped'){
+        $grouped='grouped/' ;
+    }
+        else{
+             $grouped = '';
+        }
+@endphp
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
     <!-- Linke Spalte -->
     <div class="flex flex-col space-y-4">
-        <h2 class="text-lg font-bold mb-4">
+        <h2 class="text-lg font-bold">
             Scan Ergebnisse für {{ $this->fetchUrl()->url }}
         </h2>
 
-
+        @livewire('pa11y-rescan-button', ['urlId' => $this->fetchUrl()->id, 'standard' => $currentStandard])
         <!-- -->
         <div class="flex items-start mb-2">
             <!-- Datum oben -->
-            <p class="text-sm text-gray-600 font-bold">
-                Letzter Scan: {{ \Illuminate\Support\Carbon::parse($this->fetchUrl()->last_checked)->locale(app()->getLocale())->isoFormat('LLL') }}
+            <table>
+                <tr>
+                    <td>
+                        <p class="text-sm text-gray-600 font-bold">
 
-            </p>
+                            Letzter Scan: {{ \Illuminate\Support\Carbon::parse($this->fetchUrl()->last_checked)->locale(app()->getLocale())->isoFormat('LLL') }}
 
+
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="mt-3" role="group">
+
+                            @php
+                                $query = request()->getQueryString() ? '?' . request()->getQueryString() : '';
+                                $currentRoute = Route::currentRouteName(); // Aktuelle Route
+
+                            @endphp
+
+                                <!-- Link zur gruppierten Ansicht -->
+                            <a href="{{ $slugGrouped .'/'.$currentStandard. $query }}"
+                               class="text-xs font-medium inline-flex items-center px-4 py-2 text-sm font-medium border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white  {{ $currentRoute === 'filament.admin.resources.firmament-issues.grouped' ? 'bg-gray-200 text-gray-900 dark:text-gray-400' : 'bg-white dark:text-white'  }}">
+                                Anzeige: Gruppiert
+                            </a>
+
+                            <!-- Link zur einzelnen Ansicht -->
+                            <a disabled href="{{ $slugIndex .'/'.$currentStandard . $query }}"
+                               class="text-xs font-medium inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900  border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700  dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white {{ $currentRoute === 'filament.admin.resources.firmament-issues.index' ? 'bg-gray-200 text-gray-900 dark:text-gray-400' : 'bg-white dark:text-white' }}">
+                                Anzeige: Einzeln
+                            </a>
+
+                        </div>
+                    </td>
+                </tr>
+            </table>
             <!-- Dynamische Zählung -->
             <span class="ml-auto text-gray-500 dark:text-gray-400 text-xs">
         <div class="space-y-2">
              <p class="text-sm text-red-600">Errors: {{ $this->fetchUrlWithCounts()->error_count }}</p>
                     <p class="text-sm text-yellow-600">Warnings: {{ $this->fetchUrlWithCounts()->warning_count }}</p>
-                    <p class="text-sm text-blue-600">Notices: {{ $this->fetchUrlWithCounts()->notice_count }}</p>
+            @if($currentStandard == "2.0")
+            <p class="text-sm text-blue-600">Notices: {{ $this->fetchUrlWithCounts()->notice_count }}</p>
+                @endif
         </div>
     </span>
         </div>
@@ -51,51 +74,25 @@
 
         <!-- wcag filter -->
         <h3 class="mb-4 font-semibold text-gray-900 dark:text-white">WCAG Level</h3>
-        <ul class="items-center w-full text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg sm:flex dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-            @php
-                // Standardmäßig sind alle aktiv (123)
-                $selectedLevels = str_split(request()->get('levels', '123'));
-                $levelMap = ['1' => 'A', '2' => 'AA', '3' => 'AAA'];
-            @endphp
+        <div class="inline-flex rounded-md shadow-sm" role="group">
 
-            @foreach ($levelMap as $key => $label)
-                <li class="w-full border-b border-gray-200 sm:border-b-0 sm:border-r dark:border-gray-600">
-                    <div class="flex items-center ps-3">
-                        <input
-                            id="level-{{ $label }}"
-                            type="checkbox"
-                            name="levels[]"
-                            value="{{ $key }}"
-                            @checked(in_array($key, $selectedLevels))
-                            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
-                            onchange="handleFilterChange(this)">
-                        <label for="level-{{ $label }}" class="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
-                            <span class="text-gray-500">WCAG2</span>{{ $label }}
-                        </label>
-                    </div>
-                </li>
-            @endforeach
-        </ul>
+            <!-- WCAG 2.1 Tab -->
+            <a href="{{ url('/admin/firmament-issues/'.$grouped.'2.1') . '?' . http_build_query($queryES) }}"
+               class="text-xs inline-flex items-center px-4 py-2 text-sm border border-dark rounded-s-lg font-medium {{ $currentStandard === '2.1' ? 'bg-blue-200' : 'bg-white dark:text-gray-700' }}">
+                WCAG 2.1
+            </a>
 
-        <script>
-            function handleFilterChange(checkbox) {
-                const url = new URL(window.location.href);
-                const selectedCheckboxes = document.querySelectorAll('input[name="levels[]"]:checked');
+            <!-- WCAG 2.0 Tab -->
+            <a href="{{ url('/admin/firmament-issues/'.$grouped.'2.0') . '?' . http_build_query($queryES) }}"
+               class="text-xs inline-flex items-center px-4 py-2 text-sm border border-dark rounded-e-lg font-medium {{ $currentStandard === '2.0' ? 'bg-blue-200' : 'bg-white dark:text-gray-700' }}">
+                WCAG 2.0
+            </a>
+        </div>
 
-                // Entferne alle bestehenden 'levels' Parameter
-                url.searchParams.delete('levels');
+        @if(request()->route('standard', '2.1') === '2.0')
+            @include('filament.resources.pa11y-accessibility-issues.partials.level_filters')
+        @endif
 
-                // Füge die neuen Level-Parameter basierend auf den ausgewählten Checkboxen hinzu
-                const selectedLevels = Array.from(selectedCheckboxes).map(cb => cb.value).join('');
-                if (selectedLevels) {
-                    url.searchParams.set('levels', selectedLevels);
-                }
-
-                // Seite neu laden mit aktualisierten Parametern
-                window.location.href = url.toString();
-            }
-        </script>
-        <!-- ende filter -->
         <div class="flex space-x-4">
             @php
                 // Aktuelle URL-Basis
@@ -117,13 +114,13 @@
                class="px-4 py-2 rounded shadow hover:bg-gray-300 text-black {{ request('type') === null ? 'bg-gray-200' : 'bg-gray-100' }}">
                 All ({{ $this->fetchUrlWithCounts()->all_count}})
             </a>
-
-            <!-- Notices -->
-            <a href="{{ $baseUrl . '?' . http_build_query(array_merge($currentFilters, ['type' => 'notice', 'levels' => $wcagLevels])) }}"
-               class="px-4 py-2 rounded shadow hover:bg-blue-300 text-blue-800 {{ request('type') === 'notice' ? 'bg-blue-200' : 'bg-blue-100' }}">
-                Notices ({{ $this->fetchUrlWithCounts()->notice_count }})
-            </a>
-
+            @if($currentStandard == "2.0")
+                <!-- Notices -->
+                <a href="{{ $baseUrl . '?' . http_build_query(array_merge($currentFilters, ['type' => 'notice', 'levels' => $wcagLevels])) }}"
+                   class="px-4 py-2 rounded shadow hover:bg-blue-300 text-blue-800 {{ request('type') === 'notice' ? 'bg-blue-200' : 'bg-blue-100' }}">
+                    Notices ({{ $this->fetchUrlWithCounts()->notice_count }})
+                </a>
+            @endif
 
             <!-- Warnings -->
             <a href="{{ $baseUrl . '?' . http_build_query(array_merge($currentFilters, ['type' => 'warning', 'levels' => $wcagLevels])) }}"
@@ -140,11 +137,14 @@
 
 
     </div>
-
     <!-- Rechte Spalte -->
     <div class="hidden md:block flex flex-col space-y-4">
         <div>
-            @livewire('pa11y-chart-widget', ['urlId' => $this->fetchUrl()->id])
+            @if($currentStandard == "2.0")
+                @livewire('pa11y-chart-widget', ['urlId' => $this->fetchUrl()->id])
+            @else
+                @livewire('pa11y-chart-widget-21', ['urlId' => $this->fetchUrl()->id])
+            @endif
         </div>
     </div>
 </div>

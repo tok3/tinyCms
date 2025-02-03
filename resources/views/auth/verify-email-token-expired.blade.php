@@ -49,7 +49,7 @@
                                 schade ..
                             </h1>
                             <p class="mb-5 lead mx-auto">
-                                {{ __('Der Freischaltcode ist leider abgelaufen, klicken Sie einfach den Button um einen neuen code zu erhalten') }}</p>
+                                {{ __('Der Der E-Mail-Verifizierungscode ist leider abgelaufen, klicken Sie einfach den Button um einen neuen code zu erhalten') }}</p>
 
                             <div class="mt-4 flex items-center justify-between">
                             <form method="POST" action="{{ route('verification.send') }}">

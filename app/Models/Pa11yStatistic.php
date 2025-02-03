@@ -8,7 +8,7 @@ class Pa11yStatistic extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['company_id', 'url_id', 'wcag_level', 'error_count', 'warning_count', 'notice_count','scanned_at'];
+    protected $fillable = ['company_id', 'url_id', 'wcag_level', 'standard','error_count', 'warning_count', 'notice_count','scanned_at'];
 
     public function company()
     {

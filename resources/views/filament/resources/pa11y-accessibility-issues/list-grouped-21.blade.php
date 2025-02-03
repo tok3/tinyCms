@@ -10,16 +10,42 @@
 
         });
     </script>
+    <style>
+        CODE {
+            margin-right: 3px;
+            margin-left: 3px;
+        }
+
+        .float-box {
+            float: right; /* Position the box on the right */
+            width: 20%; /* Set the box width to 20% */
+            background-color: #f0f0f0;
+            border: 1px solid #dadada;
+            padding: 10px;
+            margin-left: 15px; /* Add space between the box and the text */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .content {
+            overflow: hidden; /* Clears the float and ensures text flows correctly */
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+    </style>
     <div class="space-y-4">
 
 
         @include('filament.resources.pa11y-accessibility-issues.partials.head', ['slugGrouped' => $slugGrouped, 'slugIndex' => $slugIndex])
 
 
+
         <!-- -->
 
         <div class="space-y-8 ">
-
 
 
             @foreach ($this->getGroupedRecords() as $code => $issues)
@@ -51,46 +77,69 @@
                             <text x="12" y="16" text-anchor="middle" fill="currentColor" font-size="12" font-weight="bold">!</text>
                         </svg>
                     @endif
-
                     {{ ucfirst($issues->first()->type) }}
-
-
                 </span>
 
-                        <!-- WCAG Level -->
-                        <span class="ml-auto text-gray-500 dark:text-gray-400 text-xs">
-                    WCAG Level: {{ $issues->first()->wcag_level ?? 'Not specified' }}
 
-
-                </span>
                     </div>
+
 
                     <!-- Beschreibung -->
                     <h2 class="font-bold text-xl mb-4">{{ $code }}</h2>
+
                     <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                    <h3 class="text-lg" style="padding:right 5em !important;">{{ $issues->first()->translated_message }}</h3>
+                    <h2 class="mt-5 mb-3 text-xl font-medium text-gray-900 dark:text-white">{{ $issues->first()->translated_message }}</h2>
                     </p>
+
+                    <!-- Grid für Beschreibung und Sidebar -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Hauptinhalt: Beschreibung -->
+                        <div class="col-span-2">
+                            <!-- Überschrift und Beschreibung -->
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Beschreibung</h3>
+                            <p class="mb-4 text-sm font-medium text-gray-800 dark:text-gray-300">
+                                {!!  $issues->first()->accessibilityRule->merged_html['description'] ?? 'Not specified'  !!}
+                            </p>
+
+                            <!-- Warum ist das Wichtig -->
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Warum ist das Wichtig</h3>
+                            <p class="mb-4 text-sm font-medium text-gray-800 dark:text-gray-300">
+                                {!!  $issues->first()->accessibilityRule->merged_html['why_important'] ?? 'Not specified'  !!}
+                            </p>
+                        </div>
+
+                        <!-- Seitenleiste -->
+                        <div class="col-span-1">
+
+                            <x-summary-data :accessibility-rule="$issues->first()->accessibilityRule"/>
+
+                        </div>
+                    </div>
+
 
                     <!-- Aufklappbare Details -->
                     <details class="mt-4">
                         <summary class="cursor-pointer text-md font-bold text-gray-700 dark:text-gray-400">
                             {{ $issues->count() }} {{ $issues->count() === 1 ? 'Vorkommnis' : 'Vorkommnisse' }} anzeigen
                         </summary>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4 mt-4">
-                            @foreach ($issues as $issue)
 
 
-                                @include('filament.resources.pa11y-accessibility-issues.issue-card-grouped', ['issue' => $issue])
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4 mt-4">
+
+                                @foreach ($issues as $issue)
+
+                                @include('filament.resources.pa11y-accessibility-issues.issue-card-grouped-21', ['issue' => $issue])
                             @endforeach
                         </div>
 
                     </details>
 
-                    @if (!empty($issues->first()->wcag_links))
+                    @if (!empty($issue->accessibilityRule->actRuleLinks))
                         <p class="text-sm text-gray-600 dark:text-gray-300 mt-2"><strong>Info:</strong></p>
-                        @foreach ($issues->first()->wcag_links as $link)
+                        @foreach($issue->accessibilityRule->actRuleLinks as $link)
                             <a href="{{ $link }}" class="text-blue-500 dark:text-blue-300 underline" target="_blank">{{ $link }}</a><br>
                         @endforeach
+
                     @endif
 
 
@@ -98,37 +147,7 @@
             @endforeach
         </div>
 
-        {{--<!-- Karten-Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4">
-            @foreach ($this->getRecords() as $issue)
-            @include('filament.resources.pa11y-accessibility-issues.issue-card', ['issue' => $issue])
-            @endforeach
-        </div>
-        --}}
-        {{--
-        <!-- Dropdown für Kartenanzahl -->
-        <div class="mb-4">
-            <label for="perPage" class="block text-sm font-medium text-gray-700">Karten pro Seite:</label>
-            <select id="perPage" name="perPage"
-                    class="mt-1 block w-32 pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    onchange="updatePerPage(this.value)">
-                <option value="4" {{ request(
-                'perPage') == 4 ? 'selected' : '' }}>4</option>
-                <option value="6" {{ request(
-                'perPage') == 6 ? 'selected' : '' }}>6</option>
-                <option value="8" {{ request(
-                'perPage') == 8 ? 'selected' : '' }}>8</option>
-            </select>
-        </div>
 
-        <script>
-            function updatePerPage(perPage) {
-                const url = new URL(window.location.href);
-                url.searchParams.set('perPage', perPage);
-                window.location.href = url.toString();
-            }
-        </script>
-        --}}
         <!-- Pagination -->
         <div>
             {{ $this->getRecords()->appends(request()->query())->links() }}

@@ -153,6 +153,7 @@ class ScanAccessibility extends Command
             'company_id' => $url->company_id,
             'url_id' => $url->id,
             'wcag_level' => $level,
+            'standard' => '2.0',
             'error_count' => $totalErrors,
             'warning_count' => $totalWarnings,
             'notice_count' => $totalNotices,

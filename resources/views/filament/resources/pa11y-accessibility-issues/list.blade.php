@@ -1,5 +1,7 @@
 <x-filament::page>
-
+@php
+    $currentStandard = request()->route('standard', '2.1'); // Aktueller Standard
+@endphp
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
     <script>
@@ -18,30 +20,20 @@
 
         <!-- Karten-Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4">
-            @foreach ($this->getRecords() as $issue)
+            @foreach ($records as $issue)
+                @if( $currentStandard == "2.0")
                 @include('filament.resources.pa11y-accessibility-issues.issue-card', ['issue' => $issue])
+                @else
+
+                    @include('filament.resources.pa11y-accessibility-issues.issue-card-21', ['issue' => $issue])
+
+                @endif
             @endforeach
         </div>
-        {{--
-                <!-- Dropdown für Kartenanzahl -->
-                <div class="mb-4">
-                    <label for="perPage" class="block text-sm font-medium text-gray-700">Karten pro Seite:</label>
-                    <select id="perPage" name="perPage" class="mt-1 block w-32 pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" onchange="updatePerPage(this.value)">
-                        <option value="4" {{ request('perPage') == 4 ? 'selected' : '' }}>4</option>
-                        <option value="6" {{ request('perPage') == 6 ? 'selected' : '' }}>6</option>
-                        <option value="8" {{ request('perPage') == 8 ? 'selected' : '' }}>8</option>
-                    </select>
-                </div>
 
-                <script>
-                    function updatePerPage(perPage) {
-                        const url = new URL(window.location.href);
-                        url.searchParams.set('perPage', perPage);
-                        window.location.href = url.toString();
-                    }
-                </script>--}}
         <!-- Pagination -->
         <div>
+
             {{ $this->getRecords()->appends(request()->query())->links() }}
         </div>
 

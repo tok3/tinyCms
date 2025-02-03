@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +18,7 @@ class Pa11yAccessibilityIssue extends Model
         'context',
         'runner',
         'runnerExtras',
+        'standard',
     ];
 
     public function url()
@@ -24,9 +26,25 @@ class Pa11yAccessibilityIssue extends Model
         return $this->belongsTo(Pa11yUrl::class);
     }
 
+
     public function getTranslatedMessageAttribute()
     {
-        return MessageTranslationService::translate($this->issue, 'de_DE');
+        $msg = $this->issue;
+        if ($this->standard == '2.1')
+        {
+            $axeExtra = json_decode($this->runnerExtras);
+
+            $msg = $axeExtra->help;
+        }
+
+        return MessageTranslationService::translate($msg, 'de_DE');
+    }
+
+
+    // Relation zu AccessibilityRule
+    public function accessibilityRule()
+    {
+        return $this->belongsTo(AccessibilityRule::class, 'code', 'rule_id');
     }
 
     /**
@@ -47,27 +65,36 @@ class Pa11yAccessibilityIssue extends Model
         ];
 
         // Suche nach dem relevanten Teil des Codes
-        if (preg_match_all('/(?:WCAG2AA\.[^\.]+\.[^\.]+\.([A-Z]+[0-9]+(?:\.[0-9]+)?))|([A-Z]+[0-9]+)/', $this->code, $matches)) {
+        if (preg_match_all('/(?:WCAG2AA\.[^\.]+\.[^\.]+\.([A-Z]+[0-9]+(?:\.[0-9]+)?))|([A-Z]+[0-9]+)/', $this->code, $matches))
+        {
             $codes = array_merge($matches[1], $matches[2]);
             $codes = array_filter($codes); // Entferne leere Elemente
-        } else {
+        }
+        else
+        {
             return ["Kein gültiger WCAG-Code gefunden."];
         }
 
         // Generiere Links für jeden Code
         $links = [];
-        foreach ($codes as $code) {
-            foreach ($prefixes as $prefix => $path) {
-                if (strpos($code, $prefix) === 0) {
+        foreach ($codes as $code)
+        {
+            foreach ($prefixes as $prefix => $path)
+            {
+                if (strpos($code, $prefix) === 0)
+                {
                     $links[] = $baseUrl . $path . $code;
                     continue 2;
                 }
             }
 
             // Erfolgskriterien (z. B. 2.4.6)
-            if (preg_match('/^\d+\.\d+\.\d+$/', $code)) {
+            if (preg_match('/^\d+\.\d+\.\d+$/', $code))
+            {
                 $links[] = "https://www.w3.org/WAI/WCAG21/Understanding/" . str_replace('.', '-', $code) . ".html";
-            } else {
+            }
+            else
+            {
                 //$links[] = "Kein gültiger WCAG-Code für {$code} gefunden.";
             }
         }

@@ -1,2 +1,25 @@
+# Maximale Indexierung und Crawling
 User-agent: *
 Disallow:
+
+# Sitemap-Informationen (sehr wichtig für Suchmaschinen)
+Sitemap: https://aktion-barrierefrei.de/sitemap.xml
+
+# Crawl-Delay (optional, um Serverbelastung zu reduzieren, falls nötig)
+# Crawl-Delay: 10
+
+# Regeln für spezielle Bots (falls du sie explizit zulassen möchtest)
+User-agent: Googlebot
+Disallow:
+
+User-agent: Bingbot
+Disallow:
+
+User-agent: DuckDuckBot
+Disallow:
+
+User-agent: Yandex
+Disallow:
+
+# Generell: Alle User-Agents dürfen alles crawlen.
+

@@ -14,6 +14,8 @@ use Filament\Tables\Actions\BulkAction;
 use Illuminate\Support\Facades\Artisan;
 use App\Models\Company;
 use Filament\Tables\Columns\TextColumn;
+use Illuminate\Support\HtmlString;
+
 use App\Filament\Resources\Shared\Pa11yAccessibilityIssueResource;
 class Pa11yUrlResource extends Resource
 {
@@ -75,68 +77,104 @@ class Pa11yUrlResource extends Resource
                     })
                     ->formatStateUsing(function ($state) {
                         return strlen($state) > 50 ? substr($state, 0, 50) . ' [...]' : $state; // Kürzt die URL und fügt '...' hinzu
-                    }),
-
+                    })
+                    ->url(function ($record) {
+                        return $record->url; // Die URL, die geöffnet werden soll
+                    }, true), // Der zweite Parameter (true) öffnet die URL in einem neuen Tab
                 Tables\Columns\TextColumn::make('last_checked')
                     ->label('Last Checked')
                     ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y H:i'))
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('error_count')
-                    ->label('Errors')
+                    ->label('Fehler')
                     ->sortable()
                     ->badge()
                     ->color(fn($state): string => $state > 0 ? 'danger' : 'gray')
                     ->formatStateUsing(fn($record) => $record->error_count),
 
+
                 Tables\Columns\TextColumn::make('warning_count')
-                    ->label('Warnings')
+                    ->label('Warnungen')
                     ->sortable()
                     ->badge()
                     ->color(fn($state): string => $state > 0 ? 'warning' : 'gray')
                     ->formatStateUsing(fn($record) => $record->warning_count),
+/*
+                Tables\Columns\TextColumn::make('error_count_20')
+                    ->label('Fehler (2.0)')
+                    ->sortable()
+                    ->badge()
+                    ->color(fn($state): string => $state > 0 ? 'danger' : 'gray')
+                    ->formatStateUsing(fn($record) => $record->error_count_20),
 
-                Tables\Columns\TextColumn::make('notice_count')
-                    ->label('Notices')
+                Tables\Columns\TextColumn::make('warning_count_20')
+                    ->label('Warnings (2.0)')
+                    ->sortable()
+                    ->badge()
+                    ->color(fn($state): string => $state > 0 ? 'warning' : 'gray')
+                    ->formatStateUsing(fn($record) => $record->warning_count_20), //
+
+                Tables\Columns\TextColumn::make('notice_count_20')
+                    ->label('Notices (2.0)')
                     ->sortable()
                     ->badge()
                     ->color(fn($state): string => $state > 0 ? 'info' : 'gray')
-                    ->formatStateUsing(fn($record) => $record->notice_count), //
+                    ->formatStateUsing(fn($record) => $record->notice_count_20), //*/
+
 
 
             ])
             ->actions([
+                Tables\Actions\Action::make('rescan21')
+                    ->label('Rescan (2.1)')
+                    ->action(function ($record) {
+
+                        $includeNotices = true; // Notices aktivieren
+                        $includeWarnings = true; // Warnings aktivieren
+
+                        \Log::info('Starting rescan for URL', ['url_id' => $record->id]);
+
+                        // Starte das Artisan-Kommando
+                        Artisan::call('scan:accessibility-21', [
+                            'urls' => [$record->id],      // URL-ID übergeben
+                            '--warnings' => $includeWarnings,
+                        ]);
+
+                        session()->flash('success', "Rescan initiated for {$record->url} (Standard: 2.1)");
+                    }),
                 /*Tables\Actions\Action::make('view_results')
                     ->label('View Results')
                     ->url(fn($record) => static::getUrl('view', ['record' => $record->id]))
                     ->icon('heroicon-o-eye'),*/
 
-                Tables\Actions\Action::make('view_issues')
+                Tables\Actions\Action::make('view_results')
                     ->label('View Results')
-                    ->url(fn($record) => Pa11yAccessibilityIssueResource::getUrl('index', [
+                    ->url(fn($record) => route('filament.admin.resources.firmament-issues.grouped', [
+                        'standard' => '2.1',
                         'url_id' => $record->id,
                     ]))
                     ->icon('heroicon-o-eye'),
 
-
+/*
                 Tables\Actions\Action::make('rescan')
                     ->label('Rescan')
                     ->action(function ($record) {
-                        // Levels (A, AA, AAA)
-                        $levels = 'A,AA,AAA'; // Alle Levels zusammengefasst
+
+                        $levels = 'A,AA,AAA'; // Levels für 2.0
 
                         \Log::info('Starting rescan for URL', ['url_id' => $record->id]);
 
-                        // Starte das Artisan Kommando für die URL und die Levels
+                        // Starte das Artisan-Kommando
                         Artisan::call('scan:accessibility', [
-                            'urls' => [$record->id],  // URL-ID übergeben
-                            '--levels' => $levels,     // Levels zusammen übergeben
+                            'urls' => [$record->id],      // URL-ID übergeben
+                            '--levels' => $levels,        // Levels übergeben
                         ]);
 
-                        session()->flash('success', 'Rescan initiated for ' . $record->url);
+                        session()->flash('success', "Rescan initiated for {$record->url} (Standard: 2.0");
                     })
                     ->icon('heroicon-o-arrow-path')
-                    ->color('primary'),
+                    ->color('primary'),*/
 
                 // Edit-Action (automatisch verfügbar)
                 Tables\Actions\EditAction::make()
@@ -185,13 +223,25 @@ class Pa11yUrlResource extends Resource
         return parent::getEloquentQuery()
             ->withCount([
                 'accessibilityIssues as error_count' => function ($query) {
-                    $query->where('type', 'error');
+                    $query->where('type', 'error')
+                        ->where('standard', '2.1');
                 },
                 'accessibilityIssues as warning_count' => function ($query) {
-                    $query->where('type', 'warning');
+                    $query->where('type', 'warning')
+                        ->where('standard', '2.1');
                 },
-                'accessibilityIssues as notice_count' => function ($query) {
-                    $query->where('type', 'notice');
+                'accessibilityIssues as error_count_20' => function ($query) {
+                    $query->where('type', 'error')
+                        ->where('standard', '2.0');
+                },
+                'accessibilityIssues as warning_count_20' => function ($query) {
+                    $query->where('type', 'warning')
+                        ->where('standard', '2.0');
+                },
+
+                'accessibilityIssues as notice_count_20' => function ($query) {
+                    $query->where('type', 'notice')
+                        ->where('standard', '2.0');
                 },
             ]);
     }
@@ -202,7 +252,7 @@ class Pa11yUrlResource extends Resource
             'index' => Pages\ListPa11yUrls::route('/'),
             'create' => Pages\CreatePa11yUrl::route('/create'),
             'edit' => Pages\EditPa11yUrl::route('/{record}/edit'),
-            'view' => Pages\ViewPa11yUrl::route('/{record}/view'), // Neue View-Seite
+
         ];
     }
 
