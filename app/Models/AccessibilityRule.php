@@ -46,7 +46,7 @@ class AccessibilityRule extends Model
      * @var array
      */
     protected $casts = [
-                //'tags' => 'json',
+        //'tags' => 'json',
         'standards' => 'array',
         'disabilities' => 'array',
         'how_to_fix_text_vars' => 'array',
@@ -130,7 +130,8 @@ class AccessibilityRule extends Model
         // JSON-String zu einem Array dekodieren
         $standards = json_decode($this->standards);
 
-        if (!is_array($standards)) {
+        if (!is_array($standards))
+        {
             return 'Keine Standards verfügbar';
         }
 
@@ -151,11 +152,15 @@ class AccessibilityRule extends Model
             'EN 301 549' => '<span>EN 301 549 Compliance</span>', // Beispiel für EN 301 549
         ];
 
-        foreach ($standards as $standard) {
+        foreach ($standards as $standard)
+        {
             $standard = trim($standard); // Trimmen, falls Leerzeichen vorhanden sind
-            if (isset($logosMap[$standard])) {
+            if (isset($logosMap[$standard]))
+            {
                 $logos .= $logosMap[$standard] . ' ';
-            } else {
+            }
+            else
+            {
                 // Debuggen, wenn etwas fehlt
                 logger("Standard fehlt im Mapping: " . $standard);
             }
@@ -168,7 +173,7 @@ class AccessibilityRule extends Model
     {
         $tags = "";
 
-        foreach (explode(',',$this->tags) as $tag)
+        foreach (explode(',', $this->tags) as $tag)
         {
             $tags .= "<div class='inline-block bg-blue-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 mt-2 dark:bg-gray-700 dark:text-gray-300'>{$tag}</div>";
         }
@@ -177,10 +182,22 @@ class AccessibilityRule extends Model
     }
 
 
-
-    public function getActRuleLinkAttribute($rule)
+    public function getActRuleLinksAttribute()
     {
-        return "https://www.w3.org/WAI/standards-guidelines/act/rules/{$this->act_rule}";
+        // Falls das Feld leer ist oder null, gib ein leeres Array zurück
+        if (empty($this->act_rule)) {
+            return [];
+        }
 
+        // Trenne das Feld in einzelne Regeln, falls mehrere vorhanden sind
+        $rules = array_filter(array_map('trim', explode(',', $this->act_rule)));
+
+        // Falls nach der Filterung keine gültigen Regeln existieren, gib ein leeres Array zurück
+        if (empty($rules)) {
+            return [];
+        }
+
+        // Erstelle für jede Regel den vollständigen Link
+        return array_map(fn($rule) => "https://www.w3.org/WAI/standards-guidelines/act/rules/{$rule}/proposed", $rules);
     }
 }

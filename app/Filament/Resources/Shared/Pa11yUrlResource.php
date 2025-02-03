@@ -77,8 +77,10 @@ class Pa11yUrlResource extends Resource
                     })
                     ->formatStateUsing(function ($state) {
                         return strlen($state) > 50 ? substr($state, 0, 50) . ' [...]' : $state; // Kürzt die URL und fügt '...' hinzu
-                    }),
-
+                    })
+                    ->url(function ($record) {
+                        return $record->url; // Die URL, die geöffnet werden soll
+                    }, true), // Der zweite Parameter (true) öffnet die URL in einem neuen Tab
                 Tables\Columns\TextColumn::make('last_checked')
                     ->label('Last Checked')
                     ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y H:i'))
@@ -98,7 +100,7 @@ class Pa11yUrlResource extends Resource
                     ->badge()
                     ->color(fn($state): string => $state > 0 ? 'warning' : 'gray')
                     ->formatStateUsing(fn($record) => $record->warning_count),
-
+/*
                 Tables\Columns\TextColumn::make('error_count_20')
                     ->label('Fehler (2.0)')
                     ->sortable()
@@ -118,7 +120,7 @@ class Pa11yUrlResource extends Resource
                     ->sortable()
                     ->badge()
                     ->color(fn($state): string => $state > 0 ? 'info' : 'gray')
-                    ->formatStateUsing(fn($record) => $record->notice_count_20), //
+                    ->formatStateUsing(fn($record) => $record->notice_count_20), //*/
 
 
 
@@ -146,14 +148,15 @@ class Pa11yUrlResource extends Resource
                     ->url(fn($record) => static::getUrl('view', ['record' => $record->id]))
                     ->icon('heroicon-o-eye'),*/
 
-                Tables\Actions\Action::make('view_issues')
+                Tables\Actions\Action::make('view_results')
                     ->label('View Results')
-                    ->url(fn($record) => Pa11yAccessibilityIssueResource::getUrl('index', [
+                    ->url(fn($record) => route('filament.admin.resources.firmament-issues.grouped', [
+                        'standard' => '2.1',
                         'url_id' => $record->id,
                     ]))
                     ->icon('heroicon-o-eye'),
 
-
+/*
                 Tables\Actions\Action::make('rescan')
                     ->label('Rescan')
                     ->action(function ($record) {
@@ -171,7 +174,7 @@ class Pa11yUrlResource extends Resource
                         session()->flash('success', "Rescan initiated for {$record->url} (Standard: 2.0");
                     })
                     ->icon('heroicon-o-arrow-path')
-                    ->color('primary'),
+                    ->color('primary'),*/
 
                 // Edit-Action (automatisch verfügbar)
                 Tables\Actions\EditAction::make()

@@ -134,11 +134,11 @@
 
                     </details>
 
-                    @if (!empty($issues->first()->accessibilityRule->act_rule_link))
+                    @if (!empty($issue->accessibilityRule->actRuleLinks))
                         <p class="text-sm text-gray-600 dark:text-gray-300 mt-2"><strong>Info:</strong></p>
-
-                        <a href="{{ $issues->first()->accessibilityRule->act_rule_link }}" class="text-blue-500 dark:text-blue-300 underline"
-                           target="_blank">{{ $issues->first()->accessibilityRule->act_rule_link }}</a><br>
+                        @foreach($issue->accessibilityRule->actRuleLinks as $link)
+                            <a href="{{ $link }}" class="text-blue-500 dark:text-blue-300 underline" target="_blank">{{ $link }}</a><br>
+                        @endforeach
 
                     @endif
 

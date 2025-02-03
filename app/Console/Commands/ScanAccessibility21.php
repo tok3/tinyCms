@@ -5,6 +5,8 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Pa11yUrl;
 use App\Models\Pa11yAccessibilityIssue;
+use App\Models\Pa11yStatistic;
+use Symfony\Component\Process\Process;
 
 class ScanAccessibility21 extends Command
 {
@@ -13,25 +15,18 @@ class ScanAccessibility21 extends Command
 
     public function handle()
     {
-        // URLs holen
         $urls = $this->argument('urls') ? Pa11yUrl::whereIn('id', (array)$this->argument('urls'))->get() : Pa11yUrl::all();
         $includeWarnings = $this->option('warnings') !== null;
 
         foreach ($urls as $url) {
             $this->info("Scanning {$url->url} with WCAG 2.1 standard...");
 
-            // Alte Ergebnisse für WCAG 2.1 löschen
             $this->deleteOldIssues($url->id);
-
-            // Scan starten
             $results = $this->scanWithAxe($url, $includeWarnings);
-
-            // Ergebnisse speichern
             $this->storeResults($url, $results);
+            $this->updateStats($url, $results);
 
-            // Letztes Prüfdatum aktualisieren
             $url->update(['last_checked' => now()]);
-
             $this->info("Finished scanning {$url->url} with WCAG 2.1.");
         }
 
@@ -40,7 +35,6 @@ class ScanAccessibility21 extends Command
 
     private function scanWithAxe($url, $includeWarnings)
     {
-        // Kommandokonstruktion
         $processArgs = [
             'pa11y',
             $url->url,
@@ -54,12 +48,10 @@ class ScanAccessibility21 extends Command
             $processArgs[] = '--include-warnings';
         }
 
-        // Kommando zu String zusammensetzen
         $command = implode(' ', $processArgs);
         $this->info("Executing: $command");
 
         try {
-            // Shell-Befehl ausführen
             $output = shell_exec($command . ' 2>&1');
             $results = json_decode($output, true);
 
@@ -101,5 +93,29 @@ class ScanAccessibility21 extends Command
             ->delete();
 
         $this->info("Deleted old issues for URL ID: {$urlId} (Standard: WCAG 2.1).");
+    }
+
+    private function updateStats(Pa11yUrl $url, array $results)
+    {
+        $totalErrors = count(array_filter($results, fn($r) => $r['type'] === 'error'));
+        $totalWarnings = count(array_filter($results, fn($r) => $r['type'] === 'warning'));
+        $totalNotices = count(array_filter($results, fn($r) => $r['type'] === 'notice'));
+
+        Pa11yStatistic::updateOrCreate(
+            [
+                'url_id' => $url->id,
+                'standard' => '2.1',
+                'wcag_level' => 'combined', // Falls du das kombinierte Level verwendest
+                'scanned_at' => now()->startOfDay(), // Prüft auf Basis des Tages
+            ],
+            [
+                'company_id' => $url->company_id,
+                'error_count' => $totalErrors,
+                'warning_count' => $totalWarnings,
+                'notice_count' => $totalNotices,
+            ]
+        );
+
+        $this->info("Statistics updated for {$url->url} (Standard: WCAG 2.1).");
     }
 }

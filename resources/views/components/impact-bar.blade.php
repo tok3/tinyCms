@@ -8,7 +8,7 @@
     @elseif($impact == "Moderate")
         <div class="bg-orange-300 h-2.5 rounded-full dark:bg-gray-300" style="width: 45%"></div>
     @elseif($impact == "Serious")
-        <div class="bg-red-400 h-2.5 rounded-full dark:bg-gray-300" style="width: 65%"></div>
+        <div class="bg-orange-600 h-2.5 rounded-full dark:bg-gray-300" style="width: 65%"></div>
     @elseif($impact == "Critical")
         <div class="bg-red-600 h-2.5 rounded-full dark:bg-gray-300" style="width: 95%"></div>
     @endif

@@ -18,6 +18,7 @@ class Pa11yChartWidget extends Component
     {
         // Hole die Daten aus der Pa11yStatistic Tabelle
         $statistics = Pa11yStatistic::where('url_id', $this->urlId)
+            ->where('standard', '2.0') // Nur WCAG 2.0-Daten
             ->where('scanned_at', '>=', now()->subDays(14))
             ->selectRaw("
         DATE(scanned_at) as scan_date,
@@ -25,8 +26,8 @@ class Pa11yChartWidget extends Component
         SUM(warning_count) as total_warnings,
         SUM(notice_count) as total_notices
     ")
-            ->groupBy('scan_date') // Gruppiere nach Datum
-            ->orderBy('scan_date', 'asc') // Sortiere aufsteigend nach Datum
+            ->groupBy('scan_date')
+            ->orderBy('scan_date', 'asc')
             ->get();
 
 // Formatiere die Labels und die Daten für die Chart.js Darstellung
