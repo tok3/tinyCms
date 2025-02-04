@@ -18,7 +18,7 @@
     </div>
 </div>--}}
 
-<section class="position-relative p-4 border-top border-bottom">
+<section class="position-relative p-4  border-bottom">
 <style>
 /*
     #summaryOutput {
