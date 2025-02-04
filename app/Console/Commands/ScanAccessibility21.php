@@ -8,6 +8,17 @@ use App\Models\Pa11yAccessibilityIssue;
 use App\Models\Pa11yStatistic;
 use Symfony\Component\Process\Process;
 
+
+/**
+ * Einfacher Aufruf für alle URLs
+ * php artisan scan:accessibility-21
+ *
+ * nur bestimmte URLs scannen
+ * php artisan scan:accessibility-21 123 456 789
+ *
+ * mit der Option --warnings
+ * php artisan scan:accessibility-21 --warnings
+ */
 class ScanAccessibility21 extends Command
 {
     protected $signature = 'scan:accessibility-21 {urls?*} {--warnings}';
@@ -23,7 +34,11 @@ class ScanAccessibility21 extends Command
 
             $this->deleteOldIssues($url->id);
             $results = $this->scanWithAxe($url, $includeWarnings);
-            $this->storeResults($url, $results);
+
+            if ($results !== null) {
+
+                $this->storeResults($url, $results);
+            }
             $this->updateStats($url, $results);
 
             $url->update(['last_checked' => now()]);
@@ -53,19 +68,29 @@ class ScanAccessibility21 extends Command
 
         try {
             $output = shell_exec($command . ' 2>&1');
-            $results = json_decode($output, true);
 
-            if ($results === null) {
-                throw new \Exception("Invalid JSON response: $output");
+            // Überprüfe, ob die Antwort leer ist oder keine gültige JSON-Daten enthält
+            if (empty($output) || !$this->isValidJson($output)) {
+                throw new \Exception("⚠️ Scan fehlgeschlagen oder Seite nicht erreichbar: {$url->url}");
             }
+
+            $results = json_decode($output, true);
 
             return $results;
         } catch (\Exception $e) {
-            $this->error("Error during scan: " . $e->getMessage());
-            return [];
+            \Log::error("Scan-Fehler bei {$url->url}: " . $e->getMessage());
+            return null; // Scan ist fehlgeschlagen
         }
     }
 
+    /**
+     * Prüft, ob eine Zeichenkette gültiges JSON ist
+     */
+    private function isValidJson($string)
+    {
+        json_decode($string);
+        return (json_last_error() == JSON_ERROR_NONE);
+    }
     private function storeResults($url, $results)
     {
         foreach ($results as $result) {
@@ -95,27 +120,102 @@ class ScanAccessibility21 extends Command
         $this->info("Deleted old issues for URL ID: {$urlId} (Standard: WCAG 2.1).");
     }
 
-    private function updateStats(Pa11yUrl $url, array $results)
+    private function updateStats(Pa11yUrl $url, ?array $results)
     {
-        $totalErrors = count(array_filter($results, fn($r) => $r['type'] === 'error'));
-        $totalWarnings = count(array_filter($results, fn($r) => $r['type'] === 'warning'));
-        $totalNotices = count(array_filter($results, fn($r) => $r['type'] === 'notice'));
+        $currentTimestamp = now(); // Speichert jetzt mit Uhrzeit
 
-        Pa11yStatistic::updateOrCreate(
-            [
+        // Fall 1: Scan fehlgeschlagen (z. B. Seite nicht erreichbar)
+        if ($results === null) {
+            \Log::warning("Scan für {$url->url} fehlgeschlagen. Statistik mit NULL gespeichert.");
+
+            $existingStat = Pa11yStatistic::where('url_id', $url->id)
+                ->where('standard', '2.1')
+                ->whereDate('scanned_at', now()) // Prüft nur das Datum, ignoriert die Uhrzeit
+                ->first();
+
+            if ($existingStat) {
+                $existingStat->update([
+                    'error_count' => null,
+                    'warning_count' => null,
+                    'notice_count' => null,
+                    'scanned_at' => $currentTimestamp, // Setzt den aktuellen Timestamp
+                ]);
+            } else {
+                Pa11yStatistic::create([
+                    'url_id' => $url->id,
+                    'standard' => '2.1',
+                    'wcag_level' => 'combined',
+                    'company_id' => $url->company_id,
+                    'error_count' => null,
+                    'warning_count' => null,
+                    'notice_count' => null,
+                    'scanned_at' => $currentTimestamp,
+                ]);
+            }
+            return;
+        }
+
+        // Fall 2: Scan erfolgreich, aber KEINE Fehler gefunden (leeres Array)
+        if (empty($results)) {
+            \Log::info("Perfekte Seite: {$url->url} ist fehlerfrei.");
+
+            $existingStat = Pa11yStatistic::where('url_id', $url->id)
+                ->where('standard', '2.1')
+                ->whereDate('scanned_at', now())
+                ->first();
+
+            if ($existingStat) {
+                $existingStat->update([
+                    'error_count' => 0,
+                    'warning_count' => 0,
+                    'notice_count' => 0,
+                    'scanned_at' => $currentTimestamp,
+                ]);
+            } else {
+                Pa11yStatistic::create([
+                    'url_id' => $url->id,
+                    'standard' => '2.1',
+                    'wcag_level' => 'combined',
+                    'company_id' => $url->company_id,
+                    'error_count' => 0,
+                    'warning_count' => 0,
+                    'notice_count' => 0,
+                    'scanned_at' => $currentTimestamp,
+                ]);
+            }
+            return;
+        }
+
+        // Fall 3: Es gibt Fehler oder Warnungen
+        $totalErrors = count(array_filter($results, fn($r) => isset($r['type']) && $r['type'] === 'error'));
+        $totalWarnings = count(array_filter($results, fn($r) => isset($r['type']) && $r['type'] === 'warning'));
+        $totalNotices = count(array_filter($results, fn($r) => isset($r['type']) && $r['type'] === 'notice'));
+
+        $existingStat = Pa11yStatistic::where('url_id', $url->id)
+            ->where('standard', '2.1')
+            ->whereDate('scanned_at', now())
+            ->first();
+
+        if ($existingStat) {
+            $existingStat->update([
+                'error_count' => $totalErrors,
+                'warning_count' => $totalWarnings,
+                'notice_count' => $totalNotices,
+                'scanned_at' => $currentTimestamp,
+            ]);
+        } else {
+            Pa11yStatistic::create([
                 'url_id' => $url->id,
                 'standard' => '2.1',
-                'wcag_level' => 'combined', // Falls du das kombinierte Level verwendest
-                'scanned_at' => now()->startOfDay(), // Prüft auf Basis des Tages
-            ],
-            [
+                'wcag_level' => 'combined',
                 'company_id' => $url->company_id,
                 'error_count' => $totalErrors,
                 'warning_count' => $totalWarnings,
                 'notice_count' => $totalNotices,
-            ]
-        );
+                'scanned_at' => $currentTimestamp,
+            ]);
+        }
 
-        $this->info("Statistics updated for {$url->url} (Standard: WCAG 2.1).");
+        \Log::info("Scan für {$url->url} abgeschlossen. Fehler: {$totalErrors}, Warnungen: {$totalWarnings}");
     }
 }

@@ -27,9 +27,9 @@ use App\Http\Controllers\Pa11yUrlController;
 |
 */
 
-Route::get('/{any}.html', function () {
+/*Route::get('/{any}.html', function () {
     return redirect('/', 301);
-})->where('any', '.*');
+})->where('any', '.*');*/
 
 // redirect all logins from filament dashbord logins to centralized login
 // Umleitung für /admin/login

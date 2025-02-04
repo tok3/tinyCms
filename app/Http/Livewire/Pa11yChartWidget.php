@@ -32,7 +32,7 @@ class Pa11yChartWidget extends Component
 
 // Formatiere die Labels und die Daten für die Chart.js Darstellung
         $labels = $statistics->map(function ($stat) {
-            return Carbon::parse($stat->scan_date)->format('Y-m-d'); // Formatiere das Datum
+            return Carbon::parse($stat->scan_date)->format('d.m.Y'); // Formatiere das Datum
         })->toArray();
 
         $errors = $statistics->pluck('total_errors')->toArray();

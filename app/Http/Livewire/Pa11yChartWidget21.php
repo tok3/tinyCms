@@ -22,7 +22,7 @@ class Pa11yChartWidget21 extends Component
             ->orderBy('scanned_at', 'asc') // Nach Datum aufsteigend sortieren
             ->get();
 
-        $labels = $statistics->map(fn($stat) => Carbon::parse($stat->scanned_at)->format('Y-m-d H:i'))->toArray(); // Zeitstempel anzeigen
+        $labels = $statistics->map(fn($stat) => Carbon::parse($stat->scanned_at)->format('d.m.Y H:i'))->toArray(); // Zeitstempel anzeigen
         $errors = $statistics->pluck('error_count')->toArray();
         $warnings = $statistics->pluck('warning_count')->toArray();
 

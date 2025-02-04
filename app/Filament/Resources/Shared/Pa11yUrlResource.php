@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Shared;
 
 use App\Models\Pa11yUrl;
+use App\Models\Pa11yStatistic;
 use Carbon\Carbon;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Artisan;
 use App\Models\Company;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Support\HtmlString;
+use App\Helpers\IconHelper;
 
 use App\Filament\Resources\Shared\Pa11yAccessibilityIssueResource;
 class Pa11yUrlResource extends Resource
@@ -87,19 +89,37 @@ class Pa11yUrlResource extends Resource
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('error_count')
-                    ->label('Fehler')
+                    ->label('Fehler (2.1)')
                     ->sortable()
-                    ->badge()
-                    ->color(fn($state): string => $state > 0 ? 'danger' : 'gray')
-                    ->formatStateUsing(fn($record) => $record->error_count),
+                    ->badge(fn($record) => $record->error_count > 0 || $record->error_count < 0) // Kein Badge bei Success
+                    ->formatStateUsing(fn($record) =>
+                    ($record->error_count < 0)
+                        ? new HtmlString('<span title="Scan fehlgeschlagen">'.IconHelper::cross().' </span>') // ❌ Scan fehlgeschlagen
+                        : ($record->error_count == 0
+                        ? IconHelper::shieldCheck() // ✅ Nur Icon anzeigen, kein Badge
+                        : $record->error_count) // Zeigt die Zahl mit Badge an
+                    )
+                    ->color(fn($record): string =>
+                    ($record->error_count < 0) ? 'gray' :
+                        ($record->error_count > 0 ? 'danger' : 'success')
+                    ),
 
 
                 Tables\Columns\TextColumn::make('warning_count')
-                    ->label('Warnungen')
+                    ->label('Warnungen (2.1)')
                     ->sortable()
-                    ->badge()
-                    ->color(fn($state): string => $state > 0 ? 'warning' : 'gray')
-                    ->formatStateUsing(fn($record) => $record->warning_count),
+                    ->badge(fn($record) => $record->warning_count > 0 || $record->warning_count < 0) // Kein Badge bei Success
+                    ->formatStateUsing(fn($record) =>
+                    ($record->warning_count < 0)
+                        ? new HtmlString('<span title="Scan fehlgeschlagen">'.IconHelper::cross().' </span>') // ❌ Scan fehlgeschlagen
+                        : ($record->warning_count == 0
+                        ? IconHelper::shieldCheck() // ✅ Nur Icon anzeigen, kein Badge
+                        : $record->warning_count) // Zeigt die Zahl mit Badge an
+                    )
+                    ->color(fn($record): string =>
+                    ($record->warning_count < 0) ? 'gray' :
+                        ($record->warning_count > 0 ? 'warning' : 'success')
+                    ),
 /*
                 Tables\Columns\TextColumn::make('error_count_20')
                     ->label('Fehler (2.0)')
@@ -156,25 +176,7 @@ class Pa11yUrlResource extends Resource
                     ]))
                     ->icon('heroicon-o-eye'),
 
-/*
-                Tables\Actions\Action::make('rescan')
-                    ->label('Rescan')
-                    ->action(function ($record) {
 
-                        $levels = 'A,AA,AAA'; // Levels für 2.0
-
-                        \Log::info('Starting rescan for URL', ['url_id' => $record->id]);
-
-                        // Starte das Artisan-Kommando
-                        Artisan::call('scan:accessibility', [
-                            'urls' => [$record->id],      // URL-ID übergeben
-                            '--levels' => $levels,        // Levels übergeben
-                        ]);
-
-                        session()->flash('success', "Rescan initiated for {$record->url} (Standard: 2.0");
-                    })
-                    ->icon('heroicon-o-arrow-path')
-                    ->color('primary'),*/
 
                 // Edit-Action (automatisch verfügbar)
                 Tables\Actions\EditAction::make()
@@ -221,6 +223,41 @@ class Pa11yUrlResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
+            ->addSelect([
+                'error_count' => Pa11yStatistic::selectRaw('COALESCE(error_count, -1) as error_count')
+                    ->whereColumn('pa11y_statistics.url_id', 'pa11y_urls.id')
+                    ->where('standard', '2.1')
+                    ->latest('scanned_at')
+                    ->limit(1),
+
+                'warning_count' => Pa11yStatistic::selectRaw('COALESCE(warning_count, -1) as warning_count')
+                    ->whereColumn('pa11y_statistics.url_id', 'pa11y_urls.id')
+                    ->where('standard', '2.1')
+                    ->latest('scanned_at')
+                    ->limit(1),
+
+                'error_count_20' => Pa11yStatistic::select('error_count')
+                    ->whereColumn('pa11y_statistics.url_id', 'pa11y_urls.id')
+                    ->where('standard', '2.0')
+                    ->latest('scanned_at')
+                    ->limit(1),
+
+                'warning_count_20' => Pa11yStatistic::select('warning_count')
+                    ->whereColumn('pa11y_statistics.url_id', 'pa11y_urls.id')
+                    ->where('standard', '2.0')
+                    ->latest('scanned_at')
+                    ->limit(1),
+
+                'notice_count_20' => Pa11yStatistic::select('notice_count')
+                    ->whereColumn('pa11y_statistics.url_id', 'pa11y_urls.id')
+                    ->where('standard', '2.0')
+                    ->latest('scanned_at')
+                    ->limit(1),
+            ]);
+    }
+  /*  public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
             ->withCount([
                 'accessibilityIssues as error_count' => function ($query) {
                     $query->where('type', 'error')
@@ -244,7 +281,7 @@ class Pa11yUrlResource extends Resource
                         ->where('standard', '2.0');
                 },
             ]);
-    }
+    }*/
 
     public static function getPages(): array
     {
