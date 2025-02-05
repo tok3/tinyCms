@@ -141,7 +141,7 @@ class PageController extends Controller
     public function sitemap()
     {
         $path = public_path('sitemap.xml');
-        SitemapGenerator::create('https://aktion-barrierefrei.de')->writeToFile($path);
+        SitemapGenerator::create('https://aktion-barrierefrei.org')->writeToFile($path);
 
         // Redirect back to the previous page with a success message
         return redirect()->back()->with('success', 'Sitemap generated successfully!');

@@ -32,9 +32,9 @@ class SecureHeaders
         $csp = "default-src 'self'; ";
         $csp .= "script-src 'self' https://cdn.jsdelivr.net https://tracking.hausverw.de 'unsafe-inline'; ";
         $csp .= "style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; ";
-        $csp .= "font-src 'self' https://fonts.gstatic.com https://aktion-barrierefrei.de/assets/fonts/ data:; ";
+        $csp .= "font-src 'self' https://fonts.gstatic.com https://aktion-barrierefrei.org/assets/fonts/ data:; ";
         $csp .= "img-src 'self' data: https:; ";
-        $csp .= "connect-src 'self' https://tracking.hausverw.de https://aktion-barrierefrei.de; ";
+        $csp .= "connect-src 'self' https://tracking.hausverw.de https://aktion-barrierefrei.org; ";
 
         // Setze den aktualisierten CSP-Header
         $response->headers->set('Content-Security-Policy', $csp);
