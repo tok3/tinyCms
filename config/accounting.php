@@ -27,7 +27,7 @@ return [
             'country' => 'DE',
         ],
         'contact' => [
-            'email' => 'info@aktion-barrierefrei.de',
+            'email' => 'info@aktion-barrierefrei.org',
         ],
         'business_process' => 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0',  // Peppol-Prozess
     ],

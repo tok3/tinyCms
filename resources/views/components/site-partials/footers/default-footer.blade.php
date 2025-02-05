@@ -78,8 +78,8 @@ Die D-U-N-S Nummer wird von der Europäischen Kommission, den Vereinten Nationen
                         <a href="tel:+4960211307128" class="fw-semibold link-underline link-light">06021-130 712-8</a>
                         <br><br>
                         <strong class="d-block text-white-50 small mb-2">Email:</strong>
-                        <a href="{{ URL::asset('mailto:info@aktion-barrierefrei.de') }}"
-                           class="fw-semibold link-underline link-light">info@aktion-barrierefrei.de</a>
+                        <a href="{{ URL::asset('mailto:info@aktion-barrierefrei.org') }}"
+                           class="fw-semibold link-underline link-light">info@aktion-barrierefrei.org</a>
 
 
                     </div>

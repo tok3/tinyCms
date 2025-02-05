@@ -167,7 +167,7 @@
 
                         <span title="Tel">Fon:</span> +49 6021-130 712-8<br>
                         <span title="Fax">Fax:</span> +49 6021-130 712-1<br>
-                        <span title="mail">Mail:</span> info@aktion-barrierefrei.de<br>
+                        <span title="mail">Mail:</span> info@aktion-barrierefrei.org<br>
                         <br>
                     </address>
                     <address class="xx-small text-right">

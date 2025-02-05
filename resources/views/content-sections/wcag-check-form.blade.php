@@ -4,7 +4,7 @@
         @csrf
         <div class="mb-3">
             <label for="urlInput" class="form-label">Webseiten-URL</label>
-            <input type="url" class="form-control" id="urlInput" name="url" value="https://aktion-barrierefrei.de" placeholder="https://example.com" required>
+            <input type="url" class="form-control" id="urlInput" name="url" value="https://aktion-barrierefrei.org" placeholder="https://example.com" required>
         </div>
         <button type="submit" class="btn btn-primary">Prüfung starten</button>
     </form>
@@ -105,7 +105,7 @@
                 <form novalidate="" class="needs-validation">
                     <div class="d-flex flex-column flex-md-row">
                         <div class="mb-2 flex-grow-1 mb-md-0 me-md-2">
-                            <input type="url"  id="urlInput" name="url" required="required" class="form-control" placeholder="https://ihre-domain.de" {{--value="https://aktion-barrierefrei.de"--}}>
+                            <input type="url"  id="urlInput" name="url" required="required" class="form-control" placeholder="https://ihre-domain.de" {{--value="https://aktion-barrierefrei.org"--}}>
                         </div>
                         <div class="flex-shrink-0">
                             <button type="submit" class="btn btn-primary">Prüfung starten</button>
