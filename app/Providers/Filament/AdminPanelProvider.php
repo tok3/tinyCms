@@ -20,7 +20,7 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Models\Company;
 use Filament\Navigation\NavigationGroup;
 use Filament\MinimalTheme;
-
+use Filament\Support\Enums\MaxWidth;
 class AdminPanelProvider extends PanelProvider
 {
 
@@ -29,6 +29,7 @@ class AdminPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
 
+        /*The options for are maxContentWidth ExtraSmall, Small, Medium, Large, ExtraLarge, TwoExtraLarge, ThreeExtraLarge, FourExtraLarge, FiveExtraLarge, SixExtraLarge, SevenExtraLarge, Full, MinContent, MaxContent, FitContent, Prose, ScreenSmall, ScreenMedium, ScreenLarge, ScreenExtraLarge and ScreenTwoExtraLarge. The default is SevenExtraLarge*/
 
         return $panel
             ->default()
@@ -41,6 +42,8 @@ class AdminPanelProvider extends PanelProvider
             ->colors(MinimalTheme::getColors())
             ->icons(MinimalTheme::getIcons())
             ->sidebarCollapsibleOnDesktop()
+            ->maxContentWidth(MaxWidth::FitContent)
+            ->sidebarFullyCollapsibleOnDesktop()
             ->sidebarWidth('15rem')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
