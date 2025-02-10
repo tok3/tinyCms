@@ -17,7 +17,7 @@ use Illuminate\Support\Collection;
 
 use Filament\Facades\Filament;
 use App\Notifications\VerifyEmail;
-
+use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * Class User
  * @package YourNamespace
@@ -27,7 +27,7 @@ use App\Notifications\VerifyEmail;
 class User extends Authenticatable implements FilamentUser, HasTenants, MustVerifyEmail
 {
 
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     // ...
 

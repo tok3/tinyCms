@@ -203,7 +203,7 @@ class Pa11yUrlResource extends Resource
                     }),
 
                 // Bulk Rescan Action
-                BulkAction::make('bulk_rescan')
+             /*   BulkAction::make('bulk_rescan')
                     ->label('Rescan Selected')
                     ->icon('heroicon-o-arrow-path')
                     ->action(function ($records) {
@@ -216,7 +216,7 @@ class Pa11yUrlResource extends Resource
                             ]);
                         }
                         session()->flash('success', 'Bulk Rescan initiated for selected URLs.');
-                    }),
+                    }),*/
             ]);
     }
 

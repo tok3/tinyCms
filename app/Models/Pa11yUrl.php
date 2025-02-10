@@ -4,14 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Observers\Pa11yUrlObserver;
 class Pa11yUrl extends Model
 {
     protected $fillable = ['company_id','url', 'last_checked'];
 
-    use HasFactory;
+    use HasFactory , SoftDeletes;
 
+    protected static function boot()
+    {
 
+        parent::boot();
+
+        Pa11yUrl::observe(Pa11yUrlObserver::class);
+
+    }
     public function accessibilityIssues()
     {
         return $this->hasMany(Pa11yAccessibilityIssue::class, 'url_id', 'id');

@@ -155,7 +155,7 @@
 @stack('scripts')
 
 <link rel="stylesheet" href="{!! url('service/fixstern.css?t=').time() !!}">
-<script src="{!! 'service/01JE6A5H2NQZCT4P9N3FEZG2CX/fixstern.js?t='.time().'&pos=tr&valX=10px&valY=100px' !!}"></script>
+<script src="{!! url('service/01JE6A5H2NQZCT4P9N3FEZG2CX/fixstern.js?t='.time().'&pos=tr&valX=10px&valY=100px') !!}"></script>
 <style>
 
 
