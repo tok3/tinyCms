@@ -209,6 +209,7 @@ return [
     |
     */
 
-    'partitioned' => false,
+    //'partitioned' => false,
+    'partitioned' => true,
 
 ];
