@@ -14,11 +14,6 @@ class ListPa11yAccessibilityIssues extends Page
 
     protected static string $view = 'filament.resources.pa11y-accessibility-issues.list';
 
-    public static function canView(): bool
-    {
-        $user = auth()->user();
-        return $user && ($user->is_admin || $user->company_id !== null);
-    }
 
     public function getTitle(): string
     {

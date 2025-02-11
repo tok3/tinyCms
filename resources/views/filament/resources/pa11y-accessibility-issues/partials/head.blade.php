@@ -77,13 +77,18 @@
         <div class="inline-flex rounded-md shadow-sm" role="group">
 
             <!-- WCAG 2.1 Tab -->
-            <a href="{{ url('/admin/firmament-issues/'.$grouped.'2.1') . '?' . http_build_query($queryES) }}"
+
+            <a href="{{ \App\Filament\Resources\Shared\Pa11yAccessibilityIssueResource::getUrl('index', [
+        'standard' => '2.1',
+    ]) . '?' . http_build_query($queryES) }}"
                class="text-xs inline-flex items-center px-4 py-2 text-sm border border-dark rounded-s-lg font-medium {{ $currentStandard === '2.1' ? 'bg-blue-200' : 'bg-white dark:text-gray-700' }}">
                 WCAG 2.1
             </a>
 
             <!-- WCAG 2.0 Tab -->
-            <a href="{{ url('/admin/firmament-issues/'.$grouped.'2.0') . '?' . http_build_query($queryES) }}"
+            <a href="{{ \App\Filament\Resources\Shared\Pa11yAccessibilityIssueResource::getUrl('index', [
+        'standard' => '2.0',
+    ]) . '?' . http_build_query($queryES) }}"
                class="text-xs inline-flex items-center px-4 py-2 text-sm border border-dark rounded-e-lg font-medium {{ $currentStandard === '2.0' ? 'bg-blue-200' : 'bg-white dark:text-gray-700' }}">
                 WCAG 2.0
             </a>
