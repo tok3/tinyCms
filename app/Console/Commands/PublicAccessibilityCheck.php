@@ -23,36 +23,48 @@ class PublicAccessibilityCheck extends Command
 
         $results = [];
 
-        // Hauptscan für WCAG 2.1
         if ($runner === 'axe') {
             $this->info("Running WCAG 2.1 scan...");
-            $results = $this->runScan($url, 'axe', null, $includeNotices, $includeWarnings);
+            $resultsMain = $this->runScan($url, 'axe', null, $includeNotices, $includeWarnings);
+            if ($resultsMain === null) {
+                $this->warn("Der Scan war nicht möglich. Möglicherweise blockiert ein Popup (z. B. Cookie Consent) die Seite oder sie ist nicht erreichbar.");
+                return 0;
+            }
+            $results = $resultsMain;
 
-            // Zusätzlicher Notices-Scan für WCAG 2.1
             if ($includeNotices) {
                 $highestLevel = $this->getHighestLevel($levels);
                 $this->info("Performing additional WCAG2AAA scan for Notices...");
                 $noticeResults = $this->runScan($url, 'htmlcs', $highestLevel, true, $includeWarnings);
+                if ($noticeResults === null) {
+                    $this->warn("Der zusätzliche Notices-Scan war nicht möglich für $url.");
+                    return 0;
+                }
                 $results = array_merge($results, $noticeResults);
             }
-        }
-        // Hauptscan für WCAG 2.0
-        else {
+        } else {
             foreach ($levels as $level) {
                 $this->info("Running WCAG 2.0 $level scan...");
-                $results = array_merge($results, $this->runScan($url, 'htmlcs', $level, $includeNotices, $includeWarnings));
+                $scanResults = $this->runScan($url, 'htmlcs', $level, $includeNotices, $includeWarnings);
+                if ($scanResults === null) {
+                    $this->warn("Der Scan für WCAG2$level war nicht möglich für $url.");
+                    return 0;
+                }
+                $results = array_merge($results, $scanResults);
             }
         }
 
-        // Ergebnisse anzeigen
+        // Wenn keine Ergebnisse zurückkommen, aber der Scan nicht als Fehler erkannt wurde,
+        // bedeutet das, dass die Seite fehlerfrei ist.
         if (empty($results)) {
-            $this->warn('No issues found or invalid response.');
+            $this->info('Keine Probleme gefunden.');
             return 0;
         }
 
+        // Ergebnisse anzeigen
         $this->info("Accessibility issues detected:\n");
         foreach ($results as $issue) {
-            $this->line("- " . ($issue['message'] ?? 'Unknown issue'));
+            $this->line("- " . ($issue['message'] ?? 'Unbekanntes Problem'));
         }
 
         return 0;
@@ -91,16 +103,21 @@ class PublicAccessibilityCheck extends Command
             // Erfolg oder Exit-Code 2 (Fehler gefunden)
             if ($process->isSuccessful() || $process->getExitCode() === 2) {
                 $output = $process->getOutput();
-                $results = json_decode($output, true);
 
+                // Wenn die Ausgabe leer ist oder kein gültiges JSON, behandeln wir das als Fehler
+                if (empty($output) || !$this->isValidJson($output)) {
+                    throw new \Exception("Scan fehlgeschlagen oder Website nicht erreichbar: $url");
+                }
+
+                $results = json_decode($output, true);
                 return $results ?: [];
             }
 
-            // Falls anderer Exit-Code
-            throw new \Exception("Unexpected exit code: " . $process->getExitCode());
+            throw new \Exception("Unerwarteter Exit-Code: " . $process->getExitCode());
         } catch (\Exception $e) {
             $this->error("An error occurred during scan: " . $e->getMessage());
-            return [];
+            // Wir geben null zurück, um anzuzeigen, dass der Scan fehlgeschlagen ist
+            return null;
         }
     }
 
@@ -117,4 +134,11 @@ class PublicAccessibilityCheck extends Command
         }
         return 'AAA'; // Standardmäßig AAA, falls nichts angegeben
     }
+
+    private function isValidJson($string)
+    {
+        json_decode($string);
+        return (json_last_error() === JSON_ERROR_NONE);
+    }
+
 }

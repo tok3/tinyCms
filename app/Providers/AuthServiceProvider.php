@@ -14,6 +14,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         //
+
     ];
 
     /**
@@ -29,7 +30,7 @@ class AuthServiceProvider extends ServiceProvider
             return $user->is_admin != 1;
         });
 
-
-
     }
+
+
 }

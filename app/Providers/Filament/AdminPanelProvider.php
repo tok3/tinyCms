@@ -42,7 +42,7 @@ class AdminPanelProvider extends PanelProvider
             ->colors(MinimalTheme::getColors())
             ->icons(MinimalTheme::getIcons())
             ->sidebarCollapsibleOnDesktop()
-            ->maxContentWidth(MaxWidth::FitContent)
+            ->maxContentWidth(MaxWidth::SevenExtraLarge)
             ->sidebarFullyCollapsibleOnDesktop()
             ->sidebarWidth('15rem')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

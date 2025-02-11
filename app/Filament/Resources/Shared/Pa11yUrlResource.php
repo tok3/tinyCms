@@ -170,7 +170,7 @@ class Pa11yUrlResource extends Resource
 
                 Tables\Actions\Action::make('view_results')
                     ->label('View Results')
-                    ->url(fn($record) => route('filament.admin.resources.firmament-issues.grouped', [
+                    ->url(fn($record) => Pa11yAccessibilityIssueResource::getUrl('index', [
                         'standard' => '2.1',
                         'url_id' => $record->id,
                     ]))
