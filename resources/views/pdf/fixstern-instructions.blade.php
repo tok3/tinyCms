@@ -120,7 +120,7 @@
 
         </td>
         <td style="width:360px;">
-            <img src="assets/img/logo/fixstern-logo.svg" style="width:43px;" alt="logo">
+           {{-- <img src="assets/img/logo/fixstern-logo.svg" style="width:43px;" alt="logo">--}}
         </td>
         <td style="width:260px !important;">
             {{--            <img src="assets/img/logo/font-logo-camindu.png" style="width:200px;" alt="logo">--}}
