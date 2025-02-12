@@ -21,6 +21,15 @@ class Product extends Model
         });
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function features()
+    {
+        return $this->belongsToMany(Feature::class, 'product_feature')
+            ->withPivot('value')
+            ->withTimestamps();
+    }
     // Accessor to get the price in a formatted way
     public function getPriceAttribute($value)
     {

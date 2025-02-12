@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\App;
 
 class Company extends Model
 {
@@ -33,60 +34,52 @@ class Company extends Model
     {
         parent::boot();
 
-
-        // Beim Erstellen
         static::creating(function ($item) {
-            // Finde den höchsten Wert der kd_nr in der Datenbank
             $latestKdNr = Company::max('kd_nr');
-
-            // Inkrementiere um 1 oder starte bei 1000, falls kein Wert existiert
             $item->kd_nr = $latestKdNr ? $latestKdNr + 1 : 1000;
-
             if (empty($item->ulid)) {
-                $item->ulid = (string) Str::ulid();
-            }
-
-        });
-
-        static::created(function ($item) {
-
-        });
-        // Beim Aktualisieren eines Menüeintrags
-        static::updating(function ($item) {
-            // Prüfe, ob die parent_id geändert wurde
-            if ($item->isDirty('slug'))
-            {
-
-
+                $item->ulid = (string)Str::ulid();
             }
         });
 
         static::deleting(function ($company) {
-            // Lösche verknüpfte Contracts
             \App\Models\Contract::where('contractable_id', $company->id)
                 ->where('contractable_type', 'App\\Models\\Company')
                 ->delete();
-
-            // Lösche Einträge aus company_user
             \DB::table('company_user')->where('company_id', $company->id)->delete();
-
-            // Finde Benutzer, die nur mit dieser Company verknüpft sind und KEINE Admins sind
             $userIdsToDelete = \DB::table('users')
                 ->select('users.id')
                 ->leftJoin('company_user', 'users.id', '=', 'company_user.user_id')
                 ->whereNull('company_user.company_id')
-                ->where('users.is_admin', '!=', 1) // Admins auslassen
+                ->where('users.is_admin', '!=', 1)
                 ->pluck('id');
-
-            // Lösche diese Benutzer
             \App\Models\User::whereIn('id', $userIdsToDelete)->delete();
         });
+
+        // Prüfen, ob Laravel im Test-Modus läuft
+        if (App::runningUnitTests()) {
+            static::flushEventListeners(); // Entfernt alle Eloquent-Event-Listener
+            static::unsetEventDispatcher(); // Entfernt den Event-Dispatcher
+        } else {
+            static::observe(\Cviebrock\EloquentSluggable\SluggableObserver::class);
+        }
     }
+
 
     // Polymorphe Beziehung zu Contracts
     public function contracts()
     {
         return $this->morphMany(Contract::class, 'contractable');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function features()
+    {
+        return $this->belongsToMany(Feature::class, 'company_feature')
+            ->withPivot('value')
+            ->withTimestamps();
     }
 
     /**
