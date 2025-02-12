@@ -171,7 +171,7 @@ class Pa11yUrlResource extends Resource
                 Tables\Actions\Action::make('view_results')
                     ->label('View Results')
                     ->url(fn($record) => Pa11yAccessibilityIssueResource::getUrl('index', [
-                        'standard' => '2.1',
+                        'standard' => 'grouped/2.1',
                         'url_id' => $record->id,
                     ]))
                     ->icon('heroicon-o-eye'),
