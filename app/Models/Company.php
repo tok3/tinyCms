@@ -82,6 +82,8 @@ class Company extends Model
             ->withTimestamps();
     }
 
+
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
