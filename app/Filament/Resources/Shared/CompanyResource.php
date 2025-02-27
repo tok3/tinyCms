@@ -228,10 +228,9 @@ class CompanyResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPa11yUrls::route('/'),
-            'create' => Pages\CreatePa11yUrl::route('/create'),
-            'edit' => Pages\EditPa11yUrl::route('/{record}/edit'),
-
+            'index' => Shared\CompanyResource\Pages\ListCompanies::route('/'),
+            'create' => Shared\CompanyResource\Pages\CreateCompany::route('/create'),
+            'edit' => Shared\CompanyResource\Pages\EditCompany::route('/{record}/edit'),
         ];
     }
 }
