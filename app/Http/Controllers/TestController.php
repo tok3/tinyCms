@@ -1,9 +1,13 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Models\Company;
+use App\Models\Contract;
 use App\Models\Pa11yStatistic;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Artisan;
+use App\Models\Product;
 use Symfony\Component\Process\Process;
 
 class TestController extends Controller
@@ -11,6 +15,30 @@ class TestController extends Controller
     public function testArtisanCommand($id = 65, Request $request)
     {
 
+// Company und Product abrufen
+        $company = Company::first();
+        $product = Product::first();
+
+        // Erstelle ein neues Contract-Objekt mit Testdaten
+        $contract = new Contract();
+        $contract->contractable_id = $company->id; // Beispiel-ID für das Unternehmen (Company)
+        $contract->contractable_type = Company::class;
+        $contract->product_id = $product->id;
+        $contract->price = $product->price;
+        $contract->setup_fee = 0; // Beispiel für Setup-Fee, falls vorhanden
+        $contract->interval = 'monthly'; // Beispielwert für den Intervall
+        $contract->subscription_id = "2342323cgergwc";
+        $contract->iteration = 1;
+        $contract->data = json_encode(['extra_info' => 'Beispiel-Informationen']); // Beispiel für das JSON-Datenfeld
+        $contract->order_date = Carbon::now()->subDays(7); // Beispiel-Bestelldatum
+        $contract->start_date = Carbon::now()->subDays(0);;
+        $contract->duration = 24; // Dauer in Monaten
+        $contract->start_date = Carbon::now();
+        $contract->end_date = Carbon::now()->addMonths($contract->duration);
+
+        $contract->save();
+
+        die();
 
         $companyId = auth()->user()->company_id; // Hier kannst du je nach User die richtige CompanyID verwenden
 

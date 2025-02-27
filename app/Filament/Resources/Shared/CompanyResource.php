@@ -5,9 +5,11 @@ use App\Filament\Resources\CompanyResource\Pages;
 use App\Filament\Resources\CompanyResource\RelationManagers;
 use App\Filament\Resources\Shared;
 use App\Models\Company;
+use App\Models\CompanySetting;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Image;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -25,25 +27,6 @@ class CompanyResource extends Resource
     {
         return 'Firmen';
     }
-/*
-
-    public static function getNavigationItems(): array
-    {
-        // Überprüfe die Rolle des aktuellen Benutzers
-        if (\Auth::check() && \Auth::user()->is_admin != 1) {
-            // Nicht-Admin-Benutzer sehen dieses Navigationselement
-            return [
-                NavigationItem::make()
-                    ->group('Custom Group')
-                    ->label('Custom Label')
-                    ->url(route('filament.dashboard.resources.companies.edit', ['record' => 94,'tenant' => 94,]))  // Angenommen, jeder Benutzer hat eine zugeordnete 'my_resource_id'
-                    ->icon('heroicon-o-rectangle-stack'),
-            ];
-        }
-
-        // Admins sehen die Standardnavigation, oder leer, wenn keine spezifischen Items benötigt werden
-        return [];
-    }*/
 
 
     public static function form(Form $form): Form
@@ -130,7 +113,56 @@ class CompanyResource extends Resource
                                             ]),
                                     ]),
                             ]),
-                    ]),
+                        Forms\Components\Tabs\Tab::make('Einstellungen')
+                            ->schema([
+                                Forms\Components\Fieldset::make('Site Observer')
+                                    ->relationship('settings', CompanySetting::class)
+                                    ->schema([
+
+                                        // Full Scan Interval (Weekly or Monthly)
+                                        Forms\Components\Grid::make(2) // Definiert eine Zweispalten-Struktur
+                                        ->schema([
+                                            Select::make('full_scan_interval')
+                                                ->label('Full Scan Interval')
+                                                ->options([
+                                                    'daily' => 'Täglich',
+                                                    'weekly' => 'Wöchentlich',
+                                                    'monthly' => 'Monatlich',
+                                                ])
+                                                ->default('weekly')
+                                                ->reactive()
+                                                ->columnSpan(1), // Nimmt nur eine Spalte ein, aber bleibt in eigener Zeile
+                                        ]),
+
+
+
+                                        // WCAG Standard Dropdown
+                                        Select::make('default_standard')
+                                            ->label('WCAG Standard')
+                                            ->options([
+                                                '2.0' => 'WCAG 2.0',
+                                                '2.1' => 'WCAG 2.1',
+                                            ])
+                                            ->default('2.1') // Falls leer → Standardwert setzen
+                                            ->reactive(),
+
+
+                                        // Checkbox für Kontrastfehler-Scan
+                                        Forms\Components\Toggle::make('contrast_errors')
+                                            ->label('Kontrastfehler scannen')
+                                            ->default(false) // Falls leer → Standardwert setzen
+                                            ->reactive()
+                                            ->hidden(fn (callable $get) => $get('default_standard') === '2.0'),
+
+                                        // Checkbox für Auto-URLs hinzufügen
+                                        Forms\Components\Toggle::make('auto_add_urls')
+                                            ->label('Automatisch URLs hinzufügen')
+                                            ->default(true), // Falls leer → Standardwert setzen
+                                    ]),
+                            ]),
+
+                        ])->persistTabInQueryString() ,
+
             ]);
     }
 
@@ -191,6 +223,8 @@ class CompanyResource extends Resource
             return 'Meine Daten';
         }
     }
+
+
     public static function getPages(): array
     {
         return [

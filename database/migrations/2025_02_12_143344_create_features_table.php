@@ -9,9 +9,8 @@ return new class extends Migration {
         Schema::create('features', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique(); // Eindeutiger Name des Features
+            $table->string('slug')->unique();
             $table->text('description')->nullable(); // Optionale Beschreibung
-            $table->decimal('default_price', 10, 2)->nullable(); // Standardpreis für Einzelkauf
-            $table->string('unit')->nullable(); // Einheit (z. B. "URLs", "API Calls")
             $table->timestamps();
         });
     }

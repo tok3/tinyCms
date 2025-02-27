@@ -16,4 +16,9 @@ class CompanyFeature extends Pivot
         'feature_id',
         'value',
     ];
+
+
+
+
+
 }

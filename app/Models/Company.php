@@ -37,7 +37,8 @@ class Company extends Model
         static::creating(function ($item) {
             $latestKdNr = Company::max('kd_nr');
             $item->kd_nr = $latestKdNr ? $latestKdNr + 1 : 1000;
-            if (empty($item->ulid)) {
+            if (empty($item->ulid))
+            {
                 $item->ulid = (string)Str::ulid();
             }
         });
@@ -57,10 +58,13 @@ class Company extends Model
         });
 
         // Prüfen, ob Laravel im Test-Modus läuft
-        if (App::runningUnitTests()) {
+        if (App::runningUnitTests())
+        {
             static::flushEventListeners(); // Entfernt alle Eloquent-Event-Listener
             static::unsetEventDispatcher(); // Entfernt den Event-Dispatcher
-        } else {
+        }
+        else
+        {
             static::observe(\Cviebrock\EloquentSluggable\SluggableObserver::class);
         }
     }
@@ -73,6 +77,23 @@ class Company extends Model
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function settings()
+    {
+        return $this->hasOne(CompanySetting::class);
+    }
+
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function scanLogs()
+    {
+        return $this->hasMany(CompanyScanLog::class);
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function features()
@@ -82,7 +103,17 @@ class Company extends Model
             ->withTimestamps();
     }
 
+    /**
+     * @param $features
+     * @return bool
+     */
+    public function hasFeature($features): bool
+    {
+        // Convert single feature into array
+        $features = is_array($features) ? $features : [$features];
 
+        return $this->features()->whereIn('slug', $features)->exists();
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne

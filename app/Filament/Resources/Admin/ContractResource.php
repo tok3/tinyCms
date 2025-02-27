@@ -90,7 +90,7 @@ class ContractResource extends Resource
                             ->content(fn($record) => $record->start_date ?? 'N/A'),
 
                         Placeholder::make('duration')
-                            ->label('Duration (in days)')
+                            ->label('Duration (in Month)')
                             ->content(fn($record) => $record->duration ?? 'N/A'),
 
                         Placeholder::make('end_date')

@@ -67,7 +67,8 @@ class Pa11yUrlResource extends Resource
                 Tables\Columns\TextColumn::make('company.name')
                     ->label('Company Name')
                     ->visible(fn() => auth()->user()->is_admin)  // Nur sichtbar, wenn der User ein Admin ist
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
 
                 TextColumn::make('url')
                     ->label('URL')
