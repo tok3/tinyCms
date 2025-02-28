@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up()
     {
+        if (!Schema::hasTable('products')) {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -19,6 +20,7 @@ return new class extends Migration {
             $table->boolean('active')->default(true);
             $table->timestamps();
         });
+    }
     }
 
     public function down()
