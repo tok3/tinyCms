@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Shared;
 
+use App\Filament\Resources\Shared\Pa11yAccessibilityIssueResource;
 use App\Models\Pa11yUrl;
 use App\Models\Pa11yStatistic;
 use Carbon\Carbon;
@@ -18,7 +19,7 @@ use Filament\Tables\Columns\TextColumn;
 use Illuminate\Support\HtmlString;
 use App\Helpers\IconHelper;
 
-use App\Filament\Resources\Shared\Pa11yAccessibilityIssueResource;
+
 class Pa11yUrlResource extends Resource
 {
     protected static ?string $model = Pa11yUrl::class;
@@ -171,8 +172,8 @@ class Pa11yUrlResource extends Resource
 
                 Tables\Actions\Action::make('view_results')
                     ->label('View Results')
-                    ->url(fn($record) => route('filament.admin.resources.firmament-issues.grouped', [
-                        'standard' => '2.1',
+                    ->url(fn($record) => Pa11yAccessibilityIssueResource::getUrl('index', [
+                        'standard' => 'grouped/2.1',
                         'url_id' => $record->id,
                     ]))
                     ->icon('heroicon-o-eye'),
