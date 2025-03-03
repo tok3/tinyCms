@@ -87,7 +87,7 @@ class ScanAccessibility21 extends Command
 
 private function scanWithAxe($url, $includeWarnings)
 {
-    $npxPath = '/usr/bin/npx'; // Adjust based on `which npx`
+    $npxPath = '/usr/bin/npx';
 
     $processArgs = [
         $npxPath,
@@ -97,8 +97,6 @@ private function scanWithAxe($url, $includeWarnings)
         'axe',
         '--reporter',
         'json',
-        '--config',
-        base_path('pa11y.config.js'), // Path to config
     ];
 
     if ($includeWarnings) {
