@@ -97,6 +97,8 @@ private function scanWithAxe($url, $includeWarnings)
         'axe',
         '--reporter',
         'json',
+        '--config',
+        base_path('pa11y.config.cjs'),
     ];
 
     if ($includeWarnings) {
@@ -105,7 +107,7 @@ private function scanWithAxe($url, $includeWarnings)
 
     $process = new Process($processArgs);
     $process->setWorkingDirectory(base_path());
-    $process->setTimeout(120);
+    $process->setTimeout(300); // Increased for stability
 
     try {
         $process->run();
