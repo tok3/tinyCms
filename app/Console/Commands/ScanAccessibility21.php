@@ -97,6 +97,8 @@ private function scanWithAxe($url, $includeWarnings)
         'axe',
         '--reporter',
         'json',
+        '--config',
+        base_path('pa11y.config.js'), // Path to config
     ];
 
     if ($includeWarnings) {
