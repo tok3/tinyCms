@@ -87,9 +87,7 @@ class ScanAccessibility21 extends Command
 
 private function scanWithAxe($url, $includeWarnings)
 {
-    // Use full paths to ensure binaries are found
-    $npxPath = '/usr/bin/npx'; // Adjust based on `which npx` in your terminal
-    $chromiumPath = '/usr/bin/chromium-browser'; // Adjust if needed (e.g., /snap/bin/chromium)
+    $npxPath = '/usr/bin/npx'; // Adjust based on `which npx`
 
     $processArgs = [
         $npxPath,
@@ -99,18 +97,15 @@ private function scanWithAxe($url, $includeWarnings)
         'axe',
         '--reporter',
         'json',
-        '--browser',
-        "$chromiumPath --headless --no-sandbox", // Explicitly set Chromium with headless flags
     ];
 
     if ($includeWarnings) {
         $processArgs[] = '--include-warnings';
     }
 
-    // Use Process instead of shell_exec for better control and error handling
     $process = new Process($processArgs);
-    $process->setWorkingDirectory(base_path()); // Ensure it runs from project root
-    $process->setTimeout(120); // Prevent hanging (adjust as needed)
+    $process->setWorkingDirectory(base_path());
+    $process->setTimeout(120);
 
     try {
         $process->run();
@@ -120,8 +115,6 @@ private function scanWithAxe($url, $includeWarnings)
         }
 
         $output = $process->getOutput();
-
-        // Log the raw output for debugging
         \Log::debug("Pa11y raw output for {$url->url}: " . $output);
 
         if (empty($output) || !$this->isValidJson($output)) {
