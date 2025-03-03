@@ -47,7 +47,7 @@ class ScanAccessibility21 extends Command
 
         $this->info('All URLs have been scanned.');
     }
-
+/*
     private function scanWithAxe($url, $includeWarnings)
     {
         $processArgs = [
@@ -64,6 +64,7 @@ class ScanAccessibility21 extends Command
         }
 
         $command = implode(' ', $processArgs);
+
         $this->info("Executing: $command");
 
         try {
@@ -82,7 +83,57 @@ class ScanAccessibility21 extends Command
             return null; // Scan ist fehlgeschlagen
         }
     }
+*/
 
+private function scanWithAxe($url, $includeWarnings)
+{
+    // Use full paths to ensure binaries are found
+    $npxPath = '/usr/bin/npx'; // Adjust based on `which npx` in your terminal
+    $chromiumPath = '/usr/bin/chromium-browser'; // Adjust if needed (e.g., /snap/bin/chromium)
+
+    $processArgs = [
+        $npxPath,
+        'pa11y',
+        $url->url,
+        '--runner',
+        'axe',
+        '--reporter',
+        'json',
+        '--browser',
+        "$chromiumPath --headless --no-sandbox", // Explicitly set Chromium with headless flags
+    ];
+
+    if ($includeWarnings) {
+        $processArgs[] = '--include-warnings';
+    }
+
+    // Use Process instead of shell_exec for better control and error handling
+    $process = new Process($processArgs);
+    $process->setWorkingDirectory(base_path()); // Ensure it runs from project root
+    $process->setTimeout(120); // Prevent hanging (adjust as needed)
+
+    try {
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            throw new \Exception("Pa11y failed: " . $process->getErrorOutput());
+        }
+
+        $output = $process->getOutput();
+
+        // Log the raw output for debugging
+        \Log::debug("Pa11y raw output for {$url->url}: " . $output);
+
+        if (empty($output) || !$this->isValidJson($output)) {
+            throw new \Exception("⚠️ Invalid or empty response from Pa11y for {$url->url}");
+        }
+
+        return json_decode($output, true);
+    } catch (\Exception $e) {
+        \Log::error("Scan error for {$url->url}: " . $e->getMessage());
+        return null;
+    }
+}
     /**
      * Prüft, ob eine Zeichenkette gültiges JSON ist
      */
