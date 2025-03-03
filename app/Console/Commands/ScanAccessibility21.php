@@ -47,7 +47,7 @@ class ScanAccessibility21 extends Command
 
         $this->info('All URLs have been scanned.');
     }
-/*
+
     private function scanWithAxe($url, $includeWarnings)
     {
         $processArgs = [
@@ -83,52 +83,9 @@ class ScanAccessibility21 extends Command
             return null; // Scan ist fehlgeschlagen
         }
     }
-*/
 
-private function scanWithAxe($url, $includeWarnings)
-{
-    $npxPath = '/usr/bin/npx';
 
-    $processArgs = [
-        $npxPath,
-        'pa11y',
-        $url->url,
-        '--runner',
-        'axe',
-        '--reporter',
-        'json',
-        '--config',
-        base_path('pa11y.config.cjs'),
-    ];
 
-    if ($includeWarnings) {
-        $processArgs[] = '--include-warnings';
-    }
-
-    $process = new Process($processArgs);
-    $process->setWorkingDirectory(base_path());
-    $process->setTimeout(300); // Increased for stability
-
-    try {
-        $process->run();
-
-        if (!$process->isSuccessful()) {
-            throw new \Exception("Pa11y failed: " . $process->getErrorOutput());
-        }
-
-        $output = $process->getOutput();
-        \Log::debug("Pa11y raw output for {$url->url}: " . $output);
-
-        if (empty($output) || !$this->isValidJson($output)) {
-            throw new \Exception("⚠️ Invalid or empty response from Pa11y for {$url->url}");
-        }
-
-        return json_decode($output, true);
-    } catch (\Exception $e) {
-        \Log::error("Scan error for {$url->url}: " . $e->getMessage());
-        return null;
-    }
-}
     /**
      * Prüft, ob eine Zeichenkette gültiges JSON ist
      */
