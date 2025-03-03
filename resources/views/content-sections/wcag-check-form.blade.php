@@ -102,10 +102,16 @@
             </div>
             <div class="col-lg-6 aos-init aos-animate" data-aos="fade-up" data-aos-delay="150">
                 <!--Form-->
+                <div id="errorOutput" style="display: none;" class="alert alert-warning">
+                    <h4>Fehler</h4>Es konnte keine gültige Antwort von der angegebenen URL empfangen werden.
+                    Möglicherweise liegt das Problem daran, dass die URL falsch eingegeben wurde oder dass JavaScript-Overlays (zum Beispiel Cookie-Consent-Banner) den Scan blockieren.
+                    Bitte überprüfen Sie die URL und stellen Sie sicher, dass alle störenden Overlays deaktiviert sind, und versuchen Sie es erneut.
+                </div>
+
                 <form novalidate="" class="needs-validation">
                     <div class="d-flex flex-column flex-md-row">
                         <div class="mb-2 flex-grow-1 mb-md-0 me-md-2">
-                            <input type="url"  id="urlInput" name="url" required="required" class="form-control" placeholder="https://ihre-domain.de" {{--value="https://aktion-barrierefrei.org"--}}>
+                            <input type="url"  id="urlInput" name="url" required="required" class="form-control" placeholder="https://ihre-domain.de" {{--value="https://alderlabbedudelgehtsdirnochgazgutodderwas.org"--}}>
                         </div>
                         <div class="flex-shrink-0">
                             <button type="submit" class="btn btn-primary">Prüfung starten</button>

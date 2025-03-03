@@ -26,7 +26,8 @@ class PublicAccessibilityCheckController extends Controller
             ob_flush();
             flush();
 
-            try {
+            try
+            {
                 // **Step 1:** Hauptscan mit WCAG 2.1 (axe)
                 echo json_encode(['step' => 'Scanning WCAG 2.1 (axe)', 'progress' => 50]) . "\n";
                 ob_flush();
@@ -42,17 +43,26 @@ class PublicAccessibilityCheckController extends Controller
 
                 $command = implode(' ', $processArgs);
                 $output = shell_exec($command . ' 2>&1');
+
+                if (empty($output)) {
+                    throw new \Exception("Kein Output von pa11y. Die Webseite existiert vermutlich nicht oder ist nicht erreichbar.");
+                }
+
                 $wcag21Results = json_decode($output, true);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    throw new \Exception("Ungültige JSON-Daten von pa11y: " . $output);
+                }
 
                 if (!empty($wcag21Results)) {
                     foreach ($wcag21Results as $result) {
-                        if ($result['type'] === 'error') {
+                        if (isset($result['type']) && $result['type'] === 'error') {
                             $summary['errors']++;
-                        } elseif ($result['type'] === 'warning') {
+                        } elseif (isset($result['type']) && $result['type'] === 'warning') {
                             $summary['warnings']++;
                         }
                     }
                 }
+
 
                 // **Step 2:** Zusätzlicher Scan für Notices mit WCAG 2.0 AAA (htmlcs)
                 if ($includeNotices) {
@@ -71,11 +81,21 @@ class PublicAccessibilityCheckController extends Controller
 
                     $command = implode(' ', $processArgs);
                     $output = shell_exec($command . ' 2>&1');
+
+                    // Prüfe, ob der Output leer ist
+                    if (empty($output)) {
+                        throw new \Exception("Kein Output vom zusätzlichen pa11y-Scan. Die Webseite ist möglicherweise nicht erreichbar.");
+                    }
+
+                    // Versuche, den Output als JSON zu decodieren
                     $wcag20NoticesResults = json_decode($output, true);
+                    if (json_last_error() !== JSON_ERROR_NONE) {
+                        throw new \Exception("Ungültige JSON-Daten vom zusätzlichen pa11y-Scan: " . $output);
+                    }
 
                     if (!empty($wcag20NoticesResults)) {
                         foreach ($wcag20NoticesResults as $result) {
-                            if ($result['type'] === 'notice') {
+                            if (isset($result['type']) && $result['type'] === 'notice') {
                                 $summary['notices']++;
                             }
                         }
@@ -86,8 +106,9 @@ class PublicAccessibilityCheckController extends Controller
                 echo json_encode(['step' => 'Completed', 'progress' => 100, 'summary' => $summary]) . "\n";
                 ob_flush();
                 flush();
-            } catch (\Exception $e) {
-                // Fehler melden
+            }
+            catch (\Exception $e)
+            {
                 echo json_encode(['step' => 'Error', 'message' => $e->getMessage(), 'progress' => 100]) . "\n";
                 ob_flush();
                 flush();
@@ -98,6 +119,7 @@ class PublicAccessibilityCheckController extends Controller
             'Connection' => 'keep-alive',
         ]);
     }
+
     public function getProgress()
     {
         return response()->json(session('progress', ['step' => 'Not started', 'progress' => 0]));

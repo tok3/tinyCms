@@ -14,6 +14,7 @@ class ListPa11yAccessibilityIssues extends Page
 
     protected static string $view = 'filament.resources.pa11y-accessibility-issues.list';
 
+
     public function getTitle(): string
     {
         return __('Observer Ergebnisse'); // Angepasster Seitentitel

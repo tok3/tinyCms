@@ -14,6 +14,7 @@ use Carbon\Carbon;
 use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\Tags\Url;
 use Spatie\Sitemap\SitemapGenerator;
+
 /**
  * Class PageController
  *
@@ -35,20 +36,36 @@ class PageController extends Controller
     {
 
 
-        if (is_null($slug)) {
-            if (!is_null($segment2)) {
+        if (is_null($slug))
+        {
+            if (!is_null($segment2))
+            {
                 $slug = $segment2;
-            } elseif (!is_null($segment1)) {
+            }
+            elseif (!is_null($segment1))
+            {
                 $slug = $segment1;
-            } elseif($segment1 == '')
+            }
+            elseif ($segment1 == '')
             {
                 $slug = '/';
-            }else{
+            }
+            else
+            {
                 abort(404);
             }
         }
 
-        $page = Page::whereSlug($slug)->wherePublished(true)->first();
+        if (auth()->check())
+        {
+            $page = Page::whereSlug($slug)->first();
+        }
+        else
+        {
+            $page = Page::whereSlug($slug)->wherePublished(true)->first();
+
+        }
+
 
         if (!$page)
         {
@@ -58,7 +75,6 @@ class PageController extends Controller
         $content = $this->getSections($page->blocks);
 
         return view('page')
-
             ->with('content', $content)
             ->with('page', $page);
 
@@ -121,12 +137,17 @@ class PageController extends Controller
 
         $menu = Menu::new()->addClass('menu-class'); // Füge hier zusätzliche Klassen hinzu
 
-        foreach ($menuItems as $menuItem) {
-            if ($menuItem->children->isEmpty()) {
+        foreach ($menuItems as $menuItem)
+        {
+            if ($menuItem->children->isEmpty())
+            {
                 $menu->add(Link::to($menuItem->url, $menuItem->name));
-            } else {
+            }
+            else
+            {
                 $submenu = Menu::new();
-                foreach ($menuItem->children as $child) {
+                foreach ($menuItem->children as $child)
+                {
                     $submenu->add(Link::to($child->url, $child->name));
                 }
                 $menu->submenu(Link::to($menuItem->url, $menuItem->name), $submenu);
@@ -135,7 +156,6 @@ class PageController extends Controller
 
         return $menu;
     }
-
 
 
     public function sitemap()

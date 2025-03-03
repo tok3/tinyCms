@@ -13,6 +13,15 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
 {
     protected static string $resource = Pa11yAccessibilityIssueResource::class;
 
+    public static function canView(): bool
+    {
+        $user = auth()->user();
+
+        // Zugriff erlauben, wenn der Benutzer
+        // - eingeloggt ist und
+        // - entweder Admin ist ODER einer Company zugeordnet ist
+        return $user && ($user->is_admin || $user->company_id !== null);
+    }
 
     // Diese Methode entscheidet, welcher View geladen wird
     protected function determineView(): string

@@ -28,7 +28,7 @@
                     const totalWarnings = document.getElementById('totalWarnings');
                     const totalNotices = document.getElementById('totalNotices');
 
-                    // Reset UI
+                    // UI zurücksetzen
                     progressOutput.style.display = 'block';
                     progressBar.style.width = '0%';
                     progressBar.textContent = '0%';
@@ -38,51 +38,40 @@
                     progressOutput.classList.remove('fade-out');
 
                     let simulatedProgress = 0; // Simulierter Fortschritt
-                    let backendProgress = 0; // Fortschritt vom Backend
+                    let backendProgress = 0;   // Fortschritt vom Backend
                     let resultsFetched = false;
                     let backendSyncAllowed = false; // Synchronisation mit Backend verzögern
                     let isPulsing = false; // Steuert das Pulsieren des Labels
 
-                    // **Simulierte Fortschrittsanimation**
+                    // Simulierte Fortschrittsanimation
                     const simulatedInterval = setInterval(() => {
                         if (simulatedProgress < 45 && !backendSyncAllowed) {
-                            // Fortschritt bis zu 45 % vor Backend-Synchronisation
                             simulatedProgress += 2;
                         } else if (simulatedProgress < 75 && backendProgress < 75) {
-                            // Langsame Bewegung zwischen 50 % und 75 %
                             simulatedProgress += 1;
                         } else if (simulatedProgress >= 75 && simulatedProgress < 100 && backendProgress < 100) {
-                            // Langsame Bewegung von 75 % bis 100 %, wenn Backend noch nicht abgeschlossen ist
-                            simulatedProgress += 2; // Schrittweise um 2 % erhöhen
+                            simulatedProgress += 2;
                         } else if (backendProgress >= 100 && simulatedProgress < backendProgress) {
-                            // Synchronisiere mit Backend, sanfter Übergang auf 100 %
                             progressBar.style.transition = 'width 1.5s ease-in-out';
                             simulatedProgress = backendProgress;
                         }
-
-                        // Fortschrittsanzeige aktualisieren
                         progressBar.style.width = simulatedProgress + '%';
                         progressBar.textContent = simulatedProgress + '%';
 
-                        // Puls-Effekt aktivieren, wenn zwischen 50 % und 75 %
                         if (simulatedProgress >= 50 && simulatedProgress < 75 && !isPulsing) {
                             isPulsing = true;
-                            progressText.classList.add('pulse-label'); // Puls-Effekt starten
+                            progressText.classList.add('pulse-label');
                         }
-
-                        // Puls-Effekt stoppen, wenn über 75 %
                         if (simulatedProgress >= 75 && isPulsing) {
                             isPulsing = false;
-                            progressText.classList.remove('pulse-label'); // Puls-Effekt stoppen
+                            progressText.classList.remove('pulse-label');
                         }
-
-                        // Simulation stoppen, wenn Backend abgeschlossen ist
                         if (simulatedProgress >= 100) {
                             clearInterval(simulatedInterval);
                         }
-                    }, 300); // Fortschritt alle 300 ms hochzählen
+                    }, 300);
 
-                    // **Backend-Scan starten**
+                    // Backend-Scan starten
                     fetch('{{ route('accessibility.check') }}', {
                         method: 'POST',
                         headers: {
@@ -96,7 +85,7 @@
                             const decoder = new TextDecoder("utf-8");
                             let buffer = ""; // Puffer für unvollständige JSON-Daten
 
-                            // Synchronisation mit Backend nach 3 Sekunden erlauben
+                            // Nach 3 Sekunden Synchronisation mit Backend erlauben
                             setTimeout(() => {
                                 backendSyncAllowed = true;
                             }, 3000);
@@ -106,45 +95,58 @@
                                 if (done) break;
 
                                 buffer += decoder.decode(value);
-
-                                // Verarbeite vollständige JSON-Zeilen
                                 let lines = buffer.split("\n");
-                                buffer = lines.pop(); // Letzte (unvollständige) Zeile im Puffer belassen
+                                buffer = lines.pop(); // Unvollständige Zeile bleibt im Puffer
 
                                 for (let line of lines) {
                                     try {
                                         const data = JSON.parse(line);
 
-                                        // Backend-Fortschritt aktualisieren
+                                        // Fehler abfangen und im Interface anzeigen
+                                        if (data.step && data.step.toLowerCase() === 'error') {
+                                            clearInterval(simulatedInterval);
+                                            // Statt auf 100% zu setzen, setzen wir den Fortschritt zurück auf 0%
+                                            progressBar.style.transition = 'width 1.5s ease-in-out';
+                                            progressBar.style.width = '0%';
+                                            progressBar.textContent = '0%';
+                                            progressText.textContent = data.message || 'Scan-Fehler';
+
+
+                                            const errorOutput = document.getElementById('errorOutput');
+
+                                            //errorOutput.textContent = data.message || 'Ein Fehler ist beim Scan aufgetreten.';
+
+                                            errorOutput.style.display = 'block';
+
+                                            // Falls du zusätzlich den Summary-Bereich ausblenden möchtest:
+                                            summaryOutput.style.display = 'none';
+
+                                            return; // Weitere Verarbeitung abbrechen
+                                        }
+
+                                        // (Restliche Verarbeitung, z. B. Aktualisieren des Fortschritts und Anzeigen der Ergebnisse)
                                         if (data.progress) {
                                             backendProgress = data.progress;
-
                                             if (backendSyncAllowed) {
                                                 simulatedProgress = Math.max(simulatedProgress, backendProgress);
                                             }
                                         }
-
-                                        // Ergebnisse anzeigen, wenn vorhanden
                                         if (data.summary) {
                                             totalErrors.textContent = data.summary.errors || 0;
                                             totalWarnings.textContent = data.summary.warnings || 0;
                                             totalNotices.textContent = data.summary.notices || 0;
-
                                             resultsFetched = true;
-                                            clearInterval(simulatedInterval); // Simulierte Fortschrittsaktualisierung stoppen
-
-                                            // Fortschritt abschließen mit Kunstkniff
+                                            clearInterval(simulatedInterval);
                                             progressBar.style.transition = 'width 2.5s cubic-bezier(0.25, 1, 0.5, 1)';
                                             progressBar.style.width = '100%';
                                             progressBar.textContent = '100%';
-
                                             setTimeout(() => {
                                                 progressText.textContent = 'Scan abgeschlossen!';
                                                 fadeOutProgressAndShowSummary();
                                             }, 2500);
                                         }
                                     } catch (e) {
-                                        console.error('Fehler beim Parsen des Fortschritts:', e);
+                                        console.error('Fehler beim Parsen der Fortschrittsdaten:', e);
                                     }
                                 }
                             }
@@ -152,17 +154,14 @@
                         .catch((error) => {
                             progressText.textContent = 'Fehler beim Prüfen der URL.';
                             console.error('Fehler bei der Anfrage:', error);
+                            window.alert('Fehler bei der Anfrage: ' + error);
                         });
 
                     function fadeOutProgressAndShowSummary() {
-                        // Progressbar ausblenden
                         progressOutput.classList.add('fade-out');
-
-                        // Summary sofort anzeigen und Fade-In starten
                         summaryOutput.style.display = 'block';
                         summaryOutput.classList.add('fade-in');
 
-                        // CountUp-Animation starten
                         if (window.startErrorCountUp) {
                             window.startErrorCountUp(parseInt(totalErrors.textContent));
                         }
@@ -174,14 +173,9 @@
                         }
 
                         setTimeout(() => {
-                            progressOutput.style.display = 'none'; // Nach Fade-Out komplett verstecken
-                        }, 500); // Schneller Fade-Out passend zur Transition
+                            progressOutput.style.display = 'none';
+                        }, 500);
                     }
-
-
-
-
-
                 });
 
 
