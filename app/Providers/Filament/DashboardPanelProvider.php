@@ -24,6 +24,7 @@ use App\Models\Company;
 use Filament\Navigation\NavigationItem;
 use Filament\Pages\Dashboard;
 use Filament\MinimalTheme;
+use App\Http\Middleware\AuthOrLocal;
 
 class DashboardPanelProvider extends PanelProvider
 {
@@ -72,6 +73,7 @@ class DashboardPanelProvider extends PanelProvider
             //->discoverWidgets(in: app_path('Filament/Dashboard/Widgets'), for: 'App\\Filament\\Dashboard\\Widgets')
 
             ->middleware([
+                AuthOrLocal::class,
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
