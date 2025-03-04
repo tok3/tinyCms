@@ -14,31 +14,27 @@ class PubStatController extends Controller
 
 
 
-public function getPdf()
-{
-    $urlid = request('urlid');
-    if (!$urlid || !is_numeric($urlid)) {
-        return response()->json(['error' => 'Invalid or missing url_id'], 400);
+    use Spatie\Browsershot\Browsershot;
+
+    public function getPdf()
+    {
+        $urlid = request('urlid');
+        $url = "http://localhost/dashboard/1/firmament-issues/grouped/2.1?url_id={$urlid}";
+
+        try {
+            $browsershot = Browsershot::url($url)
+                ->setNodeBinary('/usr/bin/node/') // Adjust version
+                ->setChromeExecutablePath('/snap/bin/chromium')
+                ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
+                ->timeout(60000)
+                ->waitUntilNetworkIdle(false);
+
+            $result = $browsershot->evaluate('() => { return { test: "Hello" }; }');
+            var_dump($result); die();
+        } catch (\Exception $e) {
+            var_dump($e->getMessage()); die();
+        }
     }
-
-    $url = "http://localhost/dashboard/1/firmament-issues/grouped/2.1?url_id={$urlid}";
-
-    try {
-        $browsershot = Browsershot::url($url)
-            ->setNodeBinary('/Users/tommel/.nvm/versions/node/v20.18.3/bin/node')
-            ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
-            ->timeout(60000)
-            ->waitUntilNetworkIdle(false);
-
-        // Use the local Puppeteer’s Chromium
-        $browsershot->setChromeExecutablePath('/Users/tommel/Sites/adHocTesting/tinyCms/node_modules/puppeteer/.local-chromium/mac_arm-*/chrome-mac/Chromium.app/Contents/MacOS/Chromium');
-
-        $result = $browsershot->evaluate('() => { return { test: "Hello" }; }');
-        var_dump($result); die();
-    } catch (\Exception $e) {
-        var_dump($e->getMessage()); die();
-    }
-}
 
 
     public function getPdfM()
