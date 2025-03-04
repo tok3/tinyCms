@@ -14,7 +14,7 @@ class PubStatController extends Controller
 
 
 
-    use Spatie\Browsershot\Browsershot;
+
 
     public function getPdf()
     {
