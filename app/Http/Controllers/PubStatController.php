@@ -45,7 +45,8 @@ public function getPdf()
     {
         {
             $browsershot = new Browsershot();
-            $browsershot->setNodeBinary('/Users/tommel/.nvm/versions/node/v20.18.3/bin/node');
+            //$browsershot->setNodeBinary('/Users/tommel/.nvm/versions/node/v20.18.3/bin/node');
+            $browsershot->setNodeBinary('/usr/bin/node');
             $urlid = request('urlid');
 
             $companyId = request('companyid');
