@@ -34,6 +34,8 @@ class PubStatController extends Controller
                 ->setOption('headless', true); // Run in headless mode;
 
             // Return a plain string directly
+            $browsershot->executeScript('() => { console.log("Executed!"); }');
+
             $result = $browsershot->evaluate('() => "Hello"');
             if (is_array($result)) {
                 $result = json_encode($result); // Convert to a valid string
