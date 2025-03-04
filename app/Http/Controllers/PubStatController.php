@@ -30,10 +30,15 @@ class PubStatController extends Controller
                 ->setChromeExecutablePath('/var/www/.cache/puppeteer/chrome/linux-133.0.6943.141/chrome-linux64/chrome')
                 ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
                 ->timeout(60000)
-                ->waitUntilNetworkIdle(false);
+                ->waitUntilNetworkIdle(false)
+                ->setOption('headless', true); // Run in headless mode;
 
             // Return a plain string directly
-            $result = $browsershot->evaluate('() => JSON.stringify("Hello")');
+            $result = $browsershot->evaluate('() => "Hello"');
+            if (is_array($result)) {
+                $result = json_encode($result); // Convert to a valid string
+            }
+
             var_dump($result); die();
 
             // OR, if you need structured data, stringify and decode
