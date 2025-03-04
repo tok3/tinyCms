@@ -23,8 +23,8 @@ class PubStatController extends Controller
 
         try {
             $browsershot = Browsershot::url($url)
-                ->setNodeBinary('/home/adminflimmr/.nvm/versions/node/v20.18.3/bin/node') // Adjust version
-                ->setChromeExecutablePath('/home/adminflimmr/.cache/puppeteer/chrome/linux-133.0.6943.141/chrome-linux64/chrome')
+                ->setNodeBinary('/usr/bin/node') // Adjust version
+                ->setChromeExecutablePath('/var/www/.cache/puppeteer/chrome/linux-133.0.6943.141/chrome-linux64/chrome')
                 ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
                 ->timeout(60000)
                 ->waitUntilNetworkIdle(false);
