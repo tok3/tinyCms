@@ -16,6 +16,7 @@ class PubStatController extends Controller
 
 
 
+
     public function getPdf()
     {
         $urlid = request('urlid');
@@ -23,14 +24,15 @@ class PubStatController extends Controller
 
         try {
             $browsershot = Browsershot::url($url)
-                ->setNodeBinary('/usr/bin/node') // Adjust version
+                ->setNodeBinary('/usr/bin/node')
                 ->setChromeExecutablePath('/var/www/.cache/puppeteer/chrome/linux-133.0.6943.141/chrome-linux64/chrome')
                 ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
                 ->timeout(60000)
                 ->waitUntilNetworkIdle(false);
 
-            $result = $browsershot->evaluate('() => { return { test: "Hello" }; }');
-            var_dump($result); die();
+            $result = $browsershot->evaluate('() => { return JSON.stringify({ test: "Hello" }); }');
+            $decodedResult = json_decode($result, true); // Returns array
+            var_dump($decodedResult); die();
         } catch (\Exception $e) {
             var_dump($e->getMessage()); die();
         }
