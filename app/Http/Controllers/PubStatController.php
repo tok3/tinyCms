@@ -70,7 +70,8 @@ public function getPdf()
                     try {
                         // Initialize Browsershot
                         $browsershot = Browsershot::url($url)
-                            ->setNodeBinary('/Users/tommel/.nvm/versions/node/v20.18.3/bin/node') // Ensure arm64 Node.js
+                            //->setNodeBinary('/Users/tommel/.nvm/versions/node/v20.18.3/bin/node') // Ensure arm64 Node.js
+                            ->setNodeBinary('/usr/bin/node') // Ensure arm64 Node.js
                             ->timeout(60) // 60 seconds timeout
                             ->waitUntilNetworkIdle(false) // Similar to 'domcontentloaded'
                             ->waitForFunction('document.querySelector(".fi-page") !== null', Polling::Mutation, 5000); // Use Polling::Mutation
