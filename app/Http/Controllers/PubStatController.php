@@ -19,6 +19,8 @@ class PubStatController extends Controller
 
 
 
+
+
     public function getPdf()
     {
         $urlid = request('urlid');
@@ -30,25 +32,10 @@ class PubStatController extends Controller
                 ->setChromeExecutablePath('/var/www/.cache/puppeteer/chrome/linux-133.0.6943.141/chrome-linux64/chrome')
                 ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
                 ->timeout(60000)
-                ->waitUntilNetworkIdle(false)
-                ->setOption('headless', true); // Run in headless mode;
+                ->waitUntilNetworkIdle(false);
 
-            // Return a plain string directly
-            $browsershot->executeScript('() => { console.log("Executed!"); }');
-
-            $result = $browsershot->evaluate('() => "Hello"');
-            if (is_array($result)) {
-                $result = json_encode($result); // Convert to a valid string
-            }
-
-            var_dump($result); die();
-
-            // OR, if you need structured data, stringify and decode
-            /*
-            $result = $browsershot->evaluate('() => { return JSON.stringify({ test: "Hello" }); }');
-            $decodedResult = json_decode($result, true);
-            var_dump($decodedResult); die();
-            */
+            $result = $browsershot->evaluate('() => { return "Hello"; }');
+            var_dump($result); die(); // Should output: string(5) "Hello"
         } catch (\Exception $e) {
             var_dump($e->getMessage()); die();
         }
