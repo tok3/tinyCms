@@ -34,8 +34,9 @@ class PubStatController extends Controller
                 ->timeout(60000)
                 ->waitUntilNetworkIdle(false);
 
-            $result = $browsershot->evaluate('() => { return "Hello"; }');
-            var_dump($result); die(); // Should output: string(5) "Hello"
+                $browsershot->setOption('dumpio', true); // Log Puppeteer output to laravel.log
+                $result = $browsershot->evaluate('() => { return JSON.stringify({ test: "Hello" }); }');
+                var_dump($result); die(); // Should output: string(5) "Hello"
         } catch (\Exception $e) {
             var_dump($e->getMessage()); die();
         }
