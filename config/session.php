@@ -168,8 +168,8 @@ return [
     |
     */
 
-    //'secure' => env('SESSION_SECURE_COOKIE', true),
-    'secure' => true,
+    'secure' => env('SESSION_SECURE_COOKIE', true),
+    //'secure' => true,
     /*
     |--------------------------------------------------------------------------
     | HTTP Access Only
@@ -196,7 +196,7 @@ return [
     |
     */
 
-    'same_site' => 'none',
+    'same_site' => 'lax',
 
     /*
     |--------------------------------------------------------------------------
@@ -210,6 +210,6 @@ return [
     */
 
     //'partitioned' => false,
-    'partitioned' => true,
+    'partitioned' => false,
 
 ];

@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\ScriptController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\Pa11yUrlController;
+use App\Http\Controllers\PubStatController;
 
 /*
 |--------------------------------------------------------------------------
@@ -110,6 +111,10 @@ Route::post('/pa11y/url/{url}/rescan', [Pa11yUrlController::class, 'rescan'])->n
 Route::post('pa11y/urls/rescan/all', [Pa11yUrlController::class, 'rescanAllUrls'])->name('pa11y.urls.rescan.all');
 // -----------------------------------------------
 
+// get pdf and csv stats
+Route::get('/service/getpdf/{urlid}/', [PubStatController::class, 'getPdf']);
+Route::post('/service/checkpdf/', [PubStatController::class, 'checkPdf'])->name('checkPdf');
+Route::get('/service/getcsv/{urlid}/', [PubStatController::class, 'getCsv']);
 
 Route::post('storeReferrer', [ReferrerController::class, 'storeReferrer'])->name('storeReferrer');
 Route::post('storeDownloadReferrer', [ReferrerController::class, 'storeDownloadReferrer'])->name('storeDownloadReferrer');

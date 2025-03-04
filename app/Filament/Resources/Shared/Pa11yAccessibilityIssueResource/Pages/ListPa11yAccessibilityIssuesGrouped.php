@@ -13,6 +13,8 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
 {
     protected static string $resource = Pa11yAccessibilityIssueResource::class;
 
+    public static array|string $routeMiddleware = ['auth.or.local'];
+
     public static function canView(): bool
     {
         $user = auth()->user();
