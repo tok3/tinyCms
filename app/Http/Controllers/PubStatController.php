@@ -32,9 +32,16 @@ class PubStatController extends Controller
                 ->timeout(60000)
                 ->waitUntilNetworkIdle(false);
 
+            // Return a plain string directly
+            $result = $browsershot->evaluate('() => { return "Hello"; }');
+            var_dump($result); die();
+
+            // OR, if you need structured data, stringify and decode
+            /*
             $result = $browsershot->evaluate('() => { return JSON.stringify({ test: "Hello" }); }');
             $decodedResult = json_decode($result, true);
             var_dump($decodedResult); die();
+            */
         } catch (\Exception $e) {
             var_dump($e->getMessage()); die();
         }
