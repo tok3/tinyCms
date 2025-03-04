@@ -17,6 +17,8 @@ class PubStatController extends Controller
 
 
 
+
+
     public function getPdf()
     {
         $urlid = request('urlid');
@@ -31,7 +33,7 @@ class PubStatController extends Controller
                 ->waitUntilNetworkIdle(false);
 
             $result = $browsershot->evaluate('() => { return JSON.stringify({ test: "Hello" }); }');
-            $decodedResult = json_decode($result, true); // Returns array
+            $decodedResult = json_decode($result, true);
             var_dump($decodedResult); die();
         } catch (\Exception $e) {
             var_dump($e->getMessage()); die();
