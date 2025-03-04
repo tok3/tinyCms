@@ -21,6 +21,8 @@ class PubStatController extends Controller
 
 
 
+
+
     public function getPdf()
     {
         $urlid = request('urlid');
@@ -34,9 +36,33 @@ class PubStatController extends Controller
                 ->timeout(60000)
                 ->waitUntilNetworkIdle(false);
 
-                $browsershot->setOption('dumpio', true); // Log Puppeteer output to laravel.log
-                $result = $browsershot->evaluate('() => { return JSON.stringify({ test: "Hello" }); }');
-                var_dump($result); die(); // Should output: string(5) "Hello"
+            // Inject the result into the DOM as a script tag
+            $browsershot->evaluate(<<<JS
+            () => {
+                const headline = document.querySelector('h1');
+                const content = document.querySelector('.fi-page');
+                const result = (!headline || !content) ? null : {
+                    x: Math.min(headline.getBoundingClientRect().x, content.getBoundingClientRect().x),
+                    y: headline.getBoundingClientRect().y,
+                    width: Math.max(headline.getBoundingClientRect().width, content.getBoundingClientRect().width),
+                    height: headline.getBoundingClientRect().height + content.getBoundingClientRect().height + 20
+                };
+
+                const script = document.createElement('script');
+                script.id = 'browsershot-result';
+                script.type = 'application/json';
+                script.textContent = JSON.stringify(result);
+                document.body.appendChild(script);
+            }
+            JS);
+
+            // Get the full HTML and extract the result
+            $html = $browsershot->bodyHtml();
+            preg_match('/<script id="browsershot-result" type="application\/json">(.*?)<\/script>/s', $html, $matches);
+            $jsonString = $matches[1] ?? '{}'; // Default to empty object if no match
+            $result = json_decode($jsonString, true);
+
+            var_dump($result); die();
         } catch (\Exception $e) {
             var_dump($e->getMessage()); die();
         }
