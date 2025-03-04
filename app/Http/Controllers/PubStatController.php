@@ -33,7 +33,7 @@ class PubStatController extends Controller
                 ->waitUntilNetworkIdle(false);
 
             // Return a plain string directly
-            $result = $browsershot->evaluate('() => { return "Hello"; }');
+            $result = $browsershot->evaluate('() => JSON.stringify("Hello")');
             var_dump($result); die();
 
             // OR, if you need structured data, stringify and decode
