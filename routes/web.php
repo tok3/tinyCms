@@ -75,6 +75,8 @@ Route::get('/dashboard/logout', function () {
 */
 
 // ---
+use App\Http\Controllers\FixsternController;
+Route::post('/eztext', [FixsternController::class, 'eztext']);
 
 Route::get('/service/{ulid}/{tool}.js', [ScriptController::class, 'serveScript'])
     ->name('serveScript')
