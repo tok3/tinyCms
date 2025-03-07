@@ -34,7 +34,7 @@ class FixsternController extends Controller
         } else {
 
             // get eztext from openai
-            $prompts = array('de' => "Bitte uebersetze folgenden Text kommentarlos und ohne Bestaetigung in leichte Sprache nach dem Regelwerk fuer leichte Sprache: ".$text,
+            $prompts = array('de' => "Bitte uebersetze folgenden Text kommentarlos und ohne Bestaetigung in leichte Sprache nach dem Regelwerk fuer leichte Sprache auf dem Sprachniveau A2: ".$text,
                 'en' => "Please translate the following text comment-free into simple language: ".$text,
                 'fr' => "Veuillez traduire le texte suivant sans commentaire en langue simple: ".$text,
                 'it' => "Permetti di tradurre questo testo senza commenti in una lingua semplice: ".$text,
