@@ -7,6 +7,7 @@ use App\Models\Eztext;
 use App\Models\Company;
 use App\Services\OpenAIService;
 
+
 class FixsternController extends Controller
 {
     public function eztext(Request $request){
@@ -40,6 +41,7 @@ class FixsternController extends Controller
                 'fr' => "Veuillez traduire le texte suivant sans commentaire en langue simple: ".$text,
                 'it' => "Permetti di tradurre questo testo senza commenti in una lingua semplice: ".$text,
             );
+            \Log::info($text);
             $prompt = $prompts[$lang] ?? $prompts['en'];
             $openAIService = new OpenAIService();
             $res = $openAIService->generateText($prompt);
