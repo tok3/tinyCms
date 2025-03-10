@@ -44,19 +44,26 @@ class FixsternController extends Controller
             //\Log::info("text: ".$text);
 
             $prompt = $prompts[$lang] ?? $prompts['en'];
+
             $openAIService = new OpenAIService();
             $res = $openAIService->generateText($prompt);
             $res = preg_replace('/^[\'"\`“”‘’]+|[\'"\`“”‘’]+$/u', '', $res);
             //\Log::info("Ergebnis ".$res);
-            $eztext = new Eztext();
-            $eztext->hash = $hash;
-            $eztext->ulid = $ulid;
-            $eztext->text = $res;
-            $eztext->save();
-            return response()->json([
-                'status' => 200,
-                'message' => $res,
-            ], 200);
+            if($res != "Bitte beachten Sie, dass ich Ihnen keine Übersetzungen in leichter Sprache anbieten kann. Gerne kann ich jedoch den Originaltext für Barrierefreiheit überprüfen und relevante Empfehlungen zur Verbesserung geben.")
+            {
+                $eztext = new Eztext();
+                $eztext->hash = $hash;
+                $eztext->ulid = $ulid;
+                $eztext->text = $res;
+                $eztext->save();
+                return response()->json([
+                    'status' => 200,
+                    'message' => $res,
+                ], 200);
+            } else
+            {
+                return response()->json(['status' => 200, 'message' => '']);
+            }
         }
 
     }
