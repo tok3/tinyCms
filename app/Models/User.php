@@ -41,6 +41,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
 
         if ($panel->getId() == 'admin' && !$this->is_admin)
         {
+            \Log::info('User is not admin');
             return false;
         }
 
