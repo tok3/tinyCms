@@ -17,8 +17,8 @@ class AuthOrLocal
     {
 
         // Allow requests from localhost.
-        \Log::info(php_sapi_name());
-        if ($request->ip() === '127.0.0.1' || $request->getHost() === 'localhost' || $request-> $request->ip() === '::1') {
+        //\Log::info(php_sapi_name());
+        if ($request->ip() === '127.0.0.1' || $request->getHost() === 'localhost' || $request->ip() === '::1') {
             //\Log::info($request->ip());
 
 
