@@ -36,18 +36,18 @@ class FixsternController extends Controller
 
             // get eztext from openai
             //$prompts = array('de' => "Bitte uebersetze folgenden Text kommentarlos und ohne Bestaetigung in leichte Sprache nach dem Regelwerk fuer leichte Sprache auf dem Sprachniveau A2: ".$text,
-            $prompts = array('de' => "Bitte übersetze folgenden Text kommentarlos und ohne Bestätigung in leichte Sprache nach dem Regelwerk für leichte Sprache auf dem Sprachniveau A1 oder A2. Bitte füge einen html-zeilenumbruch zwischen jeden Satz. Fremdworte sollen bitte vermieden oder erklärt werden. Ein 10-jähriger sollte den vereinfachten Text verstehen können. Abkürzungen sollten nach möglichkeit erst ausgeschrieben und dann in Klammern angegeben werden. Die Sätze sollten möglichst kurz sein. Bitte verwende ausser den Zeilenumbrüchen keine html-codes: ".$text,
+            $prompts = array('de' => "Bitte übersetze folgenden Text kommentarlos und ohne Bestätigung in leichte Sprache nach dem Regelwerk für leichte Sprache auf dem Sprachniveau A1 oder A2. Bitte füge einen html-zeilenumbruch zwischen jeden Satz. Fremdworte sollen bitte vermieden oder erklärt werden. Begriffe in einer Fremdsprache sollten übersetzt werden. Ein 10-jähriger sollte den vereinfachten Text verstehen können. Abkürzungen sollten nach möglichkeit erst ausgeschrieben und dann in Klammern angegeben werden. Die Sätze sollten möglichst kurz sein. Bitte verwende ausser den Zeilenumbrüchen keine html-codes: ".$text,
                 'en' => "Please translate the following text comment-free into simple language: ".$text,
                 'fr' => "Veuillez traduire le texte suivant sans commentaire en langue simple: ".$text,
                 'it' => "Permetti di tradurre questo testo senza commenti in una lingua semplice: ".$text,
             );
-            \Log::info("text: ".$text);
+            //\Log::info("text: ".$text);
 
             $prompt = $prompts[$lang] ?? $prompts['en'];
             $openAIService = new OpenAIService();
             $res = $openAIService->generateText($prompt);
             $res = preg_replace('/^[\'"\`“”‘’]+|[\'"\`“”‘’]+$/u', '', $res);
-            \Log::info("Ergebnis ".$res);
+            //\Log::info("Ergebnis ".$res);
             $eztext = new Eztext();
             $eztext->hash = $hash;
             $eztext->ulid = $ulid;
