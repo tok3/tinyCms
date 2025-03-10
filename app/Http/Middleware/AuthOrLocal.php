@@ -43,6 +43,7 @@ class AuthOrLocal
 
         // Otherwise, enforce authentication.
         if (auth()->check()) {
+            \Log::info('hier');
             return $next($request);
         }
 
