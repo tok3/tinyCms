@@ -31,7 +31,7 @@ class AuthOrLocal
                     ->where('pa11y_urls.id', $urlId)
                     ->select('company_user.user_id')
                     ->first();
-
+                    \Log::info('user id: ' . $userId->user_id);
                     auth()->loginUsingId($userId->user_id); // Replace 1 with a valid user ID.
 
                 }
@@ -43,7 +43,7 @@ class AuthOrLocal
 
         // Otherwise, enforce authentication.
         if (auth()->check()) {
-            \Log::info('hier');
+            \Log::info('user authenticated');
             return $next($request);
         }
 
