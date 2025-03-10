@@ -19,7 +19,7 @@ class AuthOrLocal
         // Allow requests from localhost.
         \Log::info($request->ip());
         if ($request->ip() === '92.205.28.21' || $request->ip() === '127.0.0.1' || $request->getHost() === 'localhost' || $request->ip() === '::1') {
-            //\Log::info($request->ip());
+            \Log::info(auth()->check());
 
 
             if (!auth()->check()) {
