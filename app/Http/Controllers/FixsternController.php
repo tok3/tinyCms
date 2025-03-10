@@ -41,13 +41,13 @@ class FixsternController extends Controller
                 'fr' => "Veuillez traduire le texte suivant sans commentaire en langue simple: ".$text,
                 'it' => "Permetti di tradurre questo testo senza commenti in una lingua semplice: ".$text,
             );
-            \Log::info($text);
+            \Log::info("text: ".$text);
 
             $prompt = $prompts[$lang] ?? $prompts['en'];
             $openAIService = new OpenAIService();
             $res = $openAIService->generateText($prompt);
             $res = preg_replace('/^[\'"\`“”‘’]+|[\'"\`“”‘’]+$/u', '', $res);
-            \Log::info($res);
+            \Log::info("Ergebnis ".$res);
             $eztext = new Eztext();
             $eztext->hash = $hash;
             $eztext->ulid = $ulid;
