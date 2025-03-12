@@ -23,7 +23,8 @@ class OpenAIService
      * @param int $maxTokens Maximale Token-Anzahl für die Ausgabe.
      * @return string
      */
-    public function generateText(string $prompt, string $model = 'gpt-3.5-turbo', int $maxTokens = 500): string
+    //public function generateText(string $prompt, string $model = 'gpt-3.5-turbo', int $maxTokens = 500): string
+    public function generateText(string $prompt, string $model = 'gpt-4', int $maxTokens = 500): string
     {
         try {
             $response = $this->client->chat()->create([
