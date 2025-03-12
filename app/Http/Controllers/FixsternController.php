@@ -27,7 +27,7 @@ class FixsternController extends Controller
         $hash = hash('md5', $text);
         $res = Eztext::where('ulid', $ulid)->where('hash', $hash)->first();
         if($res){
-
+            $res->increment('count');
             return response()->json([
                 'status' => 200,
                 'message' => $res->text,

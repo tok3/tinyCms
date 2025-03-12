@@ -11,14 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('eztexts', function (Blueprint $table) {
-            $table->id();
-            $table->ulid('ulid');
-            $table->string('hash');
-            $table->text('text');
-            $table->index(['ulid', 'hash']);
-            $table->timestamps();
-        });
+
+        if (!Schema::hasTable('eztexts')) {
+            Schema::create('eztexts', function (Blueprint $table) {
+                $table->id();
+                $table->ulid('ulid');
+                $table->string('hash');
+                $table->text('text');
+                $table->index(['ulid', 'hash']);
+                $table->timestamps();
+            });
+        }
     }
 
     /**
