@@ -75,6 +75,16 @@ Route::get('/dashboard/logout', function () {
 */
 
 // ---
+
+
+use App\Http\Controllers\PublishStatsController;
+//Route::get('/export/csv/{id}', [PublishStatsController::class, 'exportCsv'])->name('export.csv');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/export/csv/{id}', [PublishStatsController::class, 'exportCsv'])->name('export.csv');
+});
+
+
+
 use App\Http\Controllers\FixsternController;
 Route::post('/eztext', [FixsternController::class, 'eztext']);
 
@@ -115,6 +125,7 @@ Route::post('pa11y/urls/rescan/all', [Pa11yUrlController::class, 'rescanAllUrls'
 
 Route::post('storeReferrer', [ReferrerController::class, 'storeReferrer'])->name('storeReferrer');
 Route::post('storeDownloadReferrer', [ReferrerController::class, 'storeDownloadReferrer'])->name('storeDownloadReferrer');
+Route::post('storeTts', [ReferrerController::class, 'storeTts'])->name('storeTts');
 
 Route::post('sitemap/generate', [PageController::class, 'sitemap'])->name('sitemap.generate');
 
