@@ -15,6 +15,9 @@ class ScriptController extends Controller
         {
             $tool = 'aktion-bf';
         }
+        if($ulid == '01JE6A5H2NQZCT4P9N3FEZG2CX'){
+            $tool = 'aktion-bf-full';
+        }
         // Bestimme den Dateipfad für das gewünschte Tool
         $scriptPath = "scripts/{$tool}.js";
 

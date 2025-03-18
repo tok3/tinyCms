@@ -19,5 +19,7 @@ class VerifyCsrfToken extends Middleware
         'upload-image',
         'storeReferrer',
         'storeDownloadReferrer',
+        'eztext',
+        'storeTts',
     ];
 }
