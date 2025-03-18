@@ -219,6 +219,5 @@
 
 
             </script>
-
 @endpush
 </x-page-layout>
