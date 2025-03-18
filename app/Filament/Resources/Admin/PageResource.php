@@ -285,7 +285,6 @@ class   PageResource extends Resource
                                                     // Zeile mit Layout-Optionen & Checkboxen
                                                     Forms\Components\Grid::make(12)
                                                         ->schema([
-                                                            // Layout Radio Buttons (nimmt 6 Spalten)
                                                             Forms\Components\Radio::make('layout')
                                                                 ->label('Layout')
                                                                 ->options([
@@ -296,35 +295,31 @@ class   PageResource extends Resource
                                                                 ->inline()
                                                                 ->columnSpan(6),
 
-                                                            // Checkbox für Hintergrund abgesetzt (nimmt 3 Spalten)
                                                             Forms\Components\Checkbox::make('background')
                                                                 ->label('Hintergrund abgesetzt')
                                                                 ->default(false)
                                                                 ->helperText('Setzt den Hintergrund auf hell (bg-light)')
                                                                 ->columnSpan(3),
 
-                                                            // Checkbox für Border-Top (nimmt 3 Spalten)
                                                             Forms\Components\Checkbox::make('border_top')
                                                                 ->label('Border Top')
                                                                 ->default(false)
                                                                 ->helperText('Fügt eine obere Trennlinie hinzu')
                                                                 ->columnSpan(3),
                                                         ])
-                                                        ->columns(12), // Sicherstellen, dass alles auf einer Zeile bleibt
+                                                        ->columns(12),
 
-                                                    // Überschrift
                                                     Forms\Components\TextInput::make('title')
                                                         ->label('Überschrift')
                                                         ->required()
                                                         ->columnSpan(12),
 
-                                                    // Text-Editor
                                                     TinyEditor::make('content')->profile('custom')
                                                         ->label('Text')
                                                         ->required()
                                                         ->columnSpan(12),
 
-                                                    // Zeile mit Medientyp (Radio), Video-URL & Bild-Upload
+                                                    // Erste Zeile: Medientyp & Vimeo URL
                                                     Forms\Components\Grid::make(12)
                                                         ->schema([
                                                             Forms\Components\Radio::make('media_type')
@@ -336,60 +331,53 @@ class   PageResource extends Resource
                                                                 ->default('video')
                                                                 ->inline()
                                                                 ->reactive()
+                                                                ->afterStateUpdated(fn ($state, $set) => $set('vimeo_url', null))
                                                                 ->columnSpan(4),
 
                                                             Forms\Components\TextInput::make('vimeo_url')
                                                                 ->label('Vimeo Video URL')
-                                                                ->reactive() // Macht das Feld reaktiv für Echtzeit-Änderungen
+                                                                ->reactive()
                                                                 ->afterStateUpdated(function ($state, $set) {
-                                                                    // Prüfe, ob eine URL eingegeben wurde
                                                                     if ($state) {
-                                                                        // Extrahiere Video-ID und Hash aus der URL
-                                                                        $pattern = '#https://vimeo\.com/(\d+)/([a-z0-9]+)#';
-                                                                        if (preg_match($pattern, $state, $matches)) {
-                                                                            $videoId = $matches[1]; // z.B. 1064243525
-                                                                            $hash = $matches[2];    // z.B. d994a4fd1f
-
-                                                                            // Neue Player-URL erstellen
-                                                                            $playerUrl = "https://player.vimeo.com/video/{$videoId}?h={$hash}";
-                                                                            $set('vimeo_url', $playerUrl);
+                                                                        if (preg_match('#https://vimeo\.com/(\d+)/([a-z0-9]+)#', $state, $matches)) {
+                                                                            $videoId = $matches[1];
+                                                                            $hash = $matches[2];
+                                                                            $set('vimeo_url', "https://player.vimeo.com/video/{$videoId}?h={$hash}");
                                                                         }
                                                                     }
                                                                 })
-                                                                ->url() // Optional: Validiert, dass es eine URL ist
+                                                                ->hidden(fn (callable $get) => $get('media_type') !== 'video')
+                                                                ->url()
                                                                 ->placeholder('https://vimeo.com/...')
                                                                 ->columnSpan(8),
+                                                        ])
+                                                        ->columns(12),
 
-                                                            // Bild-Upload (Eigene Zeile, aber nicht über die ganze Breite)
-                                                            Forms\Components\Grid::make(12)
-                                                                ->schema([
-                                                                    Forms\Components\FileUpload::make('image')
-                                                                        ->label('Bild Upload')
-                                                                        ->image()
-                                                                        ->directory('slides/backgrounds')
-                                                                        ->maxSize(5120)
-                                                                        ->hidden(fn(callable $get) => $get('media_type') !== 'image')
-                                                                        ->columnSpan(8),
-                                                                ])
-                                                                ->columns(12),
+                                                    // **Eigene Zeile für Bild-Upload**
+                                                    Forms\Components\Grid::make(12)
+                                                        ->schema([
+                                                            Forms\Components\FileUpload::make('image')
+                                                                ->label('Bild Upload')
+                                                                ->image()
+                                                                ->directory('slides/backgrounds')
+                                                                ->maxSize(5120)
+                                                                ->hidden(fn (callable $get) => $get('media_type') !== 'image')
+                                                                ->columnSpan(6), // **Hier nur 6 Spalten, damit es nicht die ganze Zeile nimmt**
+                                                        ])
+                                                        ->columns(12),
 
-                                                            // Alt-Text (Eigene Zeile, aber nicht über die ganze Breite)
-                                                            Forms\Components\Grid::make(12)
-                                                                ->schema([
-                                                                    Forms\Components\TextInput::make('alt_text')
-                                                                        ->label('Alt-Text für Bild')
-                                                                        ->placeholder('Beschreiben Sie das Bild')
-                                                                        ->hidden(fn(callable $get) => $get('media_type') !== 'image')
-                                                                        ->columnSpan(8),
-                                                                ])
-                                                                ->columns(12),
-
-
+                                                    // **Eigene Zeile für Alt-Text**
+                                                    Forms\Components\Grid::make(12)
+                                                        ->schema([
+                                                            Forms\Components\TextInput::make('alt_text')
+                                                                ->label('Alt-Text für Bild')
+                                                                ->placeholder('Beschreiben Sie das Bild')
+                                                                ->hidden(fn (callable $get) => $get('media_type') !== 'image')
+                                                                ->columnSpan(6), // **Soll direkt unter dem Upload sein**
                                                         ])
                                                         ->columns(12),
                                                 ])
                                                 ->columns(12),
-
                                             //-------------------------------------
 
                                             Forms\Components\Builder\Block::make('partner_logos')
