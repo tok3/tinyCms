@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Shared;
 
+use App\Filament\Resources\Shared\Pa11yAccessibilityIssueResource;
 use App\Models\Pa11yUrl;
 use App\Models\Pa11yStatistic;
 use Carbon\Carbon;
@@ -17,16 +18,19 @@ use App\Models\Company;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Support\HtmlString;
 use App\Helpers\IconHelper;
-
-use App\Filament\Resources\Shared\Pa11yAccessibilityIssueResource;
+use Filament\Facades\Filament;
+use Filament\Notifications\Notification;
 class Pa11yUrlResource extends Resource
 {
     protected static ?string $model = Pa11yUrl::class;
 
     public static function getSlug(): string
     {
+
         return 'firmament-urls';
     }
+
+
 
 
     protected static ?string $navigationIcon = 'heroicon-o-link';
@@ -67,7 +71,8 @@ class Pa11yUrlResource extends Resource
                 Tables\Columns\TextColumn::make('company.name')
                     ->label('Company Name')
                     ->visible(fn() => auth()->user()->is_admin)  // Nur sichtbar, wenn der User ein Admin ist
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
 
                 TextColumn::make('url')
                     ->label('URL')
@@ -203,7 +208,7 @@ class Pa11yUrlResource extends Resource
                     }),
 
                 // Bulk Rescan Action
-                BulkAction::make('bulk_rescan')
+             /*   BulkAction::make('bulk_rescan')
                     ->label('Rescan Selected')
                     ->icon('heroicon-o-arrow-path')
                     ->action(function ($records) {
@@ -216,7 +221,7 @@ class Pa11yUrlResource extends Resource
                             ]);
                         }
                         session()->flash('success', 'Bulk Rescan initiated for selected URLs.');
-                    }),
+                    }),*/
             ]);
     }
 
@@ -297,4 +302,13 @@ class Pa11yUrlResource extends Resource
     {
         return parent::query()->with('accessibilityIssues');
     }
+
+    public static function canCreate(): bool
+    {
+
+        // Deaktiviert den standardmäßig erzeugten Create-Button
+        return true;
+    }
+
+
 }

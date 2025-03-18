@@ -89,12 +89,11 @@ echo "<br>";
 
         $startDate = Carbon::now()->startOfMonth();
 
-// Erstelle ein neues Contract-Objekt mit Testdaten
+        // Erstelle ein neues Contract-Objekt mit Testdaten
         $contract = new Contract();
         $contract->contractable_id = 2; // Beispiel-ID für das Unternehmen (Company)
         $contract->contractable_type = Company::class;
-        $contract->product_name = $product->name;
-        $contract->product_description = $product->description;
+        $contract->product_id = $product->id;
         $contract->price = $product->price;
         $contract->setup_fee = 0; // Beispiel für Setup-Fee, falls vorhanden
         $contract->interval = 'monthly'; // Beispielwert für den Intervall
@@ -439,9 +438,8 @@ echo "<br>";
         $contract = new Contract([
             'contractable_type' => \App\Models\Company::class,
             'contractable_id' => $company->id, // Verknüpfung mit der Company
-            'product_name' => $product->name,
+            'product_id' => $product->id,
             'interval' => $product->interval,
-            'product_description' => $product->description,
             'price' => $product->price,
             'subscription_id' => $subscriptionId,
             'subscription_start_date' => $startDate,

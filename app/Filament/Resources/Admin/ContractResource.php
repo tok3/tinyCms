@@ -21,7 +21,7 @@ use Filament\Forms\Components\KeyValue;
 use App\Models\Company;
 use Filament\Forms\Components\ViewField;
 use Filament\Forms\Components\Placeholder;
-
+use Illuminate\Database\Eloquent\Builder;
 class ContractResource extends Resource
 {
     protected static ?string $model = Contract::class;
@@ -90,7 +90,7 @@ class ContractResource extends Resource
                             ->content(fn($record) => $record->start_date ?? 'N/A'),
 
                         Placeholder::make('duration')
-                            ->label('Duration (in days)')
+                            ->label('Duration (in Month)')
                             ->content(fn($record) => $record->duration ?? 'N/A'),
 
                         Placeholder::make('end_date')
@@ -194,7 +194,16 @@ class ContractResource extends Resource
             //
         ];
     }
-
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->addSelect([
+                'company_name' => Company::select('name')
+                    ->whereColumn('companies.id', 'contracts.contractable_id')
+                    ->where('contracts.contractable_type', Company::class)
+                    ->limit(1),
+            ]);
+    }
     public static function getPages(): array
     {
         return [

@@ -64,6 +64,7 @@ class ScanAccessibility21 extends Command
         }
 
         $command = implode(' ', $processArgs);
+
         $this->info("Executing: $command");
 
         try {
@@ -82,6 +83,8 @@ class ScanAccessibility21 extends Command
             return null; // Scan ist fehlgeschlagen
         }
     }
+
+
 
     /**
      * Prüft, ob eine Zeichenkette gültiges JSON ist

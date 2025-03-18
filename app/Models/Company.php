@@ -8,10 +8,12 @@ use App\Helpers\QrPromoHelper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\App;
 
 class Company extends Model
 {
-    use HasFactory, Sluggable;
+    use HasFactory, Sluggable, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -32,60 +34,111 @@ class Company extends Model
     {
         parent::boot();
 
-
-        // Beim Erstellen
         static::creating(function ($item) {
-            // Finde den höchsten Wert der kd_nr in der Datenbank
             $latestKdNr = Company::max('kd_nr');
-
-            // Inkrementiere um 1 oder starte bei 1000, falls kein Wert existiert
             $item->kd_nr = $latestKdNr ? $latestKdNr + 1 : 1000;
-
-            if (empty($item->ulid)) {
-                $item->ulid = (string) Str::ulid();
-            }
-
-        });
-
-        static::created(function ($item) {
-
-        });
-        // Beim Aktualisieren eines Menüeintrags
-        static::updating(function ($item) {
-            // Prüfe, ob die parent_id geändert wurde
-            if ($item->isDirty('slug'))
+            if (empty($item->ulid))
             {
-
-
+                $item->ulid = (string)Str::ulid();
             }
         });
 
         static::deleting(function ($company) {
-            // Lösche verknüpfte Contracts
             \App\Models\Contract::where('contractable_id', $company->id)
                 ->where('contractable_type', 'App\\Models\\Company')
                 ->delete();
-
-            // Lösche Einträge aus company_user
             \DB::table('company_user')->where('company_id', $company->id)->delete();
-
-            // Finde Benutzer, die nur mit dieser Company verknüpft sind und KEINE Admins sind
             $userIdsToDelete = \DB::table('users')
                 ->select('users.id')
                 ->leftJoin('company_user', 'users.id', '=', 'company_user.user_id')
                 ->whereNull('company_user.company_id')
-                ->where('users.is_admin', '!=', 1) // Admins auslassen
+                ->where('users.is_admin', '!=', 1)
                 ->pluck('id');
-
-            // Lösche diese Benutzer
             \App\Models\User::whereIn('id', $userIdsToDelete)->delete();
         });
+
+        // Prüfen, ob Laravel im Test-Modus läuft
+        if (App::runningUnitTests())
+        {
+            static::flushEventListeners(); // Entfernt alle Eloquent-Event-Listener
+            static::unsetEventDispatcher(); // Entfernt den Event-Dispatcher
+        }
+        else
+        {
+            static::observe(\Cviebrock\EloquentSluggable\SluggableObserver::class);
+        }
     }
+
 
     // Polymorphe Beziehung zu Contracts
     public function contracts()
     {
         return $this->morphMany(Contract::class, 'contractable');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function settings()
+    {
+        return $this->hasOne(CompanySetting::class);
+    }
+
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function scanLogs()
+    {
+        return $this->hasMany(CompanyScanLog::class);
+    }
+
+    /**
+     * @return int
+     *
+     * maximale url für firma
+     */
+    public function getMaxUrlsAttribute(): int
+    {
+        $features = [
+            'max-url-10' => 10,
+            'max-url-50' => 50,
+            'max-url-100' => 100,
+            'max-url-1500' => 1500,
+            'max-url-15k' => 15000,
+            'max-url-100k' => 100000,
+        ];
+
+        $maxLimit = 10; // Fallback-Wert (Standard)
+
+        foreach ($features as $feature => $limit) {
+            if ($this->hasFeature($feature) && $limit > $maxLimit) {
+                $maxLimit = $limit;
+            }
+        }
+
+        return $maxLimit;
+    }
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function features()
+    {
+        return $this->belongsToMany(Feature::class, 'company_feature')
+            ->withPivot('value')
+            ->withTimestamps();
+    }
+
+    /**
+     * @param $features
+     * @return bool
+     */
+    public function hasFeature($features): bool
+    {
+        // Convert single feature into array
+        $features = is_array($features) ? $features : [$features];
+
+        return $this->features()->whereIn('slug', $features)->exists();
     }
 
     /**
