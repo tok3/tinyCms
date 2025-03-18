@@ -18,16 +18,19 @@ use App\Models\Company;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Support\HtmlString;
 use App\Helpers\IconHelper;
-
-
+use Filament\Facades\Filament;
+use Filament\Notifications\Notification;
 class Pa11yUrlResource extends Resource
 {
     protected static ?string $model = Pa11yUrl::class;
 
     public static function getSlug(): string
     {
+
         return 'firmament-urls';
     }
+
+
 
 
     protected static ?string $navigationIcon = 'heroicon-o-link';
@@ -299,4 +302,13 @@ class Pa11yUrlResource extends Resource
     {
         return parent::query()->with('accessibilityIssues');
     }
+
+    public static function canCreate(): bool
+    {
+
+        // Deaktiviert den standardmäßig erzeugten Create-Button
+        return true;
+    }
+
+
 }

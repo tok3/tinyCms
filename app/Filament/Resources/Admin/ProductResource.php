@@ -132,10 +132,28 @@ class ProductResource extends Resource
                             ->default(true)
                             ->required(),
 
+
                         Toggle::make('visible')
                             ->label('Öffentlich sichtbar')
                             ->default(true)
-                            ->required(),
+                            ->required()
+                            ->reactive()
+                            ->dehydrated(fn ($state, callable $get) => $get('upgrade') ? true : $state)
+                            ->disabled(fn (callable $get) => $get('upgrade')),
+
+
+
+                        Toggle::make('upgrade')
+                            ->label('Intern buchbares Upgrade')
+                            ->default(false)
+                            ->required()
+                            ->reactive()
+                            // Sobald upgrade aktiviert wird, setze visible auf false
+                            ->afterStateUpdated(function (bool $state, callable $set) {
+                                if ($state) {
+                                    $set('visible', false);
+                                }
+                            }),
                     ])
                     ->columns(4),
             ]);

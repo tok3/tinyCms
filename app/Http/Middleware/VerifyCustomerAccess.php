@@ -25,6 +25,7 @@ class VerifyCustomerAccess
         //$customer = \App\Models\Customer::where('uuid', $company_id)->first();
         $customer = \App\Models\Company::where('ulid', $company_id)->first();
 
+
         if (!$customer || !$customer->hasAccessToTool($tool))
         {
             // Zugriff verweigern, wenn der Kunde keinen Zugang hat
@@ -50,7 +51,7 @@ class VerifyCustomerAccess
                     'count' => 1,
                 ]);
 
-                $this->createPa11yUrlAndScan($customer->id, $httpReferrer);
+                $this->createPa11yUrlAndScan($customer, $httpReferrer);
 
             }
             else
@@ -79,19 +80,21 @@ class VerifyCustomerAccess
      * @param string $referrer
      * @return void
      */
-    private function createPa11yUrlAndScan(int $companyId, string $referrer): void
+    private function createPa11yUrlAndScan($company, string $referrer): void
     {
+
+
         // Prüfen, wie viele URLs die Firma bereits hat
-        $urlCount = Pa11yUrl::where('company_id', $companyId)->count();
+        $urlCount = Pa11yUrl::where('company_id', $company->id)->count();
 
         // Falls die Firma bereits 10 URLs hat, keine weitere speichern
-        if ($urlCount >= 10) {
-            \Log::info("Company {$companyId} hat bereits 10 URLs. Keine weitere URL wird gespeichert.");
+        if ($urlCount >= $company->max_urls) {
+            \Log::info("Company {$company->id} hat bereits {$company->max_urls} URLs. Keine weitere URL wird gespeichert.");
             return;
         }
 
         // Überprüfen, ob die URL bereits existiert
-        $existingUrl = Pa11yUrl::where('company_id', $companyId)
+        $existingUrl = Pa11yUrl::where('company_id', $company->id)
             ->where('url', $referrer)
             ->first();
 
@@ -99,7 +102,7 @@ class VerifyCustomerAccess
         if (!$existingUrl) {
             // Pa11yUrl erstellen
             $url = Pa11yUrl::create([
-                'company_id' => $companyId,
+                'company_id' => $company->id,
                 'url' => $referrer,
             ]);
 

@@ -9,7 +9,7 @@ class Product extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name', 'description', 'price', 'currency', 'payment_type', 'interval', 'active', 'visible','trial_period_days'
+        'name', 'description', 'price', 'currency', 'payment_type', 'interval', 'active', 'visible','upgrade','trial_period_days'
     ];
 
     public static function boot()
@@ -19,7 +19,11 @@ class Product extends Model
         static::saving(function ($model) {
             $model->updateIntervalBasedOnPaymentType();
         });
+
+
     }
+
+
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
@@ -51,4 +55,13 @@ class Product extends Model
             $this->interval = 'one_time';
         }
     }
+
+    public function setUpgradeAttribute($value)
+    {
+        $this->attributes['upgrade'] = $value;
+        if ($value) {
+            $this->attributes['visible'] = 0;
+        }
+    }
+
 }

@@ -79,6 +79,7 @@
     }
 }
 
+
 </style>
 
 
@@ -90,13 +91,13 @@
     <form id="checkAccessibilityForm">
         @csrf
         <div class="row align-items-center">
-            <div class="col-lg-6 col-xl-5 aos-init aos-animate" data-aos="fade-up" data-aos-delay="100">
+            <div class="col-lg-6 col-xl-5 aos-init aos-animate" data-aos="fade-up" data-aos-delay="100"  _style="background-image: url('{{asset('assets/img/backgrounds/fluff.png') }}');">
                 <!--Heading-->
-                <h2 class="h1 mb-3">
+                <h2 class="h1 mb-3 ">
                     {!! $data['heading'] !!}
                 </h2>
                 <!--Text-->
-                <p class="mb-5 mb-lg-0">
+                <p class="mb-5 mb-lg-0 ">
                     {!! $data['subtext'] !!}
                 </p>
             </div>

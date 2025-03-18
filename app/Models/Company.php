@@ -94,6 +94,32 @@ class Company extends Model
     }
 
     /**
+     * @return int
+     *
+     * maximale url für firma
+     */
+    public function getMaxUrlsAttribute(): int
+    {
+        $features = [
+            'max-url-10' => 10,
+            'max-url-50' => 50,
+            'max-url-100' => 100,
+            'max-url-1500' => 1500,
+            'max-url-15k' => 15000,
+            'max-url-100k' => 100000,
+        ];
+
+        $maxLimit = 10; // Fallback-Wert (Standard)
+
+        foreach ($features as $feature => $limit) {
+            if ($this->hasFeature($feature) && $limit > $maxLimit) {
+                $maxLimit = $limit;
+            }
+        }
+
+        return $maxLimit;
+    }
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function features()

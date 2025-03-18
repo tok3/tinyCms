@@ -14,7 +14,8 @@
         }
     ],
     "files": [
-        "app/Helpers/IconHelper.php"
+        "app/Helpers/IconHelper.php",
+        "app/Helpers/FormatHelper.php"
     ],
     "require": {
         "php": "^8.1",
