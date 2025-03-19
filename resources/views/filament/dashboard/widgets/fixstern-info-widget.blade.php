@@ -62,7 +62,7 @@
 
                 <x-filament::link
                     color="gray"
-                    href="{{url('assets/downloads/datenschutz.pdf')}}"
+                    href="{{url('assets/downloads/Datenschutz.pdf')}}"
                     icon-alias="panels::widgets.filament-info.open-github-button"
                     rel="noopener noreferrer"
                     target="_blank"
