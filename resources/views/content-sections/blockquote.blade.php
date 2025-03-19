@@ -2,7 +2,7 @@
     <div class="col-xl-6 mx-auto">
         <blockquote class="blockquote rounded-4 rounded-0 px-4 px-lg-6 py-6 py-lg-8 bg-body-tertiary shadow-lg border-success border-start border-3 my-7 my-lg-9">
             <h2 class="mb-4 display-6 fw-semibold">
-                "{{$data['quote']}}"
+                "{!! $data['quote'] !!}"
             </h2>
             <div class="d-flex pt-4 justify-content-between align-items-center">
                 @if($data['author'])
