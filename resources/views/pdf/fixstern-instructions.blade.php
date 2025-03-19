@@ -133,12 +133,12 @@
 </table>
 
 <br><br>
-<h1>Anleitung zur Einbindung des Fixstern-Widget</h1>
+<h1>Anleitung zur Einbindung des Accessibility-Widget</h1>
 
 <p class="important">BITTE BEACHTEN: Der Einbindungscode ist nur für <strong>{{ $companyName }}</strong> gültig!</p>
 
 <h2>Standard Integration</h2>
-<p>Um das Fixstern-Widget in Ihre Website zu integrieren, kopieren Sie bitte den untenstehenden Code an das Ende Ihrer Website, direkt vor den schließenden &lt;/body&gt;-Tag</p>.
+<p>Um das Widget in Ihre Website zu integrieren, kopieren Sie bitte den untenstehenden Code an das Ende Ihrer Website, direkt vor den schließenden &lt;/body&gt;-Tag</p>.
 <div class="code-block-wrapper">
     <pre>
         <span class="highlight">&lt;link</span>
@@ -151,7 +151,7 @@
     </pre>
 </div>
 
-<p>Nach dem Einfügen des Codes sollte das Widget auf der Webseite verfügbar sein. Oben rechts sehen Sie nun den Aktivierungsbutton mit dem Fixstern-Accessibility-Logo:   <img src="assets/img/logo/fixstern-2.svg" style="width:10px; position:relative; border:5px solid transparent;" alt="logo">
+<p>Nach dem Einfügen des Codes sollte das Widget auf der Webseite verfügbar sein. Oben rechts sehen Sie nun den Aktivierungsbutton mit dem Accessibility-Logo:   <img src="assets/img/logo/fixstern-2.svg" style="width:10px; position:relative; border:5px solid transparent;" alt="logo">
 </p>.
 
 <h2>Positionierung und Abstände</h2>
@@ -181,7 +181,7 @@
 </div>
 <h2>Custom Trigger-Button verwenden</h2>
 <p>
-    Um die vollständige Freiheit über das Design zu haben, können Sie einen eigenen Trigger-Button verwenden, der z. B. vollständig auf Ihr Website-Design abgestimmt ist. Dazu binden Sie das Fixstern-Script ohne Button ein, indem Sie den Parameter <b>nobutton</b> auf „true“ setzen.
+    Um die vollständige Freiheit über das Design zu haben, können Sie einen eigenen Trigger-Button verwenden, der z. B. vollständig auf Ihr Website-Design abgestimmt ist. Dazu binden Sie das Script ohne Button ein, indem Sie den Parameter <b>nobutton</b> auf „true“ setzen.
 </p>
 <div class="code-block-wrapper">
     <pre>
@@ -195,7 +195,7 @@
     </pre>
 </div>
 <p>
-    Nun können Sie auf Ihrer Webseite ein beliebiges Element setzen, um Fixstern zu öffnen. Das Element muss lediglich die <b>ID</b> “ini-bf-trigger-button” besitzen, wie in diesem Beispiel:
+    Nun können Sie auf Ihrer Webseite ein beliebiges Element setzen, um das Widget zu öffnen. Das Element muss lediglich die <b>ID</b> “ini-bf-trigger-button” besitzen, wie in diesem Beispiel:
 </p>
 
 <div class="code-block-wrapper">
