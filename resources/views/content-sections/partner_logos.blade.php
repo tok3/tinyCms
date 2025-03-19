@@ -13,7 +13,7 @@
 </section>
 --}}
 
-<section class="position-relative">
+<section class="position-relative   @if(!empty($data['background'])) bg-body-tertiary @endif">
     <div class="container py-9 py-lg-11">
         <h5 class="text-center mb-7">{{ $data['title'] }}</h5>
         <div class="row grid-separator">

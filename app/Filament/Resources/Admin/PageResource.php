@@ -399,6 +399,11 @@ class   PageResource extends Resource
                                                         ])
                                                         ->default('4')
                                                         ->columnSpan(4),
+                                                    Forms\Components\Checkbox::make('background')
+                                                        ->label('Hintergrund abgesetzt')
+                                                        ->default(false)
+                                                        ->helperText('Setzt den Hintergrund leicht grau ab (bg-body-tertiary)')
+                                                        ->columnSpan(3),
                                                     // Repeater für das Hochladen der Logos
                                                     Forms\Components\Repeater::make('logos')
                                                         ->label('Partner Logos')
