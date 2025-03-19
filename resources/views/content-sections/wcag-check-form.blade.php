@@ -18,7 +18,7 @@
     </div>
 </div>--}}
 
-<section class="position-relative p-4 _border-top mt-4 border-bottom">
+<section class="position-relative p-4  @if(!empty($data['border-top'])) border-top @endif mt-4 @if(!empty($data['border-bottom'])) border-bottom @endif">
 <style>
 /*
     #summaryOutput {

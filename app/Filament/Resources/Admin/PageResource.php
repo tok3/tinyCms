@@ -594,7 +594,16 @@ class   PageResource extends Resource
                                                              ->required()
                                                              ->columnSpan(3),
                                                      ]),*/
-
+                                                    Forms\Components\Checkbox::make('border-top')
+                                                        ->label('Border Top')
+                                                        ->default(false)
+                                                        ->helperText('Trennlinie oben')
+                                                        ->columnSpan(3),
+                                                    Forms\Components\Checkbox::make('border-bottom')
+                                                        ->label('Border Bottom')
+                                                        ->default(false)
+                                                        ->helperText('Trennlinie unten')
+                                                        ->columnSpan(3),
                                                     // Zweite Zeile: Überschrift
                                                     Forms\Components\Grid::make(12)->schema([
                                                         Forms\Components\Textarea::make('heading')
