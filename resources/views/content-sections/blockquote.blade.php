@@ -23,7 +23,6 @@
     </div>
 </div>
 
-
 <div class="row  ">
     <div class="col-xl-6 mx-auto">
         <figure class="border-start border-4 border-primary ps-4 blockquote rounded-4 rounded-0 px-3 px-lg-5 py-5 py-lg-3 bg-body-tertiary shadow-lg border-success border-start border-3 my-7 my-lg-9">
