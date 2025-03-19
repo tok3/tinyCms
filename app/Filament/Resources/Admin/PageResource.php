@@ -298,7 +298,7 @@ class   PageResource extends Resource
                                                             Forms\Components\Checkbox::make('background')
                                                                 ->label('Hintergrund abgesetzt')
                                                                 ->default(false)
-                                                                ->helperText('Setzt den Hintergrund auf hell (bg-light)')
+                                                                ->helperText('Setzt den Hintergrund auf hell (bg-gradient-light)')
                                                                 ->columnSpan(3),
 
                                                             Forms\Components\Checkbox::make('border_top')
