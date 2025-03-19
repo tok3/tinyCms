@@ -15,6 +15,8 @@ use Filament\Forms\Components\Actions;
 use App\Models\Company;
 use Laravel\Cashier\Cashier;
 use Illuminate\Support\Facades\URL;
+use Cviebrock\EloquentSluggable\SluggableObserver;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -33,6 +35,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(\Illuminate\Http\Request $request): void
     {
+
+        if (!\Illuminate\Support\Facades\App::runningUnitTests()) {
+            Company::observe(SluggableObserver::class);
+        }
 
         if (env(key: 'APP_ENV') === 'local' && request()->server(key: 'HTTP_X_FORWARDED_PROTO') === 'https') {
             Url::forceScheme(scheme: 'https');

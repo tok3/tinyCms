@@ -271,3 +271,68 @@ footer {
     flex: 1;
 }
 
+mark-pink,
+.mark-pink {
+    margin: 0 -0.4em;
+    padding: 0.1em 0.4em;
+    border-radius: 0.8em 0.3em;
+    background: transparent;
+    background-image: linear-gradient(
+            to right,
+            rgba(200, 1, 248, 0.1),  /* Neon-Magenta mit 10% Transparenz */
+            rgba(234, 5, 248, 0.7) 1%, /* Neon-Magenta mit 70% Transparenz */
+            rgba(234, 5, 248, 0.3)
+    ) !important;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+
+}
+mark-green,
+.mark-green {
+    margin: 0 -0.4em;
+    padding: 0.1em 0.4em;
+    border-radius: 0.8em 0.3em;
+    background: transparent;
+    background-image: linear-gradient(
+            to right,
+            rgba(57, 255, 20, 0.1),  /* Neon-Grün mit 10% Transparenz */
+            rgba(57, 255, 20, 0.7) 4%, /* Neon-Grün mit 70% Transparenz */
+            rgba(57, 255, 20, 0.3)
+    ) !important;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+
+}
+
+mark-yellow,
+.mark-yellow {
+    margin: 0 -0.4em;
+    padding: 0.1em 0.4em;
+    border-radius: 0.8em 0.3em;
+    background: transparent;
+    background-image: linear-gradient(
+            to right,
+            rgba(234, 248, 5, 0.1),  /* Neon-Gelb mit 10% Transparenz */
+            rgba(234, 248, 5, 0.7) 4%, /* Neon-Gelb mit 70% Transparenz */
+            rgba(234, 248, 5, 0.3)
+    ) !important;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+
+}
+mark-blue,
+.mark-blue {
+    margin: 0 -0.4em;
+    padding: 0.1em 0.4em;
+    border-radius: 0.8em 0.3em;
+    background: transparent;
+    background-image: linear-gradient(
+            to right,
+            rgba(6, 253, 241, 0.1),  /* Neon-Cyan mit 10% Transparenz */
+            rgba(6, 253, 241, 0.7) 4%, /* Neon-Cyan mit 70% Transparenz */
+            rgba(6, 253, 241, 0.3)
+    ) !important;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+
+}

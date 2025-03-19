@@ -104,8 +104,10 @@ class Page extends Model
         return $this->belongsTo(User::class);
     }
 
-
-
+    public function setVimeoUrlAttribute($value)
+    {
+        $this->attributes['vimeo_url'] = static::convertVimeoUrl($value);
+    }
     /**
      * Determine if the model should be searchable.
      */

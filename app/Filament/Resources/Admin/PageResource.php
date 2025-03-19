@@ -30,9 +30,11 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Group;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\ViewField;
+use Filament\Forms\Components\Repeater;
 
 class   PageResource extends Resource
 {
+
     protected static ?string $model = Page::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
@@ -276,6 +278,238 @@ class   PageResource extends Resource
                                                 ->columns(12),
 
                                             //-------------------------------------
+
+                                            Forms\Components\Builder\Block::make('content_block')
+                                                ->label('Text Bild / Embed Vid')
+                                                ->schema([
+                                                    // Zeile mit Layout-Optionen & Checkboxen
+                                                    Forms\Components\Grid::make(12)
+                                                        ->schema([
+                                                            Forms\Components\Radio::make('layout')
+                                                                ->label('Layout')
+                                                                ->options([
+                                                                    'text-left' => 'Text links, Bild/Vimeo rechts',
+                                                                    'text-right' => 'Bild/Vimeo links, Text rechts',
+                                                                ])
+                                                                ->default('text-right')
+                                                                ->inline()
+                                                                ->columnSpan(6),
+
+                                                            Forms\Components\Checkbox::make('background')
+                                                                ->label('Hintergrund abgesetzt')
+                                                                ->default(false)
+                                                                ->helperText('Setzt den Hintergrund auf hell (bg-gradient-light)')
+                                                                ->columnSpan(3),
+
+                                                            Forms\Components\Checkbox::make('border_top')
+                                                                ->label('Border Top')
+                                                                ->default(false)
+                                                                ->helperText('Fügt eine obere Trennlinie hinzu')
+                                                                ->columnSpan(3),
+                                                        ])
+                                                        ->columns(12),
+
+                                                    Forms\Components\TextInput::make('title')
+                                                        ->label('Überschrift')
+                                                        ->required()
+                                                        ->columnSpan(12),
+
+                                                    TinyEditor::make('content')->profile('custom')
+                                                        ->label('Text')
+                                                        ->required()
+                                                        ->columnSpan(12),
+
+                                                    // Erste Zeile: Medientyp & Vimeo URL
+                                                    Forms\Components\Grid::make(12)
+                                                        ->schema([
+                                                            Forms\Components\Radio::make('media_type')
+                                                                ->label('Medientyp')
+                                                                ->options([
+                                                                    'video' => 'Vimeo Video',
+                                                                    'image' => 'Bild',
+                                                                ])
+                                                                ->default('video')
+                                                                ->inline()
+                                                                ->reactive()
+                                                                ->afterStateUpdated(fn ($state, $set) => $set('vimeo_url', null))
+                                                                ->columnSpan(4),
+
+                                                            Forms\Components\TextInput::make('vimeo_url')
+                                                                ->label('Vimeo Video URL')
+                                                                ->reactive()
+                                                                ->afterStateUpdated(function ($state, $set) {
+                                                                    if ($state) {
+                                                                        if (preg_match('#https://vimeo\.com/(\d+)/([a-z0-9]+)#', $state, $matches)) {
+                                                                            $videoId = $matches[1];
+                                                                            $hash = $matches[2];
+                                                                            $set('vimeo_url', "https://player.vimeo.com/video/{$videoId}?h={$hash}");
+                                                                        }
+                                                                    }
+                                                                })
+                                                                ->hidden(fn (callable $get) => $get('media_type') !== 'video')
+                                                                ->url()
+                                                                ->placeholder('https://vimeo.com/...')
+                                                                ->columnSpan(8),
+                                                        ])
+                                                        ->columns(12),
+
+                                                    // **Eigene Zeile für Bild-Upload**
+                                                    Forms\Components\Grid::make(12)
+                                                        ->schema([
+                                                            Forms\Components\FileUpload::make('image')
+                                                                ->label('Bild Upload')
+                                                                ->image()
+                                                                ->directory('slides/backgrounds')
+                                                                ->maxSize(5120)
+                                                                ->hidden(fn (callable $get) => $get('media_type') !== 'image')
+                                                                ->columnSpan(6), // **Hier nur 6 Spalten, damit es nicht die ganze Zeile nimmt**
+                                                        ])
+                                                        ->columns(12),
+
+                                                    // **Eigene Zeile für Alt-Text**
+                                                    Forms\Components\Grid::make(12)
+                                                        ->schema([
+                                                            Forms\Components\TextInput::make('alt_text')
+                                                                ->label('Alt-Text für Bild')
+                                                                ->placeholder('Beschreiben Sie das Bild')
+                                                                ->hidden(fn (callable $get) => $get('media_type') !== 'image')
+                                                                ->columnSpan(6), // **Soll direkt unter dem Upload sein**
+                                                        ])
+                                                        ->columns(12),
+                                                ])
+                                                ->columns(12),
+                                            //-------------------------------------
+
+                                            Forms\Components\Builder\Block::make('partner_logos')
+                                                ->label('Partner Logos')
+                                                ->schema([
+                                                    // Überschrift für die Sektion
+                                                    Forms\Components\TextInput::make('title')
+                                                        ->label('Überschrift')
+                                                        ->default('Unsere Partner')
+                                                        ->columnSpan(12),
+
+                                                    // Grid-Optionen: Wie viele Logos pro Zeile?
+                                                    Forms\Components\Select::make('grid_columns')
+                                                        ->label('Logos pro Zeile')
+                                                        ->options([
+                                                            '2' => '2 Logos pro Zeile',
+                                                            '3' => '3 Logos pro Zeile',
+                                                            '4' => '4 Logos pro Zeile',
+                                                        ])
+                                                        ->default('4')
+                                                        ->columnSpan(4),
+                                                    // Repeater für das Hochladen der Logos
+                                                    Forms\Components\Repeater::make('logos')
+                                                        ->label('Partner Logos')
+                                                        ->schema([
+                                                            Forms\Components\FileUpload::make('logo')
+                                                                ->label('Logo Upload')
+                                                                ->image()
+                                                                ->directory('partners/logos')
+                                                                ->maxSize(2048)
+                                                                ->helperText(function ($state) {
+                                                                    if (empty($state) || !is_array($state))
+                                                                    {
+                                                                        return 'Kein Bild hochgeladen.';
+                                                                    }
+
+                                                                    $filePath = storage_path('app/public/' . reset($state));
+
+                                                                    if (!file_exists($filePath))
+                                                                    {
+                                                                        return 'Datei nicht gefunden.';
+                                                                    }
+
+                                                                    // Falls SVG, gebe "SVG-Datei – skalierbar" zurück
+                                                                    if (pathinfo($filePath, PATHINFO_EXTENSION) === 'svg')
+                                                                    {
+                                                                        return 'SVG-Datei – skalierbar';
+                                                                    }
+
+                                                                    // Falls kein SVG, echte Pixelmaße anzeigen
+                                                                    $size = getimagesize($filePath);
+
+                                                                    return $size ? "{$size[0]} x {$size[1]} px" : 'Größe nicht bestimmbar.';
+                                                                })
+                                                                ->columnSpan(6), // 2 Spalten für schönere Anzeige
+
+                                                            Forms\Components\TextInput::make('alt_text')
+                                                                ->label('Alt-Text für Logo')
+                                                                ->placeholder('Beschreiben Sie das Logo')
+                                                                ->columnSpan(6),
+
+                                                            Forms\Components\TextInput::make('link')
+                                                                ->label('Partner Link (optional)')
+                                                                ->placeholder('https://www.partnerseite.de')
+                                                                ->columnSpan(6), // 50% Breite innerhalb des Repeaters
+                                                        ])
+                                                        ->minItems(2)
+                                                        ->maxItems(12)
+                                                        ->grid(2) // Pro Zeile 2 Upload-Felder
+                                                        ->columnSpan(12),
+                                                ])
+                                                ->columns(12),
+
+                                            //-------------------------------------
+
+                                            Forms\Components\Builder\Block::make('swiper')
+                                                ->schema([
+                                                    // Farbauswahl für den gesamten Block
+                                                    Forms\Components\Grid::make(12) // Erstes Grid für Farben & Button-Styles
+                                                    ->schema([
+                                                        Forms\Components\ColorPicker::make('text_color')
+                                                            ->label('Schriftfarbe')
+                                                            ->default('#ffffff') // Standard schwarz
+                                                            ->columnSpan(4), // Belegt 4 von 12 Spalten
+
+                                                        Forms\Components\ColorPicker::make('background_color')
+                                                            ->label('Hintergrundfarbe')
+                                                            ->default('#000000') // Standard weiß
+                                                            ->columnSpan(4), // Belegt 4 von 12 Spalten
+
+                                                        Forms\Components\Select::make('button_color')
+                                                            ->label('Button-Farbe')
+                                                            ->options([
+                                                                'btn-white' => 'Weiß',
+                                                                'btn-primary' => 'Blau (Primary)',
+                                                            ])
+                                                            ->default('btn-white') // Standard auf Blau setzen
+                                                            ->columnSpan(4), // Belegt die letzten 4 Spalten
+                                                    ])
+                                                        ->columns(12),
+
+                                                    // Repeater für Slides
+                                                    Repeater::make('slides')
+                                                        ->label('Slides')
+                                                        ->schema([
+                                                            Forms\Components\TextInput::make('text')
+                                                                ->label('Text')
+                                                                ->columnSpanFull(),
+
+                                                            Forms\Components\TextInput::make('paginationTitle')
+                                                                ->label('Pagination Title')
+                                                                ->columnSpanFull(),
+
+                                                            Forms\Components\Grid::make(12)
+                                                                ->schema([
+                                                                    Forms\Components\TextInput::make('buttonText')
+                                                                        ->label('Button Text')
+                                                                        ->columnSpan(6),
+
+                                                                    Forms\Components\TextInput::make('buttonTarget')
+                                                                        ->label('Button Target')
+                                                                        ->columnSpan(6),
+                                                                ]),
+                                                        ])
+                                                        ->columnSpanFull()
+                                                        ->collapsible()
+                                                        ->addable()
+                                                        ->reorderable(),
+                                                ])
+                                                ->columns(12),
+
+                                            //-------------------------------------
                                             Forms\Components\Builder\Block::make('countdown-timer')
                                                 ->schema([
                                                     // Erste Zeile: Datetimepicker und Dropdown
@@ -293,6 +527,7 @@ class   PageResource extends Resource
                                                                 'bg-secondary' => 'Sekundärfarbe',
                                                                 'bg-gradient-blue' => 'Blauer Verlauf',
                                                                 'bg-gradient-primary' => 'Primärer Verlauf',
+                                                                'bg-gradient-blur' => 'Gradient Blur',
                                                             ])
                                                             ->required() // Optional, falls eine Auswahl erforderlich ist
                                                             ->columnSpan(3), // Schmaler Bereich für den Dropdown
@@ -342,18 +577,18 @@ class   PageResource extends Resource
                                             Forms\Components\Builder\Block::make('wcag-check-form')
                                                 ->schema([
                                                     // Erste Zeile: Dropdown für Erscheinungsbild
-                                                   /* Forms\Components\Grid::make(12)->schema([
-                                                        Forms\Components\Select::make('background')
-                                                            ->label('Erscheinungsbild')
-                                                            ->options([
-                                                                'bg-primary' => 'Primärfarbe',
-                                                                'bg-secondary' => 'Sekundärfarbe',
-                                                                'bg-gradient-blue' => 'Blauer Verlauf',
-                                                                'bg-gradient-primary' => 'Primärer Verlauf',
-                                                            ])
-                                                            ->required()
-                                                            ->columnSpan(3),
-                                                    ]),*/
+                                                    /* Forms\Components\Grid::make(12)->schema([
+                                                         Forms\Components\Select::make('background')
+                                                             ->label('Erscheinungsbild')
+                                                             ->options([
+                                                                 'bg-primary' => 'Primärfarbe',
+                                                                 'bg-secondary' => 'Sekundärfarbe',
+                                                                 'bg-gradient-blue' => 'Blauer Verlauf',
+                                                                 'bg-gradient-primary' => 'Primärer Verlauf',
+                                                             ])
+                                                             ->required()
+                                                             ->columnSpan(3),
+                                                     ]),*/
 
                                                     // Zweite Zeile: Überschrift
                                                     Forms\Components\Grid::make(12)->schema([
@@ -393,33 +628,32 @@ class   PageResource extends Resource
                                                             Forms\Components\Grid::make(12)->schema([
                                                                 Forms\Components\TextInput::make('ctaHeadingSmall')
                                                                     ->label('CTA Heading Small')
-                                                                    ->visible(fn ($get) => $get('showCta'))
+                                                                    ->visible(fn($get) => $get('showCta'))
                                                                     ->columnSpan(3),
                                                                 Forms\Components\TextInput::make('ctaHeading')
                                                                     ->label('CTA Heading')
-                                                                    ->visible(fn ($get) => $get('showCta'))
+                                                                    ->visible(fn($get) => $get('showCta'))
                                                                     ->columnSpan(6),
                                                             ]),
 
                                                             Forms\Components\Grid::make(12)->schema([
                                                                 Forms\Components\Textarea::make('ctaText')
                                                                     ->label('CTA Text')
-                                                                    ->visible(fn ($get) => $get('showCta'))
+                                                                    ->visible(fn($get) => $get('showCta'))
                                                                     ->columnSpan(6),
                                                             ]),
-
 
 
                                                             // CTA Button-Felder in einer Zeile
                                                             Forms\Components\Grid::make(6)->schema([
                                                                 Forms\Components\TextInput::make('ctaButtonText')
                                                                     ->label('CTA Button Text')
-                                                                    ->visible(fn ($get) => $get('showCta'))
+                                                                    ->visible(fn($get) => $get('showCta'))
                                                                     ->columnSpan(2), // Button-Text: 1/3 der Zeile
 
                                                                 Forms\Components\TextInput::make('ctaButtonTarget')
                                                                     ->label('CTA Button Target')
-                                                                    ->visible(fn ($get) => $get('showCta'))
+                                                                    ->visible(fn($get) => $get('showCta'))
                                                                     ->columnSpan(2), // Button-Target: 1/3 der Zeile
 
                                                                 Forms\Components\Select::make('ctaButtonAppearance')
@@ -430,7 +664,7 @@ class   PageResource extends Resource
                                                                         'btn-primary' => 'Primär',
                                                                         'btn-secondary' => 'Sekundär',
                                                                     ])
-                                                                    ->visible(fn ($get) => $get('showCta'))
+                                                                    ->visible(fn($get) => $get('showCta'))
                                                                     ->required()
                                                                     ->columnSpan(1), // Erscheinungsbild: 1/3 der Zeile
                                                             ]),
@@ -609,4 +843,18 @@ class   PageResource extends Resource
                 ->color('success'), // Optional: Farbe des Buttons
         ];
     }
+
+    protected static function convertVimeoUrl($url)
+    {
+        if (preg_match('/vimeo\.com\/(?:video\/)?(\d+)(?:\?h=([a-zA-Z0-9]+))?/', $url, $matches)) {
+            $videoId = $matches[1];
+            $hash = !empty($matches[2]) ? "?h={$matches[2]}" : '';
+
+            return "https://player.vimeo.com/video/{$videoId}{$hash}";
+        }
+
+        return $url;
+    }
 }
+
+

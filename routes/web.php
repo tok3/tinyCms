@@ -97,6 +97,7 @@ Route::get('/service/{tool}.css', [ScriptController::class, 'serveCss'])->name('
 use App\Http\Controllers\TestController;
 
 Route::get('test-artisan-command/{id?}', [TestController::class, 'testArtisanCommand']);
+
 // -----------------------------------------------
 use App\Http\Controllers\AccessibilityRuleScraperController;
 
@@ -200,10 +201,13 @@ Route::post('/code/einloesen', [CouponController::class, 'redeem'])->name('coupo
 Route::post('/clear-session', function (Request $request) {
     $keys = $request->input('keys');
 
-    if ($keys && is_array($keys)) {
-        foreach ($keys as $key) {
+    if ($keys && is_array($keys))
+    {
+        foreach ($keys as $key)
+        {
             session()->forget($key);
         }
+
         return response()->json(['status' => 'success', 'message' => 'Session variables removed']);
     }
 

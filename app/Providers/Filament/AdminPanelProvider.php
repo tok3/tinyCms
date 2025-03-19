@@ -21,11 +21,20 @@ use App\Models\Company;
 use Filament\Navigation\NavigationGroup;
 use Filament\MinimalTheme;
 use Filament\Support\Enums\MaxWidth;
+use Filament\Facades\Filament;
+use Livewire\Livewire;
+use App\Http\Livewire\MoveBlockModal;
 class AdminPanelProvider extends PanelProvider
 {
 
     protected static ?string $navigationGroup = 'Settings';
-
+    public function boot(): void
+    {
+        Filament::serving(function () {
+            Filament::registerRenderHook('scripts.end', fn () => view('filament.includes.move-block-button'));
+            Livewire::component('move-block-modal', MoveBlockModal::class);
+        });
+    }
     public function panel(Panel $panel): Panel
     {
 

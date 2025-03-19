@@ -3,13 +3,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\SoftDeletes;
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name', 'description', 'price', 'currency', 'payment_type', 'interval', 'active', 'visible','trial_period_days'
+        'name', 'description', 'price', 'currency', 'payment_type', 'interval', 'active', 'visible','upgrade','trial_period_days'
     ];
 
     public static function boot()
@@ -19,8 +19,21 @@ class Product extends Model
         static::saving(function ($model) {
             $model->updateIntervalBasedOnPaymentType();
         });
+
+
     }
 
+
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function features()
+    {
+        return $this->belongsToMany(Feature::class, 'product_feature')
+            ->withPivot('value')
+            ->withTimestamps();
+    }
     // Accessor to get the price in a formatted way
     public function getPriceAttribute($value)
     {
@@ -42,4 +55,13 @@ class Product extends Model
             $this->interval = 'one_time';
         }
     }
+
+    public function setUpgradeAttribute($value)
+    {
+        $this->attributes['upgrade'] = $value;
+        if ($value) {
+            $this->attributes['visible'] = 0;
+        }
+    }
+
 }

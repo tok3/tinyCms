@@ -48,7 +48,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | This is the directory where Filament's assets will be published to. It
-    | is relative to the `public` directory of your Laravel application.
+    | is relative to the `public` directory of your Laravel appalication.
     |
     | After changing the path, you should run `php artisan filament:assets`.
     |
@@ -85,6 +85,10 @@ return [
 
     'livewire_loading_delay' => 'default',
 
-
+    'livewire' => [
+        'alpine' => [
+            'enabled' => true, // Sicherstellen, dass Alpine.js aktiv ist
+        ],
+    ],
 
 ];
