@@ -63,14 +63,11 @@
                                     <div class="embed-container">
                                         <iframe src="{{ $data['vimeo_url'] }}" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
                                     </div>
-                                    <div class="embed-container">
 
                                 @elseif($data['media_type'] === 'image' && !empty($data['image']))
                                     <img src="{{ asset('storage/' . $data['image']) }}" class="img-fluid" alt="Content Image">
                                 @endif
                             @endif
-
-
 
                     </div>
                 </div>
