@@ -6,14 +6,14 @@
             </h2>
             <div class="d-flex pt-4 justify-content-between align-items-center">
                 @if($data['author'])
-                    <figcaption class="blockquote-footer fs-5 fw-semibold">
+                    <figcaption class="blockquote-footer fs-5 fw-semibold text-body">
                         {{$data['author']}}
                     </figcaption>
                 @endif
                 <div class="text-end">
 
                     @if($data['buttonText'])
-                        <a href="{!! $data['buttonTarget'] !!}" class="btn btn-primary hover-lift hover-shadow si-hover-twitter border _text-body">
+                        <a href="{!! $data['buttonTarget'] !!}" class="btn btn-primary hover-lift hover-shadow si-hover-twitter border ">
                             {!! $data['buttonText'] !!}
                         </a>
                     @endif
@@ -23,6 +23,7 @@
     </div>
 </div>
 
+{{--
 
 <div class="row  ">
     <div class="col-xl-6 mx-auto">
@@ -46,3 +47,4 @@
         </figure>
     </div>
 </div>
+--}}
