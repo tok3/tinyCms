@@ -161,20 +161,6 @@
 
 
 </style>
-<script>
-/*
-    if (isMobileDevice()) {
-        const element = document.querySelector("#ini-bf-trigger-button");
-
-        if (element) {
-            element.style.position = "fixed";
-            element.style.bottom = "10px"; // Abstand vom unteren Rand
-            element.style.right = "10px"; // Abstand vom rechten Rand
-            element.style.zIndex = "1000";
-        }
-    }*/
-
-</script>
 </body>
 
 </html>
