@@ -108,17 +108,29 @@
                     Möglicherweise liegt das Problem daran, dass die URL falsch eingegeben wurde oder dass JavaScript-Overlays (zum Beispiel Cookie-Consent-Banner) den Scan blockieren.
                     Bitte überprüfen Sie die URL und stellen Sie sicher, dass alle störenden Overlays deaktiviert sind, und versuchen Sie es erneut.
                 </div>
+<style>
 
+    #urllabel{
+        /*height:0px;
+        width:0px !important;
+       */
+position:absolute;
+        top:2.2em;
+        margin-left:0.2em;
+    }
+</style>
                 <form novalidate="" class="needs-validation">
                     <div class="d-flex flex-column flex-md-row">
                         <div class="mb-2 flex-grow-1 mb-md-0 me-md-2">
-                            <input type="url"  id="urlInput" name="url" required="required" class="form-control" placeholder="https://ihre-domain.de" {{--value="https://alderlabbedudelgehtsdirnochgazgutodderwas.org"--}}>
+                            <label for="urlInput" id="urllabel" class="shrink">Zu prüfende URL eingeben</label>
+                            <input type="url" id="urlInput" name="url" required="required"  placeholder="https://ihre-domain.de" class="form-control" >
                         </div>
                         <div class="flex-shrink-0">
                             <button type="submit" class="btn btn-primary">Prüfung starten</button>
                         </div>
                     </div>
                 </form>
+
             </div>
         </div>
 
