@@ -79,10 +79,12 @@ Route::get('/dashboard/logout', function () {
 
 use App\Http\Controllers\PublishStatsController;
 //Route::get('/export/csv/{id}', [PublishStatsController::class, 'exportCsv'])->name('export.csv');
-Route::middleware(['auth'])->group(function () {
-    Route::get('/export/csv/{id}', [PublishStatsController::class, 'exportCsv'])->name('export.csv');
+Route::middleware(['auth', 'compurl'])->group(function () {
+    Route::get('/export/issues-csv/{id}', [PublishStatsController::class, 'exportIssuesCsv'])->name('issues_export.csv');
 });
-
+Route::middleware(['auth', 'compurl'])->group(function () {
+    Route::get('/export/stats-csv/{id}', [PublishStatsController::class, 'exportStatsCsv'])->name('stats_export.csv');
+});
 
 
 use App\Http\Controllers\FixsternController;
