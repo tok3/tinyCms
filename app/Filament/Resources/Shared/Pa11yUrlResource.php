@@ -174,12 +174,12 @@ class Pa11yUrlResource extends Resource
                     ->icon('heroicon-o-eye'),*/
 
                     Action::make('exportStatsCsv')
-                    ->label('Download Stats')
+                    ->label('Stats')
                     ->url(fn ($record) => route('stats_export.csv', ['id' => $record->id]))
                     ->icon('heroicon-o-arrow-down-tray'),
 
                 Action::make('exportIssuesCsv')
-                    ->label('Download Issues')
+                    ->label('Issues')
                     ->url(fn ($record) => route('issues_export.csv', ['id' => $record->id]))
                     ->icon('heroicon-o-arrow-down-tray'),
 
