@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Hash;
 use Faker\Factory as Faker;
 use App\Models\MollieCustomer;
 use App\Services\MessageTranslationService;
+
 class MolliePaymentController extends Controller
 {
 
@@ -38,11 +39,11 @@ class MolliePaymentController extends Controller
 
         die();
         echo sha1('157tommel@tubechunks.de');
-echo "<br>";
+        echo "<br>";
         echo $expires = strtotime(Carbon::now()->addWeek()->toDateString());
         echo "<br>";
 
-        echo '157/'.sha1('tommel@tubechunks.de').'?expires='.$expires.'&signature=0d08a2b794ed64c7ce7ee4c6fc277d172aec39b9eeae711e54da3121ad83f67e';
+        echo '157/' . sha1('tommel@tubechunks.de') . '?expires=' . $expires . '&signature=0d08a2b794ed64c7ce7ee4c6fc277d172aec39b9eeae711e54da3121ad83f67e';
 
         die();
         $customerId = 'cst_ZYrQatF4wT';
@@ -341,7 +342,11 @@ echo "<br>";
 
                 $cpCtrl = new CouponController;
                 $productPriceDec = number_format($cpCtrl->calculateTotalPrice($coupon->promotion, $product, false), 2, '.', '');
-                $coupon->redeem();
+
+                if ($coupon->infinite !== 1)
+                {
+                    $coupon->redeem();
+                }
             }
 
             if ($hasValidMandate === true)
@@ -753,7 +758,7 @@ echo "<br>";
         catch (\GuzzleHttp\Exception\ClientException $e)
         {
             // Logge den Fehler und seine Details
-            \Log::error('Error creating subscription: ' . __FILE__ . ' '. __LINE__. $e->getMessage(), [
+            \Log::error('Error creating subscription: ' . __FILE__ . ' ' . __LINE__ . $e->getMessage(), [
                 'customer_id' => $customerId,
                 'subscription_data' => $subscriptionData,
             ]);

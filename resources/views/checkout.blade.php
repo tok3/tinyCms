@@ -102,6 +102,7 @@
 
                             </div>
                             <div id="step-2" class="tab-pane" role="tabpanel" aria-labelledby="step-2">
+
                                 <x-site-partials.checkout.user-register :products="$products"/>
                             </div>
                             <div id="step-3" class="tab-pane" role="tabpanel" aria-labelledby="step-3">

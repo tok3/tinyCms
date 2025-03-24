@@ -25,9 +25,14 @@ class EditPromotion extends EditRecord
                         ->numeric()
                         ->minValue(1)
                         ->required(),
+                    \Filament\Forms\Components\Checkbox::make('infinite')
+                        ->label('Unbegrenzt einlösbar')
+                        ->helperText('Wird beim einlösen nicht entwertet, kann somit an unzählige Personen/Organisationen ausgehändigt werden.')
+                        ->required(),
+
                 ])
                 ->action(function (array $data, $record) {
-                    $this->generateCoupons($data['quantity'],$record);
+                    $this->generateCoupons($data,$record);
                 }),
         ];
     }
@@ -35,7 +40,7 @@ class EditPromotion extends EditRecord
 
     protected function getActions(): array
     {
-        return [
+        /*return [
             Actions\DeleteAction::make(),
             Actions\Action::make('generateCoupons')
                 ->label('Codes generieren')
@@ -53,18 +58,19 @@ class EditPromotion extends EditRecord
                 ->action(function (array $data, $record) {
                     $this->generateCoupons($data['quantity'], $data['valid_till'], $record);
                 }),
-        ];
+        ];*/
     }
 
-    protected function generateCoupons(int $quantity,  $promotion)
+    protected function generateCoupons(array $data,  $promotion)
     {
         $coupons = [];
 
-        for ($i = 0; $i < $quantity; $i++) {
+        for ($i = 0; $i < $data['quantity']; $i++) {
             $code = $this->generateUniqueCode();
             $coupons[] = [
                 'promotion_id' => $promotion->id,
                 'code' => $code,
+                'infinite' => $data['infinite'],
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
