@@ -173,6 +173,16 @@ class Pa11yUrlResource extends Resource
                     ->url(fn($record) => static::getUrl('view', ['record' => $record->id]))
                     ->icon('heroicon-o-eye'),*/
 
+                    Action::make('exportStatsCsv')
+                    ->label('Stats')
+                    ->url(fn ($record) => route('stats_export.csv', ['id' => $record->id]))
+                    ->icon('heroicon-o-arrow-down-tray'),
+
+                Action::make('exportIssuesCsv')
+                    ->label('Issues')
+                    ->url(fn ($record) => route('issues_export.csv', ['id' => $record->id]))
+                    ->icon('heroicon-o-arrow-down-tray'),
+
                 Tables\Actions\Action::make('view_results')
                     ->label('View Results')
                     ->url(fn($record) => Pa11yAccessibilityIssueResource::getUrl('index', [
