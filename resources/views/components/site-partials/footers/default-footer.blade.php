@@ -10,7 +10,6 @@
                         <img src="{{ URL::asset('assets/img/IHK-AB-1.png') }}"  alt="ihk-aschaffenburg" >
 
 
-
                     </div>
 
                 </div>
