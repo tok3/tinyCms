@@ -133,6 +133,7 @@ $(document).ready(function () {
 
             if (selectedProductId) {
 
+                updateProductDetails(selectedProductId);
                 // Wenn das Produkt geladen werden kann, Produktinformationen dynamisch aktualisieren
                 $.ajax({
                     url: '/get-product-details', // Route zum Abrufen der Produktdetails
@@ -459,6 +460,47 @@ $(document).ready(function () {
         });
     }
 
+
+//-----------
+
+    function updateProductDetails(selectedProductId) {
+        $.ajax({
+            url: '/get-product-details', // Route zum Abrufen der Produktdetails
+            type: 'GET',
+            data: {
+                product_id: selectedProductId,
+                coupon_code: sessionStorage.getItem('couponCode') || null // Abrufen des Rabattcodes aus sessionStorage
+            },
+            success: function (response) {
+                $('#product-name').text(response.name);
+                $('#product-description').html(response.description);
+                $('.total-price').html(response.formattedPrice + ' €');
+
+                // Definiere das paymentModality-Objekt in JavaScript
+                const paymentModality = {
+                    "weekly": "pro Woche </br>bei Monatlicher Zahlung",
+                    "daily": "pro Tag </br>bei Monatlicher Zahlung",
+                    "annual": "pro Jahr </br>bei jährlicher Zahlung",
+                    "monthly": "pro Monat </br>bei Monatlicher Zahlung",
+                    "one_time": "&nbsp;"
+                };
+
+                $('#payment-modality').html(paymentModality[response.interval]);
+
+                if (response.trial_period_days > 0) {
+                    var trialEnddate = addDaysToDate(response.trial_period_days);
+                    $('#trial-period-row').show();
+                    $('#product-trial-period').text(response.trial_period_days + ' Tage kostenlose Testphase');
+                    $('#trial-period-ends').html(trialEnddate);
+                } else {
+                    $('#trial-period-row').hide();
+                }
+            },
+            error: function (xhr) {
+                console.log(xhr.responseText);
+            }
+        });
+    }
 
 //-----------
 });

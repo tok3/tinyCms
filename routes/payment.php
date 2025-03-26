@@ -41,7 +41,9 @@ Route::post('/mollie/subscription', [MolliePaymentController::class, 'handleSubs
 Route::get('/get-product-details', [CheckoutController::class, 'getProductDetails'])->name('getProductDetails'); // route für ajax um beim checkout das produkt vom server zu holen um die zusammenfassung in smartwizzard anzuzeigen
 // ende testroute
 
+Route::get('/upgrade/{product}', [CheckoutController::class, 'checkoutUpgrade'])->name('view.upgrade');
 Route::get('/preise', [CheckoutController::class, 'showPlans'])->name('view.plans');
+
 Route::get('/register', [CheckoutController::class, 'showPlans']);
 
 Route::post('/checkout', [CheckoutController::class, 'preparePayment'])->name('checkout.plan');

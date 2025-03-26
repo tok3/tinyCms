@@ -109,6 +109,7 @@ Route::get('/scrape-update', [AccessibilityRuleScraperController::class, 'update
 Route::get('/test-output/{ruleId}', [AccessibilityRuleScraperController::class, 'testOutput'])->middleware(['auth']);
 // -----------------------------------------------
 
+
 use App\Http\Controllers\PublicAccessibilityCheckController;
 
 Route::get('/public-check', [PublicAccessibilityCheckController::class, 'showForm'])->name('accessibility.check.form');

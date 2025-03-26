@@ -3,6 +3,39 @@
         <div class="bg-white">
             <div class="mx-auto max-w-7xl py-24 sm:px-6 sm:py-32 lg:px-8">
                 <div class="relative isolate overflow-hidden bg-gray-900 px-6 pt-16 shadow-2xl sm:rounded-3xl sm:px-16 md:pt-24 lg:flex lg:gap-x-20 lg:px-24 lg:pt-0">
+                    <div class="mx-auto max-w-md text-center lg:mx-0 lg:flex-auto lg:py-32 lg:text-left">
+                        <h2 class="text-3xl font-semibold tracking-tight text-balance text-white sm:text-4xl">Upgrade Produkte</h2>
+                        <p class="mt-6 text-lg/8 text-pretty text-gray-300">
+                            Wählen Sie eines der folgenden Produkte aus, um Ihr Upgrade zu starten.
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    @foreach ($products as $product)
+                        <div class="p-4 border border-gray-200 rounded-lg bg-white shadow">
+                            <h3 class="text-xl font-bold text-gray-800">{{ $product->name }}</h3>
+                            <p class="mt-2 text-gray-600">{{ $product->description }}</p>
+                            <div class="mt-4">
+                                <span class="font-bold text-gray-800">{{ $product->price }} {{ $product->currency }}</span>
+                            </div>
+                            <a href="{{ url('upgrade/' . $product->id) }}" class="inline-block mt-4 py-2 px-4 bg-blue-600 text-white rounded">
+                                Kaufen
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </section>
+</x-filament::page>
+
+
+{{--
+<x-filament::page>
+    <section class="py-8 bg-white md:py-16 dark:bg-gray-900 antialiased">
+        <div class="bg-white">
+            <div class="mx-auto max-w-7xl py-24 sm:px-6 sm:py-32 lg:px-8">
+                <div class="relative isolate overflow-hidden bg-gray-900 px-6 pt-16 shadow-2xl sm:rounded-3xl sm:px-16 md:pt-24 lg:flex lg:gap-x-20 lg:px-24 lg:pt-0">
                     <svg viewBox="0 0 1024 1024" class="absolute top-1/2 left-1/2 -z-10 size-[64rem] -translate-y-1/2 [mask-image:radial-gradient(closest-side,white,transparent)] sm:left-full sm:-ml-80 lg:left-1/2 lg:ml-0 lg:-translate-x-1/2 lg:translate-y-0" aria-hidden="true">
                         <circle cx="512" cy="512" r="512" fill="url(#759c1415-0410-454c-8f7c-9a820de03641)" fill-opacity="0.7" />
                         <defs>
@@ -30,3 +63,4 @@
 
     </section>
 </x-filament::page>
+--}}

@@ -164,6 +164,20 @@ class CheckoutController extends MolliePaymentController
     }
 
     /**
+     * @param Request $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Foundation\Application
+     */
+    public function checkoutUpgrade(Request $request)
+    {
+
+        $products = Product::where(['active' => 1, 'visible' => 1])
+            ->orderBy('payment_type')->orderBy('id')->orderBy('sequence')->get();
+
+
+        return view('checkout-upgrade', ['products' => $products]);
+    }
+
+    /**
      * Produktdetails für die Checkout-Zusammenfassung im Smart Wizard abrufen
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
