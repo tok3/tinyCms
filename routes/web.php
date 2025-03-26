@@ -79,6 +79,13 @@ Route::get('/dashboard/logout', function () {
 
 use App\Http\Controllers\PublishStatsController;
 //Route::get('/export/csv/{id}', [PublishStatsController::class, 'exportCsv'])->name('export.csv');
+Route::middleware(['auth', 'tenantcompany'])->group(function () {
+    Route::get('/export/all-issues-csv/{id}', [PublishStatsController::class, 'exportAllIssuesCsv'])->name('all_issues_export.csv');
+});
+Route::middleware(['auth', 'tenantcompany'])->group(function () {
+    Route::get('/export/all-stats-csv/{id}', [PublishStatsController::class, 'exportAllStatsCsv'])->name('all_stats_export.csv');
+});
+
 Route::middleware(['auth', 'compurl'])->group(function () {
     Route::get('/export/issues-csv/{id}', [PublishStatsController::class, 'exportIssuesCsv'])->name('issues_export.csv');
 });
