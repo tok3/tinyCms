@@ -150,6 +150,17 @@ class Pa11yUrlResource extends Resource
 
 
             ])
+
+            ->headerActions([
+                Action::make('exportAllStatsCsv')
+                    ->label('Overall Stats')
+                    ->url(fn () => route('all_stats_export.csv', ['id' => Filament::getTenant()->id]))
+                    ->icon('heroicon-o-arrow-down-tray'),
+                Action::make('exportAllIssuesCsv')
+                    ->label('Overall Issues')
+                    ->url(fn () => route('all_issues_export.csv', ['id' => Filament::getTenant()->id]))
+                    ->icon('heroicon-o-arrow-down-tray'),
+            ])
             ->actions([
                 Tables\Actions\Action::make('rescan21')
                     ->label('Rescan (2.1)')
@@ -173,7 +184,7 @@ class Pa11yUrlResource extends Resource
                     ->url(fn($record) => static::getUrl('view', ['record' => $record->id]))
                     ->icon('heroicon-o-eye'),*/
 
-                    Action::make('exportStatsCsv')
+                Action::make('exportStatsCsv')
                     ->label('Stats')
                     ->url(fn ($record) => route('stats_export.csv', ['id' => $record->id]))
                     ->icon('heroicon-o-arrow-down-tray'),

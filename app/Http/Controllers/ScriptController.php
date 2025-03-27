@@ -5,19 +5,30 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
+use App\Models\CompanySetting;
+use App\Models\Company;
 
 class ScriptController extends Controller
 {
     public function serveScript(Request $request, $ulid, $tool)
     {
 
+
+
         if ($tool == 'fixstern')
         {
-            $tool = 'aktion-bf';
+            //$tool = 'aktion-bf';
+            $company = Company::where('ulid', $ulid)->first();
+            $script = CompanySetting::where('company_id', $company->id)->first();
+            $tool = $script->widget_features;
         }
+        /*
         if($ulid == '01JE6A5H2NQZCT4P9N3FEZG2CX'){
             $tool = 'aktion-bf-full';
-        }
+        }*/
+
+
+
         // Bestimme den Dateipfad für das gewünschte Tool
         $scriptPath = "scripts/{$tool}.js";
 
@@ -30,7 +41,6 @@ class ScriptController extends Controller
 
         // Lade das Skript
         $scriptTemplate = Storage::get($scriptPath);
-
         // UUID einfügen, falls nötig
         $customScript = str_replace('{{ulid}}', $ulid, $scriptTemplate);
 
