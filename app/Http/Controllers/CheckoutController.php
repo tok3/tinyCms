@@ -50,32 +50,42 @@ class CheckoutController extends MolliePaymentController
 
         $orderedProduct = Product::where('id', $request->input('product_id'))->first();
         $couponCode = $request->input('coupon_code') ?? '0';
+        $user = \Auth::user();
 
-        $name = $request->input('user')['vorname'] . ' ' . $request->input('user')['name'];
-        $email = $request->input('user')['email'];
-        $billingEmail = $request->input('company')['email'];
+        if ($user && $user->companies->isNotEmpty() && $user->companies[0]->mollieCustomer)
+        {
+            // User hat bereits eine Company und damit eine Mollie Customer ID
+            $molieCostomer = $user->companies[0]->mollieCustomer;
+            $customerID = $molieCostomer->mollie_customer_id;
+            $billingEmail = $user ->companies[0]->email;
+        }
+        else
+        {
+            $name = $request->input('user')['vorname'] . ' ' . $request->input('user')['name'];
+            $email = $request->input('user')['email'];
+            $billingEmail = $request->input('company')['email'];
 
-        $customer = Mollie::api()->customers->create([
-            'name' => $name,
-            'email' => $email,
-        ]);
-
-        // Temporäre Daten in der Datenbank speichern
-        TemporaryUserData::create([
-            'mollie_customer_id' => $customer->id,
-            'user_data' => json_encode($request->input('user')),
-            'company_data' => json_encode($request->input('company')),
-        ]);
-
+            $customer = Mollie::api()->customers->create([
+                'name' => $name,
+                'email' => $email,
+            ]);
+            $customerID = $customer->id;
+            // Temporäre Daten in der Datenbank speichern
+            TemporaryUserData::create([
+                'mollie_customer_id' => $customerID,
+                'user_data' => json_encode($request->input('user')),
+                'company_data' => json_encode($request->input('company')),
+            ]);
+        }
         // 0.00 Zahler, Gratis Accounts, gehen nicht über payment gateway
         if ($orderedProduct->payment_type == 'one_time' && $orderedProduct->price <= 0)
         {
 
-           $company =  $this->initCompanyAccount($customer->id);
+            $company = $this->initCompanyAccount($customerID);
 
             $additionalData = [];
 
-            if($couponCode)
+            if ($couponCode)
             {
                 $coupon = Coupon::where('code', $couponCode)->first();
 
@@ -91,12 +101,12 @@ class CheckoutController extends MolliePaymentController
 
         $price = $orderedProduct->price;
 
-        if($couponCode)
+        if ($couponCode)
         {
             $coupon = Coupon::where('code', $couponCode)->first();
 
             $cpCtrl = new CouponController;
-            $price = $cpCtrl->calculateTotalPrice($coupon->promotion, $orderedProduct,false) * 100 ?? null;
+            $price = $cpCtrl->calculateTotalPrice($coupon->promotion, $orderedProduct, false) * 100 ?? null;
         }
 
         if ($orderedProduct->trial_period_days > 0)
@@ -104,14 +114,15 @@ class CheckoutController extends MolliePaymentController
             $price = 0.00;
         }
         // Zahlung erstellen
-       $metadata = [
-           "product_id" => $orderedProduct->id,
-           "customer_id" => $customer->id,
-           "company" => $request->input('company')['name'],
-           "coupon_code" => $request->input('coupon_code') ?? '0',
-       ];
+        $metadata = [
+            "product_id" => $orderedProduct->id,
+            "customer_id" => $customerID,
+            "company" => $request->input('company')['name'],
+            "coupon_code" => $request->input('coupon_code') ?? '0',
+        ];
 
-        if ($couponCode) {
+        if ($couponCode)
+        {
             $metadata['coupon_code'] = $couponCode;
         }
 
@@ -120,7 +131,7 @@ class CheckoutController extends MolliePaymentController
                 "currency" => $orderedProduct->currency,
                 "value" => number_format($price / 100, 2, '.', '') // You must send the correct number of decimals, thus we enforce the use of strings
             ],
-            'customerId' => $customer->id,
+            'customerId' => $customerID,
             'sequenceType' => 'first',
             'billingEmail' => $billingEmail,
             'description' => $orderedProduct->name,
@@ -169,7 +180,7 @@ class CheckoutController extends MolliePaymentController
      */
     public function checkoutUpgrade(Request $request)
     {
-
+        $request->session()->put('product_id', $request->product);
         $products = Product::where(['active' => 1, 'visible' => 1])
             ->orderBy('payment_type')->orderBy('id')->orderBy('sequence')->get();
 

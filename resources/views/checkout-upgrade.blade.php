@@ -49,7 +49,6 @@
                 </div>
             </div>
         </div>
-
         <!--Parallax element circle-->
         <div class="jarallax-container" id="jarallax-container-0"
              style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; overflow: hidden; z-index: -100; clip-path: polygon(0px 0px, 100% 0px, 100% 100%, 0px 100%);"></div>
@@ -65,62 +64,17 @@
                     @if (session()->has('coupon_code'))
                         <input type="hidden" name="coupon_code" value="{{ session('coupon_code') }}">
                     @endif
+
+
                     @if (session()->has('product_id'))
                         <input type="hidden" name="product_id" value="{{ session('product_id') }}">
                     @endif
+                    <input type="hidden" name="company[name]" value="{{Auth::user()->companies[0]->name}}">
+                    {{Auth::user()->companies[0]->mollieCustomer}}
 
-                    <!-- SmartWizard html -->
-                    <div id="smartwizard" class="sw sw-theme-arrows sw-justified">
-                        <ul class="nav">
-                        {{--    <li class="nav-item">
-                                <a class="nav-link" href="#step-1">
-                                    <div class="num">1</div>
-                                    Plan wählen
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#step-2">
-                                    <span class="num">2</span> Zugangsdaten
-                                </a>
-                            </li>--}}
-                            <li class="nav-item">
-                                <a class="nav-link" href="#step-3">
-                                    <span class="num">3</span> Zahlung
-                                </a>
-                            </li>
-                            {{--<li class="nav-item">
-                                <a class="nav-link" href="#step-4">
-                                    <span class="num">4</span> Fertig
-                                </a>
-                            </li>--}}
-                        </ul>
+                    <x-site-partials.checkout.summary :products="$products" :paymentModality="$paymentModality"/>
 
-                        <div class="tab-content">
-                          {{--  <div id="step-1" class="tab-pane" role="tabpanel" aria-labelledby="step-1">
-
-                                <x-site-partials.checkout.products :products="$products"/>
-
-                            </div>
-                            <div id="step-2" class="tab-pane" role="tabpanel" aria-labelledby="step-2">
-
-                                <x-site-partials.checkout.user-register :products="$products"/>
-                            </div>
-                         --}}   <div id="step-3" class="tab-pane" role="tabpanel" aria-labelledby="step-3">
-
-                                <x-site-partials.checkout.summary :products="$products" :paymentModality="$paymentModality"/>
-
-                            </div>
-                            {{--<div id="step-4" class="tab-pane" role="tabpanel" aria-labelledby="step-4">
-                                <x-site-partials.checkout.complete :products="$products" :paymentModality="$paymentModality"/>
-                            </div>
---}}
-                        </div>
-
-                        <!-- Include optional progressbar HTML -->
-                        <div class="progress">
-                            <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                    </div>
+                    <button type="button" id="upgrade" class="btn btn-primary mb-2 me-1 " style="float:right;">Jetzt kostenpflichtig bestellen</button>
                 </form>
             </div>
         </div>
@@ -163,7 +117,17 @@
 
         <script>
 
-            // Beispielaufruf der Funktion
+            $(document).ready(function () {
+                updateProductDetails({{session('product_id')}});
+
+                $('#customer-name').text("{{Auth::user()->name}}");
+                $('#company-name').text("{{Auth::user()->companies[0]->name}}");
+                $('#customer-address').text("{{Auth::user()->companies[0]->str}}");
+                $('#customer-plz-ort').text("{{Auth::user()->companies[0]->plz}}" + ' ' + "{{Auth::user()->companies[0]->ort}}");
+                $('#company-email').text("{{Auth::user()->companies[0]->email}}");
+
+            });
+
 
         </script>
     @endpush
