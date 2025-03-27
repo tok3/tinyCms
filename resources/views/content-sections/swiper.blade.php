@@ -86,7 +86,7 @@
 
 
 <!--begin:Swiper slider-->
-<script src="http://localhost:8004/assets/vendor/node_modules/js/swiper-bundle.min.js"></script>
+<script src="{{url('assets/vendor/node_modules/js/swiper-bundle.min.js')}}"></script>
 <script>
     //Main Hero Slider
     var sliderThumbs = new Swiper('.progress-swiper-thumbs', {
