@@ -7,7 +7,7 @@ use App\Models\Pa11yUrl;
 use App\Models\Pa11yAccessibilityIssue;
 use App\Models\Pa11yStatistic;
 use Symfony\Component\Process\Process;
-
+use App\Models\CompanySetting;
 
 /**
  * Einfacher Aufruf für alle URLs
@@ -188,12 +188,25 @@ class ScanAccessibility21 extends Command
             }
             return;
         }
-
-        // Fall 3: Es gibt Fehler oder Warnungen
-        $totalErrors = count(array_filter($results, fn($r) => isset($r['type']) && $r['type'] === 'error'));
-        $totalWarnings = count(array_filter($results, fn($r) => isset($r['type']) && $r['type'] === 'warning'));
-        $totalNotices = count(array_filter($results, fn($r) => isset($r['type']) && $r['type'] === 'notice'));
-
+        $urlinfo = Pa11yUrl::where('id', $url->id)->first();
+        $showContrastErrors = CompanySetting::where('company_id', $urlinfo->company_id)->first();
+        $totalErrors = $totalWarnings = $totalNotices = 0;
+        if($showContrastErrors->contrast_errors == 1){
+            // Fall 3: Es gibt Fehler oder Warnungen
+            $totalErrors = count(array_filter($results, fn($r) => isset($r['type']) && $r['type'] === 'error'));
+            $totalWarnings = count(array_filter($results, fn($r) => isset($r['type']) && $r['type'] === 'warning'));
+            $totalNotices = count(array_filter($results, fn($r) => isset($r['type']) && $r['type'] === 'notice'));
+        } else {
+            $totalErrors = collect($results)
+                ->filter(fn($r) => isset($r['type']) && $r['type'] === 'error' && $r['code'] !== 'color-contrast' && $r['code'] !== 'color-contrast-enhanced')
+                ->count();
+            $totalWarnings = collect($results)
+                ->filter(fn($r) => isset($r['type']) && $r['type'] === 'warning' && $r['code'] !== 'color-contrast' && $r['code'] !== 'color-contrast-enhanced')
+                ->count();
+            $totalNotices = collect($results)
+                ->filter(fn($r) => isset($r['type']) && $r['type'] === 'notice' && $r['code'] !== 'color-contrast' && $r['code'] !== 'color-contrast-enhanced')
+                ->count();
+        }
         $existingStat = Pa11yStatistic::where('url_id', $url->id)
             ->where('standard', '2.1')
             ->whereDate('scanned_at', now())

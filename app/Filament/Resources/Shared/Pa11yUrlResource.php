@@ -193,6 +193,26 @@ class Pa11yUrlResource extends Resource
                     ->label('Issues')
                     ->url(fn ($record) => route('issues_export.csv', ['id' => $record->id]))
                     ->icon('heroicon-o-arrow-down-tray'),
+                /*
+                Tables\Actions\Action::make('view_pdf')
+                    ->label('View Pdf')
+                    ->url(fn($record) => Pa11yAccessibilityIssueResource::getUrl('index', [
+                        'standard' => 'grouped/2.1',
+                        'url_id' => $record->id,
+                        'perPage' => 'all',
+                        'print' => 'true',
+                    ]))
+                    ->icon('heroicon-o-eye'),
+                */
+                Tables\Actions\Action::make('view_pdf')
+                    ->label('View Pdf')
+                    ->url(fn($record) => Pa11yAccessibilityIssueResource::getUrl('index', [
+                        'standard' => '2.1',
+                        'url_id' => $record->id,
+                        'perPage' => 'all',
+                        'print' => 'true',
+                    ]))
+                    ->icon('heroicon-o-eye'),
 
                 Tables\Actions\Action::make('view_results')
                     ->label('View Results')

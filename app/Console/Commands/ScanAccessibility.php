@@ -7,7 +7,7 @@ use App\Models\Pa11yUrl;
 use App\Models\Pa11yAccessibilityIssue;
 use App\Models\Pa11yStatistic;
 use Symfony\Component\Process\Process;
-
+use App\Models\CompanySetting;
 class ScanAccessibility extends Command
 {
 
@@ -127,10 +127,25 @@ class ScanAccessibility extends Command
      */
     private function updateStats(Pa11yUrl $url, string $level, array $results)
     {
-        $totalErrors = count(array_filter($results, fn($r) => $r['type'] === 'error'));
-        $totalWarnings = count(array_filter($results, fn($r) => $r['type'] === 'warning'));
-        $totalNotices = count(array_filter($results, fn($r) => $r['type'] === 'notice'));
-
+        $urlinfo = Pa11yUrl::where('id', $url->id)->first();
+        $showContrastErrors = CompanySetting::where('company_id', $urlinfo->company_id)->first();
+        $totalErrors = $totalWarnings = $totalNotices = 0;
+        \Log::info('contrast errors'.$showContrastErrors->contrast_errors);
+        if($showContrastErrors->contrast_errors == 1){
+            $totalErrors = count(array_filter($results, fn($r) => $r['type'] === 'error'));
+            $totalWarnings = count(array_filter($results, fn($r) => $r['type'] === 'warning'));
+            $totalNotices = count(array_filter($results, fn($r) => $r['type'] === 'notice'));
+        } else {
+            $totalErrors = collect($results)
+                ->filter(fn($r) => $r['type'] === 'error' && $r['code'] !== 'color-contrast')
+                ->count();
+            $totalWarnings = collect($results)
+                ->filter(fn($r) => $r['type'] === 'warning' && $r['code'] !== 'color-contrast')
+                ->count();
+            $totalNotices = collect($results)
+                ->filter(fn($r) => $r['type'] === 'notice' && $r['code'] !== 'color-contrast')
+                ->count();
+        }
         // Prüfen, ob ein Snapshot für heute existiert
         $existingSnapshot = Pa11yStatistic::where('url_id', $url->id)
             ->where('wcag_level', $level)
