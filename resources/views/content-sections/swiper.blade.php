@@ -84,7 +84,6 @@
     <!-- End Swiper Thumbs Slider -->
 </section>
 
-
 <!--begin:Swiper slider-->
 <script src="{{url('assets/vendor/node_modules/js/swiper-bundle.min.js')}}"></script>
 <script>

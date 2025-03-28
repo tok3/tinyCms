@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Artisan;
 use App\Models\Product;
 use Symfony\Component\Process\Process;
-
+use App\Services\InvoiceService;
 class TestController extends Controller
 {
     public function testArtisanCommand($id = 65, Request $request)
@@ -116,4 +116,12 @@ class TestController extends Controller
             'log' => 'check the logs for the full output',
         ]);
     }
+
+public function test ()
+{
+    $invServ = new InvoiceService();
+    echo $invServ->sendInvoiceEmail(86);
+    die ('yep');
+}
+
 }

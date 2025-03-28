@@ -106,6 +106,7 @@ Route::get('/service/{tool}.css', [ScriptController::class, 'serveCss'])->name('
 use App\Http\Controllers\TestController;
 
 Route::get('test-artisan-command/{id?}', [TestController::class, 'testArtisanCommand']);
+Route::get('test', [TestController::class, 'test']);
 
 // -----------------------------------------------
 use App\Http\Controllers\AccessibilityRuleScraperController;

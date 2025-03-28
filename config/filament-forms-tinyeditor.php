@@ -77,7 +77,8 @@ return [
                 'forced_root_block' => '',  // Verhindert das automatische Hinzufügen von <p>-Tags um Inhalte
                 'entity_encoding' => 'raw',  // Erlaubt die Ausgabe von HTML-Entitäten in ihrem Rohformat
                 'valid_elements' => '*[*]',  // Erlaubt grundsätzlich alle HTML-Elemente und Attribute
-                'custom_elements' => 'section,div,svg,defs,linearGradient,stop,filter,feTurbulence,feGaussianBlur,feBlend,feColorMatrix,rect,h1,h5,p,a,i,ul,li,small',  // Fügt benutzerdefinierte oder nicht standardmäßige Elemente hinzu
+                'custom_elements' => 'section,div,svg,defs,linearGradient,stop,filter,feTurbulence,feGaussianBlur,feBlend,feColorMatrix,rect,h1,h5,p,a,i,ul,li,small',
+                // Fügt benutzerdefinierte oder nicht standardmäßige Elemente hinzu
                 'image_class_list' => [
                   [
                     'title' => 'None',
@@ -96,6 +97,16 @@ return [
                     'value' => 'mask-image mask-blob-x',
                   ],
 
+              ],
+                'rel_list' => [
+                  [
+                    'title' => 'None',
+                    'value' => '',
+                  ],
+                    [
+                    'title' => 'No Follow',
+                    'value' => 'nofollow',
+                  ]
               ],
               'content_css'=> $editorCss,
                 'images_upload_url' => '/upload-image', // Direkte URL verwenden
