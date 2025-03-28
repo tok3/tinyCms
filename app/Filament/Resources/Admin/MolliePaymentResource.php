@@ -15,6 +15,7 @@ use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\TextInput;
 use GuzzleHttp\Client;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 class MolliePaymentResource extends Resource
 {
     protected static ?string $model = MolliePayment::class;
@@ -143,7 +144,15 @@ class MolliePaymentResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('company.name')
                     ->label('Company Name')
-                    ->sortable()
+                    ->sortable(function (Builder $query) {
+                        return $query->orderByRaw(
+                            "(SELECT MIN(companies.name)
+              FROM companies
+              INNER JOIN mollie_customers ON mollie_customers.model_id = companies.id
+              WHERE mollie_customers.mollie_customer_id = mollie_payments.customer_id
+                AND companies.deleted_at IS NULL) ASC"
+                        );
+                    })
                     ->searchable(),
                 Tables\Columns\TextColumn::make('mode')
                     ->sortable()

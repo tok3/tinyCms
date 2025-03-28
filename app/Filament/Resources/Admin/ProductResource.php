@@ -39,7 +39,7 @@ class ProductResource extends Resource
                             ->required()
                             ->maxLength(255),
                     ])
-                    ->columns(2), // Eine Spalte mit voller Breite in einem zweispaltigen Layout
+                    ->columns(2),
 
                 // ROW 2: Beschreibung
                 Forms\Components\Section::make()
@@ -56,7 +56,7 @@ class ProductResource extends Resource
                         Select::make('payment_type')
                             ->label('Zahlungstyp')
                             ->options([
-                                'one_time' => 'Einmalzahlung',
+                                'one_time'  => 'Einmalzahlung',
                                 'recurrent' => 'Wiederkehrend',
                             ])
                             ->required()
@@ -69,9 +69,9 @@ class ProductResource extends Resource
                                 }
                             }),
                     ])
-                    ->columns(4), // Eine Spalte mit voller Breite in einem vier-spaltigen Layout
+                    ->columns(4),
 
-                // ROW 4: Preis, Währung, Intervall (nur wenn Zahlungstyp "recurrent"), Testzeitraum
+                // ROW 4: Preis, Währung, Intervall, Laufzeit (nur wenn Zahlungstyp "recurrent") und Testzeitraum
                 Forms\Components\Section::make()
                     ->schema([
                         TextInput::make('price')
@@ -99,11 +99,18 @@ class ProductResource extends Resource
                         Select::make('interval')
                             ->label('Zahlungsintervall')
                             ->options([
-                                'daily' => 'Täglich',
-                                'weekly' => 'Wöchentlich',
+                                'daily'   => 'Täglich',
+                                'weekly'  => 'Wöchentlich',
                                 'monthly' => 'Monatlich',
-                                'annual' => 'Jährlich',
+                                'annual'  => 'Jährlich',
                             ])
+                            ->hidden(fn (callable $get) => $get('payment_type') !== 'recurrent'),
+
+                        // Neues Feld "Laufzeit" (Spalte lz in der Tabelle products)
+                        TextInput::make('lz')
+                            ->label('Laufzeit (Monate)')
+                            ->numeric()
+                            ->default(24)
                             ->hidden(fn (callable $get) => $get('payment_type') !== 'recurrent'),
 
                         TextInput::make('trial_period_days')
@@ -124,14 +131,13 @@ class ProductResource extends Resource
                     ])
                     ->columns(2),
 
-                // Status & Sichtbarkeit (Bleibt wie es ist)
+                // Status & Sichtbarkeit
                 Forms\Components\Fieldset::make('Status')
                     ->schema([
                         Toggle::make('active')
                             ->label('Aktiv')
                             ->default(true)
                             ->required(),
-
 
                         Toggle::make('visible')
                             ->label('Öffentlich sichtbar')
@@ -141,14 +147,11 @@ class ProductResource extends Resource
                             ->dehydrated(fn ($state, callable $get) => $get('upgrade') ? true : $state)
                             ->disabled(fn (callable $get) => $get('upgrade')),
 
-
-
                         Toggle::make('upgrade')
                             ->label('Intern buchbares Upgrade')
                             ->default(false)
                             ->required()
                             ->reactive()
-                            // Sobald upgrade aktiviert wird, setze visible auf false
                             ->afterStateUpdated(function (bool $state, callable $set) {
                                 if ($state) {
                                     $set('visible', false);

@@ -237,7 +237,7 @@ class InvoiceResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make() ->visible(fn () => auth()->user()->is_admin == 1),
                 Action::make('Ansehen')
                     ->label('PDF anzeigen')
                     ->icon('heroicon-o-document-text')

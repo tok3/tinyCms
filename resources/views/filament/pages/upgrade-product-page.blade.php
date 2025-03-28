@@ -1,4 +1,43 @@
 <x-filament::page>
+
+    <section class="py-0 bg-white md:py-16 dark:bg-gray-900 antialiased">
+        <div class="bg-white">
+            <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                @foreach ($products as $product)
+                    <div class="p-4 border border-gray-200 rounded-lg bg-white shadow">
+                        <h3 class="text-xl font-bold text-gray-800">{{ $product->name }}</h3>
+                        <p class="mt-2 text-gray-600">{{ $product->description }}</p>
+                        <div class="mt-4">
+                            <span class="font-bold text-gray-800">{{ $product->formatted_price }} {{ $product->currency }}</span>
+                        </div>
+
+                        @if(
+       auth()->check() &&
+       auth()->user()->companies->isNotEmpty() &&
+       auth()->user()->companies->first()->contracts()
+           ->where('product_id', $product->id)
+           ->where('end_date', '>', now())
+           ->exists()
+   )
+                            <span class="inline-block mt-4 py-2 px-4 bg-green-600 text-white rounded">
+        Gebucht
+    </span>
+                        @else
+                            <a href="{{ url('upgrade/' . $product->id) }}" class="inline-block mt-4 py-2 px-4 bg-blue-600 text-white rounded">
+                                Kaufen
+                            </a>
+                        @endif
+
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+</x-filament::page>
+
+
+{{--
+<x-filament::page>
     <section class="py-8 bg-white md:py-16 dark:bg-gray-900 antialiased">
         <div class="bg-white">
             <div class="mx-auto max-w-7xl py-24 sm:px-6 sm:py-32 lg:px-8">
@@ -30,3 +69,4 @@
 
     </section>
 </x-filament::page>
+--}}

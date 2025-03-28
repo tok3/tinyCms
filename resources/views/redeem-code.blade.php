@@ -154,12 +154,19 @@
 
 
     @push('scripts')
-        <script>
-            const appUrl = "{{ config('app.url') }}";
-            const redirectUrl = `${appUrl}/preise#step-2`;
+            <script>
+                const appUrl = "{{ config('app.url') }}";
+                @if(auth()->check() && (isset($product)))
+                // Falls der User eingeloggt ist und eine Company hat:
+                const redirectUrl = `${appUrl}/upgrade/{{$product->id}}`;
+                @else
+                // Falls nicht:
+                const redirectUrl = `${appUrl}/preise#step-2`;
+                @endif
 
-
-        </script>
+                // Beispiel: redirectUrl ausgeben
+                console.log(redirectUrl);
+            </script>
         <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js?v1.1.9"></script>
         <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js?v1.1.9"></script>
         <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/localization/messages_de.js"></script>

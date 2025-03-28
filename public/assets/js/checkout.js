@@ -68,7 +68,7 @@ $(document).ready(function () {
 
                 // Überprüfen, ob beide Felder valide sind
                 if (isAGBValid && isPrivacyValid) {
-
+                    sessionStorage.removeItem('couponCode');
                     $('#checkout').submit(); // Formular absenden
                     return false; // Verhindert den Wechsel zu Step 4
                 } else {
@@ -133,8 +133,9 @@ $(document).ready(function () {
 
             if (selectedProductId) {
 
+                updateProductDetails(selectedProductId);
                 // Wenn das Produkt geladen werden kann, Produktinformationen dynamisch aktualisieren
-                $.ajax({
+             /*   $.ajax({
                     url: '/get-product-details', // Route zum Abrufen der Produktdetails
                     type: 'GET',
                     data: {
@@ -175,7 +176,7 @@ $(document).ready(function () {
 
                         console.log(xhr.responseText);
                     }
-                });
+                });*/
             }
 
 
@@ -364,28 +365,6 @@ $(document).ready(function () {
 
 
 //-----------
-// Überprüfe, ob die AGB- und Datenschutz-Checkboxen angeklickt wurden
-    function validatePrivacyAndAgb() {
-        var agbChecked = $('#agb').is(':checked');
-        var privacyChecked = $('#privacy').is(':checked');
-
-        // Fehlerausgabe anzeigen, wenn nicht beide aktiviert sind
-        if (!agbChecked) {
-            $('#agb-error').text('Bitte akzeptieren Sie unsere AGB.');
-        } else {
-            $('#agb-error').text('');
-        }
-
-        if (!privacyChecked) {
-            $('#privacy-error').text('Bitte stimmen Sie den Datenschutzbestimmungen zu.');
-        } else {
-            $('#privacy-error').text('');
-        }
-
-        return agbChecked && privacyChecked;
-    }
-
-//-----------
 
     $(document).on('change', 'input[name="product_id"]', function () {
         saveProductAndCouponToSession($(this).val());
@@ -459,6 +438,88 @@ $(document).ready(function () {
         });
     }
 
+
+//-----------
+
+    window.updateProductDetails =  function updateProductDetails(selectedProductId) {
+        $.ajax({
+            url: '/get-product-details', // Route zum Abrufen der Produktdetails
+            type: 'GET',
+            data: {
+                product_id: selectedProductId,
+                coupon_code: sessionStorage.getItem('couponCode') || null // Abrufen des Rabattcodes aus sessionStorage
+            },
+            success: function (response) {
+                $('#product-name').text(response.name);
+                $('#product-description').html(response.description);
+                $('.total-price').html(response.formattedPrice + ' €');
+
+                // Definiere das paymentModality-Objekt in JavaScript
+                const paymentModality = {
+                    "weekly": "pro Woche </br>bei Monatlicher Zahlung",
+                    "daily": "pro Tag </br>bei Monatlicher Zahlung",
+                    "annual": "pro Jahr </br>bei jährlicher Zahlung",
+                    "monthly": "pro Monat </br>bei Monatlicher Zahlung",
+                    "one_time": "&nbsp;"
+                };
+
+                $('#payment-modality').html(paymentModality[response.interval]);
+
+                if (response.trial_period_days > 0) {
+                    var trialEnddate = addDaysToDate(response.trial_period_days);
+                    $('#trial-period-row').show();
+                    $('#product-trial-period').text(response.trial_period_days + ' Tage kostenlose Testphase');
+                    $('#trial-period-ends').html(trialEnddate);
+                } else {
+                    $('#trial-period-row').hide();
+                }
+            },
+            error: function (xhr) {
+                console.log(xhr.responseText);
+            }
+        });
+    }
+
+//-----------
+    $('#upgrade').on('click', function(){
+        validatePriv();
+    });
+
+    window.validatePriv =  function validatePriv() {
+    // Dynamisch nur die Validierungsregeln für AGB und Datenschutz aktivieren
+    $('#agb').rules('add', {
+        required: true,
+        messages: {
+            required: "Bitte akzeptieren Sie die AGB."
+        }
+    });
+
+    $('#privacy').rules('add', {
+        required: true,
+        messages: {
+            required: "Bitte stimmen Sie den Datenschutzbestimmungen zu."
+        }
+    });
+
+    // Beide Checkboxen gleichzeitig validieren
+    var isAGBValid = $('#agb').valid();
+    var isPrivacyValid = $('#privacy').valid();
+
+    // Überprüfen, ob beide Felder valide sind
+    if (isAGBValid && isPrivacyValid) {
+
+        $('#checkout').submit(); // Formular absenden
+
+        sessionStorage.removeItem('couponCode');
+        return false; // Verhindert den Wechsel zu Step 4
+    } else {
+        // Beide Felder validieren, aber verhindern, dass es weitergeht
+        $('#agb').valid();
+        $('#privacy').valid();
+        return false; // Verhindere den Wechsel, wenn eine Checkbox nicht ausgewählt ist
+    }
+
+}
 
 //-----------
 });

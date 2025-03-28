@@ -297,9 +297,16 @@ class MolliePaymentController extends Controller
         );
 
 
-        // firma und useraccount für firma initiieren
-        $company = $this->initCompanyAccount($customerId);
-
+        if (isset($metadata->company_id) && $metadata->company_id != 0)
+        {
+            // firma existiert bereits
+            $company = Company::where('id',$metadata->company_id)->first();
+        }
+        else
+        {
+            // firma und useraccount für firma initiieren
+            $company = $this->initCompanyAccount($customerId);
+        }
         // Rechnung erstellen
         $this->prepareInvoice($payment->id);
 

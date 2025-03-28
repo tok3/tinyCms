@@ -251,6 +251,7 @@ class InvoiceService
         return $invoice;
     }
 
+
     public function sendInvoiceEmail($invoiceId = false)
     {
         if ($invoiceId == false && $this->invoiceId > 0)
@@ -270,7 +271,7 @@ class InvoiceService
 
 
         // Sende die E-Mail mit dem PDF-Anhang
-        // Mail::to($invoice->company->email)->send(new InvoiceMail($invoice, $pdfPath));
+        //Mail::to($invoice->company->email)->send(new InvoiceMail($invoice, $pdfPath));
 
         // mail mit 5 min versatz senden
         Mail::to($invoice->company->email)->later(now()->addMinutes(5), new InvoiceMail($invoice, $pdfPath));

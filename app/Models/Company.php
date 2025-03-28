@@ -178,6 +178,7 @@ class Company extends Model
         )->where('mollie_customers.model_type', Company::class);
     }
 
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */

@@ -109,7 +109,6 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
     }
 
 
-
     public function getPanelUri()
     {
 
