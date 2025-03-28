@@ -11,13 +11,26 @@ use App\Models\Pa11yStatistic;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
+use App\Models\CompanySetting;
 
 
 class PublishStatsController extends Controller
 {
     public function exportIssuesCsv($id): StreamedResponse
     {
-        $records = Pa11yAccessibilityIssue::where('url_id' , '=', $id)->get();
+
+        $urlinfo = Pa11yUrl::where('id', $id)->first();
+        $showContrastErrors = CompanySetting::where('company_id', $urlinfo->company_id)->first();
+        $records = collect();
+        if($showContrastErrors->contrast_errors == 1){
+            $records = Pa11yAccessibilityIssue::where('url_id' , '=', $id)->get();
+        } else {
+            $records = Pa11yAccessibilityIssue::where('url_id' , '=', $id)
+                ->where('code', '<>', 'color-contrast')
+                ->where('code', '<>', 'color-contrast-enhanced')
+                ->get();
+        }
+
         $url = Pa11yUrl::where('id', '=', $id)->first();
         $company = Company::where('id', '=', $url->company_id)->first();
 
@@ -180,94 +193,51 @@ class PublishStatsController extends Controller
             ]);
 
     }
-    /*
-        raw data
-    */
-
-    public function bakexportAllStatsCsv($id): StreamedResponse
-    {
-        $company = Company::where('id', '=', $id)->first();
-        $urls = Pa11yUrl::where('company_id', '=', $id)->get();
-        $records = [];
-        foreach($urls as $url){
-            $rows = Pa11yStatistic::where('url_id' , '=', $url->id)
-            ->orderBy('standard', 'asc')
-            ->orderBy('wcag_level', 'asc')
-            ->orderBy('created_at', 'asc')
-            ->get();
-            foreach($rows as $row){
-                $records[] = [
-                    'url' => $url->url,
-                    'scanned_at' => $row->scanned_at,
-                    'standard' => $row->standard,
-                    'wcag_level' => $row->wcag_level,
-                    'error_count' => $row->error_count,
-                    'warning_count' => $row->warning_count,
-                    'notice_count' => $row->notice_count,
-                ];
-            }
-        }
-
-
-
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="all_stats_export.csv"',
-        ];
-
-        $callback = function () use ($records, $company) {
-            $handle = fopen('php://output', 'w');
-
-            $columns = 7;
-
-
-            $title = ['CSV - Statistik - Export für Firma '.$company->name.' vom '.date('d.m.Y H:i:s')];
-            for ($i = 1; $i < $columns; $i++) {
-                $title[] = ''; // empty columns
-            }
-
-            // Write the "merged" title row
-            fputcsv($handle, $title);
-            fputcsv($handle, ['URL', 'Datum', 'Standard', 'Level', 'Errors', 'Warnings', 'Notices']);
-
-            foreach($records as $record){
-                fputcsv($handle, [
-                    $record['url'],
-                    $record['scanned_at'],
-                    $record['standard'],
-                    $record['wcag_level'],
-                    $record['error_count'],
-                    $record['warning_count'],
-                    $record['notice_count'],
-                ]);
-            }
-            fclose($handle);
-        };
-
-        return response()->stream($callback, 200, $headers);
-    }
 
     public function exportAllIssuesCsv($id): StreamedResponse
     {
 
         $company = Company::where('id', '=', $id)->first();
         $urls = Pa11yUrl::where('company_id', '=', $id)->get();
+        $showContrastErrors = CompanySetting::where('company_id', $id)->first();
 
         $records = [];
-        foreach($urls as $url){
-            $issues = Pa11yAccessibilityIssue::where('url_id' , '=', $url->id)->get();
-            foreach($issues as $issue){
-                $records[] = [
-                    'url' => $url->url,
-                    'issue' => $issue->issue,
-                    'selector' => $issue->selector,
-                    'code' => $issue->code,
-                    'type' => $issue->type,
-                    'typeCode' => $issue->typeCode,
-                    'context' => $issue->context,
-                    'standard' => $issue->standard,
-                    'wcag_level' => $issue->wcag_level,
-                ];
+
+        if($showContrastErrors->contrast_errors == 1){
+
+            foreach($urls as $url){
+                $issues = Pa11yAccessibilityIssue::where('url_id' , '=', $url->id)->get();
+                foreach($issues as $issue){
+                    $records[] = [
+                        'url' => $url->url,
+                        'issue' => $issue->issue,
+                        'selector' => $issue->selector,
+                        'code' => $issue->code,
+                        'type' => $issue->type,
+                        'typeCode' => $issue->typeCode,
+                        'context' => $issue->context,
+                        'standard' => $issue->standard,
+                        'wcag_level' => $issue->wcag_level,
+                    ];
+                }
+            }
+        } else {
+
+            foreach($urls as $url){
+                $issues = Pa11yAccessibilityIssue::where('url_id' , '=', $url->id)->where('code', '<>', 'color-contrast')->where('code', '<>', 'color-contrast-enhanced')->get();
+                foreach($issues as $issue){
+                    $records[] = [
+                        'url' => $url->url,
+                        'issue' => $issue->issue,
+                        'selector' => $issue->selector,
+                        'code' => $issue->code,
+                        'type' => $issue->type,
+                        'typeCode' => $issue->typeCode,
+                        'context' => $issue->context,
+                        'standard' => $issue->standard,
+                        'wcag_level' => $issue->wcag_level,
+                    ];
+                }
             }
         }
 

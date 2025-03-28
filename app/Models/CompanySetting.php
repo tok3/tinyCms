@@ -15,6 +15,7 @@ class CompanySetting extends Model
         'max_urls',
         'auto_add_urls',
         'full_scan_interval',
+        'widget_features',
     ];
 
     public function company()

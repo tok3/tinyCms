@@ -9,6 +9,79 @@
              $grouped = '';
         }
 @endphp
+<style>
+        @media print {
+        aside, .fi-sidebar {
+            display: none;
+        }
+        .issue-group {
+
+            width: 100%;
+        }
+        .issue-group:not(:last-child) {
+            /*    page-break-after: always;
+                break-after: page;
+                -webkit-break-after: page; /* Safari */
+        }
+
+            /* Optional: Ensure proper display */
+        .issue-group {
+                display: block;
+                page-break-inside: avoid; /* Prevent breaking inside elements */
+        }
+        div.grid:not(:last-child) {
+            page-break-after: always;
+        }
+        @page {
+            margin: 0; /* Remove browser's default print margins */
+        }
+        body {
+            margin: 1cm; /* Add custom margin to ensure content is not cut off */
+        }
+
+        .issue-card:nth-child(2n):not(:last-child) {
+                page-break-after: always;
+                break-after: page;
+                -webkit-break-after: page;
+            }
+
+        .issue-card {
+                margin-top: 3rem;
+                page-break-inside: avoid;
+                break-inside: avoid;
+                display: block;
+                margin-bottom: 20px; /* Optional: space between cards */
+            }
+        div.space-y-4 {
+            page-break-after: avoid;
+        }
+    }
+</style>
+<script>
+    (function() {
+    // Wait for DOM to be ready
+    document.addEventListener('DOMContentLoaded', function() {
+        const summaries = document.querySelectorAll('summary');
+        summaries.forEach(summary => {
+        //if (summary.textContent.trim() === '36 Vorkommnisse anzeigen') {
+            summary.click();
+        //}
+    });
+            try {
+                // Get URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const printValue = urlParams.get('print');
+
+                // Check if print parameter exists and is true
+                if (printValue === 'true') {
+                    window.print();
+                }
+            } catch (e) {
+                console.error('Error checking print parameter:', e);
+            }
+        });
+    })();
+</script>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
     <!-- Linke Spalte -->
     <div class="flex flex-col space-y-4">

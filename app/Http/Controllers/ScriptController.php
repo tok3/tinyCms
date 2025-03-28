@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
 use App\Models\CompanySetting;
 use App\Models\Company;
+use App\Models\CompanyFeature;
 
 class ScriptController extends Controller
 {
@@ -19,8 +20,25 @@ class ScriptController extends Controller
         {
             //$tool = 'aktion-bf';
             $company = Company::where('ulid', $ulid)->first();
-            $script = CompanySetting::where('company_id', $company->id)->first();
-            $tool = $script->widget_features;
+            $companyFeatures = CompanyFeature::where('company_id', $company->id)->get();
+            //\Log::info($companyFeatures);
+            if($companyFeatures->isEmpty()){
+                $script = CompanySetting::where('company_id', $company->id)->first();
+                $tool = $script->widget_features;
+            } else {
+                if ($companyFeatures->contains('feature_id', 8)){
+                    $feature = $companyFeatures->firstWhere('feature_id', 8);
+                    $value = $feature->value;
+                    if($value == 1){
+                        $tool = 'tts_eztext_ezspeak';
+                    } else {
+                        $tool = 'standard';
+                    }
+                } else {
+                    $tool = 'standard';
+                }
+            }
+            //\Log::info($tool);
         }
         /*
         if($ulid == '01JE6A5H2NQZCT4P9N3FEZG2CX'){
