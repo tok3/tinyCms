@@ -21,5 +21,9 @@ class UpgradeProductPage extends Page
         $this->products = Product::where('upgrade',1)->get();
     }
 
+    public function getTitle(): string
+    {
+        return __('Produkterweiterungen');
+    }
 
 }

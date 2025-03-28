@@ -61,7 +61,6 @@
 
                 <form action="{{ route('checkout.plan')}}" id="checkout" method="POST">
                     @csrf
-
                     @if (session()->has('coupon_code'))
                         <input type="hidden" name="coupon_code" value="{{ session('coupon_code') }}">
                     @endif

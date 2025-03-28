@@ -91,6 +91,7 @@ class CheckoutController extends MolliePaymentController
 
                 $additionalData['promotion'] = $coupon->promotion;
                 $additionalData['bemerkung'] = 'Product über Promocode erworben';
+                session()->forget('coupon_code');
             }
 
             $this->createContract($company, $orderedProduct, false, Carbon::now(), $additionalData);
@@ -119,6 +120,7 @@ class CheckoutController extends MolliePaymentController
             "customer_id" => $customerID,
             "company" => $request->input('company')['name'],
             "coupon_code" => $request->input('coupon_code') ?? '0',
+            "company_id" => $request->input('company_id') ?? '0',
         ];
 
         if ($couponCode)
@@ -135,7 +137,9 @@ class CheckoutController extends MolliePaymentController
             'sequenceType' => 'first',
             'billingEmail' => $billingEmail,
             'description' => $orderedProduct->name,
-            'redirectUrl' => url('preise#step-4'),
+            'redirectUrl' => $request->input('company_id')
+                ? url('dashboard/'.$request->input('company_id').'/subscriptions')
+                : url('preise#step-4'),
             'webhookUrl' => route('mollie.paymentWebhook'),
             "method" => ["creditcard", "directdebit", "sofort", "directdebit", "klarnapaylater", "ideal"],
             "metadata" => $metadata,

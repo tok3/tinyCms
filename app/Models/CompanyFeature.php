@@ -18,7 +18,4 @@ class CompanyFeature extends Pivot
     ];
 
 
-
-
-
 }

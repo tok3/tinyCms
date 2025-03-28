@@ -20,6 +20,8 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Notifications\Notification;
 use App\Models\Coupon;
 use App\Models\Product;
+use Illuminate\Support\HtmlString;
+use Filament\Forms\Components\Placeholder;
 class PromotionResource extends Resource
 {
     protected static ?string $model = Promotion::class;
@@ -42,7 +44,7 @@ class PromotionResource extends Resource
                     ->label('Rabatt-Typ')
                     ->options([
                         'percent' => 'Prozentual',
-                        'fixed' => 'Festbetrag',
+                        'fixed'   => 'Festbetrag',
                     ])
                     ->required(),
 
@@ -67,16 +69,46 @@ class PromotionResource extends Resource
                     ->label('Produkt')
                     ->options(
                         \App\Models\Product::orderBy('name')->get()->mapWithKeys(function ($product) {
-                            return [$product->id => $product->name . ' - ' . \Str::limit(strip_tags($product->description), 55). ' ('.$product->interval.') '];
+                            return [$product->id => $product->name . ' - ' . \Str::limit(strip_tags($product->description), 55) . ' (' . $product->interval . ')'];
                         })
                     )
                     ->placeholder('Wähle ein Produkt aus')
                     ->searchable()
                     ->nullable(),
 
+                // Info-Bereich, der unendliche Coupons anzeigt:
+                Placeholder::make('infinite_coupons')
+                    ->label('Unendliche Coupons')
+                    ->content(function ($record) {
+                        // Falls eine Beziehung definiert ist:
+                        if (method_exists($record, 'coupons')) {
+                            $coupons = $record->coupons()->where('infinite', true)->get();
+                        } else {
+                            // Andernfalls über direkte Abfrage (sofern Promotion eine ID hat):
+                            $coupons = \App\Models\Coupon::where('promotion_id', $record->id)
+                                ->where('infinite', true)
+                                ->get();
+                        }
+
+                        if ($coupons->isEmpty()) {
+                            return 'Keine unendlichen Coupons vorhanden.';
+                        }
+
+                        // Erstelle eine HTML-Liste der Coupons
+                        $html = '<ul>';
+                        foreach ($coupons as $coupon) {
+                            $html .= '<li>' . e($coupon->code) . ' – ' .
+                                ($coupon->discount_type === 'fixed'
+                                    ? number_format($coupon->discount_value, 2, ',', '.') . ' €'
+                                    : $coupon->discount_value . ' %')
+                                . '</li>';
+                        }
+                        $html .= '</ul>';
+
+                        return new HtmlString($html);
+                    }),
             ]);
     }
-
     public static function table(Table $table): Table
     {
         return $table

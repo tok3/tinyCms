@@ -70,7 +70,8 @@
                         <input type="hidden" name="product_id" value="{{ session('product_id') }}">
                     @endif
                     <input type="hidden" name="company[name]" value="{{Auth::user()->companies[0]->name}}">
-                    {{Auth::user()->companies[0]->mollieCustomer}}
+                    <input type="hidden" name="company_id" value="{{Auth::user()->companies[0]->id}}">
+
 
                     <x-site-partials.checkout.summary :products="$products" :paymentModality="$paymentModality"/>
 
