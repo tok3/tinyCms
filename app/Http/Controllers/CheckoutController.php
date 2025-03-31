@@ -57,7 +57,7 @@ class CheckoutController extends MolliePaymentController
             // User hat bereits eine Company und damit eine Mollie Customer ID
             $molieCostomer = $user->companies[0]->mollieCustomer;
             $customerID = $molieCostomer->mollie_customer_id;
-            $billingEmail = $user ->companies[0]->email;
+            $billingEmail = $user->companies[0]->email;
         }
         else
         {
@@ -128,7 +128,46 @@ class CheckoutController extends MolliePaymentController
             $metadata['coupon_code'] = $couponCode;
         }
 
-        $payment = Mollie::api()->payments->create([
+
+        if ($orderedProduct->payment_type == 'one_time' && $orderedProduct->price <= 0)
+        {
+            $payment = Mollie::api()->payments->create([
+                "amount" => [
+                    "currency" => $orderedProduct->currency,
+                    "value" => number_format($price / 100, 2, '.', '')
+                ],
+                'billingEmail' => $billingEmail,
+                'description' => $orderedProduct->name,
+                'redirectUrl' => $request->input('company_id')
+                    ? url('dashboard/'.$request->input('company_id').'/subscriptions')
+                    : url('preise#step-4'),
+                'webhookUrl' => route('mollie.paymentWebhook'),
+                "method" => ["creditcard", "directdebit", "sofort", "klarnapaylater", "ideal", "paypal", "banktransfer"],
+                "metadata" => $metadata,
+            ]);
+        }
+        else
+        {
+
+            $payment = Mollie::api()->payments->create([
+                "amount" => [
+                    "currency" => $orderedProduct->currency,
+                    "value"    => number_format($price / 100, 2, '.', '')
+                ],
+                'customerId'   => $customerID,
+                'sequenceType' => 'first',
+                'billingEmail' => $billingEmail,
+                'description'  => $orderedProduct->name,
+                'redirectUrl'  => $request->input('company_id')
+                    ? url('dashboard/' . $request->input('company_id') . '/subscriptions')
+                    : url('preise#step-4'),
+                'webhookUrl'   => route('mollie.paymentWebhook'),
+                "method"       => ["creditcard", "directdebit"],
+                "metadata"     => $metadata,
+            ]);
+        }
+
+        /*$payment = Mollie::api()->payments->create([
             "amount" => [
                 "currency" => $orderedProduct->currency,
                 "value" => number_format($price / 100, 2, '.', '') // You must send the correct number of decimals, thus we enforce the use of strings
@@ -138,12 +177,12 @@ class CheckoutController extends MolliePaymentController
             'billingEmail' => $billingEmail,
             'description' => $orderedProduct->name,
             'redirectUrl' => $request->input('company_id')
-                ? url('dashboard/' . $request->input('company_id') . '/subscriptions')
+                ? url('dashboard/'.$request->input('company_id').'/subscriptions')
                 : url('preise#step-4'),
             'webhookUrl' => route('mollie.paymentWebhook'),
-            "method" => ["creditcard", "directdebit", "sofort", "klarnapaylater", "ideal", "paypal", "banktransfer"],
+            "method" => ["creditcard", "directdebit", "sofort", "directdebit", "klarnapaylater", "ideal"],
             "metadata" => $metadata,
-        ]);
+        ]);*/
 
 
         return $payment->getCheckoutUrl();
