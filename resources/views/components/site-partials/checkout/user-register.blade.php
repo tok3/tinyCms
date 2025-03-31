@@ -55,7 +55,6 @@
                         </div>
 
                     </div>
-
                     <div class="row" style="font-size: 16px;">
                         <!-- Straße -->
                         <div class="col-md-12">
