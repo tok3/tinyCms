@@ -28,6 +28,23 @@ class MolliePaymentController extends Controller
     public function test()
     {
 
+        $name = "Camindu GmbH";
+        $email = "info@camindu.de";
+
+        // Kunde erstellen
+        $customer = Mollie::api()->customers->create([
+            'name'  => $name,
+            'email' => $email,
+        ]);
+
+        // Mandat erstellen (zuerst den Kunden abrufen)
+        $mandate = Mollie::api()->customers->get($customer->id)
+            ->createMandate([
+                'method'          => 'directdebit', // Muss angegeben werden!
+                'consumerAccount' => ' DE91795200700013181381', // IBAN des Kunden
+                'consumerName'    => $name,                   // Name des Kunden
+            ]);
+die();
 
 // Beispiel: Eine Nachricht ins Deutsche übersetzen
         $message = "a squirrel is not an oak horn ";

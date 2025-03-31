@@ -69,6 +69,14 @@ class CheckoutController extends MolliePaymentController
                 'name' => $name,
                 'email' => $email,
             ]);
+
+           /* $mandate = Mollie::api()->customers->get($customer->id)
+                ->createMandate([
+                    'method'          => 'directdebit', // Muss angegeben werden!
+                    'consumerAccount' => ' DE91795200700013181381', // IBAN des Kunden
+                    'consumerName'    => $name,                   // Name des Kunden
+                ]);*/
+
             $customerID = $customer->id;
             // Temporäre Daten in der Datenbank speichern
             TemporaryUserData::create([
@@ -162,7 +170,7 @@ class CheckoutController extends MolliePaymentController
                     ? url('dashboard/' . $request->input('company_id') . '/subscriptions')
                     : url('preise#step-4'),
                 'webhookUrl'   => route('mollie.paymentWebhook'),
-                "method"       => ["creditcard", "directdebit"],
+                "method"       => ["directdebit","paypal"],
                 "metadata"     => $metadata,
             ]);
         }
