@@ -96,6 +96,7 @@
                            &nbsp;&nbsp;&nbsp; <input type="radio" name="payment_method" value="sepa" id="payment_sepa">
                         <label for="payment_sepa">SEPA-Lastschrift</label>--}}
                     </div>
+
                     <div class="form-group" id="iban_container" style="display: none; margin-top: 15px;">
                         <label for="iban">IBAN</label>
                         <input type="text" class="form-control" name="iban" id="iban" placeholder="Ihre IBAN">
