@@ -91,7 +91,7 @@
                     <legend>Abonnement Zahlungsweise</legend>
 
                     <div class="form-group">
-                        <input type="hidden" name="payment_method" value="creditcard" id="payment_creditcard" checked>
+                        <input type="radio" name="payment_method" value="creditcard" id="payment_creditcard" checked>
                         <label for="payment_creditcard">Kreditkarte</label>
                            &nbsp;&nbsp;&nbsp; <input type="radio" name="payment_method" value="sepa" id="payment_sepa">
                         <label for="payment_sepa">SEPA-Lastschrift</label>
