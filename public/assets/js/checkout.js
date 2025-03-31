@@ -135,48 +135,7 @@ $(document).ready(function () {
 
                 updateProductDetails(selectedProductId);
                 // Wenn das Produkt geladen werden kann, Produktinformationen dynamisch aktualisieren
-             /*   $.ajax({
-                    url: '/get-product-details', // Route zum Abrufen der Produktdetails
-                    type: 'GET',
-                    data: {
-                        product_id: selectedProductId,
-                        coupon_code: sessionStorage.getItem('couponCode') || null // Abrufen des Rabattcodes aus sessionStorage
-                    },
-                    success: function (response) {
 
-                        $('#product-name').text(response.name);
-                        $('#product-description').html(response.description);
-                        $('.total-price').html(response.formattedPrice + ' €');
-
-                        // Definiere das paymentModality-Objekt in JavaScript
-                        const paymentModality = {
-                            "weekly": "pro Woche </br>bei Monatlicher Zahlung",
-                            "daily": "pro Tag </br>bei Monatlicher Zahlung",
-                            "annual": "pro Jahr </br>bei jährlicher Zahlung",
-                            "monthly": "pro Monat </br>bei Monatlicher Zahlung",
-                            "one_time": "&nbsp;"
-                        };
-
-
-                        $('#payment-modality').html(paymentModality[response.interval]);
-
-
-                        if (response.trial_period_days > 0) {
-
-                            var trialEnddate = addDaysToDate(response.trial_period_days);
-
-                            $('#trial-period-row').show();
-                            $('#product-trial-period').text(response.trial_period_days + ' Tage kostenlose Testphase');
-                            $('#trial-period-ends').html(trialEnddate);
-                        } else {
-                            $('#trial-period-row').hide();
-                        }
-                    },
-                    error: function (xhr) {
-
-                        console.log(xhr.responseText);
-                    }
-                });*/
             }
 
 
@@ -308,6 +267,15 @@ $(document).ready(function () {
                 required: true,
                 minlength: 8
 
+            },
+            'iban': {
+                required: {
+                    depends: function(element) {
+                        // Prüfe, ob die Zahlungsmethode SEPA gewählt ist
+                        return $('input[name="payment_method"]:checked').val() === 'sepa';
+                    }
+                },
+                validIban: true // Unsere benutzerdefinierte Methode
             }
         },
         messages: {
@@ -319,6 +287,10 @@ $(document).ready(function () {
             },
             'user[password]': {
                 minlength: "Das Passwort muss mindestens 8 Zeichen haben.",
+            },
+            'iban': {
+                required: "Bitte geben Sie Ihre IBAN ein, wenn SEPA-Lastschrift gewählt wurde.",
+                validIban: "Bitte geben Sie eine gültige IBAN ein."
             }
         },
         invalidHandler: function (form, validator) {
@@ -334,6 +306,14 @@ $(document).ready(function () {
 
     };
     $('#checkout').validate(toValidateForms);
+
+
+    // ibasn checken
+    $.validator.addMethod("validIban", function(value, element) {
+        // Entferne Leerzeichen und prüfe das Format (dieser Regex ist nur ein Beispiel und deckt nicht alle Fälle ab)
+        var iban = value.replace(/\s+/g, '');
+        return this.optional(element) || /^[A-Z]{2}[0-9]{2}[A-Z0-9]{10,30}$/.test(iban);
+    }, "Bitte geben Sie eine gültige IBAN ein.");
 
 
 // privacy form
@@ -520,6 +500,16 @@ $(document).ready(function () {
     }
 
 }
+
+//-----------
+
+    $('input[name="payment_method"]').on('change', function(){
+        if($(this).val() === 'sepa'){
+            $('#iban_container').show();
+        } else {
+            $('#iban_container').hide();
+        }
+    });
 
 //-----------
 });
