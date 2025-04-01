@@ -89,7 +89,7 @@
                     </fieldset>
 
                 <input type="hidden" class="form-control" name="iban" id="iban" placeholder="Ihre IBAN">
-                <input type="hidden" name="payment_method" value="creditcard" id="payment_creditcard" checked>
+                <input type="hidden" name="payment_method" value="creditcard" id="payment_creditcard" >
 
 {{--
                 <fieldset class="mb-4">
