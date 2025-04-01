@@ -69,7 +69,25 @@ class CheckoutController extends MolliePaymentController
                 'name' => $name,
                 'email' => $email,
             ]);
+
             $customerID = $customer->id;
+
+
+            if ($request->input('payment_method') === 'sepa') {
+                // Nutze die eingegebene IBAN
+
+                $iban = preg_replace('/\s+/', '', trim($request->input('iban')));
+
+                $mandate = Mollie::api()->customers->get($customerID)
+                    ->createMandate([
+                        'method'          => 'directdebit',
+                        'consumerAccount' => $iban,
+                        'consumerName'    => $name,
+                    ]);
+                // Falls das Mandat fehlschlägt, kannst du den Fehler abfangen und dem Kunden anzeigen
+            }
+
+
             // Temporäre Daten in der Datenbank speichern
             TemporaryUserData::create([
                 'mollie_customer_id' => $customerID,
@@ -142,7 +160,7 @@ class CheckoutController extends MolliePaymentController
                     ? url('dashboard/'.$request->input('company_id').'/subscriptions')
                     : url('preise#step-4'),
                 'webhookUrl' => route('mollie.paymentWebhook'),
-                "method" => ["creditcard", "directdebit", "sofort", "klarnapaylater", "ideal", "paypal", "banktransfer"],
+                "method" => ["creditcard", "directdebit","paypal",  "sofort", "klarnapaylater", "ideal", "banktransfer"],
                 "metadata" => $metadata,
             ]);
         }
@@ -162,7 +180,7 @@ class CheckoutController extends MolliePaymentController
                     ? url('dashboard/' . $request->input('company_id') . '/subscriptions')
                     : url('preise#step-4'),
                 'webhookUrl'   => route('mollie.paymentWebhook'),
-                "method"       => ["creditcard", "directdebit"],
+                "method"       => ["directdebit","paypal"],
                 "metadata"     => $metadata,
             ]);
         }

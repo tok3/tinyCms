@@ -174,7 +174,8 @@
                         <strong>Bankverbindung:</strong><br>
 
                         Hypovereinsbank<br>
-                        IBAN DE91 7952 0070 0013 1813 81<br>
+
+                        IBAN DE43 7952 0070 0032 9269 83<br>
                         Swift (BIC) HYVE DEMM 407<br>
                     </address>
                 </div>
