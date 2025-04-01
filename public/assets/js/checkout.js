@@ -433,6 +433,10 @@ $(document).ready(function () {
                 $('#product-description').html(response.description);
                 $('.total-price').html(response.formattedPrice + ' €');
 
+                if(parseInt(response.formattedPrice) < 1)
+                {
+                    $('#by-invoice').remove();
+                }
                 // Definiere das paymentModality-Objekt in JavaScript
                 const paymentModality = {
                     "weekly": "pro Woche </br>bei Monatlicher Zahlung",

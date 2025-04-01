@@ -96,9 +96,9 @@ class CheckoutController extends MolliePaymentController
             ]);
         }
         // 0.00 Zahler, Gratis Accounts, gehen nicht über payment gateway
-        if ($orderedProduct->payment_type == 'one_time' && $orderedProduct->price <= 0)
+        if (($orderedProduct->payment_type == 'one_time' && $orderedProduct->price <= 0) || $request->input('pay_by_invoice') == 1)
         {
-
+die();
             $company = $this->initCompanyAccount($customerID);
 
             $additionalData = [];
@@ -180,27 +180,12 @@ class CheckoutController extends MolliePaymentController
                     ? url('dashboard/' . $request->input('company_id') . '/subscriptions')
                     : url('preise#step-4'),
                 'webhookUrl'   => route('mollie.paymentWebhook'),
-                "method"       => ["directdebit","paypal"],
+                "method"       => ["creditcard", "directdebit", "sofort", "klarnapaylater", "ideal","paypal", "banktransfer"],
                 "metadata"     => $metadata,
             ]);
         }
 
-        /*$payment = Mollie::api()->payments->create([
-            "amount" => [
-                "currency" => $orderedProduct->currency,
-                "value" => number_format($price / 100, 2, '.', '') // You must send the correct number of decimals, thus we enforce the use of strings
-            ],
-            'customerId' => $customerID,
-            'sequenceType' => 'first',
-            'billingEmail' => $billingEmail,
-            'description' => $orderedProduct->name,
-            'redirectUrl' => $request->input('company_id')
-                ? url('dashboard/'.$request->input('company_id').'/subscriptions')
-                : url('preise#step-4'),
-            'webhookUrl' => route('mollie.paymentWebhook'),
-            "method" => ["creditcard", "directdebit", "sofort", "directdebit", "klarnapaylater", "ideal"],
-            "metadata" => $metadata,
-        ]);*/
+
 
 
         return $payment->getCheckoutUrl();

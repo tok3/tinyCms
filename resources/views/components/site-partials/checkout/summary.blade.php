@@ -46,11 +46,16 @@
 
                 <tr id="trial-period-row">
                     <td class="align-text-top text-right text-danger" style="text-align: right !important;"><i class="bi bi-info-circle"></i>&nbsp;</td>
-                    <td class=" text-danger small"><strong id="product-trial-period">%%filledInByJs%%</strong>, Sie zahlen heute <strong>0,00 €</strong>, nutzen sie das Produkt über die Testphase hinaus, stellen wir Ihnen den Betrag von <strong class="total-price">placeholder</strong> am <span id="trial-period-ends">%trial-period-ends%</span> in Rechnung.</td>
+                    <td class=" text-danger small"><strong id="product-trial-period">%%filledInByJs%%</strong>, Sie zahlen heute <strong>0,00 €</strong>, nutzen sie das Produkt über die Testphase hinaus, stellen wir Ihnen den Betrag von <strong class="total-price">placeholder</strong> am <span id="trial-period-ends">%trial-period-ends%</span> in Rechnung.
+
+                    </td>
+
                 </tr>
 
             </tbody>
         </table>
+
+
     </div>
 </div>
 <hr>
@@ -65,6 +70,12 @@
                 <input class="custom-control-input" id="privacy" name="privacy" type="checkbox" value="1">
                 <label class="custom-control-label" for="privacy">Ja, ich stimme den <a href="/privacy" target="_blank">Datenschutzbestimmungen</a> zu.</label>
             </div>
+        </div>
+        <div class="form-group _text-end" id="by-invoice">
+
+            <input type="checkbox" name="pay_by_invoice"  value="1" >
+            <label for="pay_by_invoice">&nbsp;&nbsp;Kauf auf Rechnung</label>
+
         </div>
     </div>
 </div>
