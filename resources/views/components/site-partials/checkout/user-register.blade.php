@@ -87,6 +87,7 @@
                         </div>
                     </div>
                     </fieldset>
+            {{--
                 <fieldset class="mb-4">
                     <legend>Abonnement Zahlungsweise</legend>
 
@@ -102,7 +103,7 @@
                         <input type="text" class="form-control" name="iban" id="iban" placeholder="Ihre IBAN">
                         <span class="text-danger" id="iban-error"></span>
                     </div>
-                </fieldset>
+                </fieldset>--}}
                     <fieldset>
                         <legend>Benutzerangaben</legend>
 
