@@ -87,12 +87,17 @@
                         </div>
                     </div>
                     </fieldset>
-            {{--
+
+                <input type="hidden" class="form-control" name="iban" id="iban" placeholder="Ihre IBAN">
+                <input type="hidden" name="payment_method" value="creditcard" id="payment_creditcard" checked>
+
+{{--
                 <fieldset class="mb-4">
                     <legend>Abonnement Zahlungsweise</legend>
 
                     <div class="form-group">
                         <input type="radio" name="payment_method" value="creditcard" id="payment_creditcard" checked>
+
                         <label for="payment_creditcard">Kreditkarte</label>
                            &nbsp;&nbsp;&nbsp; <input type="radio" name="payment_method" value="sepa" id="payment_sepa">
                         <label for="payment_sepa">SEPA-Lastschrift</label>
@@ -103,7 +108,8 @@
                         <input type="text" class="form-control" name="iban" id="iban" placeholder="Ihre IBAN">
                         <span class="text-danger" id="iban-error"></span>
                     </div>
-                </fieldset>--}}
+                </fieldset>
+--}}
                     <fieldset>
                         <legend>Benutzerangaben</legend>
 
