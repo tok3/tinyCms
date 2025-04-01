@@ -315,7 +315,6 @@ $(document).ready(function () {
         return this.optional(element) || /^[A-Z]{2}[0-9]{2}[A-Z0-9]{10,30}$/.test(iban);
     }, "Bitte geben Sie eine gültige IBAN ein.");
 
-
 // privacy form
     $('#priv').validate({ // initialize the plugin
         onfocusout: false,
