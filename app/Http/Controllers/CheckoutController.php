@@ -180,7 +180,7 @@ class CheckoutController extends MolliePaymentController
                     ? url('dashboard/' . $request->input('company_id') . '/subscriptions')
                     : url('preise#step-4'),
                 'webhookUrl'   => route('mollie.paymentWebhook'),
-                "method"       => ["directdebit","paypal"],
+                "method"       => ["creditcard", "directdebit", "sofort", "klarnapaylater", "ideal","paypal", "banktransfer"],
                 "metadata"     => $metadata,
             ]);
         }
