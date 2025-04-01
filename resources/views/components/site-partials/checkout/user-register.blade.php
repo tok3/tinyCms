@@ -87,10 +87,7 @@
                         </div>
                     </div>
                     </fieldset>
-
-
-                <input type="hidden" name="payment_method" value="creditcard" id="payment_creditcard">
-                {{--<fieldset class="mb-4">
+                <fieldset class="mb-4">
                     <legend>Abonnement Zahlungsweise</legend>
 
                     <div class="form-group">
@@ -105,7 +102,7 @@
                         <input type="text" class="form-control" name="iban" id="iban" placeholder="Ihre IBAN">
                         <span class="text-danger" id="iban-error"></span>
                     </div>
-                </fieldset>--}}
+                </fieldset>
                     <fieldset>
                         <legend>Benutzerangaben</legend>
 
