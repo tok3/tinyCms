@@ -95,12 +95,17 @@ class PromotionResource extends Resource
                                 ->get();
                         }
 
+                        // Wenn keine Coupons vorhanden sind, leer zurückgeben
                         if ($coupons->isEmpty()) {
-                            return 'Keine unendlichen Coupons';
+                            return '';
                         }
 
-                        // Rückgabe der Coupon-Anzahl oder Details, falls gewünscht
-                        return $coupons->count() . ' unendliche Coupons';
+                        // Erstelle eine komma-separierte Liste der Coupons
+                        $couponList = $coupons->map(function ($coupon) {
+                            return $coupon->code ;
+                        })->implode(', ');
+
+                        return $couponList;
                     }),
             ]);
     }
