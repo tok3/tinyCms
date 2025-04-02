@@ -97,13 +97,12 @@ class CheckoutController extends MolliePaymentController
                 'company_data' => json_encode($request->input('company')),
             ]);
         }
-        // 0.00 Zahler, Gratis Accounts, gehen nicht über payment gateway
+        // 0.00 Zahler, Gratis Accounts, oder zahlung auf rechnung gehen nicht über payment gateway
         if (($orderedProduct->payment_type == 'one_time' && $orderedProduct->price <= 0) || $request->input('pay_by_invoice') == 1)
         {
 
-            $this->prepareInvoicePurchaseByInvoice($orderedProduct);
-die();
-            $company = $this->initCompanyAccount($customerID);
+
+         //   $company = $this->initCompanyAccount($customerID);
 
             $additionalData = [];
 
@@ -114,9 +113,22 @@ die();
                 $additionalData['promotion'] = $coupon->promotion;
                 $additionalData['bemerkung'] = 'Product über Promocode erworben';
                 session()->forget('coupon_code');
+
+                    $orderedProduct->promotion = $coupon->promotion;
+                echo "<pre>";
+                print_r($company);
+                echo "</pre>";
+                $this->prepareInvoicePurchaseByInvoice($orderedProduct);
+
+                die();
+
             }
 
+            $this->prepareInvoicePurchaseByInvoice($orderedProduct);
+            die();
+
             $this->createContract($company, $orderedProduct, false, Carbon::now(), $additionalData);
+
 
             return route('view.plans') . '#step-4';
 
@@ -199,8 +211,46 @@ die();
 
     public function prepareInvoicePurchaseByInvoice($orderedProduct) {
 
+        $tax_rate = config('accounting.tax_rate');
         echo "<pre>";
         print_r($orderedProduct);
+        echo "</pre>";
+
+        die();
+
+        $invoiceData = [
+            'company_id' => '', // Eine existierende company_id, um eine Firma zu verknüpfen
+            'issue_date' => now()->format('Y-m-d'),
+            'mollie_payment_id' => 'NULL',
+            'due_date' => now()->format('Y-m-d'),
+            'payment_date' => '',
+            'total_net' => $total_net,
+            'total_gross' => $total_gross, // Mit Mehrwertsteuer
+            'tax' => $tax, // Mit Mehrwertsteuer
+            'tax_rate' => $tax_rate, // 19% Mehrwertsteuer
+            'status' => 'paid', // 19% Mehrwertsteuer
+            'data' => [
+                // Position 1
+                'items' => [
+                    [
+                        'id' => '1', // Positionsnummer
+                        'description' => $payment->description, // Beschreibung
+                        'quantity' => 1, // Menge
+                        'line_total_amount' => $total_net, // Gesamtbetrag für diese Position
+                    ],
+                    /*   [
+                           'id' => '2', // Positionsnummer
+                           'description' => 'description',
+                           'quantity' => 1,
+                           'line_amount' => '199.00',
+                       ],*/
+                ],
+
+            ]
+        ];
+
+        echo "<pre>";
+        print_r($invoiceData);
         echo "</pre>";
 
 

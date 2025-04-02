@@ -665,7 +665,7 @@ die();
 
 
             $total_gross = $payment->amount_value; // Bruttobetrag
-            $tax_rate = 19; // 19% Steuersatz
+            $tax_rate = config('accounting.tax_rate'); // 19% Steuersatz
 
             // Berechnungen
             $total_net = round($total_gross / (1 + ($tax_rate / 100)), 2); // Nettobetrag
