@@ -102,8 +102,8 @@ class CheckoutController extends MolliePaymentController
         {
 
 
-         //   $company = $this->initCompanyAccount($customerID);
-$company  = Company::where('id', 247)->first();
+ //           $company = $this->initCompanyAccount($customerID);
+$company  = Company::where('id', 264)->first();
             $additionalData = [];
 
             if ($couponCode)
@@ -122,7 +122,7 @@ $company  = Company::where('id', 247)->first();
 
             }
 
-            $this->prepareInvoicePurchaseByInvoice($orderedProduct);
+            $this->prepareInvoicePurchaseByInvoice($orderedProduct, $company);
             die();
 
             $this->createContract($company, $orderedProduct, false, Carbon::now(), $additionalData);

@@ -14,7 +14,6 @@ use horstoeko\zugferd\ZugferdDocumentPdfMerger;
 use TCPDF;
 use App\Mail\InvoiceMail;
 use Illuminate\Support\Facades\Mail;
-
 class InvoiceService
 {
     /**
@@ -270,10 +269,18 @@ class InvoiceService
         $pdfPath = storage_path('app/invoices/' . $invoice->invoice_number . '.pdf');
 
 
+
+
+       /* Mail::raw('Dies ist eine Testnachricht.', function ($message) use ($invoice) {
+            $message->to($invoice->company->email)
+                ->subject('Test-Mail');
+        });*/
+
+        echo (new \App\Mail\InvoiceMail($invoice, $pdfPath))->render();
+
+
         // Sende die E-Mail mit dem PDF-Anhang
-        \Log::info('Vor dem Mail-Versand: ' . now());
         Mail::to($invoice->company->email)->send(new InvoiceMail($invoice, $pdfPath));
-        \Log::info('Nach dem Mail-Versand: ' . now());
 
 
         // mail mit 5 min versatz senden

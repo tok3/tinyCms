@@ -17,8 +17,11 @@
     <meta name="format-detection" content="address=no"> <!-- disable auto address linking in iOS -->
     <meta name="format-detection" content="email=no"> <!-- disable auto email linking in iOS -->
     <meta name="color-scheme" content="only">
-    <title>{{ $subject ?? 'E-Mail' }}</title>
+    <title></title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@100;200;300;400;500;600;700;800;900&family=Rubik:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <style type="text/css">
         /*Basics*/
