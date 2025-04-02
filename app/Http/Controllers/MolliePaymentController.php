@@ -515,39 +515,6 @@ die();
         }
     }
 
-    /**
-     * @param Request $request
-     * @return void
-     */
-
-    /*  public function handleSubscriptionWebhook(Request $request)
-      {
-          \Log::info('<---------------------------------->');
-          \Log::info('Subscription Webhook: ' . $request->id . ' -> ' . json_encode($request->json()->all(), JSON_PRETTY_PRINT));
-          \Log::info('<---------------------------------->');
-
-          $payment = Mollie::api()->payments->get($request->id);
-
-          \Log::info('<---------------------------------->');
-          \Log::info('Subscription Webhook Pmnt: ' . $request->id . ' -> ' . json_encode($payment, JSON_PRETTY_PRINT));
-          \Log::info('<---------------------------------->');
-
-
-          // Erhalte die Subscription ID aus dem Webhook-Request
-          $subscriptionId = $payment->subscriptionId;
-          $customerId = $payment->customerId;
-
-          $subscription = $this->getMollieSubscription($subscriptionId, $customerId);
-
-          // Aktualisiere oder speichere die Subscription in der Datenbank
-
-          $this->syncLocalSubscription($subscription);
-
-
-          // Logge die Aktion
-          //\Log::info('Subscription webhook received for subscription ID: ' . $subscription->id);
-      }*/
-
 
     /** sync subscriptions in local database
      *
@@ -862,6 +829,7 @@ die();
      */
     public function initCompanyAccount($mollieCustomerId)
     {
+
         $tempData = TemporaryUserData::where('mollie_customer_id', $mollieCustomerId)->first();
         if ($tempData)
         {

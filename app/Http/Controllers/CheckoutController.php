@@ -103,7 +103,7 @@ class CheckoutController extends MolliePaymentController
 
 
          //   $company = $this->initCompanyAccount($customerID);
-
+$company  = Company::where('id', 247)->first();
             $additionalData = [];
 
             if ($couponCode)
@@ -115,10 +115,8 @@ class CheckoutController extends MolliePaymentController
                 session()->forget('coupon_code');
 
                     $orderedProduct->promotion = $coupon->promotion;
-                echo "<pre>";
-                print_r($company);
-                echo "</pre>";
-                $this->prepareInvoicePurchaseByInvoice($orderedProduct);
+
+                    $this->prepareInvoicePurchaseByInvoice($orderedProduct, $company);
 
                 die();
 
@@ -209,32 +207,43 @@ class CheckoutController extends MolliePaymentController
     }
 
 
-    public function prepareInvoicePurchaseByInvoice($orderedProduct) {
+    public function prepareInvoicePurchaseByInvoice($orderedProduct, $company) {
 
         $tax_rate = config('accounting.tax_rate');
-        echo "<pre>";
-        print_r($orderedProduct);
-        echo "</pre>";
 
-        die();
+        $total_gross = $orderedProduct->price / 100; // Bruttobetrag
+        if($orderedProduct->promotion)
+        {
+
+            $cpCtrl = new CouponController;
+            $total_gross = number_format($cpCtrl->calculateTotalPrice($orderedProduct->promotion, $orderedProduct, false), 2, '.', '');
+
+        }
+
+        $tax_rate = config('accounting.tax_rate'); // 19% Steuersatz
+
+        // Berechnungen
+        $total_net = round($total_gross / (1 + ($tax_rate / 100)), 2); // Nettobetrag
+        $tax = $total_gross - $total_net; // Steuerbetrag
+
 
         $invoiceData = [
-            'company_id' => '', // Eine existierende company_id, um eine Firma zu verknüpfen
+            'company_id' => $company->id, // Eine existierende company_id, um eine Firma zu verknüpfen
             'issue_date' => now()->format('Y-m-d'),
-            'mollie_payment_id' => 'NULL',
-            'due_date' => now()->format('Y-m-d'),
-            'payment_date' => '',
+            'mollie_payment_id' => null,
+            'due_date' => \Carbon\Carbon::now()->addWeekdays(14)->format('Y-m-d'),
+            'payment_date' => null,
             'total_net' => $total_net,
             'total_gross' => $total_gross, // Mit Mehrwertsteuer
             'tax' => $tax, // Mit Mehrwertsteuer
-            'tax_rate' => $tax_rate, // 19% Mehrwertsteuer
-            'status' => 'paid', // 19% Mehrwertsteuer
+            'tax_rate' => $tax_rate, // Mehrwertsteuer
+            'status' => 'sent',
             'data' => [
                 // Position 1
                 'items' => [
                     [
                         'id' => '1', // Positionsnummer
-                        'description' => $payment->description, // Beschreibung
+                        'description' => $orderedProduct->description, // Beschreibung
                         'quantity' => 1, // Menge
                         'line_total_amount' => $total_net, // Gesamtbetrag für diese Position
                     ],
@@ -249,9 +258,11 @@ class CheckoutController extends MolliePaymentController
             ]
         ];
 
-        echo "<pre>";
-        print_r($invoiceData);
-        echo "</pre>";
+
+        $invoiceService = new InvoiceService();
+        $invoiceService->createInvoice($invoiceData);
+
+        $invoiceService->sendInvoiceEmail();
 
 
     }

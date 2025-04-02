@@ -33,7 +33,7 @@ class InvoiceService
         $existingInvoice = Invoice::where('mollie_payment_id', $data['mollie_payment_id'])->first();
 
         // Falls bereits eine Rechnung existiert, gib sie zurück und überspringe die Erstellung
-        if ($existingInvoice) {
+        if (($data['mollie_payment_id'] !== null) && $existingInvoice) {
             return $existingInvoice;
         }
 
@@ -271,10 +271,13 @@ class InvoiceService
 
 
         // Sende die E-Mail mit dem PDF-Anhang
-        //Mail::to($invoice->company->email)->send(new InvoiceMail($invoice, $pdfPath));
+        \Log::info('Vor dem Mail-Versand: ' . now());
+        Mail::to($invoice->company->email)->send(new InvoiceMail($invoice, $pdfPath));
+        \Log::info('Nach dem Mail-Versand: ' . now());
+
 
         // mail mit 5 min versatz senden
-        Mail::to()->later(now()->addMinutes(5), new InvoiceMail($invoice, $pdfPath));
+        //Mail::to($invoice->company->email)->later(now()->addMinutes(5), new InvoiceMail($invoice, $pdfPath));
 
 
         return 'Rechnung wurde an '.$invoice->company->email.' versendet!';
