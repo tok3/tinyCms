@@ -166,7 +166,37 @@ class CheckoutController extends MolliePaymentController
         }
         else
         {
-
+            $methods = [
+                'alma',
+                'applepay',
+                'bacs',
+                'bancomatpay',
+                'bancontact',
+                'banktransfer',
+                'belfius',
+                'blik',
+                'creditcard',
+                'directdebit',
+                'eps',
+                'giftcard',
+                'googlepay',
+                'ideal',
+                'in3',
+                'kbc',
+                'mbway',
+                'multibanco',
+                'mybank',
+                'payconiq',
+                'paypal',
+                'paysafecard',
+                'pointofsale',
+                'przelewy24',
+                'riverty',
+                'satispay',
+                'trustly',
+                'twint',
+                'voucher',
+            ];
             $payment = Mollie::api()->payments->create([
                 "amount" => [
                     "currency" => $orderedProduct->currency,
@@ -180,7 +210,8 @@ class CheckoutController extends MolliePaymentController
                     ? url('dashboard/' . $request->input('company_id') . '/subscriptions')
                     : url('preise#step-4'),
                 'webhookUrl'   => route('mollie.paymentWebhook'),
-                "method"       => ["creditcard", "directdebit", "sofort", "klarnapaylater", "ideal","paypal", "banktransfer"],
+             //   "method"       => ["creditcard", "directdebit", "sofort", "klarnapaylater", "ideal","paypal", "banktransfer"],
+                "method"=>$methods,
                 "metadata"     => $metadata,
             ]);
         }
