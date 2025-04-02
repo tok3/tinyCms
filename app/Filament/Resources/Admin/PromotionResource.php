@@ -80,32 +80,27 @@ class PromotionResource extends Resource
                 Placeholder::make('infinite_coupons')
                     ->label('Unendliche Coupons')
                     ->content(function ($record) {
+                        // Prüfe, ob $record existiert und eine ID hat (also nicht beim Erstellen)
+                        if (!$record || !$record->id) {
+                            return 'Noch keine unendlichen Coupons (Datensatz wird erstellt)';
+                        }
+
                         // Falls eine Beziehung definiert ist:
                         if (method_exists($record, 'coupons')) {
                             $coupons = $record->coupons()->where('infinite', true)->get();
                         } else {
-                            // Andernfalls über direkte Abfrage (sofern Promotion eine ID hat):
+                            // Andernfalls über direkte Abfrage:
                             $coupons = \App\Models\Coupon::where('promotion_id', $record->id)
                                 ->where('infinite', true)
                                 ->get();
                         }
 
                         if ($coupons->isEmpty()) {
-                            return 'Keine unendlichen Coupons vorhanden.';
+                            return 'Keine unendlichen Coupons';
                         }
 
-                        // Erstelle eine HTML-Liste der Coupons
-                        $html = '<ul>';
-                        foreach ($coupons as $coupon) {
-                            $html .= '<li>' . e($coupon->code) . ' – ' .
-                                ($coupon->discount_type === 'fixed'
-                                    ? number_format($coupon->discount_value, 2, ',', '.') . ' €'
-                                    : $coupon->discount_value . ' %')
-                                . '</li>';
-                        }
-                        $html .= '</ul>';
-
-                        return new HtmlString($html);
+                        // Rückgabe der Coupon-Anzahl oder Details, falls gewünscht
+                        return $coupons->count() . ' unendliche Coupons';
                     }),
             ]);
     }
