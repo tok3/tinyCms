@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MollieCustomer;
+use App\Services\InvoiceService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\Product;
@@ -98,6 +100,8 @@ class CheckoutController extends MolliePaymentController
         // 0.00 Zahler, Gratis Accounts, gehen nicht über payment gateway
         if (($orderedProduct->payment_type == 'one_time' && $orderedProduct->price <= 0) || $request->input('pay_by_invoice') == 1)
         {
+
+            $this->prepareInvoicePurchaseByInvoice($orderedProduct);
 die();
             $company = $this->initCompanyAccount($customerID);
 
@@ -192,6 +196,15 @@ die();
 
     }
 
+
+    public function prepareInvoicePurchaseByInvoice($orderedProduct) {
+
+        echo "<pre>";
+        print_r($orderedProduct);
+        echo "</pre>";
+
+
+    }
 
     /**
      * email check auf uniqueness
