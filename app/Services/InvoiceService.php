@@ -108,10 +108,11 @@ class InvoiceService
 
 
         // PDF-Inhalt als String abrufen und im Storage speichern
-        header('Content-Type: application/pdf');
-        /*echo $pdf->stream();
+
+        /*header('Content-Type: application/pdf');
+        echo $pdf->stream();*/
         $pdfContent = $pdf->output();
-       */ $pdfPath = "invoices/{$invoice->invoice_number}-tmp.pdf";
+        $pdfPath = "invoices/{$invoice->invoice_number}-tmp.pdf";
 
 
         \Storage::put("$pdfPath", $pdfContent);
@@ -121,7 +122,6 @@ class InvoiceService
         return $pdfPath;
 
     }
-
 
     /**
      * Generiere eine Rechnungsnummer (einfache Implementierung, anpassbar).

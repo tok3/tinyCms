@@ -25,6 +25,7 @@
 
             font-style: bold !important;
         }
+
         #bezahlcode {
             width: 120px;
             position: relative;
@@ -32,6 +33,7 @@
             left: -10px;*/
 
         }
+
         .table-striped TD {
             line-height: 25px;
             padding: 0 2 3 3;
@@ -245,7 +247,6 @@
             </div>
         </div>
 
-
     @endif
 
     <div class="table-responsive m-t">
@@ -310,33 +311,36 @@
         </table>
 
 
-@if($invoice['mollie_payment_id'] == "")
-        <table style="margin-top:10em;">
+        @if($invoice['mollie_payment_id'] == "")
+            <table style="margin-top:10em;">
 
-            <tr>
-                <td>
+                <tr>
+                    <td>
 
-                    <div class="m-t">
-                        Bitte überweisen Sie den Gesamtbetrag in Höhe von <strong>{!! number_format((float) $invoice['total_gross'], 2, ',', '.')  !!}&nbsp;&euro;</strong> untr Nennung des Verwendungszwecks
-                        <strong style="white-space:nowrap;">{{$invoice['invoice_number']}}X{{$invoice['company']['kd_nr']}}</strong> bis zum {{\Carbon\Carbon::parse($invoice['due_date']) ->formatLocalized('%d.%m.%Y')}}
-                        (Zahlungseingang)
-                        auf das folgende Konto:
-                        <br><br>
-                        Hypovereinsbank<br>
-                        IBAN DE43 7952 0070 0032 9269 83<br>
-                        Swift (BIC) HYVE DEMM 407<br>
-                    </div>
+                        <div class="m-t">
+                            Bitte überweisen Sie den Gesamtbetrag in Höhe von <strong>{!! number_format((float) $invoice['total_gross'], 2, ',', '.')  !!}&nbsp;&euro;</strong> unter Nennung des
+                            Verwendungszwecks
+                            <strong style="white-space:nowrap;">{{$invoice['invoice_number']}}X{{$invoice['company']['kd_nr']}}</strong> bis
+                            zum {{\Carbon\Carbon::parse($invoice['due_date']) ->formatLocalized('%d.%m.%Y')}}
+                            (Zahlungseingang)
+                            auf das folgende Konto:
+                            <br><br>
+                            camindu GmbH<br>
+                            Hypovereinsbank<br>
+                            IBAN DE43 7952 0070 0032 9269 83<br>
+                            Swift (BIC) HYVE DEMM 407<br>
+                        </div>
 
-                </td>
-                <td>
-                    <img id="bezahlcode"
-                         src="https://dev.matthiasschaffer.com/bezahlcode/api.php?iban={!! urlencode('DE43 7952 0070 0032 9269 83') !!}&bic={!! urlencode('HYVE DEMM 407') !!}&name={!! urlencode('camindu GmbH') !!}&usage={!! urlencode($invoice['invoice_number'].'X'.$invoice['company']['kd_nr']) !!}&amount={!! urlencode(number_format((float) $invoice['total_gross'], 2, ',', '.')) !!}"
-                         alt="bezahlcode">
+                    </td>
+                    <td>
+                        <img id="bezahlcode"
+                             src="https://dev.matthiasschaffer.com/bezahlcode/api.php?iban={!! urlencode('DE43 7952 0070 0032 9269 83') !!}&bic={!! urlencode('HYVE DEMM 407') !!}&name={!! urlencode('camindu GmbH') !!}&usage={!! urlencode($invoice['invoice_number'].'X'.$invoice['company']['kd_nr']) !!}&amount={!! urlencode(number_format((float) $invoice['total_gross'], 2, ',', '.')) !!}"
+                             alt="bezahlcode">
 
-                </td>
-            </tr>
-        </table>
-@endif
+                    </td>
+                </tr>
+            </table>
+        @endif
 
     </div>
 
