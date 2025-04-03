@@ -23,8 +23,9 @@ class ScriptController extends Controller
             $companyFeatures = CompanyFeature::where('company_id', $company->id)->get();
             //\Log::info($companyFeatures);
             if($companyFeatures->isEmpty()){
-                $script = CompanySetting::where('company_id', $company->id)->first();
-                $tool = $script->widget_features;
+                //$script = CompanySetting::where('company_id', $company->id)->first();
+                //$tool = $script->widget_features;
+                $tool = 'standard';
             } else {
                 if ($companyFeatures->contains('feature_id', 8)){
                     $feature = $companyFeatures->firstWhere('feature_id', 8);
@@ -40,10 +41,10 @@ class ScriptController extends Controller
             }
             //\Log::info($tool);
         }
-        /*
+
         if($ulid == '01JE6A5H2NQZCT4P9N3FEZG2CX'){
-            $tool = 'aktion-bf-full';
-        }*/
+            $tool = 'tts_eztext_ezspeak';
+        }
 
 
 
