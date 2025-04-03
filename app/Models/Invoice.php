@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Carbon\Carbon;
 class Invoice extends Model
 {
     use HasFactory;
@@ -24,6 +24,8 @@ class Invoice extends Model
     protected $fillable = [
         'invoice_number',
         'company_id',
+        'contract_id',
+        'mollie_payment_id', // Mollie Payment ID, wenn verwendet
         'issue_date',
         'due_date',
         'total_net',
@@ -35,7 +37,6 @@ class Invoice extends Model
         'zugferd_data', // ZUGFeRD-XML-Daten
         'xrechnung_data', // XRechnung-XML-Daten
         'payment_date', // Zahlungseingangsdatum
-        'mollie_payment_id', // Mollie Payment ID, wenn verwendet
     ];
 
     /**
@@ -77,6 +78,11 @@ class Invoice extends Model
         return $this->belongsTo(MolliePayment::class, 'mollie_payment_id', 'payment_id');
     }
 
+    // belongs to contract
+    public function contract()
+    {
+        return $this->belongsTo(Contract::class);
+    }
     /**
      * Gibt den Leistungszeitraum aus.
      *
@@ -85,13 +91,40 @@ class Invoice extends Model
      */
     public function getLeistungszeitraumAttribute()
     {
+        $lz = "";
         if ($this->payment && $this->payment->subscription && $this->payment->subscription->next_payment_date) {
             $paymentDate = $this->payment_date;
             $nextPaymentDate = $this->payment->subscription->next_payment_date;
-            return "$paymentDate bis $nextPaymentDate";
+            $lz =  "$paymentDate bis $nextPaymentDate";
         }
 
-        return ''; // Leerer String für One-Off-Payments ohne Abonnement
+// Falls $lz leer ist, berechne den Zeitraum anhand des Vertragsintervalls:
+        if (empty($lz)) {
+            $start = Carbon::today();
+
+            $interval = $this->contract->interval;
+
+            switch ($interval) {
+                case 'daily':
+                    $end = $start->copy()->addDay();
+                    break;
+                case 'weekly':
+                    $end = $start->copy()->addWeek();
+                    break;
+                case 'monthly':
+                    $end = $start->copy()->addMonth();
+                    break;
+                case 'annual':
+                    $end = $start->copy()->addYear();
+                    break;
+                default:
+                    $end = $start;
+                    break;
+            }
+            $lz = $start->locale('de')->isoFormat('L') . " bis " . $end->locale('de')->isoFormat('L');
+        }
+
+        return $lz;
     }
     /**
      * Rechnung hat viele Positionen (hier als JSON im data-Feld gespeichert).

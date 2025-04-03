@@ -25,7 +25,13 @@
 
             font-style: bold !important;
         }
+        #bezahlcode {
+            width: 120px;
+            position: relative;
+            /*top: -10px;
+            left: -10px;*/
 
+        }
         .table-striped TD {
             line-height: 25px;
             padding: 0 2 3 3;
@@ -146,7 +152,7 @@
                     <span><strong>Rechnung Nr:</strong> {{$invoice['invoice_number']}}</span><br>
                     <span><strong>Leistungszeitraum:</strong> {{$invoice['leistungszeitraum']}}</span><br>
 
-                    <span><strong>Fälligkeit:</strong> {{\Carbon\Carbon::parse($invoice['payment_exp']) ->formatLocalized('%d.%m.%Y')}}</span>
+                    <span><strong>Fälligkeit:</strong> {{\Carbon\Carbon::parse($invoice['due_date']) ->formatLocalized('%d.%m.%Y')}}</span>
                 </p>
             </td>
             <td>
@@ -302,6 +308,35 @@
 
             </tbody>
         </table>
+
+
+@if($invoice['mollie_payment_id'] == "")
+        <table style="margin-top:10em;">
+
+            <tr>
+                <td>
+
+                    <div class="m-t">
+                        Bitte überweisen Sie den Gesamtbetrag in Höhe von <strong>{!! number_format((float) $invoice['total_gross'], 2, ',', '.')  !!}&nbsp;&euro;</strong> untr Nennung des Verwendungszwecks
+                        <strong style="white-space:nowrap;">{{$invoice['invoice_number']}}X{{$invoice['company']['kd_nr']}}</strong> bis zum {{\Carbon\Carbon::parse($invoice['due_date']) ->formatLocalized('%d.%m.%Y')}}
+                        (Zahlungseingang)
+                        auf das folgende Konto:
+                        <br><br>
+                        Hypovereinsbank<br>
+                        IBAN DE43 7952 0070 0032 9269 83<br>
+                        Swift (BIC) HYVE DEMM 407<br>
+                    </div>
+
+                </td>
+                <td>
+                    <img id="bezahlcode"
+                         src="https://dev.matthiasschaffer.com/bezahlcode/api.php?iban={!! urlencode('DE43 7952 0070 0032 9269 83') !!}&bic={!! urlencode('HYVE DEMM 407') !!}&name={!! urlencode('camindu GmbH') !!}&usage={!! urlencode($invoice['invoice_number'].'X'.$invoice['company']['kd_nr']) !!}&amount={!! urlencode(number_format((float) $invoice['total_gross'], 2, ',', '.')) !!}"
+                         alt="bezahlcode">
+
+                </td>
+            </tr>
+        </table>
+@endif
 
     </div>
 

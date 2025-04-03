@@ -15,6 +15,7 @@ use App\Models\Subscription;
 use Faker\Factory as Faker;
 use GuzzleHttp\Client;
 use App\Models\TemporaryUserData;
+use Illuminate\Support\Str;
 
 /**
  *
@@ -23,6 +24,7 @@ class CheckoutController extends MolliePaymentController
 
 {
 
+    var $descriptionLength = 80; // item description length on invoice. combination of product_name and description
 
     /**
      * @param Request $request
@@ -75,16 +77,17 @@ class CheckoutController extends MolliePaymentController
             $customerID = $customer->id;
 
 
-            if ($request->input('payment_method') === 'sepa') {
+            if ($request->input('payment_method') === 'sepa')
+            {
                 // Nutze die eingegebene IBAN
 
                 $iban = preg_replace('/\s+/', '', trim($request->input('iban')));
 
                 $mandate = Mollie::api()->customers->get($customerID)
                     ->createMandate([
-                        'method'          => 'directdebit',
+                        'method' => 'directdebit',
                         'consumerAccount' => $iban,
-                        'consumerName'    => $name,
+                        'consumerName' => $name,
                     ]);
                 // Falls das Mandat fehlschlägt, kannst du den Fehler abfangen und dem Kunden anzeigen
             }
@@ -102,8 +105,8 @@ class CheckoutController extends MolliePaymentController
         {
 
 
- //           $company = $this->initCompanyAccount($customerID);
-$company  = Company::where('id', 264)->first();
+            $company = $this->initCompanyAccount($customerID);
+            //$company = Company::where('id', 264)->first();
             $additionalData = [];
 
             if ($couponCode)
@@ -114,19 +117,17 @@ $company  = Company::where('id', 264)->first();
                 $additionalData['bemerkung'] = 'Product über Promocode erworben';
                 session()->forget('coupon_code');
 
-                    $orderedProduct->promotion = $coupon->promotion;
-
-                    $this->prepareInvoicePurchaseByInvoice($orderedProduct, $company);
-
-                die();
+                $orderedProduct->promotion = $coupon->promotion;
 
             }
 
-            $this->prepareInvoicePurchaseByInvoice($orderedProduct, $company);
-            die();
+           $contract = $this->createContract($company, $orderedProduct, false, Carbon::now(), $additionalData);
 
-            $this->createContract($company, $orderedProduct, false, Carbon::now(), $additionalData);
+            if ($orderedProduct->trial_period_days == 0)
+            {
 
+                $this->prepareInvoicePurchaseByInvoice($orderedProduct, $company, $contract);
+            }
 
             return route('view.plans') . '#step-4';
 
@@ -169,12 +170,12 @@ $company  = Company::where('id', 264)->first();
                     "value" => number_format($price / 100, 2, '.', '')
                 ],
                 'billingEmail' => $billingEmail,
-                'description' => $orderedProduct->name,
+                'description' => Str::limit($orderedProduct->name . ', ' . $orderedProduct->description, $this->descriptionLength, '...'),
                 'redirectUrl' => $request->input('company_id')
-                    ? url('dashboard/'.$request->input('company_id').'/subscriptions')
+                    ? url('dashboard/' . $request->input('company_id') . '/subscriptions')
                     : url('preise#step-4'),
                 'webhookUrl' => route('mollie.paymentWebhook'),
-                "method" => ["creditcard", "directdebit","paypal",  "sofort", "klarnapaylater", "ideal", "banktransfer"],
+                "method" => ["creditcard", "directdebit", "paypal", "sofort", "klarnapaylater", "ideal", "banktransfer"],
                 "metadata" => $metadata,
             ]);
         }
@@ -184,22 +185,20 @@ $company  = Company::where('id', 264)->first();
             $payment = Mollie::api()->payments->create([
                 "amount" => [
                     "currency" => $orderedProduct->currency,
-                    "value"    => number_format($price / 100, 2, '.', '')
+                    "value" => number_format($price / 100, 2, '.', '')
                 ],
-                'customerId'   => $customerID,
+                'customerId' => $customerID,
                 'sequenceType' => 'first',
                 'billingEmail' => $billingEmail,
-                'description'  => $orderedProduct->name,
-                'redirectUrl'  => $request->input('company_id')
+                'description' => Str::limit($orderedProduct->name . ', ' . $orderedProduct->description, $this->descriptionLength, '...'),
+                'redirectUrl' => $request->input('company_id')
                     ? url('dashboard/' . $request->input('company_id') . '/subscriptions')
                     : url('preise#step-4'),
-                'webhookUrl'   => route('mollie.paymentWebhook'),
-                "method"       => ["creditcard", "directdebit", "sofort", "klarnapaylater", "ideal","paypal", "banktransfer"],
-                "metadata"     => $metadata,
+                'webhookUrl' => route('mollie.paymentWebhook'),
+                "method" => ["creditcard", "directdebit", "sofort", "klarnapaylater", "ideal", "paypal", "banktransfer"],
+                "metadata" => $metadata,
             ]);
         }
-
-
 
 
         return $payment->getCheckoutUrl();
@@ -207,63 +206,67 @@ $company  = Company::where('id', 264)->first();
     }
 
 
-    public function prepareInvoicePurchaseByInvoice($orderedProduct, $company) {
+    public function prepareInvoicePurchaseByInvoice($orderedProduct, $company, $contract = null)
+    {
 
         $tax_rate = config('accounting.tax_rate');
 
         $total_gross = $orderedProduct->price / 100; // Bruttobetrag
-        if($orderedProduct->promotion)
+
+        if ($total_gross > 0.00)
         {
+            if ($orderedProduct->promotion)
+            {
+                $cpCtrl = new CouponController;
+                $total_gross = number_format($cpCtrl->calculateTotalPrice($orderedProduct->promotion, $orderedProduct, false), 2, '.', '');
+            }
 
-            $cpCtrl = new CouponController;
-            $total_gross = number_format($cpCtrl->calculateTotalPrice($orderedProduct->promotion, $orderedProduct, false), 2, '.', '');
+            $tax_rate = config('accounting.tax_rate'); // 19% Steuersatz
 
-        }
-
-        $tax_rate = config('accounting.tax_rate'); // 19% Steuersatz
-
-        // Berechnungen
-        $total_net = round($total_gross / (1 + ($tax_rate / 100)), 2); // Nettobetrag
-        $tax = $total_gross - $total_net; // Steuerbetrag
+            // Berechnungen
+            $total_net = round($total_gross / (1 + ($tax_rate / 100)), 2); // Nettobetrag
+            $tax = $total_gross - $total_net; // Steuerbetrag
 
 
-        $invoiceData = [
-            'company_id' => $company->id, // Eine existierende company_id, um eine Firma zu verknüpfen
-            'issue_date' => now()->format('Y-m-d'),
-            'mollie_payment_id' => null,
-            'due_date' => \Carbon\Carbon::now()->addWeekdays(14)->format('Y-m-d'),
-            'payment_date' => null,
-            'total_net' => $total_net,
-            'total_gross' => $total_gross, // Mit Mehrwertsteuer
-            'tax' => $tax, // Mit Mehrwertsteuer
-            'tax_rate' => $tax_rate, // Mehrwertsteuer
-            'status' => 'sent',
-            'data' => [
-                // Position 1
-                'items' => [
-                    [
-                        'id' => '1', // Positionsnummer
-                        'description' => $orderedProduct->description, // Beschreibung
-                        'quantity' => 1, // Menge
-                        'line_total_amount' => $total_net, // Gesamtbetrag für diese Position
+            $invoiceData = [
+                'company_id' => $company->id, // Eine existierende company_id, um eine Firma zu verknüpfen
+                'contract_id' => $contract->id, // vertrags id
+                'issue_date' => now()->format('Y-m-d'),
+                'mollie_payment_id' => null,
+                'due_date' => \Carbon\Carbon::now()->addWeekdays(10)->format('Y-m-d'),
+                'payment_date' => null,
+                'total_net' => $total_net,
+                'total_gross' => $total_gross, // Mit Mehrwertsteuer
+                'tax' => $tax, // Mit Mehrwertsteuer
+                'tax_rate' => $tax_rate, // Mehrwertsteuer
+                'status' => 'sent',
+                'data' => [
+                    // Position 1
+                    'items' => [
+                        [
+                            'id' => '1', // Positionsnummer
+                            'description' => Str::limit($orderedProduct->name . ', ' . $orderedProduct->description, $this->descriptionLength, '...'), // Beschreibung
+                            'quantity' => 1, // Menge
+                            'line_total_amount' => $total_net, // Gesamtbetrag für diese Position
+                        ],
+                        /*   [
+                               'id' => '2', // Positionsnummer
+                               'description' => 'description',
+                               'quantity' => 1,
+                               'line_amount' => '199.00',
+                           ],*/
                     ],
-                    /*   [
-                           'id' => '2', // Positionsnummer
-                           'description' => 'description',
-                           'quantity' => 1,
-                           'line_amount' => '199.00',
-                       ],*/
-                ],
 
-            ]
-        ];
+                ]
+            ];
 
 
-        $invoiceService = new InvoiceService();
-        $invoiceService->createInvoice($invoiceData);
+            $invoiceService = new InvoiceService();
 
-        $invoiceService->sendInvoiceEmail();
+            $invoiceService->createInvoice($invoiceData);
 
+            $invoiceService->sendInvoiceEmail();
+        }
 
     }
 

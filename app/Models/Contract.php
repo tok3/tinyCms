@@ -55,6 +55,11 @@ class Contract extends Model
         return $this->morphTo();
     }
 
+    // invoces
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
     public function assignFeaturesToCompany()
     {
         \Log::info("Triggered Contract ID {$this->id}, Product ID: {$this->product_id}");
