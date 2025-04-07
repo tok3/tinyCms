@@ -321,7 +321,7 @@
                             Bitte überweisen Sie den Gesamtbetrag in Höhe von <strong>{!! number_format((float) $invoice['total_gross'], 2, ',', '.')  !!}&nbsp;&euro;</strong> unter Nennung des
                             Verwendungszwecks
                             <strong style="white-space:nowrap;">{{$invoice['invoice_number']}}X{{$invoice['company']['kd_nr']}}</strong> bis
-                            zum {{\Carbon\Carbon::parse($invoice['due_date']) ->formatLocalized('%d.%m.%Y')}}
+                            zum {{\Carbon\Carbon::parse($invoice['due_date'])->formatLocalized('%d.%m.%Y')}}
                             (Zahlungseingang)
                             auf das folgende Konto:
                             <br><br>

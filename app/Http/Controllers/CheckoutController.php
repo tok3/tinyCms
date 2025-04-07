@@ -52,9 +52,13 @@ class CheckoutController extends MolliePaymentController
     {
 
 
+
         $orderedProduct = Product::where('id', $request->input('product_id'))->first();
+
+
         $couponCode = $request->input('coupon_code') ?? '0';
         $user = \Auth::user();
+
 
         if ($user && $user->companies->isNotEmpty() && $user->companies[0]->mollieCustomer)
         {
