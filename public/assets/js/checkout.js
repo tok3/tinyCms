@@ -78,7 +78,7 @@ $(document).ready(function () {
                         value: selectedProductId
                     }).appendTo('#checkout');
 
-                    $('#checkout').submit(); // Formular absenden
+                        $('#checkout').submit(); // Formular absenden
 
                     return false; // Verhindert den Wechsel zu Step 4
                 } else {
@@ -161,7 +161,7 @@ $(document).ready(function () {
             nextButton.on('click', function (e) {
                 e.preventDefault();
 
-                $('#checkout').submit(); // Formular absenden
+              //  $('#checkout').submit(); // Formular absenden
             });
 
         } else if (stepIndex === 3) {
