@@ -20,14 +20,14 @@ $(document).ready(function () {
     });
 
 
-        // Smart Wizard: leaveStep Event
+    // Smart Wizard: leaveStep Event
     $("#smartwizard").on("leaveStep", function (e, anchorObject, currentStepIndex, nextStepIndex, stepDirection) {
 
 
-            if(event.keyCode == 39 || event.keyCode == 37) {
-                event.preventDefault();
-                return false;
-            }
+        if(event.keyCode == 39 || event.keyCode == 37) {
+            event.preventDefault();
+            return false;
+        }
 
         // Prüfen, ob der Benutzer vorwärts geht (nicht rückwärts)
         if (stepDirection === 'forward') {
@@ -78,7 +78,7 @@ $(document).ready(function () {
                         value: selectedProductId
                     }).appendTo('#checkout');
 
-                     $('#checkout').submit(); // Formular absenden
+                    $('#checkout').submit(); // Formular absenden
 
                     return false; // Verhindert den Wechsel zu Step 4
                 } else {
@@ -155,7 +155,7 @@ $(document).ready(function () {
             // Ändere den "Next"-Button zu "Kostenpflichtig bestellen"
             var nextButton = $('#smartwizard').find('.sw-btn-next');
             nextButton.text('Kostenpflichtig bestellen'); // Ändere den Button-Text
-                nextButton.off('click'); // Entferne den Standard-Click-Event
+            nextButton.off('click'); // Entferne den Standard-Click-Event
 
             // Füge ein Submit-Event für den Button hinzu
             nextButton.on('click', function (e) {
@@ -522,40 +522,40 @@ $(document).ready(function () {
     });
 
     window.validatePriv =  function validatePriv() {
-    // Dynamisch nur die Validierungsregeln für AGB und Datenschutz aktivieren
-    $('#agb').rules('add', {
-        required: true,
-        messages: {
-            required: "Bitte akzeptieren Sie die AGB."
+        // Dynamisch nur die Validierungsregeln für AGB und Datenschutz aktivieren
+        $('#agb').rules('add', {
+            required: true,
+            messages: {
+                required: "Bitte akzeptieren Sie die AGB."
+            }
+        });
+
+        $('#privacy').rules('add', {
+            required: true,
+            messages: {
+                required: "Bitte stimmen Sie den Datenschutzbestimmungen zu."
+            }
+        });
+
+        // Beide Checkboxen gleichzeitig validieren
+        var isAGBValid = $('#agb').valid();
+        var isPrivacyValid = $('#privacy').valid();
+
+        // Überprüfen, ob beide Felder valide sind
+        if (isAGBValid && isPrivacyValid) {
+
+            //-->       $('#checkout').submit(); // Formular absenden
+
+            sessionStorage.removeItem('couponCode');
+            return false; // Verhindert den Wechsel zu Step 4
+        } else {
+            // Beide Felder validieren, aber verhindern, dass es weitergeht
+            $('#agb').valid();
+            $('#privacy').valid();
+            return false; // Verhindere den Wechsel, wenn eine Checkbox nicht ausgewählt ist
         }
-    });
 
-    $('#privacy').rules('add', {
-        required: true,
-        messages: {
-            required: "Bitte stimmen Sie den Datenschutzbestimmungen zu."
-        }
-    });
-
-    // Beide Checkboxen gleichzeitig validieren
-    var isAGBValid = $('#agb').valid();
-    var isPrivacyValid = $('#privacy').valid();
-
-    // Überprüfen, ob beide Felder valide sind
-    if (isAGBValid && isPrivacyValid) {
-
- //-->       $('#checkout').submit(); // Formular absenden
-
-        sessionStorage.removeItem('couponCode');
-        return false; // Verhindert den Wechsel zu Step 4
-    } else {
-        // Beide Felder validieren, aber verhindern, dass es weitergeht
-        $('#agb').valid();
-        $('#privacy').valid();
-        return false; // Verhindere den Wechsel, wenn eine Checkbox nicht ausgewählt ist
     }
-
-}
 
 //-----------
 
