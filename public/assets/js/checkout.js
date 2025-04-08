@@ -282,6 +282,13 @@ $(document).ready(function () {
 
 // ---------------------------------------------------------
     var toValidateForms = { // initialize the plugin
+        errorPlacement: function (error, element) {
+            if (element.attr('name') === 'pay_by_invoice') {
+                error.appendTo('#pay_by_invoice_error');
+            } else {
+                error.insertAfter(element);
+            }
+        },
         lang: 'de',
         onfocusout: false,
         onkeyup: false,
@@ -301,6 +308,11 @@ $(document).ready(function () {
 
                 email: true,
                 unique: true,
+
+            }, 'pay_by_invoice': {
+
+                required: true,
+
 
             },
             'user[vorname]': {
