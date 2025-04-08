@@ -14,7 +14,6 @@ use horstoeko\zugferd\ZugferdDocumentPdfMerger;
 use TCPDF;
 use App\Mail\InvoiceMail;
 use Illuminate\Support\Facades\Mail;
-
 class InvoiceService
 {
     /**
@@ -33,7 +32,7 @@ class InvoiceService
         $existingInvoice = Invoice::where('mollie_payment_id', $data['mollie_payment_id'])->first();
 
         // Falls bereits eine Rechnung existiert, gib sie zurück und überspringe die Erstellung
-        if ($existingInvoice) {
+        if (($data['mollie_payment_id'] !== null) && $existingInvoice) {
             return $existingInvoice;
         }
 
@@ -41,9 +40,12 @@ class InvoiceService
         $invoice->invoice_number = $this->generateInvoiceNumber();
         $invoice->company_id = $data['company_id'];
         $invoice->mollie_payment_id = $data['mollie_payment_id'];
+        $invoice->contract_id = $data['contract_id'];
         $invoice->issue_date = Carbon::now();
         $invoice->due_date = isset($data['due_date']) ? Carbon::parse($data['due_date']) : Carbon::now();
-        $invoice->payment_date = isset($data['payment_date']) ? Carbon::parse($data['due_date']) : Carbon::now();
+        $invoice->payment_date = array_key_exists('payment_date', $data) && $data['payment_date'] !== null
+            ? Carbon::parse($data['payment_date'])
+            : null;
         $invoice->total_net = $data['total_net'];
         $invoice->total_gross = $data['total_gross'];
         $invoice->tax_rate = $data['tax_rate'];
@@ -86,11 +88,16 @@ class InvoiceService
      */
     public function generatePDF($id)
     {
+
         // Daten für die Rechnung abrufen
         $invoice = Invoice::with('company')->findOrFail($id);
 
         $additionalData = [];
+        if($invoice['mollie_payment_id'] != "")
+        {
         $additionalData['hint'] = 'Die Rechnung ist bereits Bezahlt über unseren Zahlungsdienstleister Mollie Transaktions-ID <strong>' . $invoice['mollie_payment_id'] . '</strong>';
+        }
+
 
         // PDF mit Blade-Template generieren
         $pdf = Pdf::loadView('accounting.invoice-pdf', compact('invoice', 'additionalData'))
@@ -101,16 +108,20 @@ class InvoiceService
 
 
         // PDF-Inhalt als String abrufen und im Storage speichern
+
+        /*header('Content-Type: application/pdf');
+        echo $pdf->stream();*/
         $pdfContent = $pdf->output();
         $pdfPath = "invoices/{$invoice->invoice_number}-tmp.pdf";
 
+
         \Storage::put("$pdfPath", $pdfContent);
+
 
         // Optional: Rückgabe oder weitere Aktionen
         return $pdfPath;
 
     }
-
 
     /**
      * Generiere eine Rechnungsnummer (einfache Implementierung, anpassbar).
@@ -270,11 +281,22 @@ class InvoiceService
         $pdfPath = storage_path('app/invoices/' . $invoice->invoice_number . '.pdf');
 
 
+
+
+       /* Mail::raw('Dies ist eine Testnachricht.', function ($message) use ($invoice) {
+            $message->to($invoice->company->email)
+                ->subject('Test-Mail');
+        });*/
+
+       // echo (new \App\Mail\InvoiceMail($invoice, $pdfPath))->render();
+
+
         // Sende die E-Mail mit dem PDF-Anhang
-        //Mail::to($invoice->company->email)->send(new InvoiceMail($invoice, $pdfPath));
+        Mail::to($invoice->company->email)->send(new InvoiceMail($invoice, $pdfPath));
+
 
         // mail mit 5 min versatz senden
-        Mail::to()->later(now()->addMinutes(5), new InvoiceMail($invoice, $pdfPath));
+        //Mail::to($invoice->company->email)->later(now()->addMinutes(5), new InvoiceMail($invoice, $pdfPath));
 
 
         return 'Rechnung wurde an '.$invoice->company->email.' versendet!';

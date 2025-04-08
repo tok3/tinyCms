@@ -91,16 +91,18 @@
                 <input type="hidden" class="form-control" name="iban" id="iban" placeholder="Ihre IBAN">
                 <input type="hidden" name="payment_method" value="creditcard" id="payment_creditcard" >
 
-{{--
-                <fieldset class="mb-4">
+
+
+
+                <fieldset class="mb-4" id="by-invoice">
                     <legend>Abonnement Zahlungsweise</legend>
 
                     <div class="form-group">
-                        <input type="radio" name="payment_method" value="creditcard" id="payment_creditcard" checked>
+                        <input type="radio" name="pay_by_invoice" value="0" id="payment_creditcard" checked>
 
-                        <label for="payment_creditcard">Kreditkarte</label>
-                           &nbsp;&nbsp;&nbsp; <input type="radio" name="payment_method" value="sepa" id="payment_sepa">
-                        <label for="payment_sepa">SEPA-Lastschrift</label>
+                        <label for="payment_creditcard">&nbsp;<i class="bi bi-credit-card"></i>&nbsp;<i class="bi bi-paypal"></i>&nbsp;<i class="bi bi-wallet2"></i>&nbsp;<i class="bi bi-credit-card-2-front"></i> Standard</label>
+                           &nbsp;&nbsp;&nbsp; <input type="radio" name="pay_by_invoice" value="1" id="payment_sepa">
+                        <label for="payment_sepa"><i class="bi bi-receipt"></i> Kauf auf Rechnung </label>
                     </div>
 
                     <div class="form-group" id="iban_container" style="display: none; margin-top: 15px;">
@@ -109,7 +111,6 @@
                         <span class="text-danger" id="iban-error"></span>
                     </div>
                 </fieldset>
---}}
                     <fieldset>
                         <legend>Benutzerangaben</legend>
 

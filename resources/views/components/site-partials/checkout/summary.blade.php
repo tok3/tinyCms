@@ -32,25 +32,36 @@
             <tbody>
             <tr>
                 <td class="pr-3 align-text-top " style="white-space: nowrap!important;"><nowrap>Beschreibung:&nbsp</nowrap></td>
-                <td><strong id="product-name">%%filledInByJs%%</strong>
+                <td><strong id="product-name">
+                        <div class="xs spinner-border text-dark" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </strong>
                     <p id="product-description">
-                        %%filledInByJs%%
+
                     </p>
                 </td>
 
             </tr>
             <tr>
                 <td class="align-text-top">Preis:&nbsp</td>
-                <td><strong class="total-price">%%filledInByJs%% €</strong> <small id="payment-modality">%%filledInByJs%%</small></td>
+                <td><strong class="total-price"><div class="xs spinner-border text-dark" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div> </strong> <small id="payment-modality">%%filledInByJs%%</small></td>
             </tr>
 
                 <tr id="trial-period-row">
                     <td class="align-text-top text-right text-danger" style="text-align: right !important;"><i class="bi bi-info-circle"></i>&nbsp;</td>
-                    <td class=" text-danger small"><strong id="product-trial-period">%%filledInByJs%%</strong>, Sie zahlen heute <strong>0,00 €</strong>, nutzen sie das Produkt über die Testphase hinaus, stellen wir Ihnen den Betrag von <strong class="total-price">placeholder</strong> am <span id="trial-period-ends">%trial-period-ends%</span> in Rechnung.</td>
+                    <td class=" text-danger small"><strong id="product-trial-period">%%filledInByJs%%</strong>, Sie zahlen heute <strong>0,00 €</strong>, nutzen sie das Produkt über die Testphase hinaus, stellen wir Ihnen den Betrag von <strong class="total-price">placeholder</strong> am <span id="trial-period-ends">%trial-period-ends%</span> in Rechnung.
+
+                    </td>
+
                 </tr>
 
             </tbody>
         </table>
+
+
     </div>
 </div>
 <hr>
@@ -66,5 +77,11 @@
                 <label class="custom-control-label" for="privacy">Ja, ich stimme den <a href="/privacy" target="_blank">Datenschutzbestimmungen</a> zu.</label>
             </div>
         </div>
+        {{--<div class="form-group _text-end" id="by-invoice">
+
+            <input type="checkbox" name="pay_by_invoice"  value="1" >
+            <label for="pay_by_invoice">&nbsp;&nbsp;Kauf auf Rechnung</label>
+
+        </div>--}}
     </div>
 </div>
