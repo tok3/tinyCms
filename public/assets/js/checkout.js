@@ -544,7 +544,7 @@ $(document).ready(function () {
         // Überprüfen, ob beide Felder valide sind
         if (isAGBValid && isPrivacyValid) {
 
-            //-->       $('#checkout').submit(); // Formular absenden
+            $('#checkout').submit(); // Formular absenden
 
             sessionStorage.removeItem('couponCode');
             return false; // Verhindert den Wechsel zu Step 4
