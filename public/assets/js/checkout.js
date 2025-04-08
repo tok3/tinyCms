@@ -279,7 +279,6 @@ $(document).ready(function () {
         emailUnique($(this).val());
 
     });
-
 // ---------------------------------------------------------
     var toValidateForms = { // initialize the plugin
         errorPlacement: function (error, element) {
