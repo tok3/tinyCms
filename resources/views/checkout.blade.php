@@ -3,6 +3,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <style>[x-cloak] { display: none !important; }</style>
         <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+        <link href="{{ URL::asset('js/jquery-smartwizard/dist/css/smart_wizard_all.min.css') }}" rel="stylesheet" type="text/css"/>
     @endsection
 
     @php
