@@ -35,11 +35,11 @@ class Company extends Model
         parent::boot();
 
         static::creating(function ($item) {
-            $latestKdNr = Company::max('kd_nr');
+            $latestKdNr = Company::withTrashed()->max('kd_nr');
             $item->kd_nr = $latestKdNr ? $latestKdNr + 1 : 1000;
-            if (empty($item->ulid))
-            {
-                $item->ulid = (string)Str::ulid();
+
+            if (empty($item->ulid)) {
+                $item->ulid = (string) Str::ulid();
             }
         });
 
