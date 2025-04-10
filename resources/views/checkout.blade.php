@@ -62,6 +62,32 @@
                 <x-site-partials.checkout.complete :products="$products" :paymentModality="$paymentModality" />
             </div>
 
+
+           {{-- <div id="smartwizard" class="sw sw-theme-arrows sw-justified">
+                <ul class="nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#step-1">
+                            <div class="num">1</div>
+                            Plan wählen
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#step-2">
+                            <span class="num">2</span> Zugangsdaten
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#step-3">
+                            <span class="num">3</span> Zahlung
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#step-4">
+                            <span class="num">4</span> Fertig
+                        </a>
+                    </li>
+                </ul>
+            </div>--}}
             <!-- Bottom navigation -->
             <div  x-show="step !== 3" x-cloak class="flex justify-between mt-8">
                 <button
