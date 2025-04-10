@@ -57,6 +57,7 @@ class CheckoutController extends MolliePaymentController
 
 
         $couponCode = $request->input('coupon_code') ?? '0';
+
         $user = \Auth::user();
 
 
@@ -361,7 +362,7 @@ class CheckoutController extends MolliePaymentController
             $subtotal = $cpCtrl->calculateTotalPrice($coupon->promotion, $product) ?? null;
 
             $productDetails = [
-                'name' => $coupon->name,
+                'name' => $product->name,
                 'description' => $product->description . "<br> Aktionscode: <b>" . $coupon->code . '</b> angewendet.<br> ' . $coupon->promotion->description . '<br><span style="width:auto !important; display:inline-block; text-align:right;"><b>' . number_format($product->price / 100, 2, ',', '.') . ' &euro;</b><br><b>&minus; ' . $dicType . '</span>',
                 'formattedPrice' => $subtotal, // Preis in € formatieren
                 'interval' => $product->interval,

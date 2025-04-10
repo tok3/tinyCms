@@ -3,6 +3,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <style>[x-cloak] { display: none !important; }</style>
         <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
         <link href="{{ URL::asset('js/jquery-smartwizard/dist/css/smart_wizard_all.min.css') }}" rel="stylesheet" type="text/css"/>
     @endsection
 
@@ -12,10 +13,10 @@
         $paymentModality['monthly'] = "pro Monat </br>bei Monatlicher Zahlung";
         $paymentModality['one_time'] = "";
     @endphp
-
-    <div x-data="checkoutWizard()"  x-init="init()" class="container py-12 max-w-4xl mx-auto">
+    <div x-data="checkoutAlpine()"  class="container py-12 max-w-4xl mx-auto">
         <!-- Navigation -->
-        <div class="flex justify-between mb-8">
+        <div  x-show="step !== 3" x-cloak class="flex justify-between mb-8">
+
             <template x-for="(title, index) in steps" :key="index">
                 <button
                     class="flex-1 py-2 border-b-4"
@@ -30,7 +31,10 @@
             </template>
         </div>
 
-        <form id="checkout" action="{{ route('checkout.plan') }}" method="POST">
+        <div x-data="checkoutAlpine()"  x-init="init()" id="checkout">
+        <span class="text-danger" x-text="errors.product_id" x-show="errors.product_id"></span>
+
+        <form id="checkoutForm" action="{{ route('checkout.plan') }}" method="POST">
             @csrf
 
             <!-- STEP 1 -->
@@ -54,78 +58,55 @@
             </div>
 
             <!-- Bottom navigation -->
-            <div class="flex justify-between mt-8">
-                <button type="button" class="btn btn-secondary" :disabled="step === 0" @click="prevStep">Zurück</button>
+            <div  x-show="step !== 3" x-cloak class="flex justify-between mt-8">
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    :disabled="step === 0"
+                    @click="prevStep"
+                >Zurück</button>
 
-                <button type="button" class="btn btn-primary" x-show="step < steps.length - 1" @click="nextStep">Weiter</button>
+                <template x-if="step < 2">
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        @click="nextStep"
+                    >
+                        Weiter
+                    </button>
+                </template>
 
-                <button type="submit" class="btn btn-success" x-show="step === steps.length - 1" @click.prevent="submitForm">Kostenpflichtig bestellen</button>
+                <template x-if="step === 2">
+                    <button
+                        type="button"
+                        class="btn btn-success"
+                        @click="validateAndSubmit"
+                    >
+                        Kostenpflichtig bestellen
+                    </button>
+                </template>
             </div>
         </form>
+        </div>
     </div>
 
     @push('scripts')
-        <script>
-            function checkoutWizard() {
-                return {
-                    step: 0,
-                    steps: ['Plan wählen', 'Zugangsdaten', 'Zahlung', 'Fertig'],
-                    init() {
-                        const hash = window.location.hash;
-                        if (hash === '#step-4') {
-                            this.step = 3;
-                        }
-                    },
-                    goToStep(index) {
-                        if (index > this.step) return; // verhindert manuelles Springen nach vorn
-                        this.step = index;
-                    },
 
-                    nextStep() {
-                        if (this.step === 0 && !sessionStorage.getItem('selectedProductId')) {
-                            alert('Bitte Produkt auswählen.');
-                            return;
-                        }
 
-                        if (this.step === 1) {
-                            const form = document.getElementById('checkout');
-                            if (!form.checkValidity()) {
-                                form.reportValidity();
-                                return;
-                            }
-                        }
 
-                        if (this.step === 2) {
-                            const agb = document.getElementById('agb').checked;
-                            const privacy = document.getElementById('privacy').checked;
+            <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js?v1.1.9"></script>
+            <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js?v1.1.9"></script>
+            <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/localization/messages_de.js"></script>
+            <script src="{{ URL::asset('js/jquery-smartwizard/dist/js/jquery.smartWizard.min.js') }}"></script>
+           {{-- <script src="{{ URL::asset('assets/js/checkout.js') }}"></script>--}}
+            <script src="{{ URL::asset('assets/js/checkout-alpine.js') }}"></script>
+            <script>
+                document.addEventListener('alpine:init', () => {
+                    Alpine.data('checkoutWizard', checkoutAlpine);
+                });
+            </script>
+        @endpush
 
-                            if (!agb || !privacy) {
-                                alert('Bitte AGB und Datenschutz akzeptieren.');
-                                return;
-                            }
-                        }
 
-                        this.step++;
-                    },
 
-                    prevStep() {
-                        if (this.step > 0) this.step--;
-                    },
-
-                    submitForm() {
-                        const selectedProductId = sessionStorage.getItem('selectedProductId');
-                        if (selectedProductId && !document.querySelector('input[name="product_id"]')) {
-                            const input = document.createElement('input');
-                            input.type = 'hidden';
-                            input.name = 'product_id';
-                            input.value = selectedProductId;
-                            document.getElementById('checkout').appendChild(input);
-                        }
-
-                        document.getElementById('checkout').submit();
-                    }
-                }
-            }
-        </script>
-    @endpush
 </x-page-layout>
