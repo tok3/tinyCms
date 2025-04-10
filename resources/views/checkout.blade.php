@@ -36,7 +36,12 @@
 
         <form id="checkoutForm" action="{{ route('checkout.plan') }}" method="POST">
             @csrf
-
+            @if (session()->has('coupon_code'))
+                <input type="hidden" name="coupon_code" value="{{ session('coupon_code') }}">
+            @endif
+            @if (session()->has('product_id'))
+                <input type="hidden" name="product_id" value="{{ session('product_id') }}">
+            @endif
             <!-- STEP 1 -->
             <div x-show="step === 0" x-cloak>
                 <x-site-partials.checkout.products :products="$products" />
