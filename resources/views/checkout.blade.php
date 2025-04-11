@@ -45,7 +45,8 @@
         .toolbar-bottom {
             text-align: right;
             padding-right: 55px;
-
+padding-bottom:15px;
+            border-bottom: 2px solid #EEEEEE;
         }
 
         .stepwizard-row {
