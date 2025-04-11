@@ -44,16 +44,26 @@ window.checkoutAlpine = function () {
         trialEnds: '',
         initStepFromHash() {
             const hash = window.location.hash;
-            if (hash === '#step-2') {
-                this.step = 1; // Index 3 entspricht "Fertig" bzw. Step 4
-            }
-           if (hash === '#step-4') {
-                this.step = 3; // Index 3 entspricht "Fertig" bzw. Step 4
+            const match = hash.match(/#step-(\d)/);
+            if (match) {
+                const index = parseInt(match[1]) - 1;
+                if (index >= 0 && index < this.steps.length) {
+                    this.step = index;
+                }
             }
         },
 
         init() {
             this.initStepFromHash();
+            this.restoreAndValidateStateOnInit();
+
+            const storedProductId = sessionStorage.getItem('selectedProductId');
+            if (storedProductId) {
+                this.form.product_id = storedProductId;
+
+                // Optionale automatische Daten-Nachladung (falls nicht eh schon woanders)
+                this.updateProductDetails(storedProductId);
+            }
         },
         updateProductDetails(productId) {
             const coupon = sessionStorage.getItem('couponCode') || '';
@@ -61,12 +71,10 @@ window.checkoutAlpine = function () {
             fetch(`/get-product-details?product_id=${productId}&coupon_code=${coupon}`)
                 .then(res => res.json())
                 .then(data => {
-                    // Basisdaten setzen
                     this.product.name = data.name;
                     this.product.description = data.description;
                     this.product.price = data.formattedPrice + ' €';
 
-                    // Intervall-Text
                     const modalityTexts = {
                         weekly: 'pro Woche</br>bei Monatlicher Zahlung',
                         daily: 'pro Tag</br>bei Monatlicher Zahlung',
@@ -77,7 +85,6 @@ window.checkoutAlpine = function () {
 
                     this.product.modality = modalityTexts[data.interval] || '';
 
-                    // Rabatt-Hinweis / rabattierter Preis anzeigen, falls vorhanden
                     if (data.has_discount && data.discountedPrice) {
                         this.product.price = `${data.discountedPrice} € (statt ${data.formattedPrice} €)`;
                         this.product.discounted = true;
@@ -85,7 +92,6 @@ window.checkoutAlpine = function () {
                         this.product.discounted = false;
                     }
 
-                    // Testphase anzeigen
                     if (data.trial_period_days && data.trial_period_days > 0) {
                         this.product.trial_days = data.trial_period_days;
                         this.product.trial_ends = this.addDaysToDate(data.trial_period_days);
@@ -111,7 +117,7 @@ window.checkoutAlpine = function () {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     },
-                    body: JSON.stringify({ email: this.form.email })
+                    body: JSON.stringify({email: this.form.email})
                 });
 
                 const data = await response.json();
@@ -143,76 +149,72 @@ window.checkoutAlpine = function () {
                 if (!this.form.street) this.errors.street = 'Straße / Haus-Nr. erforderlich.';
                 if (!this.form.plz) this.errors.plz = 'PLZ erforderlich.';
                 if (!this.form.ort) this.errors.ort = 'Ort erforderlich.';
-
                 if (!this.form.email || !this.validEmail(this.form.email)) {
                     this.errors.email = 'Login-E-Mail ungültig.';
                 }
-
                 if (!this.form.password || this.form.password.length < 8) {
                     this.errors.password = 'Passwort muss mind. 8 Zeichen lang sein.';
                 }
-
                 if (this.form.password !== this.form.confirmPassword) {
                     this.errors.confirmPassword = 'Passwörter stimmen nicht überein.';
                 }
-
                 if (!this.form.pay_by_invoice && this.form.pay_by_invoice !== '0') {
                     this.errors.pay_by_invoice = 'Zahlungsmethode wählen.';
                 }
 
-                // optional IBAN-Check (falls später aktiviert)
-                // if (this.form.pay_by_invoice == 1 && !this.form.iban) {
-                //     this.errors.iban = 'IBAN erforderlich bei Kauf auf Rechnung.';
-                // }
+                if (Object.keys(this.errors).length > 0) return;
 
-                // Email-Check nur wenn noch kein Fehler vorhanden
-                if (Object.keys(this.errors).length === 0) {
-                    this.checkEmailUniqueness().then(() => {
-                        if (Object.keys(this.errors).length === 0) {
-                            this.step++;
-                            this.watchStep(); // trigger Produkt-Sync
-                        }
-                    });
-                    return; // warte auf Email-Check → kein step++
-                } else {
-                    return;
-                }
+                await this.checkEmailUniqueness();
+                if (this.errors.email) return;
             }
 
             if (this.step === 2) {
-                this.populateSummary(); // Adressdaten etc.
+                this.populateSummary();
 
                 if (!this.form.agb) this.errors.agb = 'Bitte AGB akzeptieren.';
                 if (!this.form.privacy) this.errors.privacy = 'Bitte Datenschutz bestätigen.';
 
-                // Produktdaten trotzdem aktualisieren
                 this.ensureProductSynced();
 
                 if (Object.keys(this.errors).length > 0) return;
             }
 
             this.step++;
-            this.watchStep(); // wichtig: nach jedem Stepwechsel Produkt neu laden
-        },
-        ensureProductSynced() {
-            const productId = sessionStorage.getItem('selectedProductId');
-            if (productId) {
-                this.updateProductDetails(productId);
-            }
-        },
-        prevStep() {
-            if (this.step > 0) this.step--;
+            window.location.hash = '#step-' + (this.step + 1);
+            this.watchStep();
         },
         goToStep(index) {
+            if (index > this.step) return;
             this.step = index;
+            window.location.hash = '#step-' + (index + 1);
             this.watchStep();
+        },
+        prevStep() {
+            if (this.step > 0) {
+                this.step--;
+                window.location.hash = '#step-' + (this.step + 1);
+                this.watchStep();
+            }
         },
         watchStep() {
             const productId = sessionStorage.getItem('selectedProductId');
             if (!productId) return;
-
-            // Produktdaten immer nachladen, wenn ein Step gewechselt wird
             if ([0, 1, 2].includes(this.step)) {
+                this.updateProductDetails(productId);
+            }
+        },
+        buttonClass(index) {
+            if (index === this.step) {
+                return 'btn btn-primary btn-circle sw-active'; // Aktiver Step
+            } else if (index < this.step) {
+                return 'btn btn-outline-primary btn-circle sw-past'; // Erreichbare Steps mit weißem Hintergrund
+            } else {
+                return 'btn btn-outline-secondary btn-circle sw-future'; // Noch nicht erreichte Steps mit weißem Hintergrund
+            }
+        },
+        ensureProductSynced() {
+            const productId = sessionStorage.getItem('selectedProductId');
+            if (productId) {
                 this.updateProductDetails(productId);
             }
         },
@@ -234,10 +236,8 @@ window.checkoutAlpine = function () {
             if (!this.form.agb) this.errors.agb = 'Bitte AGB akzeptieren.';
             if (!this.form.privacy) this.errors.privacy = 'Bitte Datenschutz bestätigen.';
 
-            // Produktdaten sicherheitshalber aktualisieren
             this.ensureProductSynced();
             if (Object.keys(this.errors).length === 0) {
-
                 this.submitForm();
             }
         },
@@ -247,7 +247,6 @@ window.checkoutAlpine = function () {
                 this.checkEmailUnique();
             }, 500);
         },
-
         checkEmailUnique() {
             if (!this.form.email || !this.validEmail(this.form.email)) {
                 this.errors.email = 'Gültige E-Mail erforderlich.';
@@ -260,7 +259,7 @@ window.checkoutAlpine = function () {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 },
-                body: JSON.stringify({ email: this.form.email })
+                body: JSON.stringify({email: this.form.email})
             })
                 .then(res => res.json())
                 .then(data => {
@@ -276,13 +275,75 @@ window.checkoutAlpine = function () {
                     console.error('Fehler bei der E-Mail-Überprüfung:', err);
                 });
         },
-
         validEmail(email) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         },
         saveProductToSession(value) {
             this.form.product_id = value;
             sessionStorage.setItem('selectedProductId', value);
+
+            //nach produktauswahl direkt auf step 2
+            if (this.step === 0) {
+                this.step = 1;
+                window.location.hash = '#step-2';
+                this.watchStep();
+            }
+        },
+        restoreAndValidateStateOnInit() {
+            const productId = sessionStorage.getItem('selectedProductId');
+
+            // Wenn kein Produkt gewählt wurde, zurück zu Step 0
+            if (!productId) {
+                this.step = 0;
+                window.location.hash = '#step-1';
+                return;
+            }
+
+            // Produktdetails erneut laden
+            this.updateProductDetails(productId);
+
+            // Wenn wir auf Step 2 (Zusammenfassung) sind, validiere vorherige Eingaben
+            if (this.step === 2) {
+                const requiredFields = ['vorname', 'name', 'company', 'company_email', 'street', 'plz', 'ort', 'email', 'password', 'confirmPassword', 'pay_by_invoice'];
+
+                for (let field of requiredFields) {
+                    if (!this.form[field]) {
+                        this.step = 1;
+                        window.location.hash = '#step-2';
+                        return;
+                    }
+                }
+
+                // Passwort-Validierung
+                if (this.form.password.length < 8 || this.form.password !== this.form.confirmPassword) {
+                    this.step = 1;
+                    window.location.hash = '#step-2';
+                    return;
+                }
+
+                // E-Mail Format
+                if (!this.validEmail(this.form.email) || !this.validEmail(this.form.company_email)) {
+                    this.step = 1;
+                    window.location.hash = '#step-2';
+                    return;
+                }
+
+                // Falls alles passt → populate Summary nochmal
+                this.populateSummary();
+            }
+            // Falls Step 0 → aktuelles Produkt im UI markieren (falls vorhanden)
+            if (this.step === 0) {
+                const productId = sessionStorage.getItem('selectedProductId');
+                if (productId) {
+                    // Versuche, das passende Radio-Input zu aktivieren
+                    const radio = document.querySelector(`input[name="product_id"][value="${productId}"]`);
+                    if (radio) {
+                        radio.checked = true;
+                    }
+                    // Und sicherheitshalber nochmal Produktdaten laden
+                    this.updateProductDetails(productId);
+                }
+            }
         },
         populateSummary() {
             this.summary = {
@@ -306,8 +367,5 @@ window.checkoutAlpine = function () {
                     }
                 });
         }
-
     }
 };
-
-
