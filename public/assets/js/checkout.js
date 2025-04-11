@@ -396,7 +396,7 @@ $(document).ready(function () {
         },
         messages: {
             privacy: {
-                required: "Bitte stimmen  Sie den Datenschutzbestimmungen zu!",
+                required: "Bitte stimmen Sie den Datenschutzbestimmungen zu!",
             },
             agb: {
                 required: "Bitte akzeptieren Sie unsere AGB!",
@@ -532,8 +532,8 @@ $(document).ready(function () {
         validatePriv();
     });
 
-    window.validatePriv =  function validatePriv() {
-        // Dynamisch nur die Validierungsregeln für AGB und Datenschutz aktivieren
+    window.validatePriv = function () {
+        // AGB + Datenschutz
         $('#agb').rules('add', {
             required: true,
             messages: {
@@ -548,25 +548,40 @@ $(document).ready(function () {
             }
         });
 
-        // Beide Checkboxen gleichzeitig validieren
-        var isAGBValid = $('#agb').valid();
-        var isPrivacyValid = $('#privacy').valid();
+        // Zahlungsweise
+        $('input[name="pay_by_invoice"]').rules('add', {
+            required: true,
+            messages: {
+                required: "Bitte wählen Sie eine Zahlungsweise."
+            }
+        });
 
-        // Überprüfen, ob beide Felder valide sind
-        if (isAGBValid && isPrivacyValid) {
-
-            $('#checkout').submit(); // Formular absenden
-
-            sessionStorage.removeItem('couponCode');
-            return false; // Verhindert den Wechsel zu Step 4
+        // IBAN nur wenn Kauf auf Rechnung gewählt
+        if ($('input[name="pay_by_invoice"]:checked').val() === "1") {
+            $('#iban').rules('add', {
+                required: true,
+                iban: true, // optional: wenn du Plugin hast
+                messages: {
+                    required: "Bitte geben Sie Ihre IBAN an."
+                }
+            });
         } else {
-            // Beide Felder validieren, aber verhindern, dass es weitergeht
-            $('#agb').valid();
-            $('#privacy').valid();
-            return false; // Verhindere den Wechsel, wenn eine Checkbox nicht ausgewählt ist
+            $('#iban').rules('remove'); // falls vorher gesetzt
         }
 
-    }
+        const agbOk = $('#agb').valid();
+        const privacyOk = $('#privacy').valid();
+        const payOk = $('input[name="pay_by_invoice"]').valid();
+        const ibanOk = $('input[name="pay_by_invoice"]:checked').val() === "1" ? $('#iban').valid() : true;
+
+        if (agbOk && privacyOk && payOk && ibanOk) {
+            $('#checkout').submit();
+            sessionStorage.removeItem('couponCode');
+            return false;
+        } else {
+            return false;
+        }
+    };
 
 //-----------
 

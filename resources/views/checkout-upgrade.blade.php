@@ -73,7 +73,7 @@
                     <input type="hidden" name="company_id" value="{{Auth::user()->companies[0]->id}}">
 
 
-                    <x-site-partials.checkout.summary :products="$products" :paymentModality="$paymentModality"/>
+                    <x-site-partials.checkout.summary-upgrade :products="$products" :paymentModality="$paymentModality"/>
 
                     <button type="button" id="upgrade" class="btn btn-primary mb-2 me-1 " style="float:right;">Jetzt kostenpflichtig bestellen</button>
                 </form>
