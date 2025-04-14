@@ -21,6 +21,7 @@
     {{--    <link href="{{ URL::asset('assets/css/theme.min.css')}}" rel="stylesheet">--}}
     <!-- Matomo -->
 <script>
+
     var _paq = window._paq = window._paq || [];
     /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
     _paq.push(['trackPageView']);
@@ -34,6 +35,7 @@
     })();
   </script>
   <!-- End Matomo Code -->
+
     @vite(['resources/scss/theme.scss'])
 
     @yield('add-head')

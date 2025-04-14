@@ -52,11 +52,11 @@ class CheckoutController extends MolliePaymentController
     {
 
 
-
         $orderedProduct = Product::where('id', $request->input('product_id'))->first();
 
 
         $couponCode = $request->input('coupon_code') ?? '0';
+
         $user = \Auth::user();
 
 
@@ -108,8 +108,15 @@ class CheckoutController extends MolliePaymentController
         if (($orderedProduct->payment_type == 'one_time' && $orderedProduct->price <= 0) || $request->input('pay_by_invoice') == 1)
         {
 
-
-            $company = $this->initCompanyAccount($customerID);
+            if (auth()->check())
+            {
+                // Eingeloggt = upgrade
+                $company = auth()->user()->companies[0];
+            }
+            else
+            {
+                $company = $this->initCompanyAccount($customerID);
+            }
             //$company = Company::where('id', 264)->first();
             $additionalData = [];
 
@@ -125,14 +132,18 @@ class CheckoutController extends MolliePaymentController
 
             }
 
-           $contract = $this->createContract($company, $orderedProduct, false, Carbon::now(), $additionalData);
+            $contract = $this->createContract($company, $orderedProduct, false, Carbon::now(), $additionalData);
 
             if ($orderedProduct->trial_period_days == 0)
             {
 
                 $this->prepareInvoicePurchaseByInvoice($orderedProduct, $company, $contract);
             }
+            if (auth()->check())
+            {
+                return url('dashboard/'.$company->id.'/upgrade-page');
 
+            }
             return route('view.plans') . '#step-4';
 
         }
@@ -361,7 +372,7 @@ class CheckoutController extends MolliePaymentController
             $subtotal = $cpCtrl->calculateTotalPrice($coupon->promotion, $product) ?? null;
 
             $productDetails = [
-                'name' => $coupon->name,
+                'name' => $product->name,
                 'description' => $product->description . "<br> Aktionscode: <b>" . $coupon->code . '</b> angewendet.<br> ' . $coupon->promotion->description . '<br><span style="width:auto !important; display:inline-block; text-align:right;"><b>' . number_format($product->price / 100, 2, ',', '.') . ' &euro;</b><br><b>&minus; ' . $dicType . '</span>',
                 'formattedPrice' => $subtotal, // Preis in € formatieren
                 'interval' => $product->interval,

@@ -37,108 +37,12 @@ class InvoiceController extends Controller
      */
     public function create()
     {
-        $invoiceService = new InvoiceService();
-
-        $invoiceService->sendInvoiceEmail(1);
-        die();
-
-
-        $paymentsWithoutInvoice = MolliePayment::withoutInvoice();
-
-        foreach ($paymentsWithoutInvoice as $payment)
-        {
-
-            if ($payment->status == 'paid' && $payment->amount_value > 0.00)
-            {
-
-                $customer = MollieCustomer::where('mollie_customer_id', $payment->customer_id)->first();
-
-
-                $total_gross = $payment->amount_value; // Bruttobetrag
-                $tax_rate = 19; // 19% Steuersatz
-
-                // Berechnungen
-                $total_net = round($total_gross / (1 + ($tax_rate / 100)), 2); // Nettobetrag
-                $tax = $total_gross - $total_net; // Steuerbetrag
-
-
-                $invoiceData = [
-                    'company_id' => $customer->model_id, // Eine existierende company_id, um eine Firma zu verknüpfen
-                    'issue_date' => now()->format('Y-m-d'),
-                    'mollie_payment_id' => $payment->payment_id,
-                    'due_date' => $payment->paid_at,
-                    'payment_date' => $payment->paid_at,
-                    'total_net' => $total_net,
-                    'total_gross' => $total_gross, // Mit Mehrwertsteuer
-                    'tax' => $tax, // Mit Mehrwertsteuer
-                    'tax_rate' => $tax_rate, // 19% Mehrwertsteuer
-                    'status' => 'paid', // 19% Mehrwertsteuer
-                    'data' => [
-                        // Position 1
-                        'items' => [
-                            [
-                                'id' => '1', // Positionsnummer
-                                'description' => $payment->description, // Beschreibung
-                                'quantity' => 1, // Menge
-                                'line_total_amount' => $total_net, // Gesamtbetrag für diese Position
-                            ],
-                            /*   [
-                                   'id' => '2', // Positionsnummer
-                                   'description' => 'description',
-                                   'quantity' => 1,
-                                   'line_amount' => '199.00',
-                               ],*/
-                        ],
-
-                    ]
-                ];
-                $invoiceService = new InvoiceService();
-
-                $invoiceService->createInvoice($invoiceData);
-            }
-        }
-
-        die();
+        /* noch keine manuelle rechnungserstellung implentiert */
 
         $invoiceService = new InvoiceService();
 
-        // Testdaten für die Rechnungspositionen
-        $invoiceData = [
-            'company_id' => 34, // Eine existierende company_id, um eine Firma zu verknüpfen
-            'issue_date' => now()->format('Y-m-d'),
-            'mollie_payment_id' => 'tr_poja9tpop',
-            'due_date' => now()->addDays(30),
-            'total_net' => 198.0,
-            'total_gross' => 235.62, // Mit Mehrwertsteuer
-            'tax' => 37.62, // Mit Mehrwertsteuer
-            'tax_rate' => 19, // 19% Mehrwertsteuer
-            'data' => [
-                // Position 1
-                'items' => [
-                    [
-                        'id' => '1', // Positionsnummer
-                        'description' => 'Seminarreihe: Expert - Fortbildung gem. der Makler- und Bauträgerverordnung (MaBV)', // Beschreibung
-                        'quantity' => 1, // Menge
-                        'line_total_amount' => '198.0', // Gesamtbetrag für diese Position
-                    ],
-                    /*   [
-                           'id' => '2', // Positionsnummer
-                           'description' => 'Seminarreihe: BASIS - Fortbildung gem. der Makler- und Bauträgerverordnung (MaBV)',
-                           'quantity' => 1,
-                           'line_amount' => '199.00',
-                       ],*/
-                ],
-                // Weitere Positionen können hier hinzugefügt werden
-            ]
-        ];
+        $invoiceService->sendInvoiceEmail();
 
-        // Verwende den InvoiceService, um eine Rechnung zu erstellen
-        $invoiceService->createInvoice($invoiceData);
-
-
-        die();
-
-        return view('invoices.create');
     }
 
 

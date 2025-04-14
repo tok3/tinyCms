@@ -30,6 +30,19 @@
 
                     </div>
                 @endforeach
+                    <div class="p-4 border border-gray-200 rounded-lg bg-white shadow">
+                        <h3 class="text-xl font-bold text-gray-800">Aktionscode Einlosen</h3>
+                        <p class="mt-2 text-gray-600">Sie haben einen Aktionscode und möchten diesen einlösen ?</p>
+                        <div class="mt-4">
+
+                        </div>
+
+                        <!--[if BLOCK]><![endif]-->                            <a href="{{url('code/einloesen')}}" class="inline-block mt-4 py-2 px-4 bg-pink-500 text-white rounded">
+                            Aktionscode hier einlösen ...
+                        </a>
+                        <!--[if ENDBLOCK]><![endif]-->
+
+                    </div>
             </div>
         </div>
     </section>
