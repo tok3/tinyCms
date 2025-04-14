@@ -25,176 +25,6 @@ class MolliePaymentController extends Controller
 {
 
     var $contractID = null;
-    public function test()
-    {
-
-
-        $invoiceService = new InvoiceService();
-
-        $invoiceService->generatePDF(197);
-        die();
-        $name = "Camindu GmbH";
-        $email = "info@camindu.de";
-
-        // Kunde erstellen
-        $customer = Mollie::api()->customers->create([
-            'name'  => $name,
-            'email' => $email,
-        ]);
-
-        // Mandat erstellen (zuerst den Kunden abrufen)
-        $mandate = Mollie::api()->customers->get($customer->id)
-            ->createMandate([
-                'method'          => 'directdebit', // Muss angegeben werden!
-                'consumerAccount' => ' DE91795200700013181381', // IBAN des Kunden
-                'consumerName'    => $name,                   // Name des Kunden
-            ]);
-
-        die();
-
-// Beispiel: Eine Nachricht ins Deutsche übersetzen
-        $message = "a squirrel is not an oak horn ";
-        $translated = MessageTranslationService::translate($message, 'de_DE');
-
-        echo "Original: $message\n";
-        echo "Übersetzt: $translated\n";
-
-
-        die();
-        echo sha1('157tommel@tubechunks.de');
-        echo "<br>";
-        echo $expires = strtotime(Carbon::now()->addWeek()->toDateString());
-        echo "<br>";
-
-        echo '157/' . sha1('tommel@tubechunks.de') . '?expires=' . $expires . '&signature=0d08a2b794ed64c7ce7ee4c6fc277d172aec39b9eeae711e54da3121ad83f67e';
-
-        die();
-        $customerId = 'cst_ZYrQatF4wT';
-        $mandates = $this->getMandates($customerId);
-
-        // Überprüfe, ob ein gültiges Mandat vorhanden ist
-        $hasValidMandate = false;
-
-        //\Log::info('MANDATE: ' . json_encode($mandates, JSON_PRETTY_PRINT));
-        foreach ($mandates['_embedded']['mandates'] as $mandate)
-        {
-            if ($mandate['status'] === 'valid')
-            {
-                $hasValidMandate = true;
-                break;
-            }
-        }
-
-        echo "-->" . $hasValidMandate;
-
-        if ($hasValidMandate)
-        {
-            echo "ja?";
-
-        }
-        $customer = Mollie::api()->customers->get($customerId);
-        $mandates = Mollie::api()->mandates->listFor($customer);
-        echo "<pre>";
-        print_r($mandates);
-        echo "</pre>";
-        die();
-
-//$this->deleteAllCustomers();
-        // Beispielwerte für das Testen
-        $product = (object)[
-            'name' => 'Produkt XYZ',
-            'description' => 'Beschreibung für Produkt XYZ',
-            'price' => 99.99
-        ];
-
-        $subscription = (object)[
-            'id' => 1234
-        ];
-
-        $startDate = Carbon::now()->startOfMonth();
-
-        // Erstelle ein neues Contract-Objekt mit Testdaten
-        $contract = new Contract();
-        $contract->contractable_id = 2; // Beispiel-ID für das Unternehmen (Company)
-        $contract->contractable_type = Company::class;
-        $contract->product_id = $product->id;
-        $contract->price = $product->price;
-        $contract->setup_fee = 0; // Beispiel für Setup-Fee, falls vorhanden
-        $contract->interval = 'monthly'; // Beispielwert für den Intervall
-        $contract->subscription_id = $subscription->id;
-        $contract->iteration = 1;
-        $contract->data = json_encode(['extra_info' => 'Beispiel-Informationen']); // Beispiel für das JSON-Datenfeld
-        $contract->order_date = Carbon::now()->subDays(7); // Beispiel-Bestelldatum
-        $contract->start_date = $startDate;
-        $contract->duration = 24; // Dauer in Monaten
-        $contract->start_date = Carbon::now();
-        $contract->end_date = Carbon::now()->addMonths($contract->duration);
-
-        $contract->save();
-
-        die();
-
-        $subscriptionId = 'sub_duoJE78NZG';
-        $customerId = 'cst_2WvW4LzTNE';
-        $subscription = $this->getMollieSubscription($subscriptionId, $customerId);
-        echo "<pre>";
-        print_r($subscription);
-        echo "</pre>";
-        $this->updateSubscriptionAmount($subscriptionId, $customerId, '19.45');
-        /// user register test
-        $subscription = $this->getMollieSubscription($subscriptionId, $customerId);
-        echo "<pre>";
-        print_r($subscription);
-        echo "</pre>";
-        // Benutzer registrieren und in der Datenbank speichern
-        // Erstelle einen Faker-Instanz
-        $faker = Faker::create();
-
-        // Falsche Benutzerdaten für Tests erstellen
-        $fakeUserData = [
-            'name' => $faker->name,
-            'email' => $faker->unique()->safeEmail,
-            'password' => Hash::make('password123'), // Beispiel für ein Testpasswort
-        ];
-
-        // Benutzer registrieren und in der Datenbank speichern
-        $user = User::create([
-            'name' => $fakeUserData['name'],
-            'email' => 'test' . time() . '@eq3w.de',
-            'password' => $fakeUserData['password'], // Bereits gehasht
-        ]);
-
-
-        die();
-        // fetchtest
-        $customerID = 'cst_dSioH9Xsg2';
-        $subscriptionId = 'sub_8MwaGqmCWH';
-        $client = new Client();
-
-// Authentifizierung mit deinem Mollie API Key
-        $apiKey = env('MOLLIE_KEY');
-
-        $response = $client->request('GET', "https://api.mollie.com/v2/customers/{$customerID}/subscriptions/{$subscriptionId}", [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Accept' => 'application/json',
-            ],
-        ]);
-
-        $subscriptionData = json_decode($response->getBody(), true);
-        echo "<pre>";
-        print_r($subscriptionData);
-        echo "</pre>";
-        die();
-        // updarte test
-        $resp = $this->updateSubscriptionAmount($subscriptionId, $customerID, '18.30');
-
-        echo "<pre>";
-        print_r($resp);
-        echo "</pre>";
-//$this->deleteAllSubscriptions();
-
-    }
 
 
     /**
@@ -330,8 +160,6 @@ class MolliePaymentController extends Controller
             // firma und useraccount für firma initiieren
             $company = $this->initCompanyAccount($customerId);
         }
-        // Rechnung erstellen
-        $this->prepareInvoice($payment->id);
 
 
         // Unterscheide, ob eine Subscription erstellt werden muss
@@ -438,6 +266,9 @@ class MolliePaymentController extends Controller
             $this->syncLocalSubscription($subscription);
 
         }
+
+        // Rechnung erstellen
+        $this->prepareInvoice($payment->id);
 
 
     }
