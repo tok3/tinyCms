@@ -28,6 +28,11 @@ class MolliePaymentController extends Controller
     public function test()
     {
 
+
+        $invoiceService = new InvoiceService();
+
+        $invoiceService->generatePDF(197);
+        die();
         $name = "Camindu GmbH";
         $email = "info@camindu.de";
 
@@ -44,7 +49,8 @@ class MolliePaymentController extends Controller
                 'consumerAccount' => ' DE91795200700013181381', // IBAN des Kunden
                 'consumerName'    => $name,                   // Name des Kunden
             ]);
-die();
+
+        die();
 
 // Beispiel: Eine Nachricht ins Deutsche übersetzen
         $message = "a squirrel is not an oak horn ";
@@ -346,10 +352,10 @@ die();
             }
 
 
-            $intervals['daily'] = '1 day';
-            $intervals['weekly'] = '1 week';
-            $intervals['monthly'] = '1 month';
-            $intervals['annual'] = '12 months';
+                $intervals['daily'] = '1 day';
+                $intervals['weekly'] = '1 week';
+                $intervals['monthly'] = '1 month';
+                $intervals['annual'] = '12 months';
 
 
             $startDate = $this->getStartDate($product);
@@ -463,6 +469,8 @@ die();
         \Log::info('CONTRACT ERSTELLEN FÜR COMPANY: ' . json_encode($company, JSON_PRETTY_PRINT));
         \Log::info('<---------------------------------->');
 
+        $duration = $product->lz ?? 24;
+
         // Erstelle und speichere den Vertrag
         $contract = new Contract([
             'contractable_type' => \App\Models\Company::class,
@@ -472,11 +480,11 @@ die();
             'price' => $product->price,
             'subscription_id' => $subscriptionId,
             'subscription_start_date' => $startDate,
-            'duration' => 24,
+            'duration' => $duration,
             'data' => json_encode($additionalData), // JSON-Daten speichern
             'order_date' => Carbon::now(),
-            'start_date' => Carbon::now(),
-            'end_date' => Carbon::now()->addMonths(24), // Enddatum berechnen
+            'start_date' => \Carbon\Carbon::now()->addDays($product->trial_period_days),
+            'end_date' => Carbon::now()->addDays($product->trial_period_days)->addMonths($duration), // Enddatum berechnen
         ]);
 
         $contract->save();
@@ -514,39 +522,6 @@ die();
                 return now()->toDateString();
         }
     }
-
-    /**
-     * @param Request $request
-     * @return void
-     */
-
-    /*  public function handleSubscriptionWebhook(Request $request)
-      {
-          \Log::info('<---------------------------------->');
-          \Log::info('Subscription Webhook: ' . $request->id . ' -> ' . json_encode($request->json()->all(), JSON_PRETTY_PRINT));
-          \Log::info('<---------------------------------->');
-
-          $payment = Mollie::api()->payments->get($request->id);
-
-          \Log::info('<---------------------------------->');
-          \Log::info('Subscription Webhook Pmnt: ' . $request->id . ' -> ' . json_encode($payment, JSON_PRETTY_PRINT));
-          \Log::info('<---------------------------------->');
-
-
-          // Erhalte die Subscription ID aus dem Webhook-Request
-          $subscriptionId = $payment->subscriptionId;
-          $customerId = $payment->customerId;
-
-          $subscription = $this->getMollieSubscription($subscriptionId, $customerId);
-
-          // Aktualisiere oder speichere die Subscription in der Datenbank
-
-          $this->syncLocalSubscription($subscription);
-
-
-          // Logge die Aktion
-          //\Log::info('Subscription webhook received for subscription ID: ' . $subscription->id);
-      }*/
 
 
     /** sync subscriptions in local database
@@ -665,7 +640,7 @@ die();
 
 
             $total_gross = $payment->amount_value; // Bruttobetrag
-            $tax_rate = 19; // 19% Steuersatz
+            $tax_rate = config('accounting.tax_rate'); // 19% Steuersatz
 
             // Berechnungen
             $total_net = round($total_gross / (1 + ($tax_rate / 100)), 2); // Nettobetrag
@@ -862,6 +837,7 @@ die();
      */
     public function initCompanyAccount($mollieCustomerId)
     {
+
         $tempData = TemporaryUserData::where('mollie_customer_id', $mollieCustomerId)->first();
         if ($tempData)
         {

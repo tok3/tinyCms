@@ -78,7 +78,7 @@ $(document).ready(function () {
                         value: selectedProductId
                     }).appendTo('#checkout');
 
-                        $('#checkout').submit(); // Formular absenden
+                    $('#checkout').submit(); // Formular absenden
 
                     return false; // Verhindert den Wechsel zu Step 4
                 } else {
@@ -161,7 +161,7 @@ $(document).ready(function () {
             nextButton.on('click', function (e) {
                 e.preventDefault();
 
-              //  $('#checkout').submit(); // Formular absenden
+                $('#checkout').submit(); // Formular absenden
             });
 
         } else if (stepIndex === 3) {
@@ -279,15 +279,9 @@ $(document).ready(function () {
         emailUnique($(this).val());
 
     });
+
 // ---------------------------------------------------------
     var toValidateForms = { // initialize the plugin
-        errorPlacement: function (error, element) {
-            if (element.attr('name') === 'pay_by_invoice') {
-                error.appendTo('#pay_by_invoice_error');
-            } else {
-                error.insertAfter(element);
-            }
-        },
         lang: 'de',
         onfocusout: false,
         onkeyup: false,
@@ -307,11 +301,6 @@ $(document).ready(function () {
 
                 email: true,
                 unique: true,
-
-            }, 'pay_by_invoice': {
-
-                required: true,
-
 
             },
             'user[vorname]': {
@@ -555,7 +544,7 @@ $(document).ready(function () {
         // Überprüfen, ob beide Felder valide sind
         if (isAGBValid && isPrivacyValid) {
 
-            $('#checkout').submit(); // Formular absenden
+            //-->       $('#checkout').submit(); // Formular absenden
 
             sessionStorage.removeItem('couponCode');
             return false; // Verhindert den Wechsel zu Step 4
