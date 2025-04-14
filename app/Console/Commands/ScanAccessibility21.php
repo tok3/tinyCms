@@ -191,7 +191,7 @@ class ScanAccessibility21 extends Command
         $urlinfo = Pa11yUrl::where('id', $url->id)->first();
         $showContrastErrors = CompanySetting::where('company_id', $urlinfo->company_id)->first();
         $totalErrors = $totalWarnings = $totalNotices = 0;
-        if($showContrastErrors->contrast_errors == 1){
+        if(isset($showContrastErrors) && !empty($showContrastErrors) && $showContrastErrors->contrast_errors == 1){
             // Fall 3: Es gibt Fehler oder Warnungen
             $totalErrors = count(array_filter($results, fn($r) => isset($r['type']) && $r['type'] === 'error'));
             $totalWarnings = count(array_filter($results, fn($r) => isset($r['type']) && $r['type'] === 'warning'));

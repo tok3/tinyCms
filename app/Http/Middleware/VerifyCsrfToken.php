@@ -20,6 +20,7 @@ class VerifyCsrfToken extends Middleware
         'storeReferrer',
         'storeDownloadReferrer',
         'eztext',
+        'ezspeak',
         'storeTts',
     ];
 }

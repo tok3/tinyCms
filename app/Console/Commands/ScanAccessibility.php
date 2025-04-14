@@ -130,20 +130,20 @@ class ScanAccessibility extends Command
         $urlinfo = Pa11yUrl::where('id', $url->id)->first();
         $showContrastErrors = CompanySetting::where('company_id', $urlinfo->company_id)->first();
         $totalErrors = $totalWarnings = $totalNotices = 0;
-        \Log::info('contrast errors'.$showContrastErrors->contrast_errors);
-        if($showContrastErrors->contrast_errors == 1){
+
+        if(isset($showContrastErrors) && !empty($showContrastErrors) && $showContrastErrors->contrast_errors == 1){
             $totalErrors = count(array_filter($results, fn($r) => $r['type'] === 'error'));
             $totalWarnings = count(array_filter($results, fn($r) => $r['type'] === 'warning'));
             $totalNotices = count(array_filter($results, fn($r) => $r['type'] === 'notice'));
         } else {
             $totalErrors = collect($results)
-                ->filter(fn($r) => $r['type'] === 'error' && $r['code'] !== 'color-contrast')
+                ->filter(fn($r) => $r['type'] === 'error' && $r['code'] !== 'color-contrast' && $r['code'] !== 'color-contrast-enhanced')
                 ->count();
             $totalWarnings = collect($results)
-                ->filter(fn($r) => $r['type'] === 'warning' && $r['code'] !== 'color-contrast')
+                ->filter(fn($r) => $r['type'] === 'warning' && $r['code'] !== 'color-contrast' && $r['code'] !== 'color-contrast-enhanced')
                 ->count();
             $totalNotices = collect($results)
-                ->filter(fn($r) => $r['type'] === 'notice' && $r['code'] !== 'color-contrast')
+                ->filter(fn($r) => $r['type'] === 'notice' && $r['code'] !== 'color-contrast' && $r['code'] !== 'color-contrast-enhanced')
                 ->count();
         }
         // Prüfen, ob ein Snapshot für heute existiert
