@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Contract extends Model
 {
     use SoftDeletes;
-
+    protected $casts = [
+        'data' => 'array', // Casts JSON to PHP array
+    ];
     protected $fillable = [
         'contractable_type',
         'contractable_id',
@@ -53,6 +55,10 @@ class Contract extends Model
     public function contractable()
     {
         return $this->morphTo();
+    }
+
+    public function company(){
+        return $this->contractable();
     }
 
     public function assignFeaturesToCompany()
