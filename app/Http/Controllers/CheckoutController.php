@@ -139,7 +139,11 @@ class CheckoutController extends MolliePaymentController
 
                 $this->prepareInvoicePurchaseByInvoice($orderedProduct, $company, $contract);
             }
+            if (auth()->check())
+            {
+                return url('dashboard/'.$company->id.'/upgrade-page');
 
+            }
             return route('view.plans') . '#step-4';
 
         }

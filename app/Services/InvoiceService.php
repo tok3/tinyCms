@@ -292,11 +292,11 @@ class InvoiceService
 
 
         // Sende die E-Mail mit dem PDF-Anhang
-        Mail::to($invoice->company->email)->send(new InvoiceMail($invoice, $pdfPath));
+        //Mail::to($invoice->company->email)->send(new InvoiceMail($invoice, $pdfPath));
 
 
         // mail mit 5 min versatz senden
-        //Mail::to($invoice->company->email)->later(now()->addMinutes(5), new InvoiceMail($invoice, $pdfPath));
+        Mail::to($invoice->company->email)->later(now()->addMinutes(5), new InvoiceMail($invoice, $pdfPath));
 
 
         return 'Rechnung wurde an '.$invoice->company->email.' versendet!';

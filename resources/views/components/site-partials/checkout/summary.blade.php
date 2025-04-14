@@ -21,7 +21,6 @@
             <div x-text="form.plz + ' ' + form.ort"></div>
             <div x-text="form.company_email"></div>
         </div>
-
         <!-- Produktinfos -->
         <div class="col-sm-6 mb-4">
             <div class="h6 mb-2">Zusammenfassung der Bestellung:</div>
@@ -37,7 +36,7 @@
                 <tr>
                     <td class="align-text-top">Preis:</td>
                     <td>
-                        <strong x-show="!product.discounted" x-text="product.price">Lädt ...</strong>
+                        <strong x-show="!product.discounted" x-text="product.price">Lädt ...</strong><small>&nbsp;(inkl. MwSt.)</small>
                         <template x-if="product.discounted">
                             <div>
                                 <strong class="text-success" x-text="product.price"></strong><br>
