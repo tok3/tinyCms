@@ -24,7 +24,7 @@ use App\Services\MessageTranslationService;
 class MolliePaymentController extends Controller
 {
 
-
+    var $contractID = null;
     public function test()
     {
 
@@ -489,6 +489,8 @@ class MolliePaymentController extends Controller
 
         $contract->save();
 
+        $this->contractID = $contract->id;
+
         \Log::info('Contract erfolgreich erstellt: ' . json_encode($contract, JSON_PRETTY_PRINT));
 
         return $contract;
@@ -649,6 +651,7 @@ class MolliePaymentController extends Controller
 
             $invoiceData = [
                 'company_id' => $customer->model_id, // Eine existierende company_id, um eine Firma zu verknüpfen
+                'contract_id' => $this->contractID, // vertrags id
                 'issue_date' => now()->format('Y-m-d'),
                 'mollie_payment_id' => $payment->payment_id,
                 'due_date' => $payment->paid_at,

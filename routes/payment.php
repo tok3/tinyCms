@@ -35,6 +35,7 @@ Route::post('/check-email', [CheckoutController::class, 'checkEmail']);
 //
 Route::get('/mollie/payment/test', [MolliePaymentController::class, 'test']);
 
+Route::get('/mollie/payment', [MolliePaymentController::class, 'handlePaymentNotification'])->name('mollie.paymentWebhook');
 Route::post('/mollie/payment', [MolliePaymentController::class, 'handlePaymentNotification'])->name('mollie.paymentWebhook');
 Route::post('/mollie/subscription', [MolliePaymentController::class, 'handleSubscriptionWebhook'])->name('mollie.subscriptionWebhook');
 
