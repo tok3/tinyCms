@@ -23,7 +23,7 @@ class PdfController extends Controller
         ];
 
         // PDF mit Blade-Template generieren
-        $pdf = Pdf::loadView('pdf.fixstern-instructions', $data);
+        $pdf = Pdf::loadView('pdf.fixstern-instructions', $data)->setPaper('a4', 'landscape');
 
         // PDF als Download zurückgeben
         return $pdf->stream("anleitung_{$company->name}.pdf");
