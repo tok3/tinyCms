@@ -10,6 +10,7 @@ use App\Services\OpenAIService;
 
 class FixsternController extends Controller
 {
+    public $aitag = '<div style="widht: 100%; text-align: right; padding-top: 20px; font-size: 0.7rem;">Dieser Text wurde mit Hilfe einer künstlichen Intelligenz (KI) erstellt</div>';
     public function eztext(Request $request){
         $ulid = $request->input('ulid');
         $lang = $request->input('lang');
@@ -31,6 +32,7 @@ class FixsternController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => $res->text,
+                'aitag' => $this->aitag,
             ], 200);
         } else {
 
@@ -49,7 +51,7 @@ class FixsternController extends Controller
             $openAIService = new OpenAIService();
             $res = $openAIService->generateText($prompt);
             $res = preg_replace('/^[\'"\`“”‘’]+|[\'"\`“”‘’]+$/u', '', $res);
-            //\Log::info("Ergebnis ".$res);
+            \Log::info("Ergebnis ".$this->aitag);
             if($res != "Bitte beachten Sie, dass ich Ihnen keine Übersetzungen in leichter Sprache anbieten kann. Gerne kann ich jedoch den Originaltext für Barrierefreiheit überprüfen und relevante Empfehlungen zur Verbesserung geben.")
             {
                 $eztext = new Eztext();
@@ -60,6 +62,7 @@ class FixsternController extends Controller
                 return response()->json([
                     'status' => 200,
                     'message' => $res,
+                    'aitag' => $this->aitag,
                 ], 200);
             } else
             {
