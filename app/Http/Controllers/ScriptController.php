@@ -45,6 +45,9 @@ class ScriptController extends Controller
         if($ulid == '01JE6A5H2NQZCT4P9N3FEZG2CX'){
             $tool = 'tts_eztext_ezspeak';
         }
+        if($ulid == '01JRT7ABK98TYXEXM62N11NHGR'){
+            $tool = 'tts_eztext_ezspeak';
+        }
 
 
 
