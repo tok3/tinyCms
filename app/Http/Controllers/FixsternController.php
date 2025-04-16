@@ -51,7 +51,7 @@ class FixsternController extends Controller
             $openAIService = new OpenAIService();
             $res = $openAIService->generateText($prompt);
             $res = preg_replace('/^[\'"\`“”‘’]+|[\'"\`“”‘’]+$/u', '', $res);
-            \Log::info("Ergebnis ".$this->aitag);
+            //\Log::info("Ergebnis ".$this->aitag);
             if($res != "Bitte beachten Sie, dass ich Ihnen keine Übersetzungen in leichter Sprache anbieten kann. Gerne kann ich jedoch den Originaltext für Barrierefreiheit überprüfen und relevante Empfehlungen zur Verbesserung geben.")
             {
                 $eztext = new Eztext();
