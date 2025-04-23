@@ -120,7 +120,7 @@ Route::get('/test-output/{ruleId}', [AccessibilityRuleScraperController::class, 
 
 use App\Http\Controllers\PublicAccessibilityCheckController;
 
-Route::get('/public-check', [PublicAccessibilityCheckController::class, 'showForm'])->name('accessibility.check.form');
+//Route::get('/public-check', [PublicAccessibilityCheckController::class, 'showForm'])->name('accessibility.check.form');
 Route::post('/public-check', [PublicAccessibilityCheckController::class, 'check'])->name('accessibility.check');
 Route::get('/public-check/progress', [PublicAccessibilityCheckController::class, 'getProgress'])->name('accessibility.check.progress');
 
