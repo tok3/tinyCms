@@ -17,6 +17,7 @@ class Kernel extends ConsoleKernel
         //$schedule->command('scan:accessibility-21')->dailyAt('23:00');
 
         $schedule->command('determine:scan')->hourly();
+        $schedule->command('app:generate-recurring-invoices')->twiceDaily(8, 20);
 
         $schedule->command('backup:clean')->daily()->at('13:00');
         $schedule->command('backup:run')->daily()->at('13:30');
