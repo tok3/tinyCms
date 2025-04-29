@@ -22,6 +22,7 @@ class GenerateRecurringInvoices extends Command
             ->whereDate('start_date', '<=', $today)
             ->whereDate('end_date', '>=', $today)
             ->whereNotIn('interval', ['one_time'])
+            ->whereNull('deleted_at') // Soft-deleted Verträge ausschließen
             ->get();
 
         foreach ($contracts as $contract) {
