@@ -124,12 +124,15 @@ class CheckoutController extends MolliePaymentController
             {
                 $coupon = Coupon::where('code', $couponCode)->first();
 
-                $additionalData['promotion'] = $coupon->promotion;
-                $additionalData['bemerkung'] = 'Product über Promocode erworben';
-                session()->forget('coupon_code');
+                if ($coupon) {
+                    $cpCtrl = new CouponController;
+                    $discountedPriceDecimal = $cpCtrl->calculateTotalPrice($coupon->promotion, $orderedProduct, false);
+                    $orderedProduct->price = round($discountedPriceDecimal * 100); // Preis im Produkt überschreiben (zentral korrekt in Cent!)
 
-                $orderedProduct->promotion = $coupon->promotion;
-
+                    $additionalData['promotion'] = $coupon->promotion;
+                    $additionalData['bemerkung'] = 'Product über Promocode erworben';
+                    session()->forget('coupon_code');
+                }
             }
 
             $contract = $this->createContract($company, $orderedProduct, false, Carbon::now(), $additionalData);

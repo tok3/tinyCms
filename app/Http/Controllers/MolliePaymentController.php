@@ -302,13 +302,21 @@ class MolliePaymentController extends Controller
 
         $duration = $product->lz ?? 24;
 
+        $taxRate = config('accounting.tax_rate', 19); // 19%
+
+        $grossPriceCents = $product->price; // z. B. 29000 Cent
+        $grossPriceEuro = $grossPriceCents / 100; // → 290.00 €
+
+        $netPriceEuro = $grossPriceEuro / (1 + ($taxRate / 100)); // → 243.697 €
+        $netPriceCents = round($netPriceEuro * 100); // → 24370
+
         // Erstelle und speichere den Vertrag
         $contract = new Contract([
             'contractable_type' => \App\Models\Company::class,
             'contractable_id' => $company->id, // Verknüpfung mit der Company
             'product_id' => $product->id,
             'interval' => $product->interval,
-            'price' => $product->price,
+            'price' => $netPriceCents,
             'subscription_id' => $subscriptionId,
             'subscription_start_date' => $startDate,
             'duration' => $duration,
