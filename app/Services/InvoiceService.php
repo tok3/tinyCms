@@ -351,7 +351,7 @@ class InvoiceService
         // Pfad zur gespeicherten PDF-Rechnung
         $pdfPath = storage_path('app/invoices/' . $invoice->invoice_number . '.pdf');
 
-echo $invoiceId; die();
+
 
 
        /* Mail::raw('Dies ist eine Testnachricht.', function ($message) use ($invoice) {
