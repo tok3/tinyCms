@@ -153,7 +153,7 @@ class MolliePaymentController extends Controller
         if (isset($metadata->company_id) && $metadata->company_id != 0)
         {
             // firma existiert bereits
-            $company = Company::where('id',$metadata->company_id)->first();
+            $company = Company::where('id', $metadata->company_id)->first();
         }
         else
         {
@@ -180,10 +180,10 @@ class MolliePaymentController extends Controller
             }
 
 
-                $intervals['daily'] = '1 day';
-                $intervals['weekly'] = '1 week';
-                $intervals['monthly'] = '1 month';
-                $intervals['annual'] = '12 months';
+            $intervals['daily'] = '1 day';
+            $intervals['weekly'] = '1 week';
+            $intervals['monthly'] = '1 month';
+            $intervals['annual'] = '12 months';
 
 
             $startDate = $this->getStartDate($product);
@@ -288,7 +288,7 @@ class MolliePaymentController extends Controller
 
         if (!is_object($subscription))
         {
-            $subscriptionId = 'NULL';
+            $subscriptionId = null;
         }
         else
         {

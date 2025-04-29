@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Shared;
 use App\Filament\Resources\InvoiceResource\Pages;
 use App\Filament\Resources\InvoiceResource\RelationManagers;
 use App\Models\Invoice;
+use App\Services\InvoiceService;
 use Carbon\Carbon;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -18,7 +19,8 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ViewField;
-
+use Filament\Forms\Components\Placeholder;
+use App\Forms\Components\InfoBox;
 class InvoiceResource extends Resource
 {
     protected static ?string $model = Invoice::class;
@@ -40,11 +42,32 @@ class InvoiceResource extends Resource
 //    {
 //        return 'Finanzen'; // Name der Gruppe, in der der Eintrag erscheint
 //    }
+
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                // ViewField am Anfang des Formulars
+                InfoBox::make()
+                    ->type('info')
+                    ->content(function ($record) {
+                        if ($record->correctionInvoice) {
+                            $url = \App\Filament\Resources\Shared\InvoiceResource::getUrl('edit', ['record' => $record->correctionInvoice->id]);
+                            return "<b>Hinweis</b><br>Zu dieser Rechnung existiert eine Korrekturrechnung: <a href=\"{$url}\" class=\"underline\">{$record->correctionInvoice->invoice_number}</a>";
+                        }
+
+                        if ($record->ref_to_id !== null && $record->originalInvoice) {
+                            $url = \App\Filament\Resources\Shared\InvoiceResource::getUrl('edit', ['record' => $record->originalInvoice->id]);
+
+
+                            return "<b>Hinweis</b><br>Dies ist eine Korrekturrechnung zur Rechnung: <a href=\"{$url}\" class=\"underline\">{$record->originalInvoice->invoice_number}</a><br>Begründung: {$record->data['correction_reason']}";
+                        }
+
+                        return null; // Keine Infobox anzeigen, wenn nichts zutrifft
+                    })
+                    ->visible(function ($record) {
+                        return $record->correctionInvoice || $record->ref_to_id !== null;
+                    }),
                 Card::make([
                     Group::make([
                         TextInput::make('invoice_number')
@@ -105,7 +128,21 @@ class InvoiceResource extends Resource
                         ->disabled(),
                     Textarea::make('data')
                         ->label('Zusätzliche Daten')
-                        ->disabled(),
+                        ->disabled()
+                        ->formatStateUsing(function ($state, $record) {
+                            $output = '';
+
+                            if (isset($record->data['items'])) {
+                                foreach ($record->data['items'] as $item) {
+                                    $output .= "- {$item['description']} ({$item['quantity']} × " .
+                                        number_format((float) $item['line_total_amount'], 2, ',', '.') . " €)\n";
+                                }
+                            }
+
+
+
+                            return $output;
+                        }),
                 ])->label('Zusätzliche Informationen'),
 
                 Card::make([
@@ -189,6 +226,11 @@ class InvoiceResource extends Resource
         return $table
             ->columns([
 
+                Tables\Columns\TextColumn::make('id')
+                    ->label('id')
+                    ->searchable()
+                    ->sortable()
+                    ->visible(fn () => auth()->user()->is_admin),
                 Tables\Columns\TextColumn::make('company.kd_nr')
                     ->label('Kd-Nr.')
                     ->searchable()
@@ -200,28 +242,64 @@ class InvoiceResource extends Resource
                 Tables\Columns\TextColumn::make('company.name')
                     ->label('Firma')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->visible(fn () => auth()->user()->is_admin),
                 Tables\Columns\TextColumn::make('company.plz')
                     ->label('Plz')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->visible(fn () => auth()->user()->is_admin),
                 Tables\Columns\TextColumn::make('company.ort')
                     ->label('Ort')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->visible(fn () => auth()->user()->is_admin),
                 Tables\Columns\TextColumn::make('total_gross')
                     ->label('Betrag')
-                    ->formatStateUsing(fn(string $state) => number_format($state, 2, ',', '.'))
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('currency')
-                    ->label('Währung')
+                    ->formatStateUsing(fn(string $state) => number_format($state, 2, ',', '.') . ' €')
+                    ->color(fn(string $state) => $state < 0 ? 'danger' : 'primary') // Hier färben wir rot, wenn negativ
+                    ->alignEnd()
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\IconColumn::make('status')
+                    ->label('Status')
+                    ->icon(fn(Invoice $record) => match (true) {
+                        // Bezahlt oder Korrekturrechnung → grüner Check
+                        $record->status === 'paid', $record->ref_to_id !== null => 'heroicon-o-check-circle',
+
+                        // Offen, Fälligkeitsdatum in der Zukunft → blaue Uhr
+                        $record->status === 'sent' && $record->due_date && now()->lessThan($record->due_date) => 'heroicon-o-clock',
+
+                        // Offen, Fälligkeitsdatum überschritten, keine Zahlung → rotes Warnsymbol
+                        $record->status === 'sent' && (
+                            !$record->payment_date || now()->greaterThan($record->due_date)
+                        ) => 'heroicon-o-exclamation-triangle',
+
+                        // Standard fallback
+                        default => 'heroicon-o-document-text',
+                    })
+                    ->color(fn(Invoice $record) => match (true) {
+                        $record->status === 'paid', $record->ref_to_id !== null => 'success',
+                        $record->status === 'sent' && $record->due_date && now()->lessThan($record->due_date) => 'info',
+                        $record->status === 'sent' && (
+                            !$record->payment_date || now()->greaterThan($record->due_date)
+                        ) => 'danger',
+                        default => 'gray',
+                    })
+                    ->tooltip(fn(Invoice $record) => match (true) {
+                        $record->ref_to_id !== null => 'Korrekturrechnung',
+                        $record->status === 'paid' => 'Bezahlt',
+                        $record->status === 'sent' && $record->due_date && now()->lessThan($record->due_date) => 'Fällig in Kürze',
+                        $record->status === 'sent' && (
+                            !$record->payment_date || now()->greaterThan($record->due_date)
+                        ) => 'Überfällig',
+                        default => 'Unbekannter Status',
+                    })
+                    ->alignCenter(),
                 Tables\Columns\TextColumn::make('due_date')
                     ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y'))
                     ->label('Fälligkeit')
@@ -243,12 +321,14 @@ class InvoiceResource extends Resource
                     ->icon('heroicon-o-document-text')
                     ->url(fn(Invoice $record) => route('invoices.pdf', $record->invoice_number))
                     ->openUrlInNewTab(), // Öffnet das PDF in einem neuen Tab
+
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->recordUrl(fn ($record) => auth()->user()->is_admin ? static::getUrl('edit', ['record' => $record]) : null);
     }
 
     public static function getRelations(): array

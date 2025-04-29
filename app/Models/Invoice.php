@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use App\Models\Contract;
 class Invoice extends Model
 {
     use HasFactory;
@@ -25,6 +26,8 @@ class Invoice extends Model
         'invoice_number',
         'company_id',
         'contract_id',
+        'ref_to_id',
+        'type',
         'mollie_payment_id', // Mollie Payment ID, wenn verwendet
         'issue_date',
         'due_date',
@@ -50,6 +53,9 @@ class Invoice extends Model
         'payment_date',
     ];
 
+    protected $casts = [
+        'data' => 'array',
+    ];
     /**
      * Standardwerte für Attribute.
      *
@@ -84,6 +90,35 @@ class Invoice extends Model
         return $this->belongsTo(Contract::class);
     }
     /**
+     * Die Rechnung, auf die sich diese Korrekturrechnung bezieht.
+     */
+    public function refTo()
+    {
+        return $this->belongsTo(self::class, 'ref_to_id');
+    }
+
+    /**
+     * Alle Korrekturrechnungen, die auf diese Original-Rechnung verweisen.
+     */
+    public function corrections()
+    {
+        return $this->hasMany(self::class, 'ref_to_id');
+    }
+    public function correctionInvoice()
+    {
+        return $this->hasOne(Invoice::class, 'ref_to_id');
+    }
+
+    public function originalInvoice()
+    {
+        return $this->belongsTo(Invoice::class, 'ref_to_id');
+    }
+
+    public function correction()
+    {
+        return $this->hasOne(Invoice::class, 'ref_to_id');
+    }
+    /**
      * Gibt den Leistungszeitraum aus.
      *
      * Falls es ein Abonnement gibt, wird der Zeitraum aus `payment_date` und `next_payment_date` berechnet.
@@ -92,17 +127,24 @@ class Invoice extends Model
     public function getLeistungszeitraumAttribute()
     {
         $lz = "";
-        if ($this->payment && $this->payment->subscription && $this->payment->subscription->next_payment_date) {
+
+        // 1. Wenn es eine Zahlung mit Abo gibt → Zeitraum aus subscription
+        if (
+            $this->payment &&
+            $this->payment->subscription &&
+            $this->payment->subscription->next_payment_date
+        ) {
             $paymentDate = $this->payment_date;
             $nextPaymentDate = $this->payment->subscription->next_payment_date;
-            $lz =  "$paymentDate bis $nextPaymentDate";
+            $lz = "$paymentDate bis $nextPaymentDate";
         }
 
-// Falls $lz leer ist, berechne den Zeitraum anhand des Vertragsintervalls:
+        // 2. Falls $lz leer ist, berechne Zeitraum anhand Vertragsintervall
         if (empty($lz)) {
-            $start = Carbon::today();
+            $start = Carbon::parse($this->issue_date ?? now());
 
-            $interval = $this->contract->interval;
+            // Schutz gegen null-Zugriff
+            $interval = $this->contract->interval ?? 'monthly';
 
             switch ($interval) {
                 case 'daily':
@@ -119,13 +161,20 @@ class Invoice extends Model
                     break;
                 default:
                     $end = $start;
-                    break;
             }
+
             $lz = $start->locale('de')->isoFormat('L') . " bis " . $end->locale('de')->isoFormat('L');
         }
 
         return $lz;
     }
+
+    // Optional: enum-like helper
+    public function isCorrection(): bool
+    {
+        return $this->type === 'KR';
+    }
+
     /**
      * Rechnung hat viele Positionen (hier als JSON im data-Feld gespeichert).
      *

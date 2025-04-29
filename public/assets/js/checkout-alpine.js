@@ -57,6 +57,7 @@ window.checkoutAlpine = function () {
             this.initStepFromHash();
             this.restoreAndValidateStateOnInit();
 
+
             const storedProductId = sessionStorage.getItem('selectedProductId');
             if (storedProductId) {
                 this.form.product_id = storedProductId;
@@ -185,13 +186,36 @@ window.checkoutAlpine = function () {
         },
         goToStep(index) {
             if (index > this.step) return;
+
+            if (index === 0) {
+                sessionStorage.removeItem('couponCode');
+
+                const couponInput = document.querySelector('input[name="coupon_code"]');
+                if (couponInput) {
+                    couponInput.remove();
+                }
+            }
+
+
             this.step = index;
             window.location.hash = '#step-' + (index + 1);
             this.watchStep();
         },
         prevStep() {
             if (this.step > 0) {
-                this.step--;
+                const newStep = this.step - 1; // Vorab berechnen!
+
+                if (newStep === 0) {
+                    sessionStorage.removeItem('couponCode');
+
+                    const couponInput = document.querySelector('input[name="coupon_code"]');
+                    if (couponInput) {
+                        couponInput.remove();
+                    }
+
+                }
+
+                this.step = newStep;
                 window.location.hash = '#step-' + (this.step + 1);
                 this.watchStep();
             }
@@ -228,6 +252,7 @@ window.checkoutAlpine = function () {
                 input.value = selectedProductId;
                 document.getElementById('checkout').appendChild(input);
             }
+            sessionStorage.removeItem("couponCode");
             document.getElementById('checkoutForm').submit();
         },
         validateAndSubmit() {

@@ -77,7 +77,7 @@ $(document).ready(function () {
                         name: 'product_id',
                         value: selectedProductId
                     }).appendTo('#checkout');
-
+                        sessionStorage.removeItem("couponCode");
                         $('#checkout').submit(); // Formular absenden
 
                     return false; // Verhindert den Wechsel zu Step 4
