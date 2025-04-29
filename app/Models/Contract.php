@@ -8,8 +8,13 @@ class Contract extends Model
 {
     use SoftDeletes;
     protected $casts = [
-        'data' => 'array', // Casts JSON to PHP array
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'order_date' => 'date',
+        'subscription_start_date' => 'date',
+        'data' => 'array',
     ];
+
     protected $fillable = [
         'contractable_type',
         'contractable_id',
@@ -27,6 +32,7 @@ class Contract extends Model
         'duration',
         'end_date',
     ];
+
 
     public static function boot()
     {

@@ -108,6 +108,13 @@ class ContractResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->query(
+                fn (): Builder => Contract::query()
+                    ->where('contractable_type', Company::class)
+                    ->with(['contractable' => function ($query) {
+                        $query->select('id', 'name', 'plz', 'ort', 'kd_nr');
+                    }])
+            )
             ->columns([
 
                 Tables\Columns\TextColumn::make('contractable_id')
@@ -115,20 +122,25 @@ class ContractResource extends Resource
                     ->sortable()
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('company_name')
-                    ->label('Company Name')
-                    ->getStateUsing(fn($record) => $record->contractable instanceof Company ? $record->contractable->name : '-')
-                    ->sortable(),
+                Tables\Columns\TextColumn::make('contractable.name')
+                    ->label('Firma')
+                    ->sortable()
+                    ->searchable(),
 
-                Tables\Columns\TextColumn::make('company_plz')
+                Tables\Columns\TextColumn::make('contractable.kd_nr')
+                    ->label('Kd-Nr.')
+                    ->sortable()
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('contractable.plz')
                     ->label('PLZ')
-                    ->getStateUsing(fn($record) => $record->contractable instanceof Company ? $record->contractable->plz : '-')
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
 
-                Tables\Columns\TextColumn::make('company_ort')
+                Tables\Columns\TextColumn::make('contractable.ort')
                     ->label('Ort')
-                    ->getStateUsing(fn($record) => $record->contractable instanceof Company ? $record->contractable->ort : '-')
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
 
 
                 Tables\Columns\TextColumn::make('product_name')
@@ -136,11 +148,10 @@ class ContractResource extends Resource
                     ->sortable()
                     ->searchable(),
 
-
-                Tables\Columns\TextColumn::make('formatted_price')
-                    ->searchable()
+                Tables\Columns\TextColumn::make('price')
                     ->label('Preis')
-                    ->formatStateUsing(fn(string $state) => $state)
+                    ->searchable()
+                    ->formatStateUsing(fn($state) => number_format($state / 100, 2, ',', '.') . ' €')
                     ->alignment(Alignment::End),
 
 

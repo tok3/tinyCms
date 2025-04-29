@@ -24,10 +24,9 @@ class InvoiceService
      */
 
     protected $invoiceId;
-
+    protected string $invoiceNumberPrefix = 'RG';
     public function createInvoice(array $data): Invoice
     {
-
         // Prüfe, ob bereits eine Rechnung für die gegebene mollie_payment_id existiert
         $existingInvoice = Invoice::where('mollie_payment_id', $data['mollie_payment_id'])->first();
 
@@ -39,13 +38,16 @@ class InvoiceService
         $invoice = new Invoice();
         $invoice->invoice_number = $this->generateInvoiceNumber();
         $invoice->company_id = $data['company_id'];
-        $invoice->mollie_payment_id = $data['mollie_payment_id'];
+        $invoice->ref_to_id = $data['ref_to_id'] ?? null;
+        $invoice->type = $this->invoiceNumberPrefix;
+        $invoice->mollie_payment_id = $data['mollie_payment_id'] ?? null;
         $invoice->contract_id = $data['contract_id'];
-        $invoice->issue_date = Carbon::now();
+
+        // Fix: Verwende das mitgegebene issue_date, wenn vorhanden
+        $invoice->issue_date = isset($data['issue_date']) ? Carbon::parse($data['issue_date']) : Carbon::now();
         $invoice->due_date = isset($data['due_date']) ? Carbon::parse($data['due_date']) : Carbon::now();
-        $invoice->payment_date = array_key_exists('payment_date', $data) && $data['payment_date'] !== null
-            ? Carbon::parse($data['payment_date'])
-            : null;
+        $invoice->payment_date = isset($data['payment_date']) ? Carbon::parse($data['payment_date']) : null;
+
         $invoice->total_net = $data['total_net'];
         $invoice->total_gross = $data['total_gross'];
         $invoice->tax_rate = $data['tax_rate'];
@@ -53,27 +55,28 @@ class InvoiceService
         $invoice->currency = $data['currency'] ?? 'EUR';
         $invoice->status = $data['status'];
 
-        // Speichere JSON-Daten für Rechnungspositionen
-        $invoice->data = json_encode($data['data']);
+        // Fix: KEIN json_encode mehr → wir haben Casts auf array im Model
+        $invoice->data = $data['data'];
 
+        // XRechnung erzeugen
         $data['xrechnung_data'] = $this->generateXRechnungData($invoice);
+        $invoice->xrechnung_data = $data['xrechnung_data'];
 
-        $invoice->xrechnung_data = $data['xrechnung_data'] ?? null;
-
-        // Speichere die Rechnung
         $invoice->save();
 
+        // PDF generieren (TMP)
         $pdfInvoicePath = $this->generatePDF($invoice->id);
 
-        // Save merged PDF (existing original and XML) to a file
+        // Merge: PDF + XML zu finalem PDF
         $existingXml = $data['xrechnung_data'];
         $existingPdf = storage_path('app/' . $pdfInvoicePath);
         $mergeToPdf = storage_path('app/' . str_replace('-tmp', '', $pdfInvoicePath));
 
-        file_exists($existingPdf);
+        (new ZugferdDocumentPdfMerger($existingXml, $existingPdf))
+            ->generateDocument()
+            ->saveDocument($mergeToPdf);
 
-        (new ZugferdDocumentPdfMerger($existingXml, $existingPdf))->generateDocument()->saveDocument($mergeToPdf);
-
+        // Temporäre Datei löschen
         unlink($existingPdf);
 
         $this->invoiceId = $invoice->id;
@@ -124,28 +127,96 @@ class InvoiceService
     }
 
     /**
+     * Rechnnung neu erzeugen wenn vom file system gelöscht
+     *
+     * @param string $invoiceNumber
+     * @return string|null
+     */
+    public function regenerateMergedPDF(string $invoiceNumber): ?string
+    {
+        $invoice = Invoice::where('invoice_number', $invoiceNumber)->first();
+
+        if (! $invoice) {
+            return null;
+        }
+
+        // PDF (TMP) neu generieren
+        $tmpPath = $this->generatePDF($invoice->id);
+
+        // Vorhandene XML-Daten abrufen
+        $xmlData = $invoice->xrechnung_data;
+        if (! $xmlData) {
+            $xmlData = $this->generateXRechnungData($invoice);
+        }
+
+        // Merge durchführen
+        $existingPdf = storage_path('app/' . $tmpPath);
+        $mergedPdf = storage_path('app/' . str_replace('-tmp', '', $tmpPath));
+
+        (new \horstoeko\zugferd\ZugferdDocumentPdfMerger($xmlData, $existingPdf))
+            ->generateDocument()
+            ->saveDocument($mergedPdf);
+
+        unlink($existingPdf);
+
+        return $mergedPdf;
+    }
+    /**
      * Generiere eine Rechnungsnummer (einfache Implementierung, anpassbar).
      *
      * @return string
      */
     public function generateInvoiceNumber(): string
     {
-        // Verwende eine Transaktion, um sicherzustellen, dass kein anderer Prozess die Nummer in der Zwischenzeit erhöht.
         return \DB::transaction(function () {
             $counter = InvoiceCounter::firstOrCreate([], ['current_value' => 0]);
-
-            // Erhöhe den aktuellen Zählerstand
-            $counter->current_value++;
-            $counter->save();
-
-            // Generiere die Rechnungsnummer (z.B. 'INV-2024-001')
+            $counter->increment('current_value');
             $year = date('y');
             $week = date('W');
-
-            $invoiceNumber = 'RG' . $week . $year . '' . str_pad($counter->current_value, 4, '0', STR_PAD_LEFT);
-
-            return $invoiceNumber;
+            $seq = str_pad($counter->current_value, 4, '0', STR_PAD_LEFT);
+            return "{$this->invoiceNumberPrefix}{$week}{$year}{$seq}";
         });
+    }
+
+    public function createCorrectionInvoice(int $originalInvoiceId, string $reason): Invoice
+    {
+        $original = Invoice::findOrFail($originalInvoiceId);
+
+        $data = [
+            'company_id'        => $original->company_id,
+            'contract_id'       => $original->contract_id,
+            'ref_to_id'         => $original->id,
+            'issue_date'        => now()->format('Y-m-d'),
+            'mollie_payment_id' => null,
+            'due_date'          => now()->format('Y-m-d'),
+            'payment_date'      => now()->format('Y-m-d'),
+            'total_net'         => -1 * $original->total_net,
+            'total_gross'       => -1 * $original->total_gross,
+            'tax_rate'          => $original->tax_rate,
+            'tax'               => -1 * $original->tax,
+            'status'            => 'sent',
+            'currency'          => $original->currency,
+            'data'              => [
+                'items' => collect($original->data['items'])
+                    ->map(function ($item) {
+                        $item['line_total_amount'] *= -1;
+                        return $item;
+                    })->values()->all(),
+                'correction_reason' => $reason,
+            ],
+        ];
+
+        $oldPrefix = $this->invoiceNumberPrefix ?? 'RG';
+        $this->invoiceNumberPrefix = 'KR';
+
+        $correction = $this->createInvoice($data);
+
+        $this->invoiceNumberPrefix = $oldPrefix;
+
+        $original->status = 'paid';
+        $original->save();
+
+        return $correction;
     }
 
     /**
@@ -165,7 +236,7 @@ class InvoiceService
         // Rechnungspositionen aktualisieren
         if (isset($data['items']))
         {
-            $invoice->data = json_encode($data['items']);
+            $invoice->data = ['items' => $data['items']];
         }
 
         // Zugferd- und XRechnung-Daten aktualisieren
@@ -196,7 +267,7 @@ class InvoiceService
 
         $filePath = storage_path("XRechnung.xml");
 
-        $data = json_decode($invoiceData['data'], true); // true sorgt dafür, dass es ein assoziatives Array wird
+        $data = $invoiceData['data'];
 
 
         $document = ZugferdDocumentBuilder::CreateNew(ZugferdProfiles::PROFILE_XRECHNUNG);

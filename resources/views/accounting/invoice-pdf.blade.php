@@ -118,6 +118,48 @@
             margin-bottom: 3px;
         }
 
+
+        h4 {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        h4 {
+            font-size: 16px;
+        }
+
+        p {
+            margin: 0 0 10px;
+        }
+
+        /*! CSS Used from: http://localhost:8002/css/styles/style.css */
+        .callout {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 3px solid #eee;
+        }
+
+        .callout h4 {
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+
+        .callout p:last-child {
+            margin-bottom: 0;
+        }
+
+        .callout-danger {
+            border-color: #e74c3c;
+            background-color: #fefaf9;
+        }
+
+        .callout-danger h4 {
+            color: #e74c3c;
+        }
+
+        .panel-body h4 {
+            font-weight: 600;
+        }
     </style>
 
 </head>
@@ -193,49 +235,6 @@
 
     @if(isset($additionalData['hint']))
 
-        <style>
-            h4 {
-                margin-top: 10px;
-                margin-bottom: 10px;
-            }
-
-            h4 {
-                font-size: 16px;
-            }
-
-            p {
-                margin: 0 0 10px;
-            }
-
-            /*! CSS Used from: http://localhost:8002/css/styles/style.css */
-            .callout {
-                margin: 10px 0;
-                padding: 10px;
-                border-left: 3px solid #eee;
-            }
-
-            .callout h4 {
-                margin-top: 0;
-                margin-bottom: 5px;
-            }
-
-            .callout p:last-child {
-                margin-bottom: 0;
-            }
-
-            .callout-danger {
-                border-color: #e74c3c;
-                background-color: #fefaf9;
-            }
-
-            .callout-danger h4 {
-                color: #e74c3c;
-            }
-
-            .panel-body h4 {
-                font-weight: 600;
-            }
-        </style>
         <div class="row m-t">
             <div class="col-md-6">
                 <div class="callout callout-danger">
@@ -248,6 +247,24 @@
 
     @endif
 
+    @if($invoice->type === 'KR' && $invoice->ref_to_id)
+
+        <div class="row m-t">
+            <div class="col-md-6">
+                <div class="callout callout-danger">
+                    <h4>Hinweis</h4>
+
+                    <p><strong>Korrekturrechnung zu Rechnung-Nr. {{ \App\Models\Invoice::find($invoice->ref_to_id)->invoice_number ?? 'unbekannt' }}
+                            vom {{ \Carbon\Carbon::parse(\App\Models\Invoice::find($invoice->ref_to_id)->issue_date)->format('d.m.Y') ?? 'unbekannt' }}</strong></p>
+                    <p>
+                        {{@$invoice->data['correction_reason']}}
+
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    @endif
     <div class="table-responsive m-t">
         <table id="leistungen" class="table table-striped leistungen">
             <thead>
@@ -258,13 +275,8 @@
             </tr>
             </thead>
             <tbody>
-            @php
-                // JSON-String in ein Array umwandeln
-               $data = json_decode($invoice['data'], true);
-            @endphp
-
-            @if(isset($data['items']))
-                @foreach(json_decode($invoice['data'], true)['items'] as $item)
+            @if(isset($invoice->data['items']))
+                @foreach($invoice->data['items'] as $item)
                     <tr>
                         <td>
                             {{ $item['description'] }}
@@ -310,7 +322,7 @@
         </table>
 
 
-        @if($invoice['mollie_payment_id'] == "")
+        @if($invoice['mollie_payment_id'] == "" && $invoice['type'] !== 'KR')
             <table style="margin-top:10em;">
 
                 <tr>

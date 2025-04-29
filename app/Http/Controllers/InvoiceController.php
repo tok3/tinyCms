@@ -48,17 +48,17 @@ class InvoiceController extends Controller
 
     public function showInvoice($invoice_number)
     {
-
-        // Lade den Pfad der PDF-Datei (z. B. aus der Datenbank oder anhand des Namensschemas)
         $pdfPath = storage_path('app/invoices/' . $invoice_number . '.pdf');
 
-        // Überprüfe, ob die Datei existiert
-        if (!file_exists($pdfPath))
-        {
-            abort(404, 'Die angeforderte Datei existiert nicht.');
+        if (!file_exists($pdfPath)) {
+            $generatedPath = app(\App\Services\InvoiceService::class)->regenerateMergedPDF($invoice_number);
+
+            if (! $generatedPath || ! file_exists($generatedPath)) {
+                abort(404, 'Die angeforderte Rechnung konnte nicht erstellt werden.');
+            }
+
+            $pdfPath = $generatedPath;
         }
-
-
 
         return response()->file($pdfPath, [
             'Content-Type' => 'application/pdf',
@@ -98,7 +98,7 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Anzeige einer einzelnen Rechnung
+     * Anzeige einer einzelnen Rechnung im Backend
      */
     public function show($id)
     {
