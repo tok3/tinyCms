@@ -52,16 +52,31 @@
                         </h3>
                     </div>
                     <div class="col-lg-3 col-md-4 col-12 text-center text-md-start">
-                        <!--Text-->
-                        <p class="h4 mb-5 mb-md-0 aos-init aos-animate" data-aos="fade-up" data-aos-delay="150">
-                            {{$product->description}}
-                        </p>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <p class="h4 mb-0">
+                                {{ $product->description }}
+                            </p>
+                            @if($product->info != "")
+                                <button
+                                    type="button"
+                                    class="btn btn-link p-0 mr-1.5"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#infoModal-{{ $product->id }}"
+                                    aria-label="Weitere Informationen"
+                                >
+                                    <i class="bi bi-info-circle h4 text-secondary"></i>
+                                </button>
+                            @endif
+                        </div>
                     </div>
+
                     <div class="col-lg-3 col-md-3 col-12 text-center text-md-end">
                         <!--Price-->
                         <p class="h4 mb-0 pe-lg-11 aos-init aos-animate" data-aos="fade-up" data-aos-delay="150">
                             {{$product->formattedPrice}} &euro;
+
                         </p>
+                            <sub class="mb-0 pe-lg-11 pb-sm-3 small" style="position:relative;top:-5px;">inkl. MwSt.</sub>
                         <p class="text-success mb-0 pe-lg-11 p-sm-3 aos-init aos-animate small">{!!  $paymentModality[$product->interval]!!}</p>
                     </div>
                     <div class="col-lg-2 col-md-12 text-center text-md-end">
@@ -88,7 +103,23 @@
                 </div> <!-- / .row -->
             </div>
         </div>
-
+        <!-- Info Modal -->
+        <div class="modal fade" id="infoModal-{{ $product->id }}" tabindex="-1" aria-labelledby="infoModalLabel-{{ $product->id }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="infoModalLabel-{{ $product->id }}">{{ $product->name }} – Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                    </div>
+                    <div class="modal-body">
+                        {!! $product->info !!}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     @endforeach
 
 

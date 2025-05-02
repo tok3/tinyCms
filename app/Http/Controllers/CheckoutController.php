@@ -179,6 +179,13 @@ class CheckoutController extends MolliePaymentController
             $metadata['coupon_code'] = $couponCode;
         }
 
+        $descriptionText = $orderedProduct->invoice_description ?: $orderedProduct->description;
+
+        $itemDescription = Str::limit(
+            $orderedProduct->name . ', ' . $descriptionText,
+            $this->descriptionLength,
+            '...'
+        );
 
         if ($orderedProduct->payment_type == 'one_time' && $orderedProduct->price <= 0)
         {
@@ -188,7 +195,7 @@ class CheckoutController extends MolliePaymentController
                     "value" => number_format($price / 100, 2, '.', '')
                 ],
                 'billingEmail' => $billingEmail,
-                'description' => Str::limit($orderedProduct->name . ', ' . $orderedProduct->description, $this->descriptionLength, '...'),
+                'description' => $itemDescription,
                 'redirectUrl' => $request->input('company_id')
                     ? url('dashboard/' . $request->input('company_id') . '/subscriptions')
                     : url('preise#step-4'),
@@ -208,7 +215,7 @@ class CheckoutController extends MolliePaymentController
                 'customerId' => $customerID,
                 'sequenceType' => 'first',
                 'billingEmail' => $billingEmail,
-                'description' => Str::limit($orderedProduct->name . ', ' . $orderedProduct->description, $this->descriptionLength, '...'),
+                'description' => $itemDescription,
                 'redirectUrl' => $request->input('company_id')
                     ? url('dashboard/' . $request->input('company_id') . '/subscriptions')
                     : url('preise#step-4'),
@@ -245,6 +252,13 @@ class CheckoutController extends MolliePaymentController
             $total_net = round($total_gross / (1 + ($tax_rate / 100)), 2); // Nettobetrag
             $tax = $total_gross - $total_net; // Steuerbetrag
 
+            $descriptionText = $orderedProduct->invoice_description ?: $orderedProduct->description;
+
+            $itemDescription = Str::limit(
+                $orderedProduct->name . ', ' . $descriptionText,
+                $this->descriptionLength,
+                '...'
+            );
 
             $invoiceData = [
                 'company_id' => $company->id, // Eine existierende company_id, um eine Firma zu verknüpfen
@@ -263,7 +277,7 @@ class CheckoutController extends MolliePaymentController
                     'items' => [
                         [
                             'id' => '1', // Positionsnummer
-                            'description' => Str::limit($orderedProduct->name . ', ' . $orderedProduct->description, $this->descriptionLength, '...'), // Beschreibung
+                            'description' => $itemDescription, // Beschreibung
                             'quantity' => 1, // Menge
                             'line_total_amount' => $total_net, // Gesamtbetrag für diese Position
                         ],

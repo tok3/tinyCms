@@ -6,7 +6,7 @@ return [
 
     // Allgemeine Abrechnungsinformationen
     'currency' => 'EUR',                     // Standardwährung für Rechnungen
-    'invoice_prefix' => 'INV-',               // Präfix für Rechnungsnummern
+    'invoice_prefix' => 'INV-',              // Präfix für Rechnungsnummern
     'tax_rate' => 19,                         // Standard-Mehrwertsteuersatz in Prozent
 
     // Firmendetails für den Verkäufer (Seller)
@@ -28,6 +28,10 @@ return [
         ],
         'contact' => [
             'email' => 'info@aktion-barrierefrei.org',
+        ],
+        'bank' => [
+            'iban' => 'DE43 7952 0070 0032 9269 83',
+            'bic' => 'HYVE DEMM 407',
         ],
         'business_process' => 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0',  // Peppol-Prozess
     ],

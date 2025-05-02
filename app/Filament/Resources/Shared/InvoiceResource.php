@@ -21,6 +21,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ViewField;
 use Filament\Forms\Components\Placeholder;
 use App\Forms\Components\InfoBox;
+
 class InvoiceResource extends Resource
 {
     protected static ?string $model = Invoice::class;
@@ -51,12 +52,15 @@ class InvoiceResource extends Resource
                 InfoBox::make()
                     ->type('info')
                     ->content(function ($record) {
-                        if ($record->correctionInvoice) {
+                        if ($record->correctionInvoice)
+                        {
                             $url = \App\Filament\Resources\Shared\InvoiceResource::getUrl('edit', ['record' => $record->correctionInvoice->id]);
+
                             return "<b>Hinweis</b><br>Zu dieser Rechnung existiert eine Korrekturrechnung: <a href=\"{$url}\" class=\"underline\">{$record->correctionInvoice->invoice_number}</a>";
                         }
 
-                        if ($record->ref_to_id !== null && $record->originalInvoice) {
+                        if ($record->ref_to_id !== null && $record->originalInvoice)
+                        {
                             $url = \App\Filament\Resources\Shared\InvoiceResource::getUrl('edit', ['record' => $record->originalInvoice->id]);
 
 
@@ -132,13 +136,14 @@ class InvoiceResource extends Resource
                         ->formatStateUsing(function ($state, $record) {
                             $output = '';
 
-                            if (isset($record->data['items'])) {
-                                foreach ($record->data['items'] as $item) {
+                            if (isset($record->data['items']))
+                            {
+                                foreach ($record->data['items'] as $item)
+                                {
                                     $output .= "- {$item['description']} ({$item['quantity']} × " .
-                                        number_format((float) $item['line_total_amount'], 2, ',', '.') . " €)\n";
+                                        number_format((float)$item['line_total_amount'], 2, ',', '.') . " €)\n";
                                 }
                             }
-
 
 
                             return $output;
@@ -224,13 +229,14 @@ class InvoiceResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('id', 'desc')
             ->columns([
 
                 Tables\Columns\TextColumn::make('id')
                     ->label('id')
                     ->searchable()
                     ->sortable()
-                    ->visible(fn () => auth()->user()->is_admin),
+                    ->visible(fn() => auth()->user()->is_admin),
                 Tables\Columns\TextColumn::make('company.kd_nr')
                     ->label('Kd-Nr.')
                     ->searchable()
@@ -243,17 +249,17 @@ class InvoiceResource extends Resource
                     ->label('Firma')
                     ->searchable()
                     ->sortable()
-                    ->visible(fn () => auth()->user()->is_admin),
+                    ->visible(fn() => auth()->user()->is_admin),
                 Tables\Columns\TextColumn::make('company.plz')
                     ->label('Plz')
                     ->searchable()
                     ->sortable()
-                    ->visible(fn () => auth()->user()->is_admin),
+                    ->visible(fn() => auth()->user()->is_admin),
                 Tables\Columns\TextColumn::make('company.ort')
                     ->label('Ort')
                     ->searchable()
                     ->sortable()
-                    ->visible(fn () => auth()->user()->is_admin),
+                    ->visible(fn() => auth()->user()->is_admin),
                 Tables\Columns\TextColumn::make('total_gross')
                     ->label('Betrag')
                     ->formatStateUsing(fn(string $state) => number_format($state, 2, ',', '.') . ' €')
@@ -267,7 +273,9 @@ class InvoiceResource extends Resource
                     ->sortable(),
                 Tables\Columns\IconColumn::make('status')
                     ->label('Status')
-                    ->icon(fn(Invoice $record) => match (true) {
+                    ->icon(fn(Invoice $record) => match (true)
+                    {
+
                         // Bezahlt oder Korrekturrechnung → grüner Check
                         $record->status === 'paid', $record->ref_to_id !== null => 'heroicon-o-check-circle',
 
@@ -279,10 +287,12 @@ class InvoiceResource extends Resource
                             !$record->payment_date || now()->greaterThan($record->due_date)
                         ) => 'heroicon-o-exclamation-triangle',
 
+
                         // Standard fallback
                         default => 'heroicon-o-document-text',
                     })
-                    ->color(fn(Invoice $record) => match (true) {
+                    ->color(fn(Invoice $record) => match (true)
+                    {
                         $record->status === 'paid', $record->ref_to_id !== null => 'success',
                         $record->status === 'sent' && $record->due_date && now()->lessThan($record->due_date) => 'info',
                         $record->status === 'sent' && (
@@ -290,7 +300,8 @@ class InvoiceResource extends Resource
                         ) => 'danger',
                         default => 'gray',
                     })
-                    ->tooltip(fn(Invoice $record) => match (true) {
+                    ->tooltip(fn(Invoice $record) => match (true)
+                    {
                         $record->ref_to_id !== null => 'Korrekturrechnung',
                         $record->status === 'paid' => 'Bezahlt',
                         $record->status === 'sent' && $record->due_date && now()->lessThan($record->due_date) => 'Fällig in Kürze',
@@ -312,23 +323,23 @@ class InvoiceResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-                //
-            ])
-            ->actions([
-                Tables\Actions\EditAction::make() ->visible(fn () => auth()->user()->is_admin == 1),
-                Action::make('Ansehen')
-                    ->label('PDF anzeigen')
-                    ->icon('heroicon-o-document-text')
-                    ->url(fn(Invoice $record) => route('invoices.pdf', $record->invoice_number))
-                    ->openUrlInNewTab(), // Öffnet das PDF in einem neuen Tab
+        //
+    ])
+        ->actions([
+            Tables\Actions\EditAction::make()->visible(fn() => auth()->user()->is_admin == 1),
+            Action::make('Ansehen')
+                ->label('PDF anzeigen')
+                ->icon('heroicon-o-document-text')
+                ->url(fn(Invoice $record) => route('invoices.pdf', $record->invoice_number))
+                ->openUrlInNewTab(), // Öffnet das PDF in einem neuen Tab
 
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ])
-            ->recordUrl(fn ($record) => auth()->user()->is_admin ? static::getUrl('edit', ['record' => $record]) : null);
+        ])
+        ->bulkActions([
+            Tables\Actions\BulkActionGroup::make([
+                Tables\Actions\DeleteBulkAction::make(),
+            ]),
+        ])
+        ->recordUrl(fn($record) => auth()->user()->is_admin ? static::getUrl('edit', ['record' => $record]) : null);
     }
 
     public static function getRelations(): array

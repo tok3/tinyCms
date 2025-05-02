@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Contract extends Model
 {
     use SoftDeletes;
+
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',

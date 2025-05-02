@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\MultiSelect;
@@ -45,7 +46,23 @@ class ProductResource extends Resource
                 Forms\Components\Section::make()
                     ->schema([
                         Textarea::make('description')
-                            ->label('Beschreibung')
+                            ->label('Beschreibung Kurz')
+                            ->nullable(),
+                    ])
+                    ->columns(2),
+                Forms\Components\Section::make()
+                    ->schema([
+                        RichEditor::make('info')
+                            ->label('Info/Eigenschaften')
+                            ->maxLength(500),
+                    ])
+                    ->columns(2),
+
+                // ROW 2: Beschreibung
+                Forms\Components\Section::make()
+                    ->schema([
+                        TextInput::make('invoice_description')
+                            ->label('Beschreibung für Rechnungsposition')
                             ->nullable(),
                     ])
                     ->columns(2),

@@ -11,6 +11,7 @@ use horstoeko\zugferd\ZugferdDocumentBuilder;
 use horstoeko\zugferd\ZugferdProfiles;
 use horstoeko\zugferd\ZugferdDocumentPdfBuilder;
 use horstoeko\zugferd\ZugferdDocumentPdfMerger;
+
 use TCPDF;
 use App\Mail\InvoiceMail;
 use Illuminate\Support\Facades\Mail;
@@ -256,27 +257,20 @@ class InvoiceService
      */
     private function generateXRechnungData(object $invoiceData): string
     {
-        // Aufruf der Funktion und Speicherort angeben
         $companyDetails = config('accounting.company_details');
-
-
-        $company = Company::where('id', $invoiceData['company_id'])->first();
-
-        // Erstelle ein DateTime-Objekt für das Dokumentdatum
-        $issueDate = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $invoiceData['issue_date'])->toDateTime();
-
-        $filePath = storage_path("XRechnung.xml");
-
+        $company = Company::find($invoiceData['company_id']);
+        $issueDate = Carbon::parse($invoiceData['issue_date'])->toDateTime();
         $data = $invoiceData['data'];
+        $iban = config('accounting.company_details.bank.iban');
+        $bic = config('accounting.company_details.bank.bic');
 
+        // XRechnungs-Typ: 380 = Rechnung, 381 = Gutschrift (Korrekturrechnung)
+        $typeCode = $invoiceData['total_gross'] < 0 ? "381" : "380";
 
         $document = ZugferdDocumentBuilder::CreateNew(ZugferdProfiles::PROFILE_XRECHNUNG);
 
-        // ----------------------------------------------------------
-        // Add invoice and position information
-
         $document
-            ->setDocumentInformation($invoiceData['invoice_number'], "380", $issueDate, config('accounting.currency'))
+            ->setDocumentInformation($invoiceData['invoice_number'], $typeCode, $issueDate, config('accounting.currency'))
             ->setDocumentBusinessProcess($companyDetails['business_process'])
             ->setDocumentSupplyChainEvent(new \DateTime())
             ->setDocumentSeller($companyDetails['name'])
@@ -294,29 +288,61 @@ class InvoiceService
             ->setDocumentSellerCommunication('EM', $companyDetails['contact']['email'])
             ->setDocumentBuyer(trim($company->name . ' ' . $company->name2), $company->id)
             ->setDocumentBuyerAddress($company->str, "", "", $company->plz, $company->ort, "DE")
-            ->setDocumentBuyerCommunication('EM', $company->email)
-            ->addDocumentPaymentMean("59", "Mollie Payment ID: " . $invoiceData['mollie_payment_id']);
+            ->setDocumentBuyerCommunication('EM', $company->email);
 
 
-        foreach ($data['items'] as $item)
-        {
+        if (!empty($invoiceData['mollie_payment_id'])) {
+            $document->addDocumentPaymentMean("59", "Mollie Payment ID: " . $invoiceData['mollie_payment_id']);
+        } else {
+            $iban = config('accounting.company_details.bank.iban');
+            $bic = config('accounting.company_details.bank.bic');
 
+            $document->addDocumentPaymentMean("31", "Zahlung per Überweisung an IBAN $iban, BIC $bic");
+        }
+
+        // Referenz auf Ursprungsrechnung (bei Korrekturrechnung)
+        if ($typeCode === "381" && isset($invoiceData['ref_to_id'])) {
+            $original = Invoice::find($invoiceData['ref_to_id']);
+            if ($original) {
+                $document->addDocumentNote("Referenz auf Ursprungsrechnung: " . $original->invoice_number);
+                $document->addDocumentNote("Dies ist eine Korrekturrechnung – keine Zahlung erforderlich.");
+            }
+        }
+
+        // Positionen
+        foreach ($data['items'] as $item) {
             $document->addNewPosition($item['id'])
-                ->setDocumentPositionProductDetails($item['description'], "", "", null, "0160", null)
+                ->setDocumentPositionProductDetails(
+                    $item['description'],
+                    ($typeCode === "381" ? "Korrekturposition" : ""),
+                    "",
+                    null,
+                    "0160",
+                    null
+                )
                 ->setDocumentPositionNetPrice($item['line_total_amount'])
                 ->setDocumentPositionQuantity($item['quantity'], "H87")
                 ->addDocumentPositionTax('S', 'VAT', $invoiceData['tax_rate'])
                 ->setDocumentPositionLineSummation($item['line_total_amount']);
-
         }
+
+        // Summen
         $document
             ->addDocumentTax("S", "VAT", $invoiceData['total_net'], $invoiceData['tax'], $invoiceData['tax_rate'])
-            ->setDocumentSummation($invoiceData['total_gross'], $invoiceData['total_gross'], $invoiceData['total_net'], 0.0, 0.0, $invoiceData['total_net'], $invoiceData['tax'], null, 0.0)
+            ->setDocumentSummation(
+                $invoiceData['total_gross'],
+                $invoiceData['total_gross'],
+                $invoiceData['total_net'],
+                0.0,
+                0.0,
+                $invoiceData['total_net'],
+                $invoiceData['tax'],
+                null,
+                0.0
+            )
             ->addDocumentPaymentTerm("", null, null);
 
         return $document;
-
-
     }
 
     /**

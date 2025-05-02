@@ -345,7 +345,7 @@
                     </td>
                     <td>
                         <img id="bezahlcode"
-                             src="https://dev.matthiasschaffer.com/bezahlcode/api.php?iban={!! urlencode('DE43 7952 0070 0032 9269 83') !!}&bic={!! urlencode('HYVE DEMM 407') !!}&name={!! urlencode('camindu GmbH') !!}&usage={!! urlencode($invoice['invoice_number'].'X'.$invoice['company']['kd_nr']) !!}&amount={!! urlencode(number_format((float) $invoice['total_gross'], 2, ',', '.')) !!}"
+                             src="https://dev.matthiasschaffer.com/bezahlcode/api.php?iban={!! urlencode(config('accounting.company_details.iban')) !!}&bic={!! urlencode(config('accounting.company_details.bic')) !!}&name={!! urlencode('camindu GmbH') !!}&usage={!! urlencode($invoice['invoice_number'].'X'.$invoice['company']['kd_nr']) !!}&amount={!! urlencode(number_format((float) $invoice['total_gross'], 2, ',', '.')) !!}"
                              alt="bezahlcode">
 
                     </td>
