@@ -52,7 +52,7 @@ class ScriptController extends Controller
             $tool = 'tts_eztext_ezspeak';
         }
         if($ulid == '01JSPJB7M8358WNYBYKEF8E4B3' || $ulid == '01JSNNXB5HEDE3D26N51PQQ11A'){
-            $tool = 'complete_standard';
+            $tool = 'pyr';
         }
 
 
