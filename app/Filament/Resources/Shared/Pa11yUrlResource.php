@@ -150,8 +150,8 @@ class Pa11yUrlResource extends Resource
 
 
             ])
-
-            ->headerActions([
+            ->headerActions(
+                auth()->user()->is_admin ? [] : [
                 Action::make('exportAllStatsCsv')
                     ->label('Overall Stats')
                     ->url(fn () => route('all_stats_export.csv', ['id' => Filament::getTenant()->id]))
@@ -160,7 +160,8 @@ class Pa11yUrlResource extends Resource
                     ->label('Overall Issues')
                     ->url(fn () => route('all_issues_export.csv', ['id' => Filament::getTenant()->id]))
                     ->icon('heroicon-o-arrow-down-tray'),
-            ])
+                ]
+            )
             ->actions([
                 Tables\Actions\Action::make('rescan21')
                     ->label('Rescan (2.1)')
