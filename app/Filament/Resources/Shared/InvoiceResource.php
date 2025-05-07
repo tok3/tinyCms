@@ -169,7 +169,7 @@ class InvoiceResource extends Resource
                 Card::make([
                     Group::make([
                         DatePicker::make('payment_date')
-                            ->label('Fälligkeitsdatum')
+                            ->label('Zahlungseingang')
                             ->reactive() // macht das Feld „Livewire-reaktiv“
                             ->afterStateUpdated(function (string $state, callable $set) {
                                 // $state ist der neue Carbon-/Date-String
@@ -188,9 +188,10 @@ class InvoiceResource extends Resource
                         Select::make('status')
                             ->label('Status')
                             ->options([
-                                'pending' => 'Ausstehend',
-                                'expired' => 'Abgelaufen',
-                                'done'    => 'Erledigt',
+                                'draft' => 'Entwurf',
+                                'sent' => 'Gesendet',
+                                'paid' => 'Bezahlt',
+                                'canceled' => 'Storniert',
                             ])
                             // optional: damit Live-Updates direkt im UI zu sehen sind
                             ->reactive(),
