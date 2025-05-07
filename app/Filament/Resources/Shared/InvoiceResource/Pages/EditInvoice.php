@@ -30,10 +30,6 @@ class EditInvoice extends EditRecord
     {
         $record = $this->record;
 
-        // Button anzeigen nur wenn:
-        // - Rechnung nicht storniert
-        // - keine ref_to_id → also keine Korrekturrechnung
-        // - keine bestehende Korrekturrechnung (one-to-one reverse)
         if (
             $record->status === 'canceled' ||
             $record->ref_to_id !== null ||
@@ -43,28 +39,31 @@ class EditInvoice extends EditRecord
         }
 
         return [
-            Action::make('createCorrection')
+            Actions\Action::make('createCorrection')
                 ->label('Korrekturrechnung erstellen')
                 ->icon('heroicon-o-arrow-uturn-left')
+                ->modalHeading('Korrekturrechnung erstellen')
                 ->form([
                     Textarea::make('correction_reason')
                         ->label('Begründung für Korrekturrechnung')
-                        ->required()
-                        ->rows(4),
+                        ->rows(4)
+                        ->required(),
                 ])
                 ->action(function (array $data) {
                     $invoiceService = new \App\Services\InvoiceService();
-                    $invoiceService->createCorrectionInvoice($this->record->id, $data['correction_reason']);
-                    $invoiceService->sendInvoiceEmail();
+                    $newInvoice = $invoiceService->createCorrectionInvoice(
+                        $this->record->id,
+                        $data['correction_reason']
+                    );
+
+                    $invoiceService->sendInvoiceEmail($newInvoice->id);
+
                     \Filament\Notifications\Notification::make()
-                        ->title('Korrekturrechnung wurde erstellt')
+                        ->title('Korrekturrechnung wurde erstellt und versendet')
                         ->success()
                         ->send();
 
-                    // Nach Erstellung zur Korrekturrechnung weiterleiten
-                    $latest = \App\Models\Invoice::latest('id')->first();
-
-                    return redirect(InvoiceResource::getUrl('edit', ['record' => $latest->id]));
+                    return redirect(InvoiceResource::getUrl('edit', ['record' => $newInvoice->id]));
                 }),
         ];
     }
