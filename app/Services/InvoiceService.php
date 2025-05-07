@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Invoice;
 use App\Models\Company;
+use App\Models\InvoicesSent;
+
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use App\Models\InvoiceCounter;
@@ -25,15 +27,17 @@ class InvoiceService
      */
 
     protected $invoiceId;
-    protected string $invoiceNumberPrefix = 'RG';
+    public string $invoiceNumberPrefix = 'RG';
     public function createInvoice(array $data): Invoice
     {
-        // Prüfe, ob bereits eine Rechnung für die gegebene mollie_payment_id existiert
-        $existingInvoice = Invoice::where('mollie_payment_id', $data['mollie_payment_id'])->first();
+        $existingInvoice = null;
 
-        // Falls bereits eine Rechnung existiert, gib sie zurück und überspringe die Erstellung
-        if (($data['mollie_payment_id'] !== null) && $existingInvoice) {
-            return $existingInvoice;
+        if (array_key_exists('mollie_payment_id', $data) && $data['mollie_payment_id'] !== null) {
+            $existingInvoice = Invoice::where('mollie_payment_id', $data['mollie_payment_id'])->first();
+
+            if ($existingInvoice) {
+                return $existingInvoice;
+            }
         }
 
         $invoice = new Invoice();
@@ -42,7 +46,7 @@ class InvoiceService
         $invoice->ref_to_id = $data['ref_to_id'] ?? null;
         $invoice->type = $this->invoiceNumberPrefix;
         $invoice->mollie_payment_id = $data['mollie_payment_id'] ?? null;
-        $invoice->contract_id = $data['contract_id'];
+        $invoice->contract_id = $data['contract_id'] ?? null;
 
         // Fix: Verwende das mitgegebene issue_date, wenn vorhanden
         $invoice->issue_date = isset($data['issue_date']) ? Carbon::parse($data['issue_date']) : Carbon::now();
@@ -167,15 +171,17 @@ class InvoiceService
      *
      * @return string
      */
-    public function generateInvoiceNumber(): string
+    public function generateInvoiceNumber(string $prefix = null): string
     {
-        return \DB::transaction(function () {
+        $prefix ??= $this->invoiceNumberPrefix;
+
+        return \DB::transaction(function () use ($prefix) {
             $counter = InvoiceCounter::firstOrCreate([], ['current_value' => 0]);
             $counter->increment('current_value');
             $year = date('y');
             $week = date('W');
             $seq = str_pad($counter->current_value, 4, '0', STR_PAD_LEFT);
-            return "{$this->invoiceNumberPrefix}{$week}{$year}{$seq}";
+            return "{$prefix}{$week}{$year}{$seq}";
         });
     }
 
@@ -310,14 +316,14 @@ class InvoiceService
         }
 
         // Positionen
-        foreach ($data['items'] as $item) {
-            $document->addNewPosition($item['id'])
+        foreach ($data['items'] as $index => $item) {
+            $document->addNewPosition($index + 1)
                 ->setDocumentPositionProductDetails(
                     $item['description'],
-                    ($typeCode === "381" ? "Korrekturposition" : ""),
-                    "",
+                    $typeCode === "381" ? "Korrekturposition" : "",
+                    "", // keine weitere Beschreibung
                     null,
-                    "0160",
+                    "0160", // Produktklassifizierungscode
                     null
                 )
                 ->setDocumentPositionNetPrice($item['line_total_amount'])
@@ -360,24 +366,22 @@ class InvoiceService
     }
 
 
-    public function sendInvoiceEmail($invoiceId = false)
+    public function sendInvoiceEmail($invoiceId = false, ?string $customReceiver = null)
     {
-        if ($invoiceId == false && $this->invoiceId > 0)
-        {
+        if ($invoiceId == false && $this->invoiceId > 0) {
             $invoiceId = $this->invoiceId;
         }
-        if ($invoiceId == false && empty($this->invoiceId))
-        {
+        if ($invoiceId == false && empty($this->invoiceId)) {
             return false;
         }
+
         // Beispiel-Invoice-Daten
         $invoice = Invoice::where('id', $invoiceId)->first();
+        $receiver = $customReceiver ?? $invoice->company->email;
 
         storage_path('app/invoices/');
         // Pfad zur gespeicherten PDF-Rechnung
         $pdfPath = storage_path('app/invoices/' . $invoice->invoice_number . '.pdf');
-
-
 
 
        /* Mail::raw('Dies ist eine Testnachricht.', function ($message) use ($invoice) {
@@ -388,15 +392,41 @@ class InvoiceService
        // echo (new \App\Mail\InvoiceMail($invoice, $pdfPath))->render();
 
 
-        // Sende die E-Mail mit dem PDF-Anhang
-        Mail::to($invoice->company->email)->send(new InvoiceMail($invoice, $pdfPath));
+        try {
+
+            // Sende die E-Mail mit dem PDF-Anhang
+            Mail::to($receiver)->send(new InvoiceMail($invoice, $pdfPath));
 
 
-        // mail mit 5 min versatz senden
-        //Mail::to($invoice->company->email)->later(now()->addMinutes(5), new InvoiceMail($invoice, $pdfPath));
+            // mail mit 5 min versatz senden
+            //Mail::to($receiver)->later(now()->addMinutes(5), new InvoiceMail($invoice, $pdfPath));
 
+            // Logge Erfolg
+            InvoicesSent::create([
+                'invoice_id' => $invoice->id,
+                'company_id' => $invoice->company_id,
+                'invoice_number' => $invoice->invoice_number,
+                'receiver' => $invoice->company->email,
+                'status' => 'ok',
+            ]);
 
-        return 'Rechnung wurde an '.$invoice->company->email.' versendet!';
+            return 'Rechnung wurde an '.$invoice->company->email.' versendet!';
+
+        } catch (\Throwable $e) {
+            // Logge Fehlerfall
+            InvoicesSent::create([
+                'invoice_id' => $invoice->id,
+                'company_id' => $invoice->company_id,
+                'invoice_number' => $invoice->invoice_number,
+                'receiver' => $invoice->company->email,
+                'status' => 'failed',
+            ]);
+
+            report($e);
+
+            return 'Fehler beim Versand der Rechnung: ' . $e->getMessage();
+        }
+
     }
 
 

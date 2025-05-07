@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\Shared;
 
-use App\Filament\Resources\InvoiceResource\Pages;
-use App\Filament\Resources\InvoiceResource\RelationManagers;
+use App\Filament\Resources\Shared\InvoiceResource\Pages;
+use App\Filament\Resources\Shared\InvoiceResource\RelationManagers;
 use App\Models\Invoice;
 use App\Services\InvoiceService;
 use Carbon\Carbon;
@@ -44,14 +44,27 @@ class InvoiceResource extends Resource
 //        return 'Finanzen'; // Name der Gruppe, in der der Eintrag erscheint
 //    }
 
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->isAdmin() ?? false;
+    }
 
     public static function form(Form $form): Form
     {
+
+
+
+        //return $form->schema([]); // leer lassen
+
         return $form
             ->schema([
                 InfoBox::make()
                     ->type('info')
                     ->content(function ($record) {
+                        if (!$record) {
+                            return null;
+                        }
+
                         if ($record->correctionInvoice)
                         {
                             $url = \App\Filament\Resources\Shared\InvoiceResource::getUrl('edit', ['record' => $record->correctionInvoice->id]);
@@ -70,6 +83,10 @@ class InvoiceResource extends Resource
                         return null; // Keine Infobox anzeigen, wenn nichts zutrifft
                     })
                     ->visible(function ($record) {
+                        if (!$record) {
+                            return null;
+                        }
+
                         return $record->correctionInvoice || $record->ref_to_id !== null;
                     }),
                 Card::make([
@@ -161,6 +178,66 @@ class InvoiceResource extends Resource
                         ])
                         ->disabled(),
                 ])->label('Rechnungsstatus'),
+
+                InfoBox::make()
+                    ->type('primary')
+                    ->content(function ($record) {
+                        if (!$record) {
+                            return null;
+                        }
+
+                        $logs = $record->sendLogs()->orderByDesc('created_at')->get();
+
+                        if ($logs->isEmpty()) {
+                            return 'Keine Versandprotokolle vorhanden.';
+                        }
+
+                        $rows = $logs->map(function ($log) {
+                            return "<tr>
+                <td class='border px-2 py-1 text-sm'>" . $log->created_at->format('d.m.Y H:i') . "</td>
+                <td class='border px-2 py-1 text-sm'>" . e($log->receiver) . "</td>
+                <td class='border px-2 py-1 text-sm'>" . e($log->status) . "</td>
+            </tr>";
+                        })->implode('');
+
+                        return new \Illuminate\Support\HtmlString("
+            <table class='border w-full mt-2'>
+                <thead>
+                    <tr class='bg-gray-100'>
+                        <th class='border px-2 py-1 text-left'>Gesendet am</th>
+                        <th class='border px-2 py-1 text-left'>Empfänger</th>
+                        <th class='border px-2 py-1 text-left'>Status</th>
+                    </tr>
+                </thead>
+                <tbody>{$rows}</tbody>
+            </table>
+        ");
+                    })
+                    ->visible(fn($record) => $record && $record->sendLogs()->count() > 0),
+                \Filament\Forms\Components\Card::make()
+                    ->schema([
+                        \Filament\Forms\Components\Actions::make([
+                            \Filament\Forms\Components\Actions\Action::make('resend_invoice')
+                                ->label('Rechnung erneut senden')
+                                ->icon('heroicon-o-paper-airplane')
+                                ->modalHeading('Rechnung erneut senden')
+                                ->form([
+                                    TextInput::make('receiver')
+                                        ->label('Empfängeradresse')
+                                        ->email()
+                                        ->required()
+                                        ->default(fn($record) => $record?->company?->email),
+                                ])
+                                ->action(function (array $data, $record): void {
+                                    $receiver = $data['receiver'];
+                                    $invoice = $record;
+                                    $service = new InvoiceService();
+
+                                   $service->sendInvoiceEmail($invoice->id, $receiver);
+                                }),
+                        ]),
+                    ])
+                    ->visible(fn($record) => $record !== null)
             ]);
     }
 
@@ -353,9 +430,11 @@ class InvoiceResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => InvoiceResource\Pages\ListInvoices::route('/'),
-            'create' => InvoiceResource\Pages\CreateInvoice::route('/create'),
-            'edit' => InvoiceResource\Pages\EditInvoice::route('/{record}/edit'),
+            'index' => Pages\ListInvoices::route('/'),
+            'create' => Pages\CreateInvoice::route('/create'),
+            'edit' => Pages\EditInvoice::route('/{record}/edit'),
         ];
     }
+
+
 }

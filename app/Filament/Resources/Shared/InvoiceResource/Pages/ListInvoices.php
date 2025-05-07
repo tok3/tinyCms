@@ -12,13 +12,11 @@ class ListInvoices extends ListRecords
 
     protected function getHeaderActions(): array
     {
-
-
         return [
-         //   Actions\CreateAction::make(),
+            Actions\Action::make('create-manual-invoice')
+                ->label('Manuelle Rechnung erstellen')
+                ->url(InvoiceResource::getUrl('create'))
+                ->icon('heroicon-o-plus'),
         ];
     }
-
-
-
 }
