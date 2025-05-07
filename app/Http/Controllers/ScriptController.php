@@ -51,10 +51,11 @@ class ScriptController extends Controller
         if($ulid == '01JRSPY9VYFFM60FCSXX52BP8T'){
             $tool = 'tts_eztext_ezspeak';
         }
+        /*
         if($ulid == '01JSPJB7M8358WNYBYKEF8E4B3' || $ulid == '01JSNNXB5HEDE3D26N51PQQ11A'){
             $tool = 'pyr';
         }
-
+        */
 
 
         // Bestimme den Dateipfad für das gewünschte Tool
