@@ -17,7 +17,7 @@ class Subscriptions extends Page
     // Methode muss public sein
     public static function shouldRegisterNavigation(): bool
     {
-        return Auth::user() && !Auth::user()->is_admin;
+        return !Auth::user() && !Auth::user()->is_admin;
     }
 
 
