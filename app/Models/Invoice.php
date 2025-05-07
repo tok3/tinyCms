@@ -66,6 +66,15 @@ class Invoice extends Model
         'currency' => 'EUR', // Standardwährung
     ];
 
+
+    protected static function booted()
+    {
+        static::saving(function ($invoice) {
+            if (!empty($invoice->payment_date)) {
+                $invoice->status = 'paid';
+            }
+        });
+    }
     /**
      * Beziehung zur Company (Firma), die die Rechnung erhalten hat.
      *
@@ -84,6 +93,18 @@ class Invoice extends Model
         return $this->belongsTo(MolliePayment::class, 'mollie_payment_id', 'payment_id');
     }
 
+    /**
+     * @param $value
+     * @return void
+     */
+    public function setPaymentDateAttribute($value)
+    {
+        $this->attributes['payment_date'] = $value;
+
+        if ($value && $this->status !== 'paid') {
+            $this->attributes['status'] = 'paid';
+        }
+    }
     // belongs to contract
     public function contract()
     {

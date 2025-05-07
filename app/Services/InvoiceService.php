@@ -406,7 +406,7 @@ class InvoiceService
                 'invoice_id' => $invoice->id,
                 'company_id' => $invoice->company_id,
                 'invoice_number' => $invoice->invoice_number,
-                'receiver' => $invoice->company->email,
+                'receiver' => $receiver,
                 'status' => 'ok',
             ]);
 
@@ -418,7 +418,7 @@ class InvoiceService
                 'invoice_id' => $invoice->id,
                 'company_id' => $invoice->company_id,
                 'invoice_number' => $invoice->invoice_number,
-                'receiver' => $invoice->company->email,
+                'receiver' => $receiver,
                 'status' => 'failed',
             ]);
 

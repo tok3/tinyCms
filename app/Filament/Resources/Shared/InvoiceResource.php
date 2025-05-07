@@ -144,9 +144,7 @@ class InvoiceResource extends Resource
                 ]),
 
                 Card::make([
-                    Textarea::make('payment_terms')
-                        ->label('Zahlungsbedingungen')
-                        ->disabled(),
+
                     Textarea::make('data')
                         ->label('Zusätzliche Daten')
                         ->disabled()
@@ -167,17 +165,38 @@ class InvoiceResource extends Resource
                         }),
                 ])->label('Zusätzliche Informationen'),
 
+
                 Card::make([
-                    Select::make('status')
-                        ->label('Status')
-                        ->options([
-                            'draft' => 'Entwurf',
-                            'sent' => 'Gesendet',
-                            'paid' => 'Bezahlt',
-                            'canceled' => 'Storniert',
-                        ])
-                        ->disabled(),
-                ])->label('Rechnungsstatus'),
+                    Group::make([
+                        DatePicker::make('payment_date')
+                            ->label('Fälligkeitsdatum')
+                            ->reactive() // macht das Feld „Livewire-reaktiv“
+                            ->afterStateUpdated(function (string $state, callable $set) {
+                                // $state ist der neue Carbon-/Date-String
+                                // hier entscheiden wir, welche Option ausgewählt wird
+                                $date = \Carbon\Carbon::parse($state);
+
+                                if ($date->isPast()) {
+                                    // wenn Datum in der Vergangenheit → Option "abgelaufen"
+                                    $set('status', 'done');
+                                } else {
+                                    // sonst → Option "pending"
+                                    $set('status', 'done');
+                                }
+                            }),
+
+                        Select::make('status')
+                            ->label('Status')
+                            ->options([
+                                'pending' => 'Ausstehend',
+                                'expired' => 'Abgelaufen',
+                                'done'    => 'Erledigt',
+                            ])
+                            // optional: damit Live-Updates direkt im UI zu sehen sind
+                            ->reactive(),
+                    ])->columns(3)
+                        ->label('Rechnungsinformationen'),
+                ]),
 
                 InfoBox::make()
                     ->type('primary')
@@ -216,6 +235,7 @@ class InvoiceResource extends Resource
                     ->visible(fn($record) => $record && $record->sendLogs()->count() > 0),
                 \Filament\Forms\Components\Card::make()
                     ->schema([
+
                         \Filament\Forms\Components\Actions::make([
                             \Filament\Forms\Components\Actions\Action::make('resend_invoice')
                                 ->label('Rechnung erneut senden')
