@@ -366,18 +366,18 @@ class InvoiceService
     }
 
 
-    public function sendInvoiceEmail($invoiceId = false)
+    public function sendInvoiceEmail($invoiceId = false, ?string $customReceiver = null)
     {
-        if ($invoiceId == false && $this->invoiceId > 0)
-        {
+        if ($invoiceId == false && $this->invoiceId > 0) {
             $invoiceId = $this->invoiceId;
         }
-        if ($invoiceId == false && empty($this->invoiceId))
-        {
+        if ($invoiceId == false && empty($this->invoiceId)) {
             return false;
         }
+
         // Beispiel-Invoice-Daten
         $invoice = Invoice::where('id', $invoiceId)->first();
+        $receiver = $customReceiver ?? $invoice->company->email;
 
         storage_path('app/invoices/');
         // Pfad zur gespeicherten PDF-Rechnung
@@ -395,11 +395,11 @@ class InvoiceService
         try {
 
             // Sende die E-Mail mit dem PDF-Anhang
-            Mail::to($invoice->company->email)->send(new InvoiceMail($invoice, $pdfPath));
+            Mail::to($receiver)->send(new InvoiceMail($invoice, $pdfPath));
 
 
             // mail mit 5 min versatz senden
-            //Mail::to($invoice->company->email)->later(now()->addMinutes(5), new InvoiceMail($invoice, $pdfPath));
+            //Mail::to($receiver)->later(now()->addMinutes(5), new InvoiceMail($invoice, $pdfPath));
 
             // Logge Erfolg
             InvoicesSent::create([

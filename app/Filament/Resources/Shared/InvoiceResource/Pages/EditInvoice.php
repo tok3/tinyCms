@@ -72,10 +72,10 @@ class EditInvoice extends EditRecord
         ];
     }
 
-    public function getForm(string $name): ?\Filament\Forms\Form
+  /*  public function getForm(string $name): ?\Filament\Forms\Form
     {
         return parent::getForm($name)->schema($this->getFormSchema());
-    }
+    }*/
 
     protected function getFormSchema(): array
     {
@@ -152,7 +152,7 @@ class EditInvoice extends EditRecord
                         'canceled' => 'Storniert',
                     ])
                     ->disabled(),
-            ])->label('Rechnungsstatus'),
+            ])->label('Rechnungsstatus')
         ];
     }
 }

@@ -49,8 +49,11 @@ class InvoiceResource extends Resource
         return auth()->user()?->isAdmin() ?? false;
     }
 
-    /*public static function form(Form $form): Form
+    public static function form(Form $form): Form
     {
+
+
+
         //return $form->schema([]); // leer lassen
 
         return $form
@@ -175,8 +178,68 @@ class InvoiceResource extends Resource
                         ])
                         ->disabled(),
                 ])->label('Rechnungsstatus'),
+
+                InfoBox::make()
+                    ->type('primary')
+                    ->content(function ($record) {
+                        if (!$record) {
+                            return null;
+                        }
+
+                        $logs = $record->sendLogs()->orderByDesc('created_at')->get();
+
+                        if ($logs->isEmpty()) {
+                            return 'Keine Versandprotokolle vorhanden.';
+                        }
+
+                        $rows = $logs->map(function ($log) {
+                            return "<tr>
+                <td class='border px-2 py-1 text-sm'>" . $log->created_at->format('d.m.Y H:i') . "</td>
+                <td class='border px-2 py-1 text-sm'>" . e($log->receiver) . "</td>
+                <td class='border px-2 py-1 text-sm'>" . e($log->status) . "</td>
+            </tr>";
+                        })->implode('');
+
+                        return new \Illuminate\Support\HtmlString("
+            <table class='border w-full mt-2'>
+                <thead>
+                    <tr class='bg-gray-100'>
+                        <th class='border px-2 py-1 text-left'>Gesendet am</th>
+                        <th class='border px-2 py-1 text-left'>Empfänger</th>
+                        <th class='border px-2 py-1 text-left'>Status</th>
+                    </tr>
+                </thead>
+                <tbody>{$rows}</tbody>
+            </table>
+        ");
+                    })
+                    ->visible(fn($record) => $record && $record->sendLogs()->count() > 0),
+                \Filament\Forms\Components\Card::make()
+                    ->schema([
+                        \Filament\Forms\Components\Actions::make([
+                            \Filament\Forms\Components\Actions\Action::make('resend_invoice')
+                                ->label('Rechnung erneut senden')
+                                ->icon('heroicon-o-paper-airplane')
+                                ->modalHeading('Rechnung erneut senden')
+                                ->form([
+                                    TextInput::make('receiver')
+                                        ->label('Empfängeradresse')
+                                        ->email()
+                                        ->required()
+                                        ->default(fn($record) => $record?->company?->email),
+                                ])
+                                ->action(function (array $data, $record): void {
+                                    $receiver = $data['receiver'];
+                                    $invoice = $record;
+                                    $service = new InvoiceService();
+
+                                   $service->sendInvoiceEmail($invoice->id, $receiver);
+                                }),
+                        ]),
+                    ])
+                    ->visible(fn($record) => $record !== null)
             ]);
-    }*/
+    }
 
     public static function view(View $view): View
     {
