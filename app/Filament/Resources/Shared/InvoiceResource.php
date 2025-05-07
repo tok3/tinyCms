@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\Shared;
 
-use App\Filament\Resources\InvoiceResource\Pages;
-use App\Filament\Resources\InvoiceResource\RelationManagers;
+use App\Filament\Resources\Shared\InvoiceResource\Pages;
+use App\Filament\Resources\Shared\InvoiceResource\RelationManagers;
 use App\Models\Invoice;
 use App\Services\InvoiceService;
 use Carbon\Carbon;
@@ -44,14 +44,24 @@ class InvoiceResource extends Resource
 //        return 'Finanzen'; // Name der Gruppe, in der der Eintrag erscheint
 //    }
 
-
-    public static function form(Form $form): Form
+    public static function canCreate(): bool
     {
+        return auth()->user()?->isAdmin() ?? false;
+    }
+
+    /*public static function form(Form $form): Form
+    {
+        //return $form->schema([]); // leer lassen
+
         return $form
             ->schema([
                 InfoBox::make()
                     ->type('info')
                     ->content(function ($record) {
+                        if (!$record) {
+                            return null;
+                        }
+
                         if ($record->correctionInvoice)
                         {
                             $url = \App\Filament\Resources\Shared\InvoiceResource::getUrl('edit', ['record' => $record->correctionInvoice->id]);
@@ -70,6 +80,10 @@ class InvoiceResource extends Resource
                         return null; // Keine Infobox anzeigen, wenn nichts zutrifft
                     })
                     ->visible(function ($record) {
+                        if (!$record) {
+                            return null;
+                        }
+
                         return $record->correctionInvoice || $record->ref_to_id !== null;
                     }),
                 Card::make([
@@ -162,7 +176,7 @@ class InvoiceResource extends Resource
                         ->disabled(),
                 ])->label('Rechnungsstatus'),
             ]);
-    }
+    }*/
 
     public static function view(View $view): View
     {
@@ -353,9 +367,11 @@ class InvoiceResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => InvoiceResource\Pages\ListInvoices::route('/'),
-            'create' => InvoiceResource\Pages\CreateInvoice::route('/create'),
-            'edit' => InvoiceResource\Pages\EditInvoice::route('/{record}/edit'),
+            'index' => Pages\ListInvoices::route('/'),
+            'create' => Pages\CreateInvoice::route('/create'),
+            'edit' => Pages\EditInvoice::route('/{record}/edit'),
         ];
     }
+
+
 }

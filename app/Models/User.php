@@ -108,7 +108,10 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
         return $this->companies;
     }
 
-
+    public function isAdmin(): bool
+    {
+        return (bool) $this->is_admin;
+    }
     public function getPanelUri()
     {
 

@@ -215,8 +215,11 @@ class Invoice extends Model
     public function getTotalGrossAttribute()
     {
 
-
-
         return $this->total_net + $this->tax_amount;
+    }
+
+    public function sendLogs()
+    {
+        return $this->hasMany(\App\Models\InvoicesSent::class);
     }
 }
