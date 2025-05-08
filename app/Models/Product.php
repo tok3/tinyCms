@@ -9,7 +9,7 @@ class Product extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name', 'description','info','invoice_description', 'price', 'currency', 'payment_type', 'lz', 'interval', 'active', 'visible','upgrade','trial_period_days'
+        'name', 'description','info','invoice_description', 'price', 'currency', 'payment_type', 'lz', 'interval','sequence', 'active', 'visible','upgrade','trial_period_days'
     ];
 
     public static function boot()

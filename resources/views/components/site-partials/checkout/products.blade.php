@@ -28,7 +28,10 @@
         </div>
     </div>
 
-    @foreach($products as $product)
+
+
+
+@foreach($products as $product)
         @php
             $trialHint = '';
             if($product->trial_period_days > 0)
@@ -51,15 +54,16 @@
                             {{$product->name}}
                         </h3>
                     </div>
-                    <div class="col-lg-3 col-md-4 col-12 text-center text-md-start">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <p class="h4 mb-0">
-                                {{ $product->description }}
-                            </p>
-                            @if($product->info != "")
+                    <div class="col-lg-3 col-md-4 col-12
+            d-flex align-items-center justify-content-center justify-content-md-start
+            text-center text-md-start">
+                        <p class="h6 mb-0 d-inline-flex align-items-center" style="line-height: 1.5;">
+                            {!! $product->description !!}
+                            @if($product->info)<br>
                                 <button
                                     type="button"
-                                    class="btn btn-link p-0 mr-1.5"
+                                    class="btn btn-link p-0 ms-2"
+                                    style="float: right;"
                                     data-bs-toggle="modal"
                                     data-bs-target="#infoModal-{{ $product->id }}"
                                     aria-label="Weitere Informationen"
@@ -67,7 +71,7 @@
                                     <i class="bi bi-info-circle h4 text-secondary"></i>
                                 </button>
                             @endif
-                        </div>
+                        </p>
                     </div>
 
                     <div class="col-lg-3 col-md-3 col-12 text-center text-md-end">

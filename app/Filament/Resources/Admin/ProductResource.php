@@ -33,20 +33,35 @@ class ProductResource extends Resource
         return $form
             ->schema([
                 // ROW 1: Produktname
-                Forms\Components\Section::make()
+                Forms\Components\Section::make('ROW 1: Produktname + Reihenfolge')
                     ->schema([
                         TextInput::make('name')
                             ->label('Produktname')
                             ->required()
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->columnSpan(3),  // belegt 3 von 4 Spalten
+
+                        TextInput::make('sequence')
+                            ->label('Reihenfolge')
+                            ->numeric()
+                            ->minValue(1)
+                            ->maxValue(999)
+                            ->extraInputAttributes([
+                                'style' => 'width: 4rem;',
+                                'class' => 'text-right',
+                            ])
+                            ->columnSpan(1),  // die schmale 4. Spalte
                     ])
-                    ->columns(2),
+                    ->columns(4),
 
                 // ROW 2: Beschreibung
                 Forms\Components\Section::make()
                     ->schema([
                         Textarea::make('description')
                             ->label('Beschreibung Kurz')
+                            ->extraInputAttributes([
+                                'style' => 'min-height: 5rem; max-height: 10rem; overflow-y: auto;',
+                            ])
                             ->nullable(),
                     ])
                     ->columns(2),
@@ -191,7 +206,6 @@ class ProductResource extends Resource
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('formatted_price')
-                    ->searchable()
                     ->label('Preis')
                     ->formatStateUsing(fn (string $state) => $state)
                     ->alignment(Alignment::End),

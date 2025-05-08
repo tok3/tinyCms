@@ -323,7 +323,7 @@ class CheckoutController extends MolliePaymentController
     {
 
         $products = Product::where(['active' => 1, 'visible' => 1])
-            ->orderBy('payment_type')->orderBy('id')->orderBy('sequence')->get();
+            ->orderBy('payment_type')->orderBy('sequence')->get();
 
 
         return view('checkout', ['products' => $products]);
