@@ -51,4 +51,32 @@ class FormatHelper
     {
         return number_format($amount, 2, ',', '.') . ' ' . $currency;
     }
+
+    /**
+     * Entfernt HTML-Tags und sorgt dafür, dass zwischen
+     * ehemaligen Block‐ oder Zeilenumbrüchen ein Leerzeichen bleibt.
+     *
+     * @param string $html
+     * @return string
+     */
+    public static function stripHtmlButKeepSpaces(string $html): string
+    {
+        // 1) Ersetze alle </p>, <br>, </div> … mit einem Leerzeichen
+        $html = preg_replace(
+            '#<\s*(br\s*/?|/p|/div|/h[1-6]|li|/li)[^>]*>#i',
+            ' ',
+            $html
+        );
+
+        // 2) Entferne alle übrigen Tags
+        $text = strip_tags($html);
+
+        // 3) Mehrfach‐Leeräume auf ein Leerzeichen reduzieren
+        $text = preg_replace('/\s+/u', ' ', $text);
+
+        // 4) Anfangs/Ende trimmen
+        return trim($text);
+    }
+
+
 }

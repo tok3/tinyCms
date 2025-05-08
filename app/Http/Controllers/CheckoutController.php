@@ -16,7 +16,7 @@ use Faker\Factory as Faker;
 use GuzzleHttp\Client;
 use App\Models\TemporaryUserData;
 use Illuminate\Support\Str;
-
+use App\Helpers\FormatHelper;
 /**
  *
  */
@@ -179,7 +179,7 @@ class CheckoutController extends MolliePaymentController
             $metadata['coupon_code'] = $couponCode;
         }
 
-        $descriptionText = $orderedProduct->invoice_description ?: $orderedProduct->description;
+        $descriptionText = FormatHelper::stripHtmlButKeepSpaces($orderedProduct->invoice_description ?: $orderedProduct->description);
 
         $itemDescription = Str::limit(
             $orderedProduct->name . ', ' . $descriptionText,
@@ -252,7 +252,7 @@ class CheckoutController extends MolliePaymentController
             $total_net = round($total_gross / (1 + ($tax_rate / 100)), 2); // Nettobetrag
             $tax = $total_gross - $total_net; // Steuerbetrag
 
-            $descriptionText = $orderedProduct->invoice_description ?: $orderedProduct->description;
+            $descriptionText = FormatHelper::stripHtmlButKeepSpaces($orderedProduct->invoice_description ?: $orderedProduct->description);
 
             $itemDescription = Str::limit(
                 $orderedProduct->name . ', ' . $descriptionText,
