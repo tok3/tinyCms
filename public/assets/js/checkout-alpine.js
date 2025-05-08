@@ -72,27 +72,45 @@ window.checkoutAlpine = function () {
             fetch(`/get-product-details?product_id=${productId}&coupon_code=${coupon}`)
                 .then(res => res.json())
                 .then(data => {
-                    this.product.name = data.name;
+                    this.product.name        = data.name;
                     this.product.description = data.description;
-                    this.product.price = data.formattedPrice + ' €';
+                    this.product.price       = data.formattedPrice + ' €';
 
-                    const modalityTexts = {
-                        weekly: 'pro Woche</br>bei Monatlicher Zahlung',
-                        daily: 'pro Tag</br>bei Monatlicher Zahlung',
-                        annual: 'pro Jahr</br>bei jährlicher Zahlung',
-                        monthly: 'pro Monat</br>bei Monatlicher Zahlung',
-                        one_time: ''
+                    // 1) Default-Laufzeit (falls null/undefined → 24)
+                    const laufzeit     = (data.laufzeit ?? 24);
+                    const laufzeitText = `Laufzeit ${laufzeit} Monate`;
+
+                    // 2) Basis-Modality-Texte
+                    const modalityBaseTexts = {
+                        weekly:    'pro Woche</br>bei Monatlicher Zahlung',
+                        daily:     'pro Tag</br>bei Monatlicher Zahlung',
+                        annual:    'pro Jahr</br>bei jährlicher Zahlung',
+                        monthly:   'pro Monat</br>bei Monatlicher Zahlung',
+                        one_time:  ''
                     };
 
+                    // 3) An jeden Text (außer one_time) Laufzeit-Suffix anhängen
+                    const modalityTexts = Object.fromEntries(
+                        Object.entries(modalityBaseTexts).map(([key, txt]) => {
+                            if (key === 'one_time') {
+                                return [key, txt];
+                            }
+                            return [key, `${txt}</br>${laufzeitText}`];
+                        })
+                    );
+
+                    // 4) Ergebnis setzen (oder leer, falls Interval unbekannt)
                     this.product.modality = modalityTexts[data.interval] || '';
 
+                    // Rabatt anzeigen, falls vorhanden
                     if (data.has_discount && data.discountedPrice) {
-                        this.product.price = `${data.discountedPrice} € (statt ${data.formattedPrice} €)`;
+                        this.product.price     = `${data.discountedPrice} € (statt ${data.formattedPrice} €)`;
                         this.product.discounted = true;
                     } else {
                         this.product.discounted = false;
                     }
 
+                    // Trial-Period
                     if (data.trial_period_days && data.trial_period_days > 0) {
                         this.product.trial_days = data.trial_period_days;
                         this.product.trial_ends = this.addDaysToDate(data.trial_period_days);

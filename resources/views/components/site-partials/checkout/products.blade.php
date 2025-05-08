@@ -75,16 +75,18 @@
                     </div>
 
                     <div class="col-lg-3 col-md-3 col-12 text-center text-md-end">
+
                         <!--Price-->
-                        <p class="h4 mb-0 pe-lg-11 aos-init aos-animate" data-aos="fade-up" data-aos-delay="150">
+                        <p class="h4 mb-0  aos-init aos-animate" data-aos="fade-up" data-aos-delay="150">
                             {{$product->formattedPrice}} &euro;
 
                         </p>
-                            <sub class="mb-0 pe-lg-11 pb-sm-3 small" style="position:relative;top:-5px;">inkl. MwSt.</sub>
-                        <p class="text-success mb-0 pe-lg-11 p-sm-3 aos-init aos-animate small">{!!  $paymentModality[$product->interval]!!}</p>
+                            <sub class="mb-0 pb-sm-3 small" style="position:relative;top:-5px;">inkl. MwSt.</sub>
+                        <p class="text-success mb-0  aos-init aos-animate small" style="position:relative;top:-5px;">{!!  $paymentModality[$product->interval]!!}</p>
+                        <sup class="mb-0 aos-init aos-animate small" style="position:relative;top:-5px;">{!! $product->lz ?? 24 !!} Monate Laufzeit</sup>
                     </div>
                     <div class="col-lg-2 col-md-12 text-center text-md-end">
-                        <p class="h4 mb-0 pe-lg-11 aos-init aos-animate" data-aos="fade-up" data-aos-delay="150">
+                        <p class="h4 mb-0 aos-init aos-animate" data-aos="fade-up" data-aos-delay="150">
                             <!--Action-->
                         <div data-aos="fade-left" data-aos-delay="200" class="aos-init aos-animate small">
                             {{$trialHint}}

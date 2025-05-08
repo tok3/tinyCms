@@ -373,7 +373,8 @@ class CheckoutController extends MolliePaymentController
             'description' => $product->description,
             'formattedPrice' => number_format($product->price / 100, 2, ',', '.'), // Preis in € formatieren
             'interval' => $product->interval,
-            'trial_period_days' => $product->trial_period_days
+            'trial_period_days' => $product->trial_period_days,
+            'laufzeit' => $product->lz
         ];
 
         if ($couponCode)
