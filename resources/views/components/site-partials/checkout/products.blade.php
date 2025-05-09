@@ -50,14 +50,15 @@
                     <div class="col-lg-3 col-md-4 col-12 text-center text-md-start">
                         <!--Heading-->
                         <h6>Kombi-Paket</h6>
-                        <h3 class="mt-2 display-5 aos-init aos-animate" data-aos="zoom-in-up" data-aos-delay="100"  style="white-space: nowrap;">
+                        <h3 class="mt-2 display-5 aos-init aos-animate" data-aos="zoom-in-up" data-aos-delay="100">
                             {{$product->name}}
+
                         </h3>
                     </div>
                     <div class="col-lg-3 col-md-4 col-12
             d-flex align-items-center justify-content-center justify-content-md-start
             text-center text-md-start">
-                        <p class="h6 mt-2 d-inline-flex align-items-center" style="line-height: 1.5;">
+                        <p class="h6 mt-2 d-inline-flex align-items-center" style="line-height: 1.5; white-space: nowrap !important;">
                             {!! $product->description !!}
 
                         </p>
