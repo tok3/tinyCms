@@ -16,6 +16,9 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\MultiSelect;
 use Filament\Support\Enums\Alignment;
+use Illuminate\Support\Str;
+use App\Helpers\FormatHelper;
+use Filament\Tables\Columns\TextColumn;
 
 class ProductResource extends Resource
 {
@@ -201,7 +204,12 @@ class ProductResource extends Resource
                     ->sortable()
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('description')
+                TextColumn::make('description')
+                    ->formatStateUsing(fn (?string $state) => Str::limit(
+                        FormatHelper::stripHtmlButKeepSpaces($state ?? ''),
+                        55,
+                        '...'
+                    ))
                     ->searchable()
                     ->sortable(),
 
