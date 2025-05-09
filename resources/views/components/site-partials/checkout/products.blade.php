@@ -50,6 +50,7 @@
                     </div>
                     <div class="col-lg-3 col-md-4 col-12 text-center text-md-start">
                         <!--Heading-->
+                        <h6>Bundle</h6>
                         <h3 class="mt-2 display-5 aos-init aos-animate" data-aos="zoom-in-up" data-aos-delay="100">
                             {{$product->name}}
                         </h3>
@@ -57,24 +58,26 @@
                     <div class="col-lg-3 col-md-4 col-12
             d-flex align-items-center justify-content-center justify-content-md-start
             text-center text-md-start">
-                        <p class="h6 mb-0 d-inline-flex align-items-center" style="line-height: 1.5;">
+                        <p class="h6 mt-2 d-inline-flex align-items-center" style="line-height: 1.5;">
                             {!! $product->description !!}
-                            @if($product->info)<br>
-                                <button
-                                    type="button"
-                                    class="btn btn-link p-0 ms-2"
-                                    style="float: right;"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#infoModal-{{ $product->id }}"
-                                    aria-label="Weitere Informationen"
-                                >
-                                    <i class="bi bi-info-circle h4 text-secondary"></i>
-                                </button>
-                            @endif
+
                         </p>
                     </div>
-
-                    <div class="col-lg-3 col-md-3 col-12 text-center text-md-end">
+                    <div class="col-lg-1 col-md-1 col-12">
+                        @if($product->info)<br>
+                        <button
+                            type="button"
+                            class="btn btn-link mt--20"
+                            style="float: right;"
+                            data-bs-toggle="modal"
+                            data-bs-target="#infoModal-{{ $product->id }}"
+                            aria-label="Weitere Informationen"
+                        >
+                            <i class="bi bi-info-circle h2 text-secondary"></i>
+                        </button>
+                        @endif
+                    </div>
+                    <div class="col-lg-2 col-md-2 col-12 text-center text-md-end">
 
                         <!--Price-->
                         <p class="h4 mb-0  aos-init aos-animate" data-aos="fade-up" data-aos-delay="150">
