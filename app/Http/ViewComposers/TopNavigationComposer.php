@@ -34,6 +34,7 @@ class TopNavigationComposer
                 $menu .= view('components.menu-item', [
                     'name' => $menuItem->name,
                     'slug' => $menuItem->slug,
+                    'target' => $menuItem->target,
                     'lastSegment' => $lastSegment,
                     'url' => url($menuItem->full_path),
                     'hasChildren' => false
@@ -45,6 +46,7 @@ class TopNavigationComposer
                     $children .= view('components.sub-menu-item', [
                         'name' => $child->name,
                         'slug' => $child->slug,
+                        'target' => $child->target,
                         'lastSegment' => $lastSegment,
                         'url' => url(ltrim($child->full_path, '/')),
                     'hasChildren' => $child->children
@@ -54,6 +56,7 @@ class TopNavigationComposer
                 $menu .= view('components.menu-item', [
                     'name' => $menuItem->name,
                     'slug' => $menuItem->slug,
+                    'target' => $child->target,
                     'lastSegment' => $lastSegment,
                     'url' => url(ltrim($child->full_path, '/')),
                     'hasChildren' => true,

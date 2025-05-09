@@ -1,6 +1,6 @@
 @if(count($hasChildren) == 0)
 
-<a class="dropdown-item @if( $lastSegment == last(explode('/', $url))  )active @endif" href="{{ $url }}">{!!  $name !!}</a>
+<a class="dropdown-item @if( $lastSegment == last(explode('/', $url))  )active @endif" href="{{ $url }}" target="{{$target}}">{!!  $name !!}</a>
 @else
 
     <div class="dropend">

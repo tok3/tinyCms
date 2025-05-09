@@ -32,48 +32,53 @@ class   MenuItemResource extends Resource
 
 
         return $form->schema([
-            Forms\Components\Section::make('Menu Explorer (Navbar Top')
-                ->schema([
-
-                    MenuExplorer::make($record->id ?? null),
-
-                ])->live()
-                ->extraAttributes(['class' => 'overflow-y-auto overflow-visible'])
-                ->collapsible()
-                ->collapsed(false),
             Forms\Components\Section::make('Menu Item')
                 ->schema([
-
                     Forms\Components\TextInput::make('name')
                         ->label('Name')
                         ->required(),
+
                     Forms\Components\Select::make('type')
                         ->label('Typ')
                         ->options([
                             'header' => 'Header',
                             'footer' => 'Footer',
-                            /* 'nav' => 'Navigation',*/
                         ])
                         ->default('header')
                         ->required(),
+
                     Forms\Components\TextInput::make('slug')
                         ->label('Domain/URL-Segmente')
                         ->nullable(),
+
                     Forms\Components\Select::make('parent_id')
                         ->label('Übergeordnetes Element')
-                        ->options([NULL => '< - - - - kein - - - - >'] + \App\Models\MenuItem::all()->pluck('name', 'id')->toArray())
+                        ->options([null => '<– kein –>'] + \App\Models\MenuItem::pluck('name', 'id')->toArray())
                         ->placeholder('Kein übergeordneter Menüpunkt')
                         ->searchable()
-                        ->nullable()
-                       ,
+                        ->nullable(),
+
                     Forms\Components\Select::make('page_id')
                         ->label('Seite')
-                        ->options(\App\Models\Page::all()->pluck('title', 'id'))
+                        ->options(\App\Models\Page::pluck('title', 'id'))
                         ->searchable()
-                        ->placeholder('Zielseite')
-                    ,
-                    // Weitere Felder nach Bedarf
-                ])->columns(2),
+                        ->placeholder('Zielseite'),
+
+                    // neu:
+                    Forms\Components\Select::make('target')
+                        ->label('Target')
+                        ->options([
+                            '_self'   => '_self',
+                            '_blank'  => '_blank',
+                            '_parent' => '_parent',
+                            '_top'    => '_top',
+                        ])
+                        ->default('_self')
+                        ->required(),
+
+                    // … ggf. weitere Felder …
+                ])
+                ->columns(2),
         ]);
     }
 
