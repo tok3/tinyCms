@@ -50,7 +50,7 @@
                     </div>
                     <div class="col-lg-3 col-md-4 col-12 text-center text-md-start">
                         <!--Heading-->
-                        <h6>Bundle</h6>
+                        <h6>Kombi-Paket</h6>
                         <h3 class="mt-2 display-5 aos-init aos-animate" data-aos="zoom-in-up" data-aos-delay="100">
                             {{$product->name}}
                         </h3>
