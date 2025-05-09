@@ -29,7 +29,14 @@
     </div>
 
 
-
+<style>
+    /* Verhindert automatische Silbentrennung */
+    .no-hyphens {
+        -webkit-hyphens: none;   /* Chrome, Safari, iOS */
+        -ms-hyphens: none;       /* alte IE */
+        hyphens: none;           /* Standard */
+    }
+</style>
 
 @foreach($products as $product)
         @php
@@ -58,7 +65,7 @@
                     <div class="col-lg-3 col-md-4 col-12
             d-flex align-items-center justify-content-center justify-content-md-start
             text-center text-md-start">
-                        <p class="h6 mt-2 d-inline-flex align-items-center" style="line-height: 1.5; white-space: nowrap !important;">
+                        <p class="h6 mt-2 d-inline-flex align-items-center no-hyphens" style="line-height: 1.5;">
                             {!! $product->description !!}
 
                         </p>
