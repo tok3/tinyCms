@@ -212,7 +212,6 @@ class ProductResource extends Resource
                     ))
                     ->searchable()
                     ->sortable(),
-
                 Tables\Columns\TextColumn::make('formatted_price')
                     ->label('Preis')
                     ->formatStateUsing(fn (string $state) => $state)
