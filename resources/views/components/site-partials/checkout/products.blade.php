@@ -39,7 +39,6 @@
             $trialHint = $product->trial_period_days . ' Tage kostenlos Testen';
 
                 }
-
         @endphp
         <div class="container py-3 py-lg-3 plan" data-plan="{{$product->interval}}">
             <div class="bg-body overflow-hidden shadow-lg px-4 py-2 px-lg-5">
