@@ -69,6 +69,19 @@ class Company extends Model
         }
     }
 
+    protected static function booted()
+    {
+        static::created(function (Company $company) {
+            $company->settings()->create([
+                'contrast_errors'   => 0,
+                'default_standard'  => '2.1',
+                'full_scan_interval'=> 'weekly',
+                'max_urls'          => 10,
+                'auto_add_urls'     => 1,
+                'widget_features'   => 'standard',
+            ]);
+        });
+    }
 
     // Polymorphe Beziehung zu Contracts
     public function contracts()
