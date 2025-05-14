@@ -14,6 +14,7 @@ class CompanyFeature extends Pivot
     protected $fillable = [
         'company_id',
         'feature_id',
+        'contract_id',
         'value',
     ];
 

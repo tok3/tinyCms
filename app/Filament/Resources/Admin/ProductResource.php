@@ -72,7 +72,7 @@ class ProductResource extends Resource
                     ->schema([
                         RichEditor::make('info')
                             ->label('Info/Eigenschaften')
-                            ->maxLength(500),
+                            ->maxLength(1000),
                     ])
                     ->columns(2),
 

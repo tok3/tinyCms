@@ -87,7 +87,7 @@ class VerifyCustomerAccess
         // Prüfen, wie viele URLs die Firma bereits hat
         $urlCount = Pa11yUrl::where('company_id', $company->id)->count();
 
-        // Falls die Firma bereits 10 URLs hat, keine weitere speichern
+        // Falls die Firma bereits max URLs hat, keine weitere speichern
         if ($urlCount >= $company->max_urls) {
             \Log::info("Company {$company->id} hat bereits {$company->max_urls} URLs. Keine weitere URL wird gespeichert.");
             return;

@@ -22,6 +22,8 @@ use App\Models\Company;
 use Filament\Forms\Components\ViewField;
 use Filament\Forms\Components\Placeholder;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Forms\Components\MultiSelect;
+use Illuminate\Database\Eloquent\Model;
 class ContractResource extends Resource
 {
     protected static ?string $model = Contract::class;
@@ -49,60 +51,94 @@ class ContractResource extends Resource
 
                 Section::make('Contract Details')
                     ->schema([
-                        Placeholder::make('product_name')
+                        TextInput::make('product_name')
                             ->label('Product Name')
-                            ->content(fn($record) => $record->product_name ?? 'N/A'),
-
-                        Placeholder::make('product_description')
+                            ->required(),
+                        Textarea::make('product_description')
                             ->label('Product Description')
-                            ->content(fn($record) => $record->product_description ?? 'N/A'),
-
-                        Placeholder::make('price')
+                            ->rows(3)
+                            ->required(),
+                        TextInput::make('price')
                             ->label('Price (€)')
-                            ->content(fn($record) => number_format($record->price / 100, 2, ',', '.') . ' €'),
-
-                        Placeholder::make('setup_fee')
-                            ->label('Setup Fee (€)')
-                            ->content(fn($record) => number_format($record->setup_fee / 100, 2, ',', '.') . ' €'),
-
-                        Placeholder::make('interval')
+                            ->required()
+                            ->afterStateHydrated(function ($state, callable $set) {
+                                if (is_numeric($state)) {
+                                    $set('price', number_format($state / 100, 2, ',', '.'));
+                                }
+                            })
+                            ->dehydrateStateUsing(function ($state) {
+                                $normalized = str_replace(['.', ' '], ['', ''], $state);
+                                $normalized = str_replace(',', '.', $normalized);
+                                return (int) round((float) $normalized * 100);
+                            }),
+                        Select::make('interval')
                             ->label('Payment Interval')
-                            ->content(fn($record) => $record->interval ?? 'N/A'),
+                            ->options([
+                                'daily'   => 'Daily',
+                                'weekly'  => 'Weekly',
+                                'monthly' => 'Monthly',
+                                'annual'  => 'Annual',
+                                'one_time' => 'One-time',
+                            ])
+                            ->required(),
 
-                        Placeholder::make('subscription_id')
+                        TextInput::make('subscription_id')
                             ->label('Subscription ID')
-                            ->content(fn($record) => $record->subscription_id ?? 'N/A'),
-
-                        Placeholder::make('subscription_start_date')
+                            ->required()
+                            ->visible(fn (callable $get): bool => (bool) $get('subscription_id')),
+                        DatePicker::make('subscription_start_date')
                             ->label('Subscription Start Date')
-                            ->content(fn($record) => $record->subscription_start_date ?? 'N/A'),
+                            ->required()
+                            ->visible(fn (callable $get): bool => (bool) $get('subscription_id')),
                     ])
                     ->columns(2),
 
                 Section::make('Contract Period')
                     ->schema([
-                        Placeholder::make('order_date')
+                        DatePicker::make('order_date')
                             ->label('Order Date')
-                            ->content(fn($record) => $record->order_date ?? 'N/A'),
-
-                        Placeholder::make('start_date')
+                            ->required(),
+                        DatePicker::make('start_date')
                             ->label('Start Date')
-                            ->content(fn($record) => $record->start_date ?? 'N/A'),
-
-                        Placeholder::make('duration')
-                            ->label('Duration (in Month)')
-                            ->content(fn($record) => $record->duration ?? 'N/A'),
-
-                        Placeholder::make('end_date')
+                            ->required(),
+                        TextInput::make('duration')
+                            ->label('Duration (in Months)')
+                            ->numeric()
+                            ->required(),
+                        DatePicker::make('end_date')
                             ->label('End Date')
-                            ->content(fn($record) => $record->end_date ?? 'N/A'),
-
-                        Placeholder::make('iteration')
+                            ->required(),
+                        TextInput::make('iteration')
                             ->label('Iteration')
-                            ->content(fn($record) => $record->iteration ?? 'N/A'),
+                            ->numeric()
+                            ->required(),
                     ])
                     ->columns(2),
-            ]);
+
+                Section::make('Booked Features')
+                    ->schema([
+                        MultiSelect::make('features')
+                            ->label('Features')
+                            ->relationship('features', 'name')
+                            ->preload()
+                            ->saveRelationshipsUsing(function (Model $record, array $state) {
+                                // $state = [1,2,3] Feature-IDs
+                                // Sync mit Pivot-Werten, einschließlich company_id
+                                $pivots = collect($state)
+                                    ->mapWithKeys(fn ($featureId) => [
+                                        $featureId => ['company_id' => $record->contractable_id],
+                                    ])
+                                    ->toArray();
+
+                                $record->features()->sync($pivots);
+                            })
+                          ,
+                    ])
+                    ->columns(2),
+
+
+
+                 ]);
     }
 
     public static function table(Table $table): Table

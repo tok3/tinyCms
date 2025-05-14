@@ -118,6 +118,7 @@ class Company extends Model
             'max-url-50' => 50,
             'max-url-100' => 100,
             'max-url-1500' => 1500,
+            'max-url-10k' => 10000,
             'max-url-15k' => 15000,
             'max-url-100k' => 100000,
         ];
@@ -137,8 +138,12 @@ class Company extends Model
      */
     public function features()
     {
-        return $this->belongsToMany(Feature::class, 'company_feature')
-            ->withPivot('value')
+        return $this->belongsToMany(
+            Feature::class,
+            'company_feature'
+        )
+            ->withPivot('value', 'deleted_at')   // deleted_at mitladen
+            ->wherePivotNull('deleted_at')       // nur nicht-gelöschte Pivots
             ->withTimestamps();
     }
 
@@ -148,10 +153,11 @@ class Company extends Model
      */
     public function hasFeature($features): bool
     {
-        // Convert single feature into array
         $features = is_array($features) ? $features : [$features];
 
-        return $this->features()->whereIn('slug', $features)->exists();
+        return $this->features()
+            ->whereIn('slug', $features)
+            ->exists();  // true nur wenn ein aktiver Pivot existiert
     }
 
     /**

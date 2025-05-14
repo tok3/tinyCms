@@ -73,6 +73,20 @@ class Contract extends Model
     {
         return $this->hasMany(Invoice::class);
     }
+
+    public function features()
+    {
+        return $this->belongsToMany(
+            \App\Models\Feature::class,
+            'company_feature',   // Pivot-Tabelle
+            'contract_id',       // Fremdschlüssel auf diese Tabelle
+            'feature_id'         // Fremdschlüssel zur Feature-Tabelle
+        )
+            ->withPivot('value')
+            ->withTimestamps();
+    }
+
+
     public function assignFeaturesToCompany()
     {
         \Log::info("Triggered Contract ID {$this->id}, Product ID: {$this->product_id}");
@@ -90,6 +104,7 @@ class Contract extends Model
                 [
                     'company_id' => $company->id,
                     'feature_id' => $feature->id,
+                    'contract_id' => $this->id,
                 ],
                 [
                     'value' => $feature->pivot->value ?? 1,

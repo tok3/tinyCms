@@ -121,9 +121,18 @@ class TestController extends Controller
 
 public function test ()
 {
-    $invServ = new InvoiceService();
-    echo $invServ->sendInvoiceEmail(98);
-    die ('yep');
+
+    $company = Company::where('id',447)->first();
+echo  $company->max_urls;
+    $features = $company->features;
+
+    echo "<pre>";
+    print_r($features->toArray());
+    echo "</pre>";
+
+    echo $company->hasFeature('widget-support');
+
+
 }
 
 }
