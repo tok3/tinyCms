@@ -22,5 +22,6 @@ class VerifyCsrfToken extends Middleware
         'eztext',
         'ezspeak',
         'storeTts',
+        'imageDescription',
     ];
 }

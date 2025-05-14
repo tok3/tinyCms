@@ -96,6 +96,7 @@ Route::middleware(['auth', 'compurl'])->group(function () {
 
 use App\Http\Controllers\FixsternController;
 Route::post('/eztext', [FixsternController::class, 'eztext']);
+Route::post('/imageDescription', [FixsternController::class, 'imageDescription']);
 
 Route::get('/service/{ulid}/{tool}.js', [ScriptController::class, 'serveScript'])
     ->name('serveScript')
