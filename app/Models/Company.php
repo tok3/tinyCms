@@ -242,4 +242,9 @@ class Company extends Model
         return $this->hasMany(Pa11yUrl::class);
     }
 
+
+    public function imagetags(){
+        return $this->hasMany(Imagetag::class);
+    }
+
 }

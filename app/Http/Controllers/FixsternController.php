@@ -5,7 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Eztext;
 use App\Models\Company;
+use App\Models\Imagetag;
 use App\Services\OpenAIService;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+
 
 
 class FixsternController extends Controller
@@ -70,5 +74,137 @@ class FixsternController extends Controller
             }
         }
 
+    }
+
+
+
+    public function imageDescription(Request $request){
+        \Log::info($request);
+        // Validate the request
+        $request->validate([
+            'urls' => 'required|array',
+            'urls.*' => 'required|url',
+        ]);
+
+        $urls = $request->input('urls');
+        $ulid = $request->input('ulid');
+        $company = Company::where('ulid', $ulid)->first();
+        if (!$company) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Company not found',
+            ], 404);
+        }
+        $descriptions = [];
+
+        // Generate descriptions (placeholder logic)
+        foreach ($urls as $url) {
+            // Replace with real image recognition API call if needed
+            $img = Imagetag::where('ulid', $ulid)->where('url', $url)->first();
+            if($img && $img->description != ''){
+                $descriptions[] = [
+                    'url' => $url,
+                    'description' => $img->description,
+                ];
+
+            } else if($img && $img->description == ''){
+                continue;
+                $descriptions[] = [
+                    'url' => $url,
+                    'description' => 'Bild Beschriftung '.$url,
+                ];
+            } else {
+                // save empty imagetag entry
+                $img = new Imagetag();
+                $img->ulid = $ulid;
+                $img->url = $url;
+                $img->save();
+                $descriptions[] = [
+                    'url' => $url,
+                    'description' => 'Bild Beschriftung '.$url,
+                ];
+            }
+        }
+
+        // Return JSON response
+        return response()->json($descriptions, 200);
+    }
+
+    // Mock function to generate descriptions
+    private function generateDescription($url)
+    {
+        // Placeholder: Generate a simple description based on URL or use an API
+        $filename = basename($url);
+        return "Description of image: {$filename}";
+        // Example with real API (uncomment and configure):
+        /*
+        $client = new \Google\Cloud\Vision\V1\ImageAnnotatorClient();
+        $image = file_get_contents($url);
+        $response = $client->labelDetection($image);
+        $labels = $response->getLabelAnnotations();
+        return implode(', ', array_map(fn($label) => $label->getDescription(), $labels));
+        */
+    }
+
+
+    public function imageDescriptionOld(Request $request){
+        \Log::info($request);
+
+        $ulid = $request->input('ulid');
+        //$lang = $request->input('lang');
+
+        //check if ulid is in database
+        $company = Company::where('ulid', $ulid)->first();
+        if (!$company) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Company not found',
+            ], 404);
+        }
+
+        $openAIService = new OpenAIService();
+        foreach($request['images'] as $url){
+
+            try {
+                // Fetch the image
+                $response = Http::get($url);
+                $filename = basename($url);
+                // Check if the request was successful
+                if ($response->successful()) {
+                    // Save the image to the storage (e.g., storage/app/public/images)
+                    Storage::disk('local')->put('app/images/' . $filename, $response->body());
+                    \Log::info('Image downloaded and saved as ' . $filename); //return "Image downloaded and saved as $filename";
+                   $req = new Request(['image_path' => storage_path('app/images/' . $filename)]);
+                   $res = $openAIService->generateImageDescription($req);
+                   \Log::info($res);
+                   \Log::info(storage_path('app/images/' . $filename));
+                   //die();
+                } else {
+                    \Log::info('Failed to download image: ' . $response->status()); //return "Failed to download image: " . $response->status();
+                }
+            } catch (\Exception $e) {
+                \Log::info("Error" . $e->getMessage()); //return "Error: " . $e->getMessage();
+            }
+        }
+        //\Log::info('hiiekr');
+        //return $request->die();
+        /*
+        $ulid = $request->input('ulid');
+        $company = Company::where('ulid', $ulid)->first();
+        if (!$company) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Company not found',
+            ], 404);
+        }
+        */
+        //$image = $request->input('image');
+        //$openAIService = new OpenAIService();
+        //$res = $openAIService->generateImageDescription($image);
+        $res = 'hallo';
+        return response()->json([
+            'status' => 200,
+            'message' => $res,
+        ], 200);
     }
 }
