@@ -44,7 +44,7 @@ class ImagetagResource extends Resource
                 ->unique()
                 ->values()
                 ->toArray();
-        if(in_array(6, $featureIds)){
+        if(in_array(13, $featureIds)){
             return true;
         }
         return false;
