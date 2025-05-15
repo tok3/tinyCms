@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\PreventRequestsDuringMaintenance;
 use App\Models\MollieCustomer;
 use App\Services\InvoiceService;
 use Carbon\Carbon;
@@ -49,14 +50,48 @@ class CheckoutController extends MolliePaymentController
      * @throws \Mollie\Api\Exceptions\ApiException
      */
     private function firstPayment(Request $request)
-    {
+    {// 1) Auswahl auslesen:
+        //    Entweder neuer Key "product_selection" (z.B. "3:annual")
+        //    oder alte Kombi aus product_id + interval
+        $selection = $request->input('product_selection')
+            ?: (
+            $request->filled('product_id') && $request->filled('interval')
+                ? $request->input('product_id') . ':' . $request->input('interval')
+                : null
+            );
 
+        if (! $selection || ! str_contains($selection, ':')) {
+            abort(400, 'Ungültige Produktauswahl: ' . json_encode($request->all()));
+        }
 
-        $orderedProduct = Product::where('id', $request->input('product_id'))->first();
+        // 2) Aufsplitten in ID und Interval
+        [$productId, $interval] = explode(':', $selection, 2);
+
+        // 3) Zum Debuggen einfach mal ausgeben:
+        echo "Produkt-ID: {$productId}\n";
+        echo "Intervall: {$interval}\n";
+
+        // 4) Produkt und Preis abrufen
+        $product = Product::findOrFail($productId);
+
+        // Falls Du eine product_prices-Tabelle hast:
+        $priceModel = $product->prices()->where('interval', $interval)->firstOrFail();
+
+        // 5) Build “orderedProduct” wie gewünscht
+        //    Nimm alle Spalten des Produkts, überschreibe price + interval + formatted_price
+        $orderedProduct = (object) array_merge(
+            $product->toArray(),
+            [
+                'price'           => $priceModel->price,
+                'interval'        => $interval,
+                'formatted_price' => number_format($priceModel->price / 100, 2, ',', '.'),
+            ]
+        );
+
         echo "<pre>";
         print_r($orderedProduct);
         echo "</pre>";
-die();
+        die();
         $couponCode = $request->input('coupon_code') ?? '0';
 
         $user = \Auth::user();
@@ -350,7 +385,7 @@ die();
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function _getProductDetails(Request $request)
+    public function getProductDetails(Request $request)
     {
         // Produkt-ID aus der Session abrufen
         $productId = $request->input('product_id');
@@ -403,76 +438,6 @@ die();
         }
 
         // Rückgabe der Produktdetails als JSON
-        return response()->json($productDetails);
-    }
-
-    public function getProductDetails(Request $request)
-    {
-        // 1) Auswahl auslesen: "product_selection" statt "product_id"
-        $selection  = $request->input('product_selection'); // z.B. "3:annual"
-        $couponCode = $request->input('coupon_code');
-
-        if (! $selection || ! str_contains($selection, ':')) {
-            return response()->json(['error' => 'Ungültige Produktauswahl.'], 400);
-        }
-        [$productId, $interval] = explode(':', $selection, 2);
-
-        // 2) Produkt & Preis abrufen
-        $product = Product::find($productId);
-        if (! $product) {
-            return response()->json(['error' => 'Produkt nicht gefunden.'], 404);
-        }
-        $priceModel = $product
-            ->prices()
-            ->where('interval', $interval)
-            ->first();
-        if (! $priceModel) {
-            return response()->json(['error' => 'Kein Preis für dieses Intervall gefunden.'], 404);
-        }
-
-        // 3) Basis-Antwort aufbauen
-        $basePriceCents    = $priceModel->price;
-        $formattedBase     = number_format($basePriceCents / 100, 2, ',', '.');
-        $productDetails = [
-            'name'               => $product->name,
-            'description'        => $product->description,
-            'formattedPrice'     => $formattedBase,
-            'interval'           => $interval,
-            'trial_period_days'  => $product->trial_period_days,
-            'laufzeit'           => $product->lz,
-        ];
-
-        // 4) Rabattcode (alte Logik 1:1 übernommen)
-        if ($couponCode) {
-            $coupon = Coupon::where('code', $couponCode)->first();
-            if ($coupon) {
-                $dicType = $coupon->promotion->discount_type === 'fixed'
-                    ? $coupon->promotion->formatted_discount . ' €'
-                    : $coupon->promotion->formatted_discount . ' %';
-
-                $cpCtrl   = new CouponController;
-                // passe calculateTotalPrice so an, dass es auch das Intervall berücksichtigt
-                $subtotal = $cpCtrl->calculateTotalPrice($coupon->promotion, $product, $interval) ?? null;
-
-                $formattedSubtotal = number_format(($subtotal ?? 0) / 100, 2, ',', '.');
-
-                $productDetails = [
-                    'name'           => $product->name,
-                    'description'    => $product->description
-                        . "<br>Aktionscode: <b>{$coupon->code}</b> angewendet.<br>"
-                        . $coupon->promotion->description
-                        . "<br><span style=\"width:auto !important; display:inline-block; text-align:right;\">"
-                        . "<b>{$formattedBase} €</b><br><b>&minus; {$dicType}</b>"
-                        . "</span>",
-                    'formattedPrice'    => $formattedSubtotal,
-                    'interval'          => $interval,
-                    'trial_period_days' => $product->trial_period_days,
-                    'has_discount'      => true,
-                    'discountedPrice'   => $formattedSubtotal,
-                ];
-            }
-        }
-
         return response()->json($productDetails);
     }
 
