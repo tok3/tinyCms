@@ -53,8 +53,10 @@ class CheckoutController extends MolliePaymentController
 
 
         $orderedProduct = Product::where('id', $request->input('product_id'))->first();
-
-
+        echo "<pre>";
+        print_r($orderedProduct);
+        echo "</pre>";
+die();
         $couponCode = $request->input('coupon_code') ?? '0';
 
         $user = \Auth::user();

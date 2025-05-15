@@ -19,7 +19,7 @@ use Filament\Support\Enums\Alignment;
 use Illuminate\Support\Str;
 use App\Helpers\FormatHelper;
 use Filament\Tables\Columns\TextColumn;
-
+use Filament\Forms\Components\HasManyRepeater;
 class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
@@ -155,6 +155,35 @@ class ProductResource extends Resource
                     ])
                     ->columns(4),
 
+                Forms\Components\Section::make('Preise')
+                    ->schema([
+                        HasManyRepeater::make('prices')
+                            ->relationship('prices')
+                            ->sortable('sort')      // ← Drag & drop aktivieren, Spalte "sort"
+                            ->schema([
+                                Select::make('interval')
+                                    ->label('Intervall')
+                                    ->options([
+                                        'one_time' => 'Einmalzahlung',
+                                        'monthly'  => 'Monatlich',
+                                        'annual'   => 'Jährlich',
+                                    ])
+                                    ->required(),
+
+                                TextInput::make('price')
+                                    ->label('Preis (€)')
+                                    ->numeric()
+                                    ->required()
+                                    ->afterStateHydrated(fn($set, $state) => $set('price', number_format($state / 100, 2, ',', '.')))
+                                    ->dehydrateStateUsing(fn($state) => (int) str_replace(',', '.', str_replace('.', '', $state)) * 100),
+
+                                // HIER KEIN TextInput::make('sort') MEHR!
+                            ])
+                            ->columns(3)
+                            ->defaultItems(2)
+                            ->minItems(1),
+                    ])
+                    ->columns(1),
                 // ROW 5: Features
                 Forms\Components\Section::make()
                     ->schema([

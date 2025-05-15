@@ -28,7 +28,10 @@ class Product extends Model
 
     }
 
-
+    public function prices()
+    {
+        return $this->hasMany(ProductPrice::class)->orderBy('sort');
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
