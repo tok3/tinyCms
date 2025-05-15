@@ -56,18 +56,15 @@ window.checkoutAlpine = function () {
         init() {
             this.initStepFromHash();
             this.restoreAndValidateStateOnInit();
-
-            const storedSelection = sessionStorage.getItem('selectedProductSelection');
-            if (storedSelection) {
-                this.form.product_selection = storedSelection;
-                this.updateProductDetails(storedSelection);
-            }
+            // kein fetch mehr hier! Summary nur in watchStep holen.
         },
         updateProductDetails(selection) {
             const coupon = sessionStorage.getItem('couponCode') || '';
-            // selection ist z.B. "3:annual"
             fetch(`/get-product-details?product_selection=${encodeURIComponent(selection)}&coupon_code=${coupon}`)
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error('BadRequest');
+                    return res.json();
+                })
                 .then(data => {
                     this.product.name        = data.name;
                     this.product.description = data.description;
@@ -236,10 +233,12 @@ window.checkoutAlpine = function () {
             }
         },
         watchStep() {
-            const selection = sessionStorage.getItem('selectedProductSelection');
-            // nur in der Zusammenfassung (step 2) neu laden
-            if (selection && this.step === 2) {
-                this.updateProductDetails(selection);
+            // nur in der Zusammenfassung (step 2) nachladen
+            if (this.step === 2) {
+                const sel = sessionStorage.getItem('selectedProductSelection');
+                if (sel) {
+                    this.updateProductDetails(sel);
+                }
             }
         },
         buttonClass(index) {
@@ -320,8 +319,7 @@ window.checkoutAlpine = function () {
         saveProductToSession(value) {
             this.form.product_selection = value;
             sessionStorage.setItem('selectedProductSelection', value);
-
-            // direkt zu den Zugangsdaten springen
+            // direkt zu Step 1 springen
             if (this.step === 0) {
                 this.step = 1;
                 window.location.hash = '#step-2';
