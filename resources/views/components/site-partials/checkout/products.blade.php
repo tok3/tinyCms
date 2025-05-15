@@ -39,15 +39,16 @@
 </style>
 
 @foreach($products as $product)
+    @foreach($product->prices as $price)
         @php
+            $plan = $price->interval;
+            $formattedPrice = number_format($price->price / 100, 2, ',', '.');
             $trialHint = '';
-            if($product->trial_period_days > 0)
-                {
-            $trialHint = $product->trial_period_days . ' Tage kostenlos Testen';
-
-                }
+            if($product->trial_period_days > 0) {
+                $trialHint = $product->trial_period_days . ' Tage kostenlos Testen';
+            }
         @endphp
-        <div class="container py-3 py-lg-3 plan" data-plan="{{$product->interval}}">
+        <div class="container py-3 py-lg-3 plan" data-plan="{{ $plan }}">
             <div class="bg-body overflow-hidden shadow-lg px-4 py-2 px-lg-5">
                 <div class="row align-items-center ">
                     <!-- On small screens (sm) we use a card layout -->
@@ -58,8 +59,7 @@
                         <!--Heading-->
                         <h6>Kombi-Paket</h6>
                         <h3 class="mt-2 display-5 aos-init aos-animate" data-aos="zoom-in-up" data-aos-delay="100">
-                            {{$product->name}}
-
+                            {{ $product->name }}
                         </h3>
                     </div>
                     <div class="col-lg-3 col-md-4 col-12
@@ -67,7 +67,6 @@
             text-center text-md-start">
                         <p class="h6 mt-2 d-inline-flex align-items-center no-hyphens" style="line-height: 1.5;">
                             {!! $product->description !!}
-
                         </p>
                     </div>
                     <div class="col-lg-1 col-md-1 col-12">
@@ -85,35 +84,32 @@
                         @endif
                     </div>
                     <div class="col-lg-2 col-md-2 col-12 text-center text-md-end">
-
                         <!--Price-->
                         <p class="h4 mb-0  aos-init aos-animate" data-aos="fade-up" data-aos-delay="150">
-                            {{$product->formattedPrice}} &euro;
-
+                            {{ $formattedPrice }} &euro;
                         </p>
-                            <sub class="mb-0 pb-sm-3 small" style="position:relative;top:-5px;">inkl. MwSt.</sub>
-                        <p class="text-success mb-0  aos-init aos-animate small" style="position:relative;top:-5px;">{!!  $paymentModality[$product->interval]!!}</p>
+                        <sub class="mb-0 pb-sm-3 small" style="position:relative;top:-5px;">inkl. MwSt.</sub>
+                        <p class="text-success mb-0  aos-init aos-animate small" style="position:relative;top:-5px;">{!! $paymentModality[$plan] !!}</p>
                         <sup class="mb-0 aos-init aos-animate small" style="position:relative;top:-5px;">{!! $product->lz ?? 24 !!} Monate Laufzeit</sup>
                     </div>
                     <div class="col-lg-2 col-md-12 text-center text-md-end">
                         <p class="h4 mb-0 aos-init aos-animate" data-aos="fade-up" data-aos-delay="150">
                             <!--Action-->
                         <div data-aos="fade-left" data-aos-delay="200" class="aos-init aos-animate small">
-                            {{$trialHint}}
+                            {{ $trialHint }}
                             </p>
                             <input
                                 type="radio"
                                 class="btn-check"
-                                :id="'plan-' + {{ $product->id }}"
-                                name="product_id"
-                                :value="{{ $product->id }}"
-                                x-model="form.product_id"
-                                @change="saveProductToSession($event.target.value); updateProductDetails($event.target.value)"
+                                id="plan-{{ $product->id }}-{{ $price->interval }}"
+                                name="product_selection"
+                                value="{{ $product->id }}:{{ $price->interval }}"
+                                x-model="form.product_selection"
+                                @change="saveProductToSession($event.target.value)"
                             >
-                            <label class="btn btn-outline-primary" :for="'plan-' + {{ $product->id }}">
+                            <label class="btn btn-outline-primary" for="plan-{{ $product->id }}-{{ $price->interval }}">
                                 Wählen
                             </label>
-
                         </div>
                     </div>
                 </div> <!-- / .row -->
@@ -137,6 +133,7 @@
             </div>
         </div>
     @endforeach
+@endforeach
 
 
     <!--End price container-->

@@ -28,6 +28,12 @@ class Product extends Model
 
     }
 
+    public function priceFor(string $interval)
+    {
+        return $this->prices()            // Beziehung zu product_prices
+        ->where('interval', $interval)
+            ->first();
+    }
     public function prices()
     {
         return $this->hasMany(ProductPrice::class)->orderBy('sort');

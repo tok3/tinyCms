@@ -15,11 +15,13 @@ use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\MultiSelect;
+use Filament\Forms\Components\HasManyRepeater;
+use Filament\Forms\Components\Section;      // ← HIER importieren
 use Filament\Support\Enums\Alignment;
 use Illuminate\Support\Str;
 use App\Helpers\FormatHelper;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\HasManyRepeater;
+
 class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
@@ -155,34 +157,38 @@ class ProductResource extends Resource
                     ])
                     ->columns(4),
 
-                Forms\Components\Section::make('Preise')
-                    ->schema([
-                        HasManyRepeater::make('prices')
-                            ->relationship('prices')
-                            ->sortable('sort')      // ← Drag & drop aktivieren, Spalte "sort"
-                            ->schema([
-                                Select::make('interval')
-                                    ->label('Intervall')
-                                    ->options([
-                                        'one_time' => 'Einmalzahlung',
-                                        'monthly'  => 'Monatlich',
-                                        'annual'   => 'Jährlich',
-                                    ])
-                                    ->required(),
-
-                                TextInput::make('price')
-                                    ->label('Preis (€)')
-                                    ->numeric()
-                                    ->required()
-                                    ->afterStateHydrated(fn($set, $state) => $set('price', number_format($state / 100, 2, ',', '.')))
-                                    ->dehydrateStateUsing(fn($state) => (int) str_replace(',', '.', str_replace('.', '', $state)) * 100),
-
-                                // HIER KEIN TextInput::make('sort') MEHR!
-                            ])
-                            ->columns(3)
-                            ->defaultItems(2)
-                            ->minItems(1),
-                    ])
+                Section::make('Preise')   // ← funktioniert jetzt, weil importiert
+                ->schema([
+                    HasManyRepeater::make('prices')
+                        ->relationship('prices')
+                        ->orderable('sort')
+                        ->schema([
+                            Select::make('interval')
+                                ->label('Zahlungsintervall')
+                                ->options([
+                                    'one_time' => 'Einmalzahlung',
+                                    'monthly'  => 'Monatlich',
+                                    'annual'   => 'Jährlich',
+                                ])
+                                ->required(),
+                            TextInput::make('price')
+                                ->label('Preis (€)')
+                                ->required()
+                                ->afterStateHydrated(function ($component, $state) {
+                                    if ($state !== null) {
+                                        $component->state(number_format($state / 100, 2, ',', '.'));
+                                    }
+                                })
+                                ->dehydrateStateUsing(function ($state) {
+                                    $normalized = str_replace(['.', ' '], ['', ''], $state);
+                                    $normalized = str_replace(',', '.', $normalized);
+                                    return (int) round((float) $normalized * 100);
+                                }),
+                        ])
+                        ->columns(2)
+                        ->minItems(1)
+                        ->defaultItems(2),
+                ])
                     ->columns(1),
                 // ROW 5: Features
                 Forms\Components\Section::make()
@@ -241,14 +247,15 @@ class ProductResource extends Resource
                     ))
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('formatted_price')
-                    ->label('Preis')
-                    ->formatStateUsing(fn (string $state) => $state)
-                    ->alignment(Alignment::End),
-
-                Tables\Columns\TextColumn::make('currency')
-                    ->sortable()
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('prices')
+                    ->label('Preise')
+                    ->formatStateUsing(fn($state, $record) =>
+                    $record->prices
+                        ->map(fn($p) => "{$p->interval}: ".number_format($p->price/100,2,',','.').' €')
+                        ->implode(' / ')
+                    )
+                    ->sortable(false)
+                    ->searchable(false),
 
                 Tables\Columns\TextColumn::make('payment_type')
                     ->sortable()
