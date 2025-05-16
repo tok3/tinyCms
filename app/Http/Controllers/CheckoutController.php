@@ -50,48 +50,21 @@ class CheckoutController extends MolliePaymentController
      * @throws \Mollie\Api\Exceptions\ApiException
      */
     private function firstPayment(Request $request)
-    {// 1) Auswahl auslesen:
-        //    Entweder neuer Key "product_selection" (z.B. "3:annual")
-        //    oder alte Kombi aus product_id + interval
-        $selection = $request->input('product_selection')
-            ?: (
-            $request->filled('product_id') && $request->filled('interval')
-                ? $request->input('product_id') . ':' . $request->input('interval')
-                : null
-            );
+    {
 
+        $selection = $request->input('product_selection');       // z.B. "3:annual"
         if (! $selection || ! str_contains($selection, ':')) {
-            abort(400, 'Ungültige Produktauswahl: ' . json_encode($request->all()));
+            abort(400, 'Ungültige Produktauswahl.');
         }
 
-        // 2) Aufsplitten in ID und Interval
         [$productId, $interval] = explode(':', $selection, 2);
 
-        // 3) Zum Debuggen einfach mal ausgeben:
-        echo "Produkt-ID: {$productId}\n";
-        echo "Intervall: {$interval}\n";
+        $orderedProduct = Product::where('id', $productId)->first();
 
-        // 4) Produkt und Preis abrufen
-        $product = Product::findOrFail($productId);
+        $orderedProduct->setAttribute('price', $orderedProduct->priceFor($interval)->price);
+        $orderedProduct->setAttribute('interval', $interval);
 
-        // Falls Du eine product_prices-Tabelle hast:
-        $priceModel = $product->prices()->where('interval', $interval)->firstOrFail();
 
-        // 5) Build “orderedProduct” wie gewünscht
-        //    Nimm alle Spalten des Produkts, überschreibe price + interval + formatted_price
-        $orderedProduct = (object) array_merge(
-            $product->toArray(),
-            [
-                'price'           => $priceModel->price,
-                'interval'        => $interval,
-                'formatted_price' => number_format($priceModel->price / 100, 2, ',', '.'),
-            ]
-        );
-
-        echo "<pre>";
-        print_r($orderedProduct);
-        echo "</pre>";
-        die();
         $couponCode = $request->input('coupon_code') ?? '0';
 
         $user = \Auth::user();

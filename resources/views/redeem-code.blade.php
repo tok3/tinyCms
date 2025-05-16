@@ -134,7 +134,7 @@
                                 <form action="{{ route('coupon.redeem')}}" id="checkout" method="POST">
                                     @csrf
                                     <div class="mb-3">
-                                        <input type="text" name="code" value="" required="" class="form-control" id="coupon" autofocus="" placeholder="Aktionscode hier eingeben">
+                                        <input type="text" name="code" value="18CDB32D" required="" class="form-control" id="coupon" autofocus="" placeholder="Aktionscode hier eingeben">
                                     </div>
 
                                     <div class="d-grid">

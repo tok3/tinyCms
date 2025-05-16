@@ -53,6 +53,7 @@ class CouponController extends Controller
         // Speichere den Gutscheincode in der Session
         Session::put('coupon_code', $coupon->code);
         Session::put('product_id', $coupon->promotion->product_id);
+        Session::put('interval', 'annual');
 
 
         return view('redeem-code', [

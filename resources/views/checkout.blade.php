@@ -136,6 +136,9 @@ padding-bottom:15px;
             @if (session()->has('product_id'))
                 <input type="hidden" name="product_id" value="{{ session('product_id') }}">
             @endif
+            @if (session()->has('interval'))
+                <input type="hidden" name="interval" value="{{ session('interval') }}">
+            @endif
             <!-- STEP 1 -->
             <div x-show="step === 0" x-cloak>
                 <x-site-partials.checkout.products :products="$products"/>
