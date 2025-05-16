@@ -425,4 +425,67 @@ class CheckoutController extends MolliePaymentController
         return response()->json($productDetails);
     }
 
+    public function _getProductDetails(Request $request)
+    {
+        // Produkt-ID aus der Session abrufen
+        $productId = $request->input('product_id');
+        $couponCode = $request->input('coupon_code');
+
+        $selection  = $request->input('product_selection');
+        $couponCode = $request->input('coupon_code', '');
+        if (! $selection || ! str_contains($selection, ':')) {
+            return response()->json(['error' => 'Ungültige Produktauswahl.'], 400);
+        }
+
+        [$productId, $interval] = explode(':', $selection, 2);
+
+        if (!$productId)
+        {
+            return response()->json(['error' => 'Kein Produkt ausgewählt.'], 400);
+        }
+
+        // Produktdetails anhand der Produkt-ID abrufen
+        $product = Product::find($productId);
+
+        if (!$product)
+        {
+            return response()->json(['error' => 'Produkt nicht gefunden.'], 404);
+        }
+
+        // Produktdaten für die Ausgabe vorbereiten
+        $productDetails = [
+            'name' => $product->name,
+            'description' => $product->description,
+            'formattedPrice' => number_format($product->price / 100, 2, ',', '.'), // Preis in € formatieren
+            'interval' => $product->interval,
+            'trial_period_days' => $product->trial_period_days,
+            'laufzeit' => $product->lz
+        ];
+
+        if ($couponCode)
+        {
+            // Hier kannst du den Rabattcode validieren
+            $coupon = Coupon::where('code', $couponCode)->first();
+
+            // Produktdaten für die Ausgabe vorbereiten
+
+            $dicType = ($coupon->promotion->discount_type === 'fixed' ? $coupon->promotion->formatted_discount . ' €' : $coupon->promotion->formatted_discount . ' %');
+
+            $cpCtrl = new CouponController;
+            $subtotal = $cpCtrl->calculateTotalPrice($coupon->promotion, $product) ?? null;
+
+            $productDetails = [
+                'name' => $product->name,
+                'description' => $product->description . "<br> Aktionscode: <b>" . $coupon->code . '</b> angewendet.<br> ' . $coupon->promotion->description . '<br><span style="width:auto !important; display:inline-block; text-align:right;"><b>' . number_format($product->price / 100, 2, ',', '.') . ' &euro;</b><br><b>&minus; ' . $dicType . '</span>',
+                'formattedPrice' => $subtotal, // Preis in € formatieren
+                'interval' => $product->interval,
+                'trial_period_days' => $product->trial_period_days
+            ];
+
+
+        }
+
+        // Rückgabe der Produktdetails als JSON
+        return response()->json($productDetails);
+    }
 }
