@@ -56,7 +56,13 @@ window.checkoutAlpine = function () {
         init() {
             this.initStepFromHash();
             this.restoreAndValidateStateOnInit();
-            // kein fetch mehr hier! Summary nur in watchStep holen.
+
+            // neu: prüfe direkt, ob das Blade uns schon ein product_selection-Feld mitgegeben hat
+            const preset = document.querySelector('input[name="product_selection"]');
+            if (preset) {
+                this.form.product_selection = preset.value;
+                sessionStorage.setItem('selectedProductSelection', preset.value);
+            }
         },
         updateProductDetails(selection) {
             const coupon = sessionStorage.getItem('couponCode') || '';
@@ -69,6 +75,9 @@ window.checkoutAlpine = function () {
                     this.product.name        = data.name;
                     this.product.description = data.description;
                     this.product.price       = data.formattedPrice + ' €';
+
+                    // → HIER die rohe Cent-Zahl fürs spätere Rechnen speichern:
+                    this.product.rawPriceCents = data.price_cents;
 
                     // 1) Default-Laufzeit (falls null/undefined → 24)
                     const laufzeit     = (data.laufzeit ?? 24);
@@ -93,7 +102,7 @@ window.checkoutAlpine = function () {
                         })
                     );
 
-                    // 4) Ergebnis setzen (oder leer, falls Interval unbekannt)
+                    // 4) Ergebnis setzen (oder leer, falls Intervall unbekannt)
                     this.product.modality = modalityTexts[data.interval] || '';
 
                     // Rabatt anzeigen, falls vorhanden

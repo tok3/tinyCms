@@ -363,7 +363,6 @@ class CheckoutController extends MolliePaymentController
         // 1) Ziehe nur noch product_selection (z.B. "3:annual")
         $selection  = $request->input('product_selection');
         $couponCode = $request->input('coupon_code', '');
-
         if (! $selection || ! str_contains($selection, ':')) {
             return response()->json(['error' => 'Ungültige Produktauswahl.'], 400);
         }
@@ -379,44 +378,51 @@ class CheckoutController extends MolliePaymentController
             return response()->json(['error' => 'Kein Preis für dieses Intervall gefunden.'], 404);
         }
 
-        // 3) Baue Basis-Antwort
-        $baseCents  = $priceModel->price;
-        $formatted  = number_format($baseCents / 100, 2, ',', '.');
-        $details = [
-            'name'              => $product->name,
-            'description'       => $product->description,
-            'formattedPrice'    => $formatted,
-            'interval'          => $interval,
+        // 3) Basis-Antwort aufbauen
+        $basePriceCents = $priceModel->price;
+        $formattedBase  = number_format($basePriceCents / 100, 2, ',', '.');
+
+        $productDetails = [
+            'name'            => $product->name,
+            'description'     => $product->description,
+            'price_cents'     => $basePriceCents,        // <— Integer Cent-Wert
+            'formattedPrice'  => $formattedBase,         // <— String für Anzeige
+            'interval'        => $interval,
             'trial_period_days' => $product->trial_period_days,
-            'laufzeit'          => $product->lz,
+            'laufzeit'        => $product->lz,
         ];
 
-        // 4) Ggf. Rabatt
-        if ($couponCode) {
-            $coupon = Coupon::where('code', $couponCode)->first();
-            if ($coupon) {
-                $type = $coupon->promotion->discount_type === 'fixed'
-                    ? $coupon->promotion->formatted_discount.' €'
-                    : $coupon->promotion->formatted_discount.' %';
-                $cpCtrl   = new CouponController;
-                $subtotal = $cpCtrl->calculateTotalPrice($coupon->promotion, $product, $interval) ?? 0;
-                $formattedSubtotal = number_format($subtotal/100, 2, ',', '.');
+        // 4) Rabattcode
+        if ($couponCode && $coupon = Coupon::where('code', $couponCode)->first()) {
+            $type = $coupon->promotion->discount_type === 'fixed'
+                ? $coupon->promotion->formatted_discount . ' €'
+                : $coupon->promotion->formatted_discount . ' %';
 
-                $details = [
-                    'name'              => $product->name,
-                    'description'       => $product->description
-                        . "<br>Aktionscode: <b>{$coupon->code}</b> angewendet.<br>{$coupon->promotion->description}"
-                        . "<br><span style=\"display:inline-block;text-align:right;\"><b>{$formatted} €</b><br><b>&minus; {$type}</b></span>",
-                    'formattedPrice'    => $formattedSubtotal,
-                    'interval'          => $interval,
-                    'trial_period_days' => $product->trial_period_days,
-                    'has_discount'      => true,
-                    'discountedPrice'   => $formattedSubtotal,
-                ];
-            }
+            $cpCtrl   = new CouponController;
+
+            $subtotal = $cpCtrl->calculateTotalPrice($coupon->promotion, $product, $interval) ?? 0;
+            $subtotal = 621;
+            $formattedSubtotal = number_format($subtotal / 100, 2, ',', '.');
+
+            $productDetails = [
+                'name'                  => $product->name,
+                'description'           => $product->description
+                    . "<br>Aktionscode: <b>{$coupon->code}</b> angewendet.<br>"
+                    . $coupon->promotion->description
+                    . "<br><span style=\"display:inline-block;text-align:right;\">"
+                    . "<b>{$formattedBase} €</b><br><b>&minus; {$type}</b>"
+                    . "</span>",
+                'price_cents'           => $subtotal,          // <— roher Cent-Wert nach Rabatt
+                'formattedPrice'        => $formattedSubtotal, // <— formatiert für Anzeige
+                'interval'              => $interval,
+                'trial_period_days'     => $product->trial_period_days,
+                'has_discount'          => true,
+                'discountedPriceCents'  => $subtotal,          // <— evtl. extra Feld
+                'discountedPrice'       => $formattedSubtotal, // <— string
+            ];
         }
 
-        return response()->json($details);
+        return response()->json($productDetails);
     }
 
 }

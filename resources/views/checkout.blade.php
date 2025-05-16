@@ -130,6 +130,13 @@ padding-bottom:15px;
         <form id="checkoutForm" class="_shadow-lg" action="{{ route('checkout.plan') }}" method="POST">
 
             @csrf
+            @if(session()->has('product_id') && session()->has('interval'))
+                <input
+                    type="hidden"
+                    name="product_selection"
+                    value="{{ session('product_id') }}:{{ session('interval') }}"
+                >
+            @endif
             @if (session()->has('coupon_code'))
                 <input type="hidden" name="coupon_code" value="{{ session('coupon_code') }}">
             @endif
