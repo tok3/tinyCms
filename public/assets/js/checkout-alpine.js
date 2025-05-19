@@ -57,12 +57,6 @@ window.checkoutAlpine = function () {
             this.initStepFromHash();
             this.restoreAndValidateStateOnInit();
 
-            // neu: prüfe direkt, ob das Blade uns schon ein product_selection-Feld mitgegeben hat
-            const preset = document.querySelector('input[name="product_selection"]');
-            if (preset) {
-                this.form.product_selection = preset.value;
-                sessionStorage.setItem('selectedProductSelection', preset.value);
-            }
         },
         updateProductDetails(selection) {
             const coupon = sessionStorage.getItem('couponCode') || '';
@@ -89,7 +83,7 @@ window.checkoutAlpine = function () {
                         daily:     'pro Tag</br>bei Monatlicher Zahlung',
                         annual:    'pro Jahr</br>bei jährlicher Zahlung',
                         monthly:   'pro Monat</br>bei Monatlicher Zahlung',
-                        one_time:  ''
+                        one_time:  'Einmalzahlung'
                     };
 
                     // 3) An jeden Text (außer one_time) Laufzeit-Suffix anhängen
@@ -107,7 +101,7 @@ window.checkoutAlpine = function () {
 
                     // Rabatt anzeigen, falls vorhanden
                     if (data.has_discount && data.discountedPrice) {
-                        this.product.price     = `${data.discountedPrice} € (statt ${data.formattedPrice} €)`;
+                        this.product.price     = `${data.formattedPrice} €`;
                         this.product.discounted = true;
                     } else {
                         this.product.discounted = false;
@@ -155,7 +149,7 @@ window.checkoutAlpine = function () {
             this.errors = {};
 
             if (this.step === 0) {
-                if (!sessionStorage.getItem('selectedProductId')) {
+                if (!sessionStorage.getItem('selectedProductSelection')) {
                     this.errors.product_id = 'Bitte ein Produkt auswählen.';
                     return;
                 }
@@ -260,17 +254,17 @@ window.checkoutAlpine = function () {
             }
         },
         ensureProductSynced() {
-            const productId = sessionStorage.getItem('selectedProductId');
-            if (productId) {
-                this.updateProductDetails(productId);
+            const sel = this.form.product_selection || sessionStorage.getItem('selectedProductSelection');
+            if (sel) {
+                this.updateProductDetails(sel);
             }
         },
         submitForm() {
-            const sel = sessionStorage.getItem('selectedProductSelection');
-            if (sel && ! document.querySelector('input[name="product_selection"]')) {
+            const sel = this.form.product_selection || sessionStorage.getItem('selectedProductSelection');
+            if (sel && !document.querySelector('input[name="product_selection"]')) {
                 const input = document.createElement('input');
-                input.type  = 'hidden';
-                input.name  = 'product_selection';
+                input.type = 'hidden';
+                input.name = 'product_selection';
                 input.value = sel;
                 document.getElementById('checkoutForm').appendChild(input);
             }
@@ -337,6 +331,7 @@ window.checkoutAlpine = function () {
         },
         restoreAndValidateStateOnInit() {
             const selection = sessionStorage.getItem('selectedProductSelection');
+            this.form.product_selection = selection;
 
             // Wenn kein Produkt gewählt wurde, zurück zu Step 0
             if (!selection) {
@@ -411,17 +406,23 @@ window.checkoutAlpine = function () {
                 email: this.form.company_email
             };
 
-            const productId = sessionStorage.getItem('selectedProductId');
-            if (!productId) return;
+            const selection = sessionStorage.getItem('selectedProductSelection');
+            if (!selection) return;
 
-            fetch(`/get-product-details?product_id=${productId}&coupon_code=${sessionStorage.getItem('couponCode') || ''}`)
+            fetch(`/get-product-details?product_selection=${encodeURIComponent(selection)}&coupon_code=${sessionStorage.getItem('couponCode') || ''}`)
                 .then(res => res.json())
                 .then(data => {
-                    this.product = data;
-
-                    if (data.trial_period_days > 0) {
-                        this.product.trial_ends = this.addDaysToDate(data.trial_period_days);
-                    }
+                    // Nur gezielt relevante Felder setzen, nicht ganzes Objekt ersetzen!
+                    this.product.name = data.name;
+                    this.product.description = data.description;
+                    this.product.price = data.formattedPrice + ' €';
+                    this.product.rawPriceCents = data.price_cents;
+                    this.product.discountedPrice = data.discountedPrice || '';
+                    this.product.discounted = data.has_discount || false;
+                    this.product.formattedPrice = data.formattedPrice;
+                    this.product.modality = data.interval;
+                    this.product.trial_days = data.trial_period_days;
+                    this.product.trial_ends = data.trial_period_days > 0 ? this.addDaysToDate(data.trial_period_days) : '';
                 });
         }
     }

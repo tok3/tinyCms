@@ -178,7 +178,7 @@ padding-bottom:15px;
                 </button>
 
                 <!-- Weiter-Button nur bei Step 0, wenn Produkt gewählt -->
-                <template style="border:1px solid black;" x-if="step === 0 && form.product_id">
+                <template style="border:1px solid black;" x-if="step === 0 && form.product_selection">
                     <button
                         type="button"
                         class="btn btn-primary"

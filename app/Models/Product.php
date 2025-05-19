@@ -1,15 +1,17 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+
 class Product extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name', 'description','info','invoice_description', 'price', 'currency', 'payment_type', 'lz', 'interval','sequence', 'active', 'visible','upgrade','trial_period_days'
+        'name', 'description', 'info', 'invoice_description', 'price', 'currency', 'payment_type', 'lz', 'interval', 'sequence', 'active', 'visible', 'upgrade', 'trial_period_days'
     ];
 
     public static function boot()
@@ -19,7 +21,8 @@ class Product extends Model
         static::saving(function ($model) {
             $model->updateIntervalBasedOnPaymentType();
 
-            if (empty($model->invoice_description)) {
+            if (empty($model->invoice_description))
+            {
                 $model->invoice_description = $model->description;
             }
 
@@ -28,12 +31,30 @@ class Product extends Model
 
     }
 
-    public function priceFor(string $interval)
+    /**
+     * Liefert den Preis für ein Intervall.
+     *
+     * @param  string  $interval    Zahlungsintervall („monthly“, „annual“, …)
+     * @param  bool    $formatted   Wenn true, formatierten Euro-String zurückgeben
+     * @return int|string|null      Cent-Integer oder formatierter String oder null
+     */
+    public function priceFor(string $interval, bool $formatted = false)
     {
-        return $this->prices()            // Beziehung zu product_prices
-        ->where('interval', $interval)
-            ->first();
+        $priceModel = $this->prices->firstWhere('interval', $interval);
+
+        if (! $priceModel) {
+            return null;
+        }
+
+        $cents = $priceModel->price; // z. B. 69000
+
+        if (! $formatted) {
+            return $cents;             // rohe Cent-Zahl
+        }
+
+        return number_format($cents / 100, 2, ',', '.');
     }
+
     public function prices()
     {
         return $this->hasMany(ProductPrice::class)->orderBy('sort');
@@ -48,6 +69,7 @@ class Product extends Model
             ->withPivot('value')
             ->withTimestamps();
     }
+
     // Accessor to get the price in a formatted way
     public function getPriceAttribute($value)
     {
@@ -65,7 +87,8 @@ class Product extends Model
 
     public function updateIntervalBasedOnPaymentType()
     {
-        if ($this->payment_type === 'one_time') {
+        if ($this->payment_type === 'one_time')
+        {
             $this->interval = 'one_time';
         }
     }
@@ -73,7 +96,8 @@ class Product extends Model
     public function setUpgradeAttribute($value)
     {
         $this->attributes['upgrade'] = $value;
-        if ($value) {
+        if ($value)
+        {
             $this->attributes['visible'] = 0;
         }
     }

@@ -415,8 +415,7 @@ $(document).ready(function () {
 
     $('#offerAccept').click(function () {
         saveProductAndCouponToSession($(this).val());
-
-        window.location.href = redirectUrl;
+       window.location.href = redirectUrl;
     });
 
 

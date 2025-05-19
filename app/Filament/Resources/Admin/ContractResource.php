@@ -24,6 +24,10 @@ use Filament\Forms\Components\Placeholder;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\MultiSelect;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\HtmlString;
+use App\Forms\Components\InfoBox;
+
+
 class ContractResource extends Resource
 {
     protected static ?string $model = Contract::class;
@@ -114,7 +118,45 @@ class ContractResource extends Resource
                             ->required(),
                     ])
                     ->columns(2),
+                InfoBox::make()
+                    ->type('info')
+                    ->content(function ($record) {
+                        if (! $record) return null;
 
+                        $data = $record->data;
+
+                        // fallback falls nicht korrekt gecastet
+                        if (is_string($data)) {
+                            $data = json_decode($data, true);
+                        }
+
+                        $bemerkung = $data['bemerkung'] ?? null;
+                        $promotion = $data['promotion'] ?? null;
+
+                        if (! $bemerkung && ! $promotion) return null;
+
+                        $html = '<b>Hinweis</b><br>';
+
+                        if ($bemerkung) {
+                            $html .= e($bemerkung) . '<br>';
+                        }
+
+                        if (is_array($promotion)) {
+                            $html .= '<strong>Promotion:</strong> ' . e($promotion['name'] ?? 'Unbekannt') . '<br>';
+                            if (!empty($promotion['description'])) {
+                                $html .= '<small>' . e($promotion['description']) . '</small>';
+                            }
+                        }
+
+                        return new \Illuminate\Support\HtmlString($html);
+                    })
+                    ->visible(function ($record) {
+                        if (! $record || ! $record->data) return false;
+
+                        $data = is_array($record->data) ? $record->data : json_decode($record->data, true);
+
+                        return filled($data['promotion'] ?? null) || filled($data['bemerkung'] ?? null);
+                    }),
                 Section::make('Booked Features')
                     ->schema([
                         MultiSelect::make('features')

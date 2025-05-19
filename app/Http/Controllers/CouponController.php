@@ -20,7 +20,6 @@ class CouponController extends Controller
     public function redeem(Request $request)
     {
 
-
         $request->validate([
             'code' => 'required|string',
         ]);
@@ -40,20 +39,22 @@ class CouponController extends Controller
         $product = $promotion->product ?? null;
         $subtotal = $this->calculateTotalPrice($promotion, $product) ?? null;
 
+        $subtotalAll = $this->calculateTotalPrices($promotion, $product) ?? null;
+
         if ($promotion->product->active != 1 || $promotion->is_active != 1)
         {
             return redirect()->back()->withErrors(['code' => 'Das Angebot scheint nicht mehr gültig zu sein.']);
         }
         if (Carbon::parse($promotion->valid_till)->isPast())
         {
-            return redirect()->back()->withErrors(['code' => 'Das Angebot war leider nur bis ' .Carbon::parse($promotion->valid_till)->format('d.m.Y') . ' gültig.']);
+            return redirect()->back()->withErrors(['code' => 'Das Angebot war leider nur bis ' . Carbon::parse($promotion->valid_till)->format('d.m.Y') . ' gültig.']);
         }
 
 
         // Speichere den Gutscheincode in der Session
         Session::put('coupon_code', $coupon->code);
         Session::put('product_id', $coupon->promotion->product_id);
-        Session::put('interval', 'annual');
+        Session::put('interval', 'monthly');
 
 
         return view('redeem-code', [
@@ -61,7 +62,21 @@ class CouponController extends Controller
             'product' => $product,
             'promotion' => $promotion,
             'subtotal' => $subtotal,
+            'subtotalAll' => $subtotalAll,
         ]);
+    }
+
+    public function calculateTotalPrices($promotion, $product)
+    {
+
+        $subTotals = [];
+        foreach ($product->prices as $price)
+        {
+            $subTotals[$price->interval] = $this->calculateTotalPrice($promotion, $price->price, $price->interval);
+        }
+
+        return $subTotals;
+
     }
 
     /**
@@ -73,7 +88,15 @@ class CouponController extends Controller
      */
     public function calculateTotalPrice($promotion, $product, $formatOutput = true): mixed
     {
-        $originalPrice = $product->price / 100;
+        if (is_int($product))
+        {
+            $originalPrice = $product / 100;
+
+        }
+        elseif (is_object($product))
+        {
+            $originalPrice = $product->price / 100;
+        }
 
         if ($originalPrice < 1)
         {

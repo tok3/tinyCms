@@ -36,13 +36,13 @@
                 <tr>
                     <td class="align-text-top">Preis:</td>
                     <td>
-                        <strong x-show="!product.discounted" x-text="product.price">Lädt ...</strong><small>&nbsp;(inkl. MwSt.)</small>
+                        <strong x-show="!product.discounted" x-text="product.price">Lädt ...</strong>
                         <template x-if="product.discounted">
                             <div>
                                 <strong class="text-success" x-text="product.price"></strong><br>
                                 <small class="text-muted"><s x-text="product.formattedPrice + ' €'"></s></small>
                             </div>
-                        </template>
+                        </template><small>&nbsp;(inkl. MwSt.)</small>
                         <div>
                             <small x-html="product.modality"></small>
                         </div>

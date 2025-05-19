@@ -61,7 +61,7 @@ class CheckoutController extends MolliePaymentController
 
         $orderedProduct = Product::where('id', $productId)->first();
 
-        $orderedProduct->setAttribute('price', $orderedProduct->priceFor($interval)->price);
+        $orderedProduct->setAttribute('price', $orderedProduct->priceFor($interval));
         $orderedProduct->setAttribute('interval', $interval);
 
 
@@ -140,7 +140,7 @@ class CheckoutController extends MolliePaymentController
                     $orderedProduct->price = round($discountedPriceDecimal * 100); // Preis im Produkt überschreiben (zentral korrekt in Cent!)
 
                     $additionalData['promotion'] = $coupon->promotion;
-                    $additionalData['bemerkung'] = 'Product über Promocode erworben';
+                    $additionalData['bemerkung'] = 'Product über Promocode #'.$couponCode.' erworben';
                     session()->forget('coupon_code');
                 }
             }
@@ -400,9 +400,9 @@ class CheckoutController extends MolliePaymentController
 
             $cpCtrl   = new CouponController;
 
-            $subtotal = $cpCtrl->calculateTotalPrice($coupon->promotion, $product, $interval) ?? 0;
-            $subtotal = 621;
-            $formattedSubtotal = number_format($subtotal / 100, 2, ',', '.');
+            $subtotal = $cpCtrl->calculateTotalPrice($coupon->promotion, $priceModel,  false) ?? 0;
+            $formattedSubtotal = number_format($subtotal, 2, ',', '.');
+
 
             $productDetails = [
                 'name'                  => $product->name,
@@ -412,14 +412,12 @@ class CheckoutController extends MolliePaymentController
                     . "<br><span style=\"display:inline-block;text-align:right;\">"
                     . "<b>{$formattedBase} €</b><br><b>&minus; {$type}</b>"
                     . "</span>",
-                'price_cents'           => $subtotal,          // <— roher Cent-Wert nach Rabatt
                 'formattedPrice'        => $formattedSubtotal, // <— formatiert für Anzeige
                 'interval'              => $interval,
                 'trial_period_days'     => $product->trial_period_days,
                 'has_discount'          => true,
-                'discountedPriceCents'  => $subtotal,          // <— evtl. extra Feld
-                'discountedPrice'       => $formattedSubtotal, // <— string
-            ];
+                'discountedPriceCents'  => $subtotal * 100,          // <— evtl. extra Feld
+                 ];
         }
 
         return response()->json($productDetails);
