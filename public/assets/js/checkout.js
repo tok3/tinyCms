@@ -420,20 +420,16 @@ $(document).ready(function () {
 
 
 //-----------
-    function saveProductAndCouponToSession(selectedValue) {
-        // Speichern der übergebenen Produkt-ID im sessionStorage
-        if (selectedValue) {
-            sessionStorage.setItem('selectedProductId', selectedValue);
+    function saveProductAndCouponToSession(productId) {
+        const interval = document.querySelector('input[name="offer_interval"]:checked')?.value;
+
+        if (productId && interval) {
+            sessionStorage.setItem('selectedProductSelection', `${productId}:${interval}`);
         }
 
-        // Prüfen, ob das Eingabefeld mit der ID "code" existiert
-        if ($('#code').length > 0) {
-            var couponCode = $('#code').val();
-
-            // Speichern des Gutschein-Codes im sessionStorage
-            if (couponCode) {
-                sessionStorage.setItem('couponCode', couponCode);
-            }
+        const couponCode = document.getElementById('code')?.value;
+        if (couponCode) {
+            sessionStorage.setItem('couponCode', couponCode);
         }
     }
 
