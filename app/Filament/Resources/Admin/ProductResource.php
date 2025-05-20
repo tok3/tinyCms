@@ -82,7 +82,7 @@ class ProductResource extends Resource
                 Forms\Components\Section::make()
                     ->schema([
                         TextInput::make('invoice_description')
-                            ->label('Beschreibung für Rechnungsposition')
+                            ->label('Rechnungstext (Text für Position/Zeile für Produkt in auf der Rechnung)')
                             ->nullable(),
                     ])
                     ->columns(2),

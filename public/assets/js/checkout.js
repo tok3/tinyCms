@@ -1,230 +1,53 @@
 $(document).ready(function () {
-    // Smart Wizard Initialisierung
-    $('#smartwizard').smartWizard({
-        keyboardSettings: {
-            keyNavigation: false, // Enable/Disable keyboard navigation(left and right keys are used if enabled)
-        },
-        autoAdjustHeight: false,
-        backButtonSupport: true,
-        theme: 'square',
-        useURLhash: true,
-        lang: { // Language variables for button
-            next: 'Weiter',
-            previous: 'Zurück'
-        },
-        toolbarSettings: {
-            toolbarPosition: 'bottom',
-            showNextButton: true,  // Next-Button aktivieren
-            showPreviousButton: true // Zurück-Button aktivieren
-        }
-    });
 
+    window.updateProductSummary =  function updateProductDetails(productId, interval, couponCode = '') {
+        const selection = `${productId}:${interval}`;
 
-    // Smart Wizard: leaveStep Event
-    $("#smartwizard").on("leaveStep", function (e, anchorObject, currentStepIndex, nextStepIndex, stepDirection) {
+        $.ajax({
+            url: '/get-product-details',
+            method: 'GET',
+            data: {
+                product_selection: selection,
+                coupon_code: couponCode
+            },
+            success: function (data) {
+                // Name + Beschreibung
+                $('#product-name').text(data.name || '–');
+                $('#product-description').html(data.description || '');
 
-
-        if(event.keyCode == 39 || event.keyCode == 37) {
-            event.preventDefault();
-            return false;
-        }
-
-        // Prüfen, ob der Benutzer vorwärts geht (nicht rückwärts)
-        if (stepDirection === 'forward') {
-
-            // Wenn sich der Benutzer im ersten Schritt befindet (z.B. Step 0 für Registrierung)
-            if (currentStepIndex == 0) {
-
-            }
-            if (currentStepIndex === 1) {
-                // Prüfe, ob das Formular gültig ist
-                if ($('#checkout').valid()) {
-                    return true; // Das Formular ist valide, zum nächsten Schritt wechseln
+                // Preis & ggf. Rabatt
+                if (data.discountedPrice) {
+                    $('#product-price').text(data.discountedPrice + ' €');
+                    $('#product-price').addClass('text-success');
                 } else {
-                    // Formular ist ungültig, verhindere den Wechsel zum nächsten Schritt
-                    return false;
+                    $('#product-price').text(data.formattedPrice + ' €');
+                    $('#product-price').removeClass('text-success');
                 }
-            }
-            // Step 2: AGB und Datenschutz validieren (letzter Schritt)
-            if (currentStepIndex === 2) {
-                // Dynamisch nur die Validierungsregeln für AGB und Datenschutz aktivieren
-                $('#agb').rules('add', {
-                    required: true,
-                    messages: {
-                        required: "Bitte akzeptieren Sie die AGB."
-                    }
-                });
 
-                $('#privacy').rules('add', {
-                    required: true,
-                    messages: {
-                        required: "Bitte stimmen Sie den Datenschutzbestimmungen zu."
-                    }
-                });
+                // Zahlungsmodality
+                const modalityMap = {
+                    "weekly": "pro Woche </br>bei Monatlicher Zahlung",
+                    "daily": "pro Tag </br>bei Monatlicher Zahlung",
+                    "annual": "pro Jahr </br>bei jährlicher Zahlung",
+                    "monthly": "pro Monat </br>bei Monatlicher Zahlung",
+                    "one_time": "Einmalzahlung"
+                };
+                $('#payment-modality').html(modalityMap[data.interval] || '');
 
-                // Beide Checkboxen gleichzeitig validieren
-                var isAGBValid = $('#agb').valid();
-                var isPrivacyValid = $('#privacy').valid();
+                // Testphase sichtbar machen (optional)
+                if (data.trial_period_days > 0) {
+                    $('#trial-info').removeClass('hidden');
 
-                // Überprüfen, ob beide Felder valide sind
-                if (isAGBValid && isPrivacyValid) {
-                    sessionStorage.removeItem('couponCode');
-
-                    selectedProductId = sessionStorage.getItem('selectedProductId');
-
-                    $('<input>').attr({
-                        type: 'hidden',
-                        name: 'product_id',
-                        value: selectedProductId
-                    }).appendTo('#checkout');
-                        sessionStorage.removeItem("couponCode");
-                        $('#checkout').submit(); // Formular absenden
-
-                    return false; // Verhindert den Wechsel zu Step 4
+                    $('.trial-days').text(data.trial_period_days);
+                    $('.trial-price').text((data.discountedPrice ?? data.formattedPrice) + ' €');
+                    $('.trial-ends').text(addDaysToDate(data.trial_period_days));
+                    $('.trial-modality').html(getModalityText(data.interval));
                 } else {
-                    // Beide Felder validieren, aber verhindern, dass es weitergeht
-                    $('#agb').valid();
-                    $('#privacy').valid();
-                    return false; // Verhindere den Wechsel, wenn eine Checkbox nicht ausgewählt ist
+                    $('#trial-info').addClass('hidden');
                 }
-            }
-
-        }
-        return true; // Wenn der Schritt nicht validiert werden muss, einfach zum nächsten Schritt wechseln
-    }).on("showStep", function (e, anchorObject, stepIndex, stepDirection) {
-
-        // Scroll automatisch zu SmartWizzard Container
-        document.getElementById("smartWizzardContainer").scrollIntoView({
-            behavior: 'smooth' // für sanftes Scrollen
-        });
-
-
-        if (stepIndex === 0) {
-
-
-
-            // Überprüfe, ob `couponCode` und `selectedProductId` im sessionStorage existieren
-            const couponCode = sessionStorage.getItem('couponCode');
-            const selectedProductId = sessionStorage.getItem('selectedProductId');
-
-            if (couponCode || selectedProductId) {
-                // Lösche die Einträge aus dem sessionStorage
-                sessionStorage.removeItem('couponCode');
-                sessionStorage.removeItem('selectedProductId');
-
-                // AJAX-Call, um die PHP-Session-Variablen zu löschen
-                clearSessionVariables(['coupon_code', 'product_id']);
-
-                //removeHiddenInputs('product_id', 'coupon_code');
-            }
-
-        }
-
-
-        if (stepIndex === 2) {
-            // Firmendaten holen und anzeigen
-            var name = $('#name').val();
-            var vorname = $('#vorname').val();
-            var companyName = $('#compName').val();
-            var companyEmail = $('#compEmail').val();
-            var street = $('#str').val();
-            var houseNumber = $('#haus_nr').val();
-            var plz = $('#plz').val();
-            var ort = $('#ort').val();
-            var email = $('#email').val();
-
-            $('#customer-name').text(vorname + ' ' + name);
-            $('#company-name').text(companyName);
-            $('#customer-address').text(street);
-            $('#customer-plz-ort').text(plz + ' ' + ort);
-            $('#customer-email').text(email);
-            $('#company-email').text(companyEmail);
-
-
-            // Lade das ausgewählte Produkt aus der Session oder einem Input-Feld
-            var selectedProductId = sessionStorage.getItem('selectedProductId');
-
-            if (selectedProductId) {
-
-                updateProductDetails(selectedProductId);
-                // Wenn das Produkt geladen werden kann, Produktinformationen dynamisch aktualisieren
-
-            }
-
-
-            // Ändere den "Next"-Button zu "Kostenpflichtig bestellen"
-            var nextButton = $('#smartwizard').find('.sw-btn-next');
-            nextButton.text('Kostenpflichtig bestellen'); // Ändere den Button-Text
-            nextButton.off('click'); // Entferne den Standard-Click-Event
-
-            // Füge ein Submit-Event für den Button hinzu
-            nextButton.on('click', function (e) {
-                e.preventDefault();
-
-              //  $('#checkout').submit(); // Formular absenden
-            });
-
-        } else if (stepIndex === 3) {
-
-            validateFixHeight(e, 'checkout');
-
-            // Verberge alle Buttons im letzten Schritt (Step 4)
-            $('#smartwizard').find('.sw-btn-next, .sw-btn-prev, .sw-btn-group-extra').hide();
-        } else {
-
-            // Bei jedem anderen Schritt sicherstellen, dass der "Next"-Button den Text "Next" hat
-            var nextButton = $('#smartwizard').find('.sw-btn-next');
-            nextButton.text('Weiter'); // Zurücksetzen auf "Next"
-            nextButton.off('click'); // Entferne vorhandene Click-Events
-        }
-
-
-
-        // Wenn man zurückgeht, alle Buttons wieder einblenden
-        if (stepIndex !== 3) {
-
-
-            $('#smartwizard').find('.sw-btn-next, .sw-btn-prev, .sw-btn-group-extra').show();
-        }
-
-    });
-
-    // --------------
-// Funktion, die prüft, ob die Produktauswahl vorhanden ist
-    $("#smartwizard").on("showStep", function(e, anchorObject, stepIndex, stepDirection) {
-        // Für Step 2 (Index 1) und Step 3 (Index 2) prüfen, ob selectedProductId gesetzt ist
-        hideAllStepsExcept(stepIndex);
-        if (stepIndex === 1 || stepIndex === 2) {
-            var selectedProductId = sessionStorage.getItem('selectedProductId');
-            if (!selectedProductId) {
-                // Kein Produkt ausgewählt – springe auf Step 1 (Index 0)
-                $('#smartwizard').smartWizard('goToStep', 0);
-                return;
-            }
-        }
-
-        // Für Step 3 (Index 2) zusätzlich prüfen, ob im innerHTML von #company-email eine gültige Email steht
-        if (stepIndex === 2) {
-            var companyEmail = $('#company-email').text().trim();
-            // Hier wird eine einfache Prüfung durchgeführt: Muss ein "@" enthalten
-            if (!companyEmail || companyEmail.indexOf('@') === -1) {
-
-                $('#smartwizard').smartWizard('goToStep', 1);
-
-                return;
-            }
-        }
-
-        // Weitere Codeblöcke für die einzelnen Schritte ...
-    });
-
-    function hideAllStepsExcept(currentStepIndex) {
-        $("#smartwizard .tab-pane").each(function(index) {
-
-            if (index === currentStepIndex) {
-                $(this).show();
-            } else {
-                $(this).hide();
+            },
+            error: function (xhr) {
+                console.error('Fehler beim Laden der Produktdaten:', xhr.responseText);
             }
         });
     }
@@ -435,15 +258,6 @@ $(document).ready(function () {
 
 //-----------
 
-    function validateFixHeight(evt, formId) {
-
-        var height = $('.tab-pane').height();
-
-        $(".tab-content").height('3000px');
-    }
-
-//-----------
-
     /**
      * Löscht eine oder mehrere Session-Variablen auf dem Server.
      * @param {string|array} sessionKeys - Ein einzelner Schlüssel als String oder mehrere Schlüssel als Array.
@@ -478,6 +292,7 @@ $(document).ready(function () {
 
 
 //-----------
+/*
 
     window.updateProductDetails =  function updateProductDetails(selectedProductId) {
         $.ajax({
@@ -521,6 +336,7 @@ $(document).ready(function () {
             }
         });
     }
+*/
 
 //-----------
     $('#upgrade').on('click', function(){
@@ -588,10 +404,8 @@ $(document).ready(function () {
         }
     });
 
-//-----------
+
 });
-
-
 
 /*
 

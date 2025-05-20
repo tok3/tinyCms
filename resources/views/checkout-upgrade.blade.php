@@ -11,7 +11,7 @@
         $paymentModality['daily'] ="pro Tag </br>bei Monatlicher Zahlung";
         $paymentModality['annual'] ="pro Jahr </br>bei jährlicher Zahlung";
         $paymentModality['monthly'] ="pro Monat </br>bei Monatlicher Zahlung";
-        $paymentModality['one_time'] ="";
+        $paymentModality['one_time'] ="Einmalzahlung";
     @endphp
     <script>
 
@@ -64,6 +64,7 @@
                     @if (session()->has('coupon_code'))
                         <input type="hidden" name="coupon_code" value="{{ session('coupon_code') }}">
                     @endif
+                    <input type="hidden" name="product_selection" value="{{$product->id.':'.$interval }}">
 
 
                     @if (session()->has('product_id'))
@@ -73,7 +74,12 @@
                     <input type="hidden" name="company_id" value="{{Auth::user()->companies[0]->id}}">
 
 
-                    <x-site-partials.checkout.summary-upgrade :products="$products" :paymentModality="$paymentModality"/>
+                    <x-site-partials.checkout.summary-upgrade
+                        :product="$product"
+                        :interval="$interval"
+                        :price="$price"
+                        :coupon="$coupon"
+                    />
 
                     <button type="button" id="upgrade" class="btn btn-primary mb-2 me-1 " style="float:right;">Jetzt kostenpflichtig bestellen</button>
                 </form>
@@ -119,7 +125,7 @@
         <script>
 
             $(document).ready(function () {
-                updateProductDetails({{session('product_id')}});
+                //updateProductDetails({{session('product_id')}});
 
                 $('#customer-name').text("{{Auth::user()->name}}");
                 $('#company-name').text("{{Auth::user()->companies[0]->name}}");
@@ -133,4 +139,17 @@
         </script>
     @endpush
 
+    @push('scripts')
+        <script>
+            window.addEventListener('load', function () {
+                const productId = '{{ $product->id }}';
+                const interval = '{{ $interval }}';
+                const coupon = '{{ $coupon ?? '' }}';
+
+                if (productId && interval) {
+                    updateProductSummary(productId, interval, coupon);
+                }
+            });
+        </script>
+    @endpush
 </x-page-layout>

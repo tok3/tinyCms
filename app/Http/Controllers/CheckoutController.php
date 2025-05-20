@@ -343,14 +343,37 @@ class CheckoutController extends MolliePaymentController
      * @param Request $request
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Foundation\Application
      */
-    public function checkoutUpgrade(Request $request)
+    public function checkoutUpgrade(Product $product, Request $request)
     {
-        $request->session()->put('product_id', $request->product);
-        $products = Product::where(['active' => 1, 'visible' => 1])
-            ->orderBy('payment_type')->orderBy('id')->orderBy('sequence')->get();
+        $interval = $request->input('interval');
 
+        // Sicherheitsprüfung
+        if (! $interval || ! in_array($interval, ['monthly', 'annual', 'one_time'])) {
+            abort(400, 'Ungültiges Intervall.');
+        }
 
-        return view('checkout-upgrade', ['products' => $products]);
+        // Preis für dieses Intervall holen
+        $priceModel = $product->prices()->where('interval', $interval)->first();
+        if (! $priceModel) {
+            abort(404, 'Kein Preis für dieses Intervall gefunden.');
+        }
+
+        // Preis vorbereiten
+        $priceFormatted = number_format($priceModel->price / 100, 2, ',', '.');
+
+        // Optional: Coupon aus Session
+        $couponCode = session('coupon_code');
+
+        session()->put('selectedProductSelection', "{$product->id}:{$interval}");
+
+        // Weitergabe an View
+        return view('checkout-upgrade', [
+            'product' => $product,
+            'interval' => $interval,
+            'price' => $priceFormatted,
+            'coupon' => $couponCode,
+            // ggf. weitere Variablen wie Trial-Ends, etc.
+        ]);
     }
 
     /**

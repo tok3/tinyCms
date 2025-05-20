@@ -206,16 +206,24 @@
         </script>
         <script>
             const appUrl = "{{ config('app.url') }}";
-            @if(auth()->check() && (isset($product)))
-            // Falls der User eingeloggt ist und eine Company hat:
-            const redirectUrl = `${appUrl}/upgrade/{{$product->id}}`;
+
+            @if(auth()->check() && isset($product))
+            // Eingeloggter User: Hole den gewählten Intervall aus dem Radio
+            const getSelectedInterval = () => {
+                const selected = document.querySelector('input[name="offer_interval"]:checked');
+                return selected ? selected.value : 'monthly'; // fallback zu monthly
+            };
+
+            document.getElementById('offerAccept').addEventListener('click', function () {
+                const interval = getSelectedInterval();
+                const redirectUrl = `${appUrl}/upgrade/{{ $product->id }}?interval=${interval}`;
+                window.location.href = redirectUrl;
+            });
+
             @else
-            // Falls nicht:
+            // Nicht eingeloggt: redirect zu Preisseite
             const redirectUrl = `${appUrl}/preise#step-2`;
             @endif
-
-            // Beispiel: redirectUrl ausgeben
-            console.log(redirectUrl);
         </script>
 
         <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js?v1.1.9"></script>
