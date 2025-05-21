@@ -20,6 +20,9 @@ use Illuminate\Support\HtmlString;
 use App\Helpers\IconHelper;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
 class Pa11yUrlResource extends Resource
 {
     protected static ?string $model = Pa11yUrl::class;
@@ -205,6 +208,7 @@ class Pa11yUrlResource extends Resource
                     ]))
                     ->icon('heroicon-o-eye'),
                 */
+                /*
                 Tables\Actions\Action::make('view_pdf')
                     ->label('View Pdf')
                     ->url(fn($record) => Pa11yAccessibilityIssueResource::getUrl('index', [
@@ -214,6 +218,21 @@ class Pa11yUrlResource extends Resource
                         'print' => 'true',
                     ]))
                     ->icon('heroicon-o-eye'),
+
+                Tables\Actions\Action::make('view_pdf')
+                    ->label('View Pdf')
+                    ->action(function ($record) {
+                        return(app(\App\Http\Controllers\PublishStatsController::class)->exportIssuesPdf($record->id));
+                    })
+                    //->color('success')
+                    ->icon('heroicon-o-eye'),
+                    */
+                    Tables\Actions\Action::make('view_pdf')
+                    ->icon('heroicon-o-eye')
+                    ->label('View Pdf')
+                    ->url(fn ($record) => route('pdf.exportIssuesPdf', ['id' => $record->id]))
+                    ->openUrlInNewTab(),
+
 
                 Tables\Actions\Action::make('view_results')
                     ->label('View Results')

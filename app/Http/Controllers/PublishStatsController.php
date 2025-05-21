@@ -10,9 +10,11 @@ use App\Models\Pa11yUrl;
 use App\Models\Pa11yStatistic;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Response;
+//use Illuminate\Support\Facades\Response;
 use App\Models\CompanySetting;
-
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Response;
+use App\Models\PdfExport;
 
 class PublishStatsController extends Controller
 {
@@ -72,6 +74,98 @@ class PublishStatsController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
+
+    public function exportIssuesPdf($id): Response
+    {
+        $urlinfo = Pa11yUrl::findOrFail($id);
+        $showContrastErrors = CompanySetting::where('company_id', $urlinfo->company_id)->firstOrFail();
+
+        $query = Pa11yAccessibilityIssue::where('url_id', '=', $id);
+
+        if (!$showContrastErrors->contrast_errors) {
+            $query->whereNotIn('code', ['color-contrast', 'color-contrast-enhanced']);
+        }
+
+        $records = $query->get()->map(function ($record) {
+            foreach (['issue', 'selector', 'code', 'type', 'typeCode', 'context', 'standard', 'wcag_level'] as $field) {
+                if (isset($record->$field)) {
+                    $value = (string) $record->$field;
+                    if (!mb_check_encoding($value, 'UTF-8')) {
+                        $value = iconv('UTF-8', 'UTF-8//IGNORE', $value);
+                    }
+                    $record->$field = $value;
+                }
+            }
+            return $record;
+        });
+
+        $url = Pa11yUrl::findOrFail($id);
+        $company = Company::findOrFail($url->company_id);
+
+        $url->url = mb_check_encoding($url->url, 'UTF-8') ? $url->url : iconv('UTF-8', 'UTF-8//IGNORE', $url->url);
+        $company->name = mb_check_encoding($company->name, 'UTF-8') ? $company->name : iconv('UTF-8', 'UTF-8//IGNORE', $company->name);
+
+
+        $pdfExport = PdfExport::create([
+            'url' => $url->url,
+            'company_id' => $company->id,
+        ]);
+
+        // Get the ID of the saved record
+        $exportId = $pdfExport->id;
+        // Encode the ID to base62 +
+        $encodedId = $this->base62Encode($exportId .''. now()->timestamp);
+
+        // Generate the PDF content
+        $pdf = Pdf::loadView('pdf.legal', [
+            'records' => $records,
+            'url' => $url,
+            'company' => $company,
+            'exportDate' => now()->format('d.m.Y H:i:s'),
+            'encodedId' => $encodedId,
+        ])->setPaper('a4', 'landscape');
+
+        // Get the PDF binary content
+        $pdfContent = $pdf->output();
+
+        // Calculate the hash of the PDF content
+        $hash = hash('sha256', $pdfContent);
+
+        // Update the database record with the encoded ID
+        $pdfExport->update([
+            'encoded_id' => $encodedId,
+            'hash' => $hash,
+        ]);
+
+        // Return the PDF for download
+        return $pdf->download("issues_export_{$id}.pdf");
+    }
+
+    /**
+     * Encode a number to base62
+     *
+     * @param int $num
+     * @return string
+     */
+    private function base62Encode(int $num): string
+    {
+        $chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+        $base = 62;
+        $result = '';
+
+        if ($num === 0) {
+            return '0';
+        }
+
+        while ($num > 0) {
+            $remainder = $num % $base;
+            $result = $chars[$remainder] . $result;
+            $num = (int)($num / $base);
+        }
+
+        return $result;
+    }
+
 
     public function exportStatsCsv($id): StreamedResponse
     {

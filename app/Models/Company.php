@@ -253,4 +253,8 @@ class Company extends Model
         return $this->hasMany(Imagetag::class);
     }
 
+    public function pdfexports(){
+        return $this->hasMany(PdfExport::class);
+    }
+
 }

@@ -14,6 +14,7 @@ class Dashboard extends BaseDashboard
         return [
 
             FixsternIntegrationWidget::class,
+            \App\Filament\Widgets\PdfHashWidget::class,
         ];
     }
 }
