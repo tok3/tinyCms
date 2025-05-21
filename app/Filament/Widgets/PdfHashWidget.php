@@ -21,10 +21,10 @@ class PdfHashWidget extends Widget implements HasForms
 
     protected int|string|array $columnSpan = '1';
 
-    public ?TemporaryUploadedFile $uploadedFile = null;
+    //public ?TemporaryUploadedFile $uploadedFile = null;
     public $identifier = '';
     public $mode = 'identifier';
-    //public $uploadedFile = null; // Use string or null to store file ID, avoid serialization issues
+    public $uploadedFile = null; // Use string or null to store file ID, avoid serialization issues
 
     protected function getFormSchema(): array
     {
