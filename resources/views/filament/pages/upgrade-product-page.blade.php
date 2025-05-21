@@ -11,9 +11,6 @@
                     <div class="p-4 border border-gray-200 rounded-lg bg-white shadow">
                         <h3 class="text-xl font-bold text-gray-800">{{ $product->name }}</h3>
                         <p class="mt-2 text-gray-600">{{ $product->description }}</p>
-                        <div class="mt-4">
-                            <span class="font-bold text-gray-800">{{ $product->formatted_price }} {{ $product->currency }}</span>
-                        </div>
 
                         @if(
        auth()->check() &&
@@ -30,6 +27,10 @@
 
                             <div class="mt-4">
                                 <form action="{{ url('upgrade/' . $product->id) }}" method="GET" onsubmit="return this.interval.value !== '';">
+
+                                    <hr>
+                                    <table style="width:100%;"><tr><td>
+                                                <h5 class="font-semibold m-1">Zahlungsinterval</h5>
                                     @foreach ($product->prices as $price)
                                         <div>
                                             <label class="inline-flex items-center">
@@ -41,10 +42,11 @@
                                             </label>
                                         </div>
                                     @endforeach
-
+                                            </td><td class="text-right">
                                     <button type="submit" class="inline-block mt-4 py-2 px-4 bg-blue-600 text-white rounded">
-                                        Kaufen
+                                        Bestellen ...
                                     </button>
+                                            </td></tr></table>
                                 </form>
                             </div>
 

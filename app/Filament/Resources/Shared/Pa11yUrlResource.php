@@ -64,6 +64,8 @@ class Pa11yUrlResource extends Resource
 
 
         return $table
+            ->emptyStateHeading('Noch keine Daten vorhanden')
+            ->emptyStateDescription('Es wurden noch keine URLs zur Barrierefreiheitsprüfung erfasst.')
             ->columns([
 
 

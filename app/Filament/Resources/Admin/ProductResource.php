@@ -57,7 +57,7 @@ class ProductResource extends Resource
                             ])
                             ->columnSpan(1),  // die schmale 4. Spalte
                     ])
-                    ->columns(4),
+                    ->columns(6),
 
                 // ROW 2: Beschreibung
                 Forms\Components\Section::make()
@@ -87,7 +87,9 @@ class ProductResource extends Resource
                     ])
                     ->columns(2),
 
-                // ROW 3: Zahlungstyp
+
+
+                // ROW 4: Preis, Währung, Intervall, Laufzeit (nur wenn Zahlungstyp "recurrent") und Testzeitraum
                 Forms\Components\Section::make()
                     ->schema([
                         Select::make('payment_type')
@@ -105,45 +107,7 @@ class ProductResource extends Resource
                                     $set('interval', null);
                                 }
                             }),
-                    ])
-                    ->columns(4),
 
-                // ROW 4: Preis, Währung, Intervall, Laufzeit (nur wenn Zahlungstyp "recurrent") und Testzeitraum
-                Forms\Components\Section::make()
-                    ->schema([
-                        TextInput::make('price')
-                            ->label('Preis (€)')
-                            ->string()
-                            ->nullable()
-                            ->hidden(fn (callable $get) => !$get('payment_type'))
-                            ->afterStateHydrated(function ($set, $state) {
-                                $set('price', number_format($state / 100, 2, ',', '.'));
-                            })
-                            ->dehydrateStateUsing(function ($state) {
-                                return intval(str_replace(',', '.', str_replace('.', '', $state)) * 100);
-                            }),
-
-                        Select::make('currency')
-                            ->label('Währung')
-                            ->options([
-                                'EUR' => 'EUR - Euro',
-                                'USD' => 'USD - US Dollar',
-                                'GBP' => 'GBP - Britisches Pfund',
-                            ])
-                            ->default('EUR')
-                            ->hidden(fn (callable $get) => !$get('payment_type')),
-
-                        Select::make('interval')
-                            ->label('Zahlungsintervall')
-                            ->options([
-                                'daily'   => 'Täglich',
-                                'weekly'  => 'Wöchentlich',
-                                'monthly' => 'Monatlich',
-                                'annual'  => 'Jährlich',
-                            ])
-                            ->hidden(fn (callable $get) => $get('payment_type') !== 'recurrent'),
-
-                        // Neues Feld "Laufzeit" (Spalte lz in der Tabelle products)
                         TextInput::make('lz')
                             ->label('Laufzeit (Monate)')
                             ->numeric()
@@ -157,39 +121,42 @@ class ProductResource extends Resource
                     ])
                     ->columns(4),
 
-                Section::make('Preise')   // ← funktioniert jetzt, weil importiert
+    Section::make('Produktpreise')
+        ->extraAttributes(['class' => 'fi-section bg-gray-100'])
+        ->schema([
+            HasManyRepeater::make('prices')
+                ->label('Produktpreise')
+                ->addActionLabel('Produktpreis hinzufügen')
+                ->relationship('prices')
+                ->orderable('sort')
                 ->schema([
-                    HasManyRepeater::make('prices')
-                        ->relationship('prices')
-                        ->orderable('sort')
-                        ->schema([
-                            Select::make('interval')
-                                ->label('Zahlungsintervall')
-                                ->options([
-                                    'one_time' => 'Einmalzahlung',
-                                    'monthly'  => 'Monatlich',
-                                    'annual'   => 'Jährlich',
-                                ])
-                                ->required(),
-                            TextInput::make('price')
-                                ->label('Preis (€)')
-                                ->required()
-                                ->afterStateHydrated(function ($component, $state) {
-                                    if ($state !== null) {
-                                        $component->state(number_format($state / 100, 2, ',', '.'));
-                                    }
-                                })
-                                ->dehydrateStateUsing(function ($state) {
-                                    $normalized = str_replace(['.', ' '], ['', ''], $state);
-                                    $normalized = str_replace(',', '.', $normalized);
-                                    return (int) round((float) $normalized * 100);
-                                }),
+                    Select::make('interval')
+                        ->label('Zahlungsintervall')
+                        ->options([
+                            'one_time' => 'Einmalzahlung',
+                            'monthly'  => 'Monatlich',
+                            'annual'   => 'Jährlich',
                         ])
-                        ->columns(2)
-                        ->minItems(1)
-                        ->defaultItems(2),
+                        ->required(),
+                    TextInput::make('price')
+                        ->label('Preis (€)')
+                        ->required()
+                        ->afterStateHydrated(function ($component, $state) {
+                            if ($state !== null) {
+                                $component->state(number_format($state / 100, 2, ',', '.'));
+                            }
+                        })
+                        ->dehydrateStateUsing(function ($state) {
+                            $normalized = str_replace(['.', ' '], ['', ''], $state);
+                            $normalized = str_replace(',', '.', $normalized);
+                            return (int) round((float) $normalized * 100);
+                        }),
                 ])
-                    ->columns(1),
+                ->columns(2)
+                ->minItems(1)
+                ->defaultItems(1),
+        ])
+        ->columns(2),
                 // ROW 5: Features
                 Forms\Components\Section::make()
                     ->schema([

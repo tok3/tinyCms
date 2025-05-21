@@ -143,7 +143,7 @@ class ContractResource extends Resource
                     ->label('Name'),
                 Tables\Columns\TextColumn::make('product_description')
                     ->label('Beschreibung')
-                    ->formatStateUsing(fn ($state) => substr($state, 25)." ...")
+                    ->formatStateUsing(fn ($state) => substr($state, 0,55)." ...")
                     ->width('10%'),
                 Tables\Columns\TextColumn::make('price')
                     ->label('Preis (€)')

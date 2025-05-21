@@ -43,8 +43,8 @@
 
     <div class="col-sm-6 mb-4">
         <div class="h6 mb-2">Zusammenfassung der Bestellung:</div>
-        <table class="table table-borderless bg-light" id="listTotal">
-            <tbody>
+        <table class="table table-borderless bg-light " id="listTotal">
+            <tbody class="rounded" style="border:1px dashed lightgray;">
             <!-- Produktname & Beschreibung -->
             <tr>
                 <td class="text-nowrap">Beschreibung:</td>
