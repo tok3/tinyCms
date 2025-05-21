@@ -24,8 +24,20 @@ class PdfHashWidget extends Widget implements HasForms
     //public ?TemporaryUploadedFile $uploadedFile = null;
     public $identifier = '';
     public $mode = 'identifier';
-    public $uploadedFile = null; // Use string or null to store file ID, avoid serialization issues
-
+    //public $uploadedFile = null; // Use string or null to store file ID, avoid serialization issues
+    public $uploadedFile = null;
+    /*
+    public function mount(): void
+    {
+        foreach (get_object_vars($this) as $prop => $value) {
+            Log::debug('Livewire Property Check', [
+                'property' => $prop,
+                'type' => is_object($value) ? get_class($value) : gettype($value),
+                'value' => $value,
+            ]);
+        }
+    }
+    */
     protected function getFormSchema(): array
     {
         return [
@@ -46,7 +58,22 @@ class PdfHashWidget extends Widget implements HasForms
                 ->placeholder('e.g., 4C92F')
                 ->maxLength(10)
                 ->rule('regex:/^[0-9a-zA-Z]+$/'),
+Forms\Components\FileUpload::make('uploadedFile')
+    ->label('Upload PDF')
+    ->disk('local')
+    ->directory('livewire-tmp')
+    ->preserveFilenames()
+    ->dehydrated(false)     // Prevents serialization
+    ->reactive()
+    ->visible(fn ($get) => $get('mode') === 'upload')
+    ->required(fn ($get) => $get('mode') === 'upload')
+    ->validationMessages([
+        'required' => 'Bitte laden Sie ein PDF hoch.',
+        'mimes' => 'Nur PDF-Dateien sind erlaubt.',
+        'max' => 'Die Datei darf maximal 10MB groß sein.',
+    ]),
 
+                /*
             Forms\Components\FileUpload::make('uploadedFile')
                 ->label('Upload PDF')
                 ->acceptedFileTypes(['application/pdf'])
@@ -62,7 +89,7 @@ class PdfHashWidget extends Widget implements HasForms
                 ->disk('local')
                 ->directory('livewire-tmp')
                 ->preserveFilenames()
-                /*
+
                 ->afterStateUpdated(function ($state) {
                     Log::info('FileUpload state updated', [
                         'state' => is_array($state) ? $state : ($state ? get_class($state) : 'null'),
@@ -71,12 +98,14 @@ class PdfHashWidget extends Widget implements HasForms
                         'name' => $state instanceof TemporaryUploadedFile ? $state->getClientOriginalName() : null,
                     ]);
                 })
-                */
+
                 ->dehydrated(false), // Prevent serialization of TemporaryUploadedFile
+                */
         ];
     }
     public function submit()
     {
+
         try {
             Log::info('PdfHashWidget submit called', ['state' => $this->form->getState()]);
             $data = $this->form->getState();
@@ -120,7 +149,9 @@ class PdfHashWidget extends Widget implements HasForms
 
     private function handleUploadMode(): void
     {
-        $file = $this->uploadedFile;
+        //$file = $this->uploadedFile;
+        //$file = $this->form->getState()['data']['uploadedFile'] ?? null;
+        $file = $this->form->getState()['uploadedFile'] ?? null;
 
         if (!$file instanceof TemporaryUploadedFile) {
             Log::error('Invalid uploaded file', ['uploadedFile' => $file]);
@@ -164,8 +195,8 @@ class PdfHashWidget extends Widget implements HasForms
         }
 
         // Reset only the file-related state
-        $this->form->fill(['uploadedFile' => null]);
-        $this->uploadedFile = null;
+        //$this->form->fill(['uploadedFile' => null]);
+        //$this->uploadedFile = null;
     }
 
 
