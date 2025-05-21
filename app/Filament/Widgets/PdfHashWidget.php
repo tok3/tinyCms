@@ -10,18 +10,21 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 
 class PdfHashWidget extends Widget implements HasForms
 {
     use InteractsWithForms;
+    use WithFileUploads;
 
     protected static string $view = 'filament.widgets.pdf-hash-widget';
 
     protected int|string|array $columnSpan = '1';
 
+    public ?TemporaryUploadedFile $uploadedFile = null;
     public $identifier = '';
     public $mode = 'identifier';
-    public $uploadedFile = null; // Use string or null to store file ID, avoid serialization issues
+    //public $uploadedFile = null; // Use string or null to store file ID, avoid serialization issues
 
     protected function getFormSchema(): array
     {
@@ -72,10 +75,104 @@ class PdfHashWidget extends Widget implements HasForms
                 ->dehydrated(false), // Prevent serialization of TemporaryUploadedFile
         ];
     }
-
     public function submit()
     {
         try {
+            Log::info('PdfHashWidget submit called', ['state' => $this->form->getState()]);
+            $data = $this->form->getState();
+            $mode = $data['mode'] ?? 'identifier';
+
+            if ($mode === 'identifier') {
+                $this->handleIdentifierMode($data['identifier']);
+            } else {
+                $this->handleUploadMode();
+            }
+        } catch (\Exception $e) {
+            Log::error('PdfHashWidget error', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            Notification::make()
+                ->title('Error')
+                ->body('Ein Fehler ist aufgetreten: ' . e($e->getMessage()))
+                ->danger()
+                ->send();
+        }
+    }
+    private function handleIdentifierMode(string $identifier): void
+    {
+        $pdf = PdfExport::where('encoded_id', $identifier)->first();
+
+        if (!$pdf) {
+            Log::warning('No document found', ['identifier' => $identifier]);
+            Notification::make()
+                ->title('Error')
+                ->body('Kein Dokument mit der ID: <strong>' . e($identifier) . '</strong> gefunden.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        Log::info('Document found', ['identifier' => $identifier, 'hash' => $pdf->hash]);
+        Notification::make()
+            ->title('Success')
+            ->body('Document Hash: ' . e($pdf->hash))
+            ->success()
+            ->send();
+    }
+
+    private function handleUploadMode(): void
+    {
+        $file = $this->uploadedFile;
+
+        if (!$file instanceof TemporaryUploadedFile) {
+            Log::error('Invalid uploaded file', ['uploadedFile' => $file]);
+            Notification::make()
+                ->title('Error')
+                ->body('Kein gültiges PDF hochgeladen.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $filePath = $file->path();
+
+        if (!file_exists($filePath)) {
+            Log::error('Temporary file not found', ['path' => $filePath]);
+            Notification::make()
+                ->title('Error')
+                ->body('Die hochgeladene Datei konnte nicht gefunden werden.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $computedHash = hash_file('sha256', $filePath);
+        $pdf = PdfExport::where('hash', $computedHash)->first();
+
+        if ($pdf) {
+            Log::info('Matching document found', ['hash' => $computedHash, 'encoded_id' => $pdf->encoded_id]);
+            Notification::make()
+                ->title('Success')
+                ->body("Computed Hash: {$computedHash}\nMatches Document ID: {$pdf->encoded_id}")
+                ->success()
+                ->send();
+        } else {
+            Log::warning('No matching document found', ['hash' => $computedHash]);
+            Notification::make()
+                ->title('Success')
+                ->body("Computed Hash: {$computedHash}\nNo matching document found.")
+                ->warning()
+                ->send();
+        }
+
+        // Reset only the file-related state
+        $this->form->fill(['uploadedFile' => null]);
+        $this->uploadedFile = null;
+    }
+
+
+/*
+    public function submit()
+    {
+         try {
             Log::info('PdfHashWidget submit called', ['state' => $this->form->getState()]);
             $data = $this->form->getState();
 
@@ -160,4 +257,5 @@ class PdfHashWidget extends Widget implements HasForms
                 ->send();
         }
     }
+        */
 }
