@@ -21,7 +21,7 @@ class ImagetagResource extends Resource
 
 
     protected static ?string $model = Imagetag::class;
-    protected static ?string $recordTitleAttribute = 'Imagetags';
+    protected static ?string $recordTitleAttribute = 'description';
 
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
