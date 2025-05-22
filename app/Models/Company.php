@@ -257,4 +257,8 @@ class Company extends Model
         return $this->hasMany(PdfExport::class);
     }
 
+    public function eztexts(){
+        return $this->hasMany(Eztext::class);
+    }
+
 }

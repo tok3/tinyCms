@@ -65,7 +65,7 @@ class DashboardPanelProvider extends PanelProvider
 
                 //\App\Filament\Dashboard\Widgets\Pa11yStatChart::class,
                 \App\Filament\Dashboard\Widgets\FirmamentInfoWidget::class,
-                \App\Filament\Widgets\PdfHashWidget::class,
+                //\App\Filament\Widgets\PdfHashWidget::class,
                 //Widgets\FilamentInfoWidget::class,
 
             ])

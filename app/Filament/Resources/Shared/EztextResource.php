@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\Shared;
 
-use App\Filament\Resources\Shared\ImagetagResource\Pages;
-use App\Filament\Resources\Shared\ImagetagResource\RelationManagers;
-use App\Models\Imagetag;
+use App\Filament\Resources\Shared\EztextResource\Pages;
+use App\Filament\Resources\Shared\EztextResource\RelationManagers;
+use App\Models\Eztext;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -14,13 +14,17 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\DB;
-
-
-class ImagetagResource extends Resource
+use Illuminate\Support\Str;
+class EztextResource extends Resource
 {
-    protected static ?string $model = Imagetag::class;
-    protected static ?string $recordTitleAttribute = 'description';
+    protected static ?string $model = Eztext::class;
+    protected static ?string $recordTitleAttribute = 'text';
 
+
+    public static function getRecordTitle($record): ?string
+    {
+        return Str::limit($record->text, 30); // Replace 'name' with your attribute
+    }
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -41,41 +45,34 @@ class ImagetagResource extends Resource
                 ->unique()
                 ->values()
                 ->toArray();
-        if(in_array(4, $featureIds)){
+        if(in_array(8, $featureIds)){ //TODO feature id fuer eazytext
             return true;
         }
         return false;
     }
 
-    public static function canCreate(): bool
+        public static function canCreate(): bool
     {
         return false;
     }
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-               /* Forms\Components\TextInput::make('ulid')
-                    ->required()
+                Forms\Components\TextInput::make('ulid')
+                    ->label('Firmenkennung')
+                    ->disabled()
                     ->maxLength(26),
-                */
-
-
-                Forms\Components\TextInput::make('url')
-                    ->label('Image')
-                    ->view('filament.tables.columns.image-column-form'),
-                Forms\Components\TextInput::make('url')
+                Forms\Components\Textarea::make('text')
+                    ->label('Text')
+                    ->required(),
+                    //->columnSpanFull(),
+                Forms\Components\TextInput::make('count')
+                    ->label('Abrufe')
+                    ->numeric()
                     ->disabled(),
-                /*
-                Forms\Components\TextInput::make('hash')
-                    ->maxLength(255)
-                    ->default(null),
-                */
-                Forms\Components\Textarea::make('description')
-                    //->maxLength(255)
-                    ->label('Beschreibung')
-                    ->required()
-                    ->default(null),
+
 
             ]);
     }
@@ -84,32 +81,23 @@ class ImagetagResource extends Resource
     {
         return $table
             ->columns([
-                //Tables\Columns\TextColumn::make('ulid')
-                //    ->searchable(),
-                /*Tables\Columns\ImageColumn::make('url')
-                    ->label('Image')
-                    ->extraAttributes(['class' => 'w-24 h-24'])
+                Tables\Columns\TextColumn::make('ulid')
+                    ->label('Firmenkennung')
+                    ->sortable()
                     ->searchable(),
-                */
-                Tables\Columns\TextColumn::make('url')
-                    ->label('Image')
-                    ->view('filament.tables.columns.image-column'),
-                //Tables\Columns\TextColumn::make('hash')
-                //    ->searchable(),
-                Tables\Columns\TextColumn::make('description')
-                    ->label('Beschreibung')
+                Tables\Columns\TextColumn::make('text')
+                    ->label('Text')
                     ->wrap()
                     ->searchable(),
-
+                Tables\Columns\TextColumn::make('count')
+                    ->label('Abrufe')
+                    ->numeric()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -138,10 +126,10 @@ class ImagetagResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListImagetags::route('/'),
-            //'create' => Pages\CreateImagetag::route('/create'),
-            'view' => Pages\ViewImagetag::route('/{record}'),
-            'edit' => Pages\EditImagetag::route('/{record}/edit'),
+            'index' => Pages\ListEztexts::route('/'),
+            //'create' => Pages\CreateEztext::route('/create'),
+            'view' => Pages\ViewEztext::route('/{record}'),
+            'edit' => Pages\EditEztext::route('/{record}/edit'),
         ];
     }
 }
