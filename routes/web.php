@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\ScriptController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\Pa11yUrlController;
+use App\Http\Controllers\InkluCertController;
 
 /*
 |--------------------------------------------------------------------------
@@ -78,9 +79,8 @@ Route::get('/dashboard/logout', function () {
 
 
 // routes/web.php (temporary test route)
-Route::get('/test-livewire-config', function () {
-    return config('livewire.temporary_file_upload');
-});
+Route::get('/inklucert/pruefung', [InkluCertController::class, 'showInkluCertForm'])->name('inklucert.form');
+Route::post('/inklucert/pruefung', [InkluCertController::class, 'checkInkluCert'])->name('inklucert.check');
 
 use App\Http\Controllers\PublishStatsController;
 //Route::get('/export/csv/{id}', [PublishStatsController::class, 'exportCsv'])->name('export.csv');
@@ -216,6 +216,9 @@ Route::get('/sitemap.xml', [SitemapController::class, 'index']);
 // code einlösen
 Route::get('/code/einloesen', [CouponController::class, 'showRedeemForm'])->name('coupon.redeem');
 Route::post('/code/einloesen', [CouponController::class, 'redeem'])->name('coupon.redeem');
+
+
+
 
 // -----------------------------------------------
 Route::post('/clear-session', function (Request $request) {
