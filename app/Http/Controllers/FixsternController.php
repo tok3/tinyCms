@@ -49,7 +49,7 @@ class FixsternController extends Controller
                 'it' => "Permetti di tradurre questo testo senza commenti in una lingua semplice: ".$text,
                 'da' => "Oversæt følgende tekst til let dansk. Følg reglerne for let sprog. Brug sprogniveau A1 eller A2. Sæt et linjeskift mellem hver sætning. Undgå fremmedord eller forklar dem. Oversæt ord på fremmedsprog. En 10-årig skal forstå teksten. Skriv forkortelser ud først. Brug derefter forkortelsen i parentes. Lav korte hovedsætninger med cirka 8 ord. Brug kun linjeskift, ingen andre (HTML) koder: ".$text,
 
-"
+
             );
             //\Log::info("text: ".$text);
 
