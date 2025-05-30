@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\PreventRequestsDuringMaintenance;
 use App\Models\MollieCustomer;
 use App\Services\InvoiceService;
 use Carbon\Carbon;
@@ -51,8 +52,17 @@ class CheckoutController extends MolliePaymentController
     private function firstPayment(Request $request)
     {
 
+        $selection = $request->input('product_selection');       // z.B. "3:annual"
+        if (! $selection || ! str_contains($selection, ':')) {
+            abort(400, 'Ungültige Produktauswahl.');
+        }
 
-        $orderedProduct = Product::where('id', $request->input('product_id'))->first();
+        [$productId, $interval] = explode(':', $selection, 2);
+
+        $orderedProduct = Product::where('id', $productId)->first();
+
+        $orderedProduct->setAttribute('price', $orderedProduct->priceFor($interval));
+        $orderedProduct->setAttribute('interval', $interval);
 
 
         $couponCode = $request->input('coupon_code') ?? '0';
@@ -66,6 +76,8 @@ class CheckoutController extends MolliePaymentController
             $molieCostomer = $user->companies[0]->mollieCustomer;
             $customerID = $molieCostomer->mollie_customer_id;
             $billingEmail = $user->companies[0]->email;
+
+
         }
         else
         {
@@ -130,12 +142,12 @@ class CheckoutController extends MolliePaymentController
                     $orderedProduct->price = round($discountedPriceDecimal * 100); // Preis im Produkt überschreiben (zentral korrekt in Cent!)
 
                     $additionalData['promotion'] = $coupon->promotion;
-                    $additionalData['bemerkung'] = 'Product über Promocode erworben';
+                    $additionalData['bemerkung'] = 'Product über Promocode #'.$couponCode.' erworben';
                     session()->forget('coupon_code');
                 }
             }
 
-            $contract = $this->createContract($company, $orderedProduct, false, Carbon::now(), $additionalData);
+            $contract = $this->createContract($company, $orderedProduct, false, Carbon::now(), $additionalData, $interval);
 
             if ($orderedProduct->trial_period_days == 0)
             {
@@ -168,6 +180,7 @@ class CheckoutController extends MolliePaymentController
         // Zahlung erstellen
         $metadata = [
             "product_id" => $orderedProduct->id,
+            "interval" => $interval,
             "customer_id" => $customerID,
             "company" => $request->input('company')['name'],
             "coupon_code" => $request->input('coupon_code') ?? '0',
@@ -179,10 +192,10 @@ class CheckoutController extends MolliePaymentController
             $metadata['coupon_code'] = $couponCode;
         }
 
-        $descriptionText = FormatHelper::stripHtmlButKeepSpaces($orderedProduct->invoice_description ?: $orderedProduct->description);
+        $descriptionText = FormatHelper::stripHtmlButKeepSpaces($orderedProduct->invoice_text ?: $orderedProduct->description);
 
         $itemDescription = Str::limit(
-            $orderedProduct->name . ', ' . $descriptionText,
+             $descriptionText,
             $this->descriptionLength,
             '...'
         );
@@ -197,7 +210,7 @@ class CheckoutController extends MolliePaymentController
                 'billingEmail' => $billingEmail,
                 'description' => $itemDescription,
                 'redirectUrl' => $request->input('company_id')
-                    ? url('dashboard/' . $request->input('company_id') . '/subscriptions')
+                    ? url('dashboard/' . $request->input('company_id') . '/upgrade-page')
                     : url('preise#step-4'),
                 'webhookUrl' => route('mollie.paymentWebhook'),
                 "method" => ["creditcard", "directdebit", "paypal", "sofort", "klarnapaylater", "ideal", "banktransfer"],
@@ -217,7 +230,7 @@ class CheckoutController extends MolliePaymentController
                 'billingEmail' => $billingEmail,
                 'description' => $itemDescription,
                 'redirectUrl' => $request->input('company_id')
-                    ? url('dashboard/' . $request->input('company_id') . '/subscriptions')
+                    ? url('dashboard/' . $request->input('company_id') . '/upgrade-page')
                     : url('preise#step-4'),
                 'webhookUrl' => route('mollie.paymentWebhook'),
                 "method" => ["creditcard", "directdebit", "sofort", "klarnapaylater", "ideal", "paypal", "banktransfer"],
@@ -252,10 +265,10 @@ class CheckoutController extends MolliePaymentController
             $total_net = round($total_gross / (1 + ($tax_rate / 100)), 2); // Nettobetrag
             $tax = $total_gross - $total_net; // Steuerbetrag
 
-            $descriptionText = FormatHelper::stripHtmlButKeepSpaces($orderedProduct->invoice_description ?: $orderedProduct->description);
+            $descriptionText = FormatHelper::stripHtmlButKeepSpaces($orderedProduct->invoice_text ?: $orderedProduct->description);
 
             $itemDescription = Str::limit(
-                $orderedProduct->name . ', ' . $descriptionText,
+                 $descriptionText,
                 $this->descriptionLength,
                 '...'
             );
@@ -333,14 +346,37 @@ class CheckoutController extends MolliePaymentController
      * @param Request $request
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Foundation\Application
      */
-    public function checkoutUpgrade(Request $request)
+    public function checkoutUpgrade(Product $product, Request $request)
     {
-        $request->session()->put('product_id', $request->product);
-        $products = Product::where(['active' => 1, 'visible' => 1])
-            ->orderBy('payment_type')->orderBy('id')->orderBy('sequence')->get();
+        $interval = $request->input('interval');
 
+        // Sicherheitsprüfung
+        if (! $interval || ! in_array($interval, ['monthly', 'annual', 'one_time'])) {
+            abort(400, 'Ungültiges Intervall.');
+        }
 
-        return view('checkout-upgrade', ['products' => $products]);
+        // Preis für dieses Intervall holen
+        $priceModel = $product->prices()->where('interval', $interval)->first();
+        if (! $priceModel) {
+            abort(404, 'Kein Preis für dieses Intervall gefunden.');
+        }
+
+        // Preis vorbereiten
+        $priceFormatted = number_format($priceModel->price / 100, 2, ',', '.');
+
+        // Optional: Coupon aus Session
+        $couponCode = session('coupon_code');
+
+        session()->put('selectedProductSelection', "{$product->id}:{$interval}");
+
+        // Weitergabe an View
+        return view('checkout-upgrade', [
+            'product' => $product,
+            'interval' => $interval,
+            'price' => $priceFormatted,
+            'coupon' => $couponCode,
+            // ggf. weitere Variablen wie Trial-Ends, etc.
+        ]);
     }
 
     /**
@@ -350,57 +386,66 @@ class CheckoutController extends MolliePaymentController
      */
     public function getProductDetails(Request $request)
     {
-        // Produkt-ID aus der Session abrufen
-        $productId = $request->input('product_id');
-        $couponCode = $request->input('coupon_code');
-
-        if (!$productId)
-        {
-            return response()->json(['error' => 'Kein Produkt ausgewählt.'], 400);
+        // 1) Ziehe nur noch product_selection (z.B. "3:annual")
+        $selection  = $request->input('product_selection');
+        $couponCode = $request->input('coupon_code', '');
+        if (! $selection || ! str_contains($selection, ':')) {
+            return response()->json(['error' => 'Ungültige Produktauswahl.'], 400);
         }
+        [$productId, $interval] = explode(':', $selection, 2);
 
-        // Produktdetails anhand der Produkt-ID abrufen
+        // 2) Lade Produkt und den passenden Preis
         $product = Product::find($productId);
-
-        if (!$product)
-        {
+        if (! $product) {
             return response()->json(['error' => 'Produkt nicht gefunden.'], 404);
         }
-
-        // Produktdaten für die Ausgabe vorbereiten
-        $productDetails = [
-            'name' => $product->name,
-            'description' => $product->description,
-            'formattedPrice' => number_format($product->price / 100, 2, ',', '.'), // Preis in € formatieren
-            'interval' => $product->interval,
-            'trial_period_days' => $product->trial_period_days,
-            'laufzeit' => $product->lz
-        ];
-
-        if ($couponCode)
-        {
-            // Hier kannst du den Rabattcode validieren
-            $coupon = Coupon::where('code', $couponCode)->first();
-
-            // Produktdaten für die Ausgabe vorbereiten
-
-            $dicType = ($coupon->promotion->discount_type === 'fixed' ? $coupon->promotion->formatted_discount . ' €' : $coupon->promotion->formatted_discount . ' %');
-
-            $cpCtrl = new CouponController;
-            $subtotal = $cpCtrl->calculateTotalPrice($coupon->promotion, $product) ?? null;
-
-            $productDetails = [
-                'name' => $product->name,
-                'description' => $product->description . "<br> Aktionscode: <b>" . $coupon->code . '</b> angewendet.<br> ' . $coupon->promotion->description . '<br><span style="width:auto !important; display:inline-block; text-align:right;"><b>' . number_format($product->price / 100, 2, ',', '.') . ' &euro;</b><br><b>&minus; ' . $dicType . '</span>',
-                'formattedPrice' => $subtotal, // Preis in € formatieren
-                'interval' => $product->interval,
-                'trial_period_days' => $product->trial_period_days
-            ];
-
-
+        $priceModel = $product->prices()->where('interval', $interval)->first();
+        if (! $priceModel) {
+            return response()->json(['error' => 'Kein Preis für dieses Intervall gefunden.'], 404);
         }
 
-        // Rückgabe der Produktdetails als JSON
+        // 3) Basis-Antwort aufbauen
+        $basePriceCents = $priceModel->price;
+        $formattedBase  = number_format($basePriceCents / 100, 2, ',', '.');
+
+        $productDetails = [
+            'name'            => $product->name,
+            'description'     => $product->description,
+            'price_cents'     => $basePriceCents,        // <— Integer Cent-Wert
+            'formattedPrice'  => $formattedBase,         // <— String für Anzeige
+            'interval'        => $interval,
+            'trial_period_days' => $product->trial_period_days,
+            'laufzeit'        => $product->lz,
+        ];
+
+        // 4) Rabattcode
+        if ($couponCode && $coupon = Coupon::where('code', $couponCode)->first()) {
+            $type = $coupon->promotion->discount_type === 'fixed'
+                ? $coupon->promotion->formatted_discount . ' €'
+                : $coupon->promotion->formatted_discount . ' %';
+
+            $cpCtrl   = new CouponController;
+
+            $subtotal = $cpCtrl->calculateTotalPrice($coupon->promotion, $priceModel,  false) ?? 0;
+            $formattedSubtotal = number_format($subtotal, 2, ',', '.');
+
+
+            $productDetails = [
+                'name'                  => $product->name,
+                'description'           => $product->description
+                    . "<br>Aktionscode: <b>{$coupon->code}</b> angewendet.<br>"
+                    . $coupon->promotion->description
+                    . "<br><span style=\"display:inline-block;text-align:right;\">"
+                    . "<b>{$formattedBase} €</b><br><b>&minus; {$type}</b>"
+                    . "</span>",
+                'formattedPrice'        => $formattedSubtotal, // <— formatiert für Anzeige
+                'interval'              => $interval,
+                'trial_period_days'     => $product->trial_period_days,
+                'has_discount'          => true,
+                'discountedPriceCents'  => $subtotal * 100,          // <— evtl. extra Feld
+                 ];
+        }
+
         return response()->json($productDetails);
     }
 

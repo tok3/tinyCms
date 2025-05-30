@@ -89,7 +89,7 @@ class GenerateRecurringInvoices extends Command
                         'items' => [
                             [
                                 'id'                => '1',
-                                'description'       => $contract->product_name ?? 'Produkt aus Vertrag',
+                                'description'       => $contract->invoice_text ?? $contract->product_name,
                                 'quantity'          => 1,
                                 'line_total_amount' => $priceNet,
                             ],

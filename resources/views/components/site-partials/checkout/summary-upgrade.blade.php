@@ -1,3 +1,12 @@
+@php
+    $modalityTexts = [
+        'daily' => 'pro Tag</br>bei monatlicher Zahlung',
+        'annual' => 'pro Jahr</br>bei jährlicher Zahlung',
+        'monthly' => 'pro Monat</br>bei monatlicher Zahlung',
+        'one_time' => 'Einmalzahlung',
+    ];
+@endphp
+
 
 <style>
     .error {
@@ -11,7 +20,9 @@
         margin-left: 10px; /* Platz zwischen der Checkbox und dem Label-Text */
     }
 </style>
-<h4>Bestellinformationen</h4>
+<div class=" bg-light p-5 rounded mb-4">
+
+        <h4>Bestellinformationen</h4>
 <div class="row">
     <div class="col-sm-6 mb-4">
         <div class="h6 d mb-2">Rechnungsempfänger:</div>
@@ -20,44 +31,48 @@
         <div id="customer-address"></div>
         <div id="customer-plz-ort"></div>
         <br>
-        {{--<div id="customer-email"></div>
-        --}}<div id="company-email"></div>
+<div id="customer-email"></div>
+
+<div id="company-email"></div>
 
 
     </div>
 
     <div class="col-sm-6 mb-4">
         <div class="h6 mb-2">Zusammenfassung der Bestellung:</div>
-        <table id="listTotal">
-            <tbody>
+        <table class="table table-borderless bg-light " id="listTotal">
+            <tbody class="rounded" style="border:1px dashed lightgray;">
+            <!-- Produktname & Beschreibung -->
             <tr>
-                <td class="pr-3 align-text-top " style="white-space: nowrap!important;"><nowrap>Beschreibung:&nbsp</nowrap></td>
-                <td><strong id="product-name">
-                        <div class="xs spinner-border text-dark" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </strong>
-                    <p id="product-description">
-
-                    </p>
+                <td class="text-nowrap">Beschreibung:</td>
+                <td>
+                    <strong id="product-name">–</strong>
+                    <p id="product-description">–</p>
                 </td>
-
             </tr>
+
+            <!-- Preis & Rabatt -->
             <tr>
-                <td class="align-text-top">Preis:&nbsp</td>
-                <td><strong class="total-price"><div class="xs spinner-border text-dark" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div> </strong> <small id="payment-modality">%%filledInByJs%%</small></td>
+                <td class="align-text-top">Preis:</td>
+                <td>
+                    <strong id="product-price">–</strong>
+                    <small>&nbsp;(inkl. MwSt.)</small>
+                    <div>
+                        <small id="payment-modality"></small>
+                    </div>
+                </td>
             </tr>
 
-                <tr id="trial-period-row">
-                    <td class="align-text-top text-right text-danger" style="text-align: right !important;"><i class="bi bi-info-circle"></i>&nbsp;</td>
-                    <td class=" text-danger small"><strong id="product-trial-period">%%filledInByJs%%</strong>, Sie zahlen heute <strong>0,00 €</strong>, nutzen sie das Produkt über die Testphase hinaus, stellen wir Ihnen den Betrag von <strong class="total-price">placeholder</strong> am <span id="trial-period-ends">%trial-period-ends%</span> in Rechnung.
-
-                    </td>
-
-                </tr>
-
+            <!-- Testphase Hinweis -->
+            <tr id="trial-info" class="hidden">
+                <td class="text-danger align-top"><i class="bi bi-info-circle"></i></td>
+                <td class="text-danger small">
+                    <strong class="trial-days">–</strong> Tage kostenlose Testphase.<br>
+                    Sie zahlen heute <strong>0,00 €</strong>.<br>
+                    Nutzen Sie das Produkt über die Testphase hinaus,<br>
+                    stellen wir Ihnen am <span class="trial-ends">–</span> <strong class="trial-price">–</strong> <span class="trial-modality">–</span> in Rechnung.
+                </td>
+            </tr>
             </tbody>
         </table>
 
@@ -94,11 +109,8 @@
                 <label class="custom-control-label" for="privacy">Ja, ich stimme den <a href="/privacy" target="_blank">Datenschutzbestimmungen</a> zu.</label>
             </div>
         </div>
-        {{--<div class="form-group _text-end" id="by-invoice">
 
-            <input type="checkbox" name="pay_by_invoice"  value="1" >
-            <label for="pay_by_invoice">&nbsp;&nbsp;Kauf auf Rechnung</label>
 
-        </div>--}}
     </div>
+</div>
 </div>

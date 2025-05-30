@@ -15,6 +15,8 @@ use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\MultiSelect;
+use Filament\Forms\Components\HasManyRepeater;
+use Filament\Forms\Components\Section;      // ← HIER importieren
 use Filament\Support\Enums\Alignment;
 use Illuminate\Support\Str;
 use App\Helpers\FormatHelper;
@@ -49,18 +51,19 @@ class ProductResource extends Resource
                             ->numeric()
                             ->minValue(1)
                             ->maxValue(999)
+                            ->default(10)
                             ->extraInputAttributes([
                                 'style' => 'width: 4rem;',
                                 'class' => 'text-right',
                             ])
                             ->columnSpan(1),  // die schmale 4. Spalte
                     ])
-                    ->columns(4),
+                    ->columns(6),
 
                 // ROW 2: Beschreibung
                 Forms\Components\Section::make()
                     ->schema([
-                        Textarea::make('description')
+                        RichEditor::make('description')
                             ->label('Beschreibung Kurz')
                             ->extraInputAttributes([
                                 'style' => 'min-height: 5rem; max-height: 10rem; overflow-y: auto;',
@@ -68,24 +71,27 @@ class ProductResource extends Resource
                             ->nullable(),
                     ])
                     ->columns(2),
+
                 Forms\Components\Section::make()
                     ->schema([
                         RichEditor::make('info')
-                            ->label('Info/Eigenschaften')
-                            ->maxLength(1000),
+                            ->label('Info/Eigenschaften (wird in modal popup angezeigt)')
+                            ->maxLength(2000),
                     ])
                     ->columns(2),
 
                 // ROW 2: Beschreibung
                 Forms\Components\Section::make()
                     ->schema([
-                        TextInput::make('invoice_description')
-                            ->label('Beschreibung für Rechnungsposition')
-                            ->nullable(),
+                        TextInput::make('invoice_text')
+                            ->label('Rechnungstext (Text für Position/Zeile für Produkt auf der Rechnung)')
+                            ->required(),
                     ])
                     ->columns(2),
 
-                // ROW 3: Zahlungstyp
+
+
+                // ROW 4: Preis, Währung, Intervall, Laufzeit (nur wenn Zahlungstyp "recurrent") und Testzeitraum
                 Forms\Components\Section::make()
                     ->schema([
                         Select::make('payment_type')
@@ -103,45 +109,7 @@ class ProductResource extends Resource
                                     $set('interval', null);
                                 }
                             }),
-                    ])
-                    ->columns(4),
 
-                // ROW 4: Preis, Währung, Intervall, Laufzeit (nur wenn Zahlungstyp "recurrent") und Testzeitraum
-                Forms\Components\Section::make()
-                    ->schema([
-                        TextInput::make('price')
-                            ->label('Preis (€)')
-                            ->string()
-                            ->nullable()
-                            ->hidden(fn (callable $get) => !$get('payment_type'))
-                            ->afterStateHydrated(function ($set, $state) {
-                                $set('price', number_format($state / 100, 2, ',', '.'));
-                            })
-                            ->dehydrateStateUsing(function ($state) {
-                                return intval(str_replace(',', '.', str_replace('.', '', $state)) * 100);
-                            }),
-
-                        Select::make('currency')
-                            ->label('Währung')
-                            ->options([
-                                'EUR' => 'EUR - Euro',
-                                'USD' => 'USD - US Dollar',
-                                'GBP' => 'GBP - Britisches Pfund',
-                            ])
-                            ->default('EUR')
-                            ->hidden(fn (callable $get) => !$get('payment_type')),
-
-                        Select::make('interval')
-                            ->label('Zahlungsintervall')
-                            ->options([
-                                'daily'   => 'Täglich',
-                                'weekly'  => 'Wöchentlich',
-                                'monthly' => 'Monatlich',
-                                'annual'  => 'Jährlich',
-                            ])
-                            ->hidden(fn (callable $get) => $get('payment_type') !== 'recurrent'),
-
-                        // Neues Feld "Laufzeit" (Spalte lz in der Tabelle products)
                         TextInput::make('lz')
                             ->label('Laufzeit (Monate)')
                             ->numeric()
@@ -155,6 +123,42 @@ class ProductResource extends Resource
                     ])
                     ->columns(4),
 
+    Section::make('Produktpreise')
+        ->extraAttributes(['class' => 'fi-section bg-gray-100'])
+        ->schema([
+            HasManyRepeater::make('prices')
+                ->label('Produktpreise')
+                ->addActionLabel('Produktpreis hinzufügen')
+                ->relationship('prices')
+                ->orderable('sort')
+                ->schema([
+                    Select::make('interval')
+                        ->label('Zahlungsintervall')
+                        ->options([
+                            'one_time' => 'Einmalzahlung',
+                            'monthly'  => 'Monatlich',
+                            'annual'   => 'Jährlich',
+                        ])
+                        ->required(),
+                    TextInput::make('price')
+                        ->label('Preis (€)')
+                        ->required()
+                        ->afterStateHydrated(function ($component, $state) {
+                            if ($state !== null) {
+                                $component->state(number_format($state / 100, 2, ',', '.'));
+                            }
+                        })
+                        ->dehydrateStateUsing(function ($state) {
+                            $normalized = str_replace(['.', ' '], ['', ''], $state);
+                            $normalized = str_replace(',', '.', $normalized);
+                            return (int) round((float) $normalized * 100);
+                        }),
+                ])
+                ->columns(2)
+                ->minItems(1)
+                ->defaultItems(1),
+        ])
+        ->columns(2),
                 // ROW 5: Features
                 Forms\Components\Section::make()
                     ->schema([
@@ -212,14 +216,15 @@ class ProductResource extends Resource
                     ))
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('formatted_price')
-                    ->label('Preis')
-                    ->formatStateUsing(fn (string $state) => $state)
-                    ->alignment(Alignment::End),
-
-                Tables\Columns\TextColumn::make('currency')
-                    ->sortable()
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('prices')
+                    ->label('Preise')
+                    ->formatStateUsing(fn($state, $record) =>
+                    $record->prices
+                        ->map(fn($p) => "{$p->interval}: ".number_format($p->price/100,2,',','.').' €')
+                        ->implode(' / ')
+                    )
+                    ->sortable(false)
+                    ->searchable(false),
 
                 Tables\Columns\TextColumn::make('payment_type')
                     ->sortable()
@@ -240,10 +245,12 @@ class ProductResource extends Resource
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime(),
+                    ->dateTime()
+                ->sortable(),
 
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime(),
+                    ->dateTime()
+                ->sortable(),
             ])
             ->filters([])
             ->actions([

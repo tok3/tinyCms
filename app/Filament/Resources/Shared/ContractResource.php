@@ -8,6 +8,7 @@ use App\Models\Contract;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\Alignment;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,6 +22,9 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Get;
 use Filament\Tables\Actions\ViewAction;
 use Illuminate\Contracts\View\View;
+use Filament\Forms\Components\Placeholder;
+use Illuminate\Support\HtmlString;
+
 class ContractResource extends Resource
 {
     protected static ?string $model = Contract::class;
@@ -63,67 +67,49 @@ class ContractResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Section::make()
-                ->schema([
-                    Forms\Components\Select::make('contractable_id')
-                        ->label('Company')
-                        ->options(function () {
-                            return Company::all()->mapWithKeys(function (Company $company) {
-                                return [$company->id => "{$company->name} ({$company->id})"];
-                            })->all();
-                        })
-                        //->searchable()
-                        //->required(),
-                        ->disabled(),
-                    ])->columns(1),
-                Forms\Components\Select::make('product_id')
-                    ->label('Product')
-                    ->options(function () {
-                        return Product::all()->mapWithKeys(function (Product $product) {
-                            return [$product->id => "{$product->name} ({$product->id})"];
-                        })->all();
+                    ->schema([
+                        Placeholder::make('company')
+                            ->label('Firma')
+                            ->content(fn ($record) => $record->contractable?->name . ' (' . $record->contractable_id . ')'),
 
-                    })
-                    //->searchable()
-                    //->required(),
-                    ->disabled(),
-                Forms\Components\Select::make('interval')
-                    ->label('Interval')
-                    ->default('one_time')
-                    ->options([
-                        'one_time' => 'einmalig',
-                        'monthly' => 'monatlich',
-                        'annual' => 'jährlich',
-                    ])
-                    //->reactive()
-                    //->required()
-                    ->disabled(),
-                Forms\Components\TextInput::make('price')
-                    ->label('Preis')
-                    ->formatStateUsing(fn ($state) => number_format($state / 100, 2, ',', '.')." €")
-                    //->required(),
-                    ->disabled(),
-                Forms\Components\DateTimePicker::make('order_date')
-                    ->label('Bestelldatum')
-                    //->required(),
-                    ->disabled(),
-                Forms\Components\DateTimePicker::make('start_date')
-                    ->label('Startdatum')
-                    ->default(now()->toDateTimeString())
-                    //->live()
-                    //->required(),
-                    ->disabled(),
-                Forms\Components\TextInput::make('duration')
-                    ->label('Dauer')
-                    //->default(24)
-                    ->integer()
-                    //->live()
-                    //->required(),
-                    ->suffix('Monate')
-                    ->disabled(),
-                Forms\Components\DateTimePicker::make('end_date')
-                    ->label('Enddatum')
-                    //->live()
-                    ->disabled()
+                        Placeholder::make('product')
+                            ->label('Produkt')
+                            ->content(function ($record) {
+                                return new HtmlString(
+                                    '<strong>' . e($record->product_name) . '</strong><br>' .
+                                    '<span style="color: #6b7280;">' . e($record->product_description) . '</span>'
+                                );
+                            })->columnSpan(2),
+
+                        Placeholder::make('interval')
+                            ->label('Zahlungsinterval')
+                            ->content(fn ($record) => match ($record->interval) {
+                                'monthly' => 'monatlich',
+                                'annual' => 'jährlich',
+                                'one_time' => 'Einmalzahlung',
+                                default => 'einmalig',
+                            }),
+
+                        Placeholder::make('price')
+                            ->label('Preis')
+                            ->content(fn ($record) => number_format($record->price / 100, 2, ',', '.') . ' €'),
+
+                        Placeholder::make('order_date')
+                            ->label('Bestelldatum')
+                            ->content(fn ($record) => optional($record->order_date)->format('d.m.Y')),
+
+                        Placeholder::make('start_date')
+                            ->label('Startdatum')
+                            ->content(fn ($record) => optional($record->start_date)->format('d.m.Y')),
+
+                        Placeholder::make('duration')
+                            ->label('Dauer')
+                            ->content(fn ($record) => $record->duration . ' Monate'),
+
+                        Placeholder::make('end_date')
+                            ->label('Enddatum')
+                            ->content(fn ($record) => optional($record->end_date)->format('d.m.Y')),
+                    ])->columns(2)
                     ->dehydrateStateUsing(function (callable $get) {
                         $start = Carbon::parse($get('start_date'));
                         $duration = $get('duration');
@@ -153,16 +139,25 @@ class ContractResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Erworben am')
-                    ->dateTime('d.m.Y'),
+                    ->dateTime('d.m.Y')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('product_name')
-                    ->label('Name'),
+                    ->label('Name')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('product_description')
                     ->label('Beschreibung')
-                    ->formatStateUsing(fn ($state) => substr($state, 25)." ...")
+                    ->formatStateUsing(fn ($state) => strip_tags(substr($state, 0,55))." ...")
                     ->width('10%'),
                 Tables\Columns\TextColumn::make('price')
-                    ->label('Preis (€)')
-                    ->formatStateUsing(fn ($state) => number_format($state / 100, 2, ',', '.')." €"),
+                    ->label('Preis')
+                    ->formatStateUsing(fn ($state) => number_format($state / 100, 2, ',', '.')." €")
+                    ->alignment(Alignment::End)
+                ->sortable(),
+                Tables\Columns\TextColumn::make('price_gross')
+                    ->label(new \Illuminate\Support\HtmlString('Preis <small>(brutto)</small>'))
+                    ->html()
+                    ->formatStateUsing(fn ($state) => number_format($state / 100, 2, ',', '.')." €")
+                    ->alignment(Alignment::End),
                 Tables\Columns\TextColumn::make('interval')
                     ->label('Zahlung')
                     ->formatStateUsing(function ($state) {
@@ -170,7 +165,7 @@ class ContractResource extends Resource
                             'one_time' => 'einmalig',
                             'daily' => 'täglich',
                             'monthly' => 'monatlich',
-                            'annually' => 'jährlich',
+                            'annual' => 'jährlich',
                         ];
                         return $mapping[$state] ?? $state; // Return the mapped value or the original state if not found
                     }),
@@ -186,8 +181,22 @@ class ContractResource extends Resource
                 ->requiresConfirmation() // Optional: Adds a confirmation dialog
                 ->color('danger')
                 ->icon('heroicon-o-trash')
-                ->visible(fn ($record): bool => Carbon::parse($record->created_at)->greaterThan(Carbon::now()->subDays($record->data['ordered_product']['trial_period_days']))), // Show only for 'draft' status
+                    ->visible(function ($record): bool {
+                        $data = $record->data;
 
+                        // Falls data ein JSON-String ist, decode ihn
+                        if (is_string($data)) {
+                            $data = json_decode($data, true);
+                        }
+
+                        $trialDays = $data['ordered_product']['trial_period_days'] ?? null;
+
+                        if (! is_numeric($trialDays)) {
+                            return false;
+                        }
+
+                        return Carbon::parse($record->created_at)->greaterThan(Carbon::now()->subDays($trialDays));
+                    }),
                 ViewAction::make()
                     ->modal(true)
                     //->slideOver(true)

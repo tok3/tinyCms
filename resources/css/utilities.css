@@ -1,1 +1,5 @@
 @tailwind utilities;
+.fi-main > .mx-auto {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}

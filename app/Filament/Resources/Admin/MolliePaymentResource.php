@@ -240,6 +240,7 @@ class MolliePaymentResource extends Resource
 
 
             ])
+            ->defaultSort('paid_at', 'desc')
             ->filters([
                 //
             ])

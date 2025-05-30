@@ -57,24 +57,21 @@ window.checkoutAlpine = function () {
             this.initStepFromHash();
             this.restoreAndValidateStateOnInit();
 
-
-            const storedProductId = sessionStorage.getItem('selectedProductId');
-            if (storedProductId) {
-                this.form.product_id = storedProductId;
-
-                // Optionale automatische Daten-Nachladung (falls nicht eh schon woanders)
-                this.updateProductDetails(storedProductId);
-            }
         },
-        updateProductDetails(productId) {
+        updateProductDetails(selection) {
             const coupon = sessionStorage.getItem('couponCode') || '';
-
-            fetch(`/get-product-details?product_id=${productId}&coupon_code=${coupon}`)
-                .then(res => res.json())
+            fetch(`/get-product-details?product_selection=${encodeURIComponent(selection)}&coupon_code=${coupon}`)
+                .then(res => {
+                    if (!res.ok) throw new Error('BadRequest');
+                    return res.json();
+                })
                 .then(data => {
                     this.product.name        = data.name;
                     this.product.description = data.description;
                     this.product.price       = data.formattedPrice + ' €';
+
+                    // → HIER die rohe Cent-Zahl fürs spätere Rechnen speichern:
+                    this.product.rawPriceCents = data.price_cents;
 
                     // 1) Default-Laufzeit (falls null/undefined → 24)
                     const laufzeit     = (data.laufzeit ?? 24);
@@ -86,7 +83,7 @@ window.checkoutAlpine = function () {
                         daily:     'pro Tag</br>bei Monatlicher Zahlung',
                         annual:    'pro Jahr</br>bei jährlicher Zahlung',
                         monthly:   'pro Monat</br>bei Monatlicher Zahlung',
-                        one_time:  ''
+                        one_time:  'Einmalzahlung'
                     };
 
                     // 3) An jeden Text (außer one_time) Laufzeit-Suffix anhängen
@@ -99,12 +96,12 @@ window.checkoutAlpine = function () {
                         })
                     );
 
-                    // 4) Ergebnis setzen (oder leer, falls Interval unbekannt)
+                    // 4) Ergebnis setzen (oder leer, falls Intervall unbekannt)
                     this.product.modality = modalityTexts[data.interval] || '';
 
                     // Rabatt anzeigen, falls vorhanden
                     if (data.has_discount && data.discountedPrice) {
-                        this.product.price     = `${data.discountedPrice} € (statt ${data.formattedPrice} €)`;
+                        this.product.price     = `${data.formattedPrice} €`;
                         this.product.discounted = true;
                     } else {
                         this.product.discounted = false;
@@ -152,7 +149,7 @@ window.checkoutAlpine = function () {
             this.errors = {};
 
             if (this.step === 0) {
-                if (!sessionStorage.getItem('selectedProductId')) {
+                if (!sessionStorage.getItem('selectedProductSelection')) {
                     this.errors.product_id = 'Bitte ein Produkt auswählen.';
                     return;
                 }
@@ -239,10 +236,12 @@ window.checkoutAlpine = function () {
             }
         },
         watchStep() {
-            const productId = sessionStorage.getItem('selectedProductId');
-            if (!productId) return;
-            if ([0, 1, 2].includes(this.step)) {
-                this.updateProductDetails(productId);
+            // nur in der Zusammenfassung (step 2) nachladen
+            if (this.step === 2) {
+                const sel = sessionStorage.getItem('selectedProductSelection');
+                if (sel) {
+                    this.updateProductDetails(sel);
+                }
             }
         },
         buttonClass(index) {
@@ -255,22 +254,21 @@ window.checkoutAlpine = function () {
             }
         },
         ensureProductSynced() {
-            const productId = sessionStorage.getItem('selectedProductId');
-            if (productId) {
-                this.updateProductDetails(productId);
+            const sel = this.form.product_selection || sessionStorage.getItem('selectedProductSelection');
+            if (sel) {
+                this.updateProductDetails(sel);
             }
         },
         submitForm() {
-            const selectedProductId = sessionStorage.getItem('selectedProductId');
-
-            if (selectedProductId && !document.querySelector('input[name="product_id"]')) {
+            const sel = this.form.product_selection || sessionStorage.getItem('selectedProductSelection');
+            if (sel && !document.querySelector('input[name="product_selection"]')) {
                 const input = document.createElement('input');
                 input.type = 'hidden';
-                input.name = 'product_id';
-                input.value = selectedProductId;
-                document.getElementById('checkout').appendChild(input);
+                input.name = 'product_selection';
+                input.value = sel;
+                document.getElementById('checkoutForm').appendChild(input);
             }
-            sessionStorage.removeItem("couponCode");
+            sessionStorage.removeItem('couponCode');
             document.getElementById('checkoutForm').submit();
         },
         validateAndSubmit() {
@@ -322,10 +320,9 @@ window.checkoutAlpine = function () {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         },
         saveProductToSession(value) {
-            this.form.product_id = value;
-            sessionStorage.setItem('selectedProductId', value);
-
-            //nach produktauswahl direkt auf step 2
+            this.form.product_selection = value;
+            sessionStorage.setItem('selectedProductSelection', value);
+            // direkt zu Step 1 springen
             if (this.step === 0) {
                 this.step = 1;
                 window.location.hash = '#step-2';
@@ -333,17 +330,30 @@ window.checkoutAlpine = function () {
             }
         },
         restoreAndValidateStateOnInit() {
-            const productId = sessionStorage.getItem('selectedProductId');
+            const selection = sessionStorage.getItem('selectedProductSelection');
+            this.form.product_selection = selection;
 
             // Wenn kein Produkt gewählt wurde, zurück zu Step 0
-            if (!productId) {
+            if (!selection) {
                 this.step = 0;
                 window.location.hash = '#step-1';
                 return;
             }
 
+            // wenn wir auf Step 2 sind, aber Pflichtfelder leer → zurück zu 1
+            if (this.step === 2) {
+                const needed = ['vorname','name','company','company_email','street','plz','ort'];
+                const missing = needed.some(f => ! this.form[f]);
+                if (missing) {
+                    this.step = 1;
+                    window.location.hash = '#step-2';
+                    return;
+                }
+            }
+            const [productId, interval] = selection.split(':');
+
             // Produktdetails erneut laden
-            this.updateProductDetails(productId);
+            this.updateProductDetails(selection);
 
             // Wenn wir auf Step 2 (Zusammenfassung) sind, validiere vorherige Eingaben
             if (this.step === 2) {
@@ -376,15 +386,14 @@ window.checkoutAlpine = function () {
             }
             // Falls Step 0 → aktuelles Produkt im UI markieren (falls vorhanden)
             if (this.step === 0) {
-                const productId = sessionStorage.getItem('selectedProductId');
-                if (productId) {
+                if (selection) {
                     // Versuche, das passende Radio-Input zu aktivieren
-                    const radio = document.querySelector(`input[name="product_id"][value="${productId}"]`);
+                    const radio = document.querySelector(`input[name="product_selection"][value="${selection}"]`);
                     if (radio) {
                         radio.checked = true;
                     }
                     // Und sicherheitshalber nochmal Produktdaten laden
-                    this.updateProductDetails(productId);
+                    this.updateProductDetails(selection);
                 }
             }
         },
@@ -397,17 +406,23 @@ window.checkoutAlpine = function () {
                 email: this.form.company_email
             };
 
-            const productId = sessionStorage.getItem('selectedProductId');
-            if (!productId) return;
+            const selection = sessionStorage.getItem('selectedProductSelection');
+            if (!selection) return;
 
-            fetch(`/get-product-details?product_id=${productId}&coupon_code=${sessionStorage.getItem('couponCode') || ''}`)
+            fetch(`/get-product-details?product_selection=${encodeURIComponent(selection)}&coupon_code=${sessionStorage.getItem('couponCode') || ''}`)
                 .then(res => res.json())
                 .then(data => {
-                    this.product = data;
-
-                    if (data.trial_period_days > 0) {
-                        this.product.trial_ends = this.addDaysToDate(data.trial_period_days);
-                    }
+                    // Nur gezielt relevante Felder setzen, nicht ganzes Objekt ersetzen!
+                    this.product.name = data.name;
+                    this.product.description = data.description;
+                    this.product.price = data.formattedPrice + ' €';
+                    this.product.rawPriceCents = data.price_cents;
+                    this.product.discountedPrice = data.discountedPrice || '';
+                    this.product.discounted = data.has_discount || false;
+                    this.product.formattedPrice = data.formattedPrice;
+                    this.product.modality = data.interval;
+                    this.product.trial_days = data.trial_period_days;
+                    this.product.trial_ends = data.trial_period_days > 0 ? this.addDaysToDate(data.trial_period_days) : '';
                 });
         }
     }

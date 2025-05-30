@@ -16,7 +16,8 @@ class ListInvoices extends ListRecords
             Actions\Action::make('create-manual-invoice')
                 ->label('Manuelle Rechnung erstellen')
                 ->url(InvoiceResource::getUrl('create'))
-                ->icon('heroicon-o-plus'),
+                ->icon('heroicon-o-plus')
+                ->visible(fn () => auth()->user()?->is_admin),
         ];
     }
 }

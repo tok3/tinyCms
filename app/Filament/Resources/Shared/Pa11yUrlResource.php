@@ -30,6 +30,12 @@ class Pa11yUrlResource extends Resource
         return 'firmament-urls';
     }
 
+    public static function getBreadcrumb(): string
+    {
+
+        return 'URLs';
+    }
+
 
 
 
@@ -64,6 +70,8 @@ class Pa11yUrlResource extends Resource
 
 
         return $table
+            ->emptyStateHeading('Noch keine Daten vorhanden')
+            ->emptyStateDescription('Es wurden noch keine URLs zur Barrierefreiheitsprüfung erfasst.')
             ->columns([
 
 

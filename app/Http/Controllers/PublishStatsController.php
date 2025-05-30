@@ -52,7 +52,7 @@ class PublishStatsController extends Controller
 
             // Write the "merged" title row
             fputcsv($handle, $title);
-            fputcsv($handle, ['Fehler', 'Selector', 'Code', 'Type', 'Type code', 'Context', 'Standard', 'WCAG Level']);
+            fputcsv($handle, ['Fehler', 'Selector', 'Code', 'Type', 'Type code', 'Context', 'Standard', 'WCAG Level'],';');
 
             foreach($records as $record){
                 fputcsv($handle, [
@@ -62,10 +62,10 @@ class PublishStatsController extends Controller
                     $record->type,
                     $record->typeCode,
                     $record->context,
-                    $record->standard,
+                    '="' . $record->standard . '"',  // verhindert Konvertierung in Datum in Excel
                     $record->wcag_level,
 
-                ]);
+                ],';');
             }
             fclose($handle);
         };
@@ -102,17 +102,17 @@ class PublishStatsController extends Controller
 
             // Write the "merged" title row
             fputcsv($handle, $title);
-            fputcsv($handle, ['Datum', 'Standard', 'Level', 'Errors', 'Warnings', 'Notices']);
+            fputcsv($handle, ['Datum', 'Standard', 'Level', 'Errors', 'Warnings', 'Notices'],';');
 
             foreach($records as $record){
                 fputcsv($handle, [
                     $record->scanned_at,
-                    $record->standard,
+                    '="' . $record->standard . '"',  // verhindert Konvertierung in Datum in Excel
                     $record->wcag_level,
                     $record->error_count,
                     $record->warning_count,
                     $record->notice_count,
-                ]);
+                ], ';');
             }
             fclose($handle);
         };
@@ -138,7 +138,7 @@ class PublishStatsController extends Controller
 
         $file = fopen('php://temp', 'w+');
         //csv - header
-        fputcsv($file, ['date', 'total_error_count', 'total_warning_count', 'total_notice_count']);
+        fputcsv($file, ['date', 'total_error_count', 'total_warning_count', 'total_notice_count'],';');
         foreach($dates as $date){
 
 
@@ -179,7 +179,7 @@ class PublishStatsController extends Controller
                     $totalErrors,
                     $totalWarnings,
                     $totalNotices,
-                ]);
+                ],';');
             }
             rewind($file);
             $csvContent = stream_get_contents($file);
@@ -261,7 +261,7 @@ class PublishStatsController extends Controller
 
             // Write the "merged" title row
             fputcsv($handle, $title);
-            fputcsv($handle, ['URL', 'Fehler', 'Selector', 'Code', 'Type', 'Type code', 'Context', 'Standard', 'WCAG Level']);
+            fputcsv($handle, ['URL', 'Fehler', 'Selector', 'Code', 'Type', 'Type code', 'Context', 'Standard', 'WCAG Level'],';');
 
             foreach($records as $record){
                 fputcsv($handle, [
@@ -272,9 +272,9 @@ class PublishStatsController extends Controller
                     $record['type'],
                     $record['typeCode'],
                     $record['context'],
-                    $record['standard'],
+                    '="' .  $record['standard'] . '"',  // verhindert Konvertierung in Datum in Excel
                     $record['wcag_level'],
-                ]);
+                ],';');
             }
             fclose($handle);
         };

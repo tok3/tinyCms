@@ -52,6 +52,10 @@
                                 Zum Aktionscode <strong>#{{$coupon->code}}</strong> wurde folgendes Angebot gefunden:
                             </p>
 
+
+
+
+
                             <table class="table table-bordered">
                                 <!--Table header-->
                                 <thead>
@@ -64,47 +68,75 @@
                                 </thead>
                                 <!--Table body-->
                                 <tbody>
-                                @if($product->price > 1)
-                                    <tr>
-                                        <th scope="row">
-                                            <div class="d-flex justify-content-between flex-nowrap">
-                                                <small class="mb-0 d-block text-body-secondary"> </small>
-                                                <span class="h6 mb-0">{{$product->formatted_price}}&nbsp; &euro;</span>
-                                            </div>
-                                        </th>
+                                @if(is_array($subtotalAll))
 
-                                    </tr>
+                                    @foreach($subtotalAll as $interval => $price)
+                                        <tr data-interval="{{ $interval }}">
+                                            <th scope="row">
+                                                <div class="d-flex justify-content-between flex-nowrap">
+                                                    <small class="mb-0 d-block text-body-secondary"> </small>
+                                                    <span class="h6 mb-0"> {{ $product->priceFor($interval, true) }} &euro;</span>
+                                                </div>
+                                            </th>
 
-                                    <tr>
-                                        <th scope="row">
-                                            <div class="d-flex justify-content-between flex-nowrap">
-                                                <h6 class="mb-0"> {{$promotion->description}}</h6>
-                                                <span class="h6 mb-0"></span>
-                                            </div>
-                                        </th>
+                                        </tr>
 
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">
-                                            <div class="d-flex justify-content-between flex-nowrap">
-                                                <small class="mb-0 d-block text-body-secondary"></small>
-                                                <span
-                                                    class="h6 mb-0">&minus; {{ $promotion->discount_type === 'fixed' ? $promotion->formatted_discount . ' €' : $promotion->formatted_discount . ' %' }}</span>
-                                            </div>
-                                        </th>
+                                        <tr data-interval="{{ $interval }}">
+                                            <th scope="row">
+                                                <div class="d-flex justify-content-between flex-nowrap">
+                                                    <h6 class="mb-0"> {{$promotion->description}}</h6>
+                                                    <span class="h6 mb-0"></span>
+                                                </div>
+                                            </th>
 
-                                    </tr>
+                                        </tr>
+                                        <tr data-interval="{{ $interval }}">
+                                            <th scope="row">
+                                                <div class="d-flex justify-content-between flex-nowrap">
+                                                    <small class="mb-0 d-block text-body-secondary"></small>
+                                                    <span
+                                                        class="h6 mb-0">&minus; {{ $promotion->discount_type === 'fixed' ? $promotion->formatted_discount . ' €' : $promotion->formatted_discount . ' %' }}</span>
+                                                </div>
+                                            </th>
+
+                                        </tr>
+                                        <tr data-interval="{{ $interval }}">
+                                            <th scope="row">
+                                                <div class="d-flex justify-content-between flex-nowrap">
+                                                    <small class="mb-0 d-block text-body-secondary">Preis (inkl. MwSt.)</small>
+                                                    <span class="h6 mb-0">{{$price}}&nbsp; &euro;</span>
+                                                </div>
+                                            </th>
+                                        </tr>
+
+                                @endforeach
+
                                 @endif
-                                <tr>
-                                    <th scope="row">
-                                        <div class="d-flex justify-content-between flex-nowrap">
-                                            <small class="mb-0 d-block text-body-secondary">Preis (inkl. MwSt.)</small>
-                                            <span class="h6 mb-0">{{$subtotal}}&nbsp; &euro;</span>
-                                        </div>
-                                    </th>
-                                </tr>
-                            </table>
 
+                            </table>
+                            <fieldset class="p-2 mb-3">
+                                <legend class="h6">Zahlungsintervall:</legend>
+                                @php
+                                    $paymentInterval['annual'] = "jährlich";
+                                    $paymentInterval['monthly'] = "monatlich";
+                                    $paymentInterval['one_time'] = "Einmalzahlung";
+                                @endphp
+                                @foreach($subtotalAll as $interval => $price)
+                                    <div class="form-check form-check-inline">
+                                        <input
+                                            class="form-check-input"
+                                            type="radio"
+                                            name="offer_interval"
+                                            id="offer_interval_{{ $interval }}"
+                                            value="{{ $interval }}"
+                                            {{ $loop->first ? 'checked' : '' }}
+                                        >
+                                        <label class="form-check-label" for="offer_interval_{{ $interval }}">
+                                            {{ $paymentInterval[$interval]}}
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </fieldset>
 
                             <div>
 
@@ -115,6 +147,7 @@
                                 </div>
 
                                 <div class="d-grid">
+
                                     <button class="btn btn-primary" id="offerAccept" value="{{$product->id}}" type="submit">
                                         Angebot annehmen
                                     </button>
@@ -154,19 +187,45 @@
 
 
     @push('scripts')
-            <script>
-                const appUrl = "{{ config('app.url') }}";
-                @if(auth()->check() && (isset($product)))
-                // Falls der User eingeloggt ist und eine Company hat:
-                const redirectUrl = `${appUrl}/upgrade/{{$product->id}}`;
-                @else
-                // Falls nicht:
-                const redirectUrl = `${appUrl}/preise#step-2`;
-                @endif
+        <script>
+            function updateOfferDetails() {
+                const sel = document.querySelector('input[name="offer_interval"]:checked').value;
+                document.querySelectorAll('tbody tr[data-interval]').forEach(tr => {
+                    tr.style.display = (tr.dataset.interval === sel) ? '' : 'none';
+                });
+            }
 
-                // Beispiel: redirectUrl ausgeben
-                console.log(redirectUrl);
-            </script>
+            document.addEventListener('DOMContentLoaded', () => {
+                // Event-Handler auf alle Radios
+                document.querySelectorAll('input[name="offer_interval"]').forEach(radio => {
+                    radio.addEventListener('change', updateOfferDetails);
+                });
+                // Initial
+                updateOfferDetails();
+            });
+        </script>
+        <script>
+            const appUrl = "{{ config('app.url') }}";
+
+            @if(auth()->check() && isset($product))
+            // Eingeloggter User: Hole den gewählten Intervall aus dem Radio
+            const getSelectedInterval = () => {
+                const selected = document.querySelector('input[name="offer_interval"]:checked');
+                return selected ? selected.value : 'monthly'; // fallback zu monthly
+            };
+
+            document.getElementById('offerAccept').addEventListener('click', function () {
+                const interval = getSelectedInterval();
+                const redirectUrl = `${appUrl}/upgrade/{{ $product->id }}?interval=${interval}`;
+                window.location.href = redirectUrl;
+            });
+
+            @else
+            // Nicht eingeloggt: redirect zu Preisseite
+            const redirectUrl = `${appUrl}/preise#step-2`;
+            @endif
+        </script>
+
         <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js?v1.1.9"></script>
         <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js?v1.1.9"></script>
         <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/localization/messages_de.js"></script>

@@ -65,7 +65,8 @@ class MollieSubscriptionResource extends Resource
                     TextInput::make('amount_value')
                         ->label('Amount')
                         ->formatStateUsing(fn(string $state) => number_format($state, 2, ',', '.')),
-                    TextInput::make('description')->label('Description'),
+                    TextInput::make('description')
+                        ->label('Description'),
                     DatePicker::make('start_date')->label('Start Date'),
                     DatePicker::make('next_payment_date')->label('Next Payment Date'),
                 ]),
@@ -211,6 +212,7 @@ class MollieSubscriptionResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('description')
                     ->label('Description')
+                    ->formatStateUsing(fn ($state) => strip_tags(substr($state, 0,55))." ...")
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('interval')
@@ -239,7 +241,7 @@ class MollieSubscriptionResource extends Resource
 
 
             ])
-            ->defaultSort('id', 'desc')
+            ->defaultSort('start_date', 'desc')
             ->filters([
                 //
             ])

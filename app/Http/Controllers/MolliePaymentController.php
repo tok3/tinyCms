@@ -80,197 +80,101 @@ class MolliePaymentController extends Controller
      */
     public function handlePaymentNotification(Request $request)
     {
-        \Log::info('<---------------------------------->');
-        \Log::info('Payment Webhook: ' . $request->id . ' -> ' . json_encode($request->json()->all(), JSON_PRETTY_PRINT));
-        \Log::info('<---------------------------------->');
-
-        // Erhalte die Payment-ID aus dem Webhook-Request
+        \Log::info('<-- Webhook Start -->');
+        \Log::info('Payment Webhook: ' . $request->id);
 
         $paymentId = $request->id;
-
-        // Rufe die Zahlung über Mollie API ab
         $payment = Mollie::api()->payments->get($paymentId);
+        $metadata = $payment->metadata;
 
-        \Log::info('<---------------------------------->');
-        \Log::info('Payment: ' . $request->id . ' -> ' . json_encode($payment, JSON_PRETTY_PRINT));
-        \Log::info('<---------------------------------->');
+        $productId = $metadata->product_id ?? null;
+        $customerId = $payment->customerId ?? $metadata->customer_id ?? null;
+        $interval = $metadata->interval ?? 'monthly';
 
-        // Decode metadata from the payment object
-        $metadata = $payment->metadata; // Decode the metadata
-
-        // Access the product_id safely
-        $productId = $metadata->product_id ?? null; // Safely access the product_id
-        $customerId = $payment->customerId ?? $metadata->customer_id ?? null; // Kunden-ID aus Payment oder Metadaten
-
-        // Fetch the product based on the product_id
-
-        if ($productId)
-        {
-            $product = Product::find($productId); // Find the product by its ID
-        }
-        else
-        {
-            $product = null; // Handle the case where product_id is not found
-        }
-        // Logge die empfangenen Daten
-        //\Log::info('Webhook received payment: ' . __FILE__ . json_encode($request->all()) . ' | Payment: ' . json_encode($payment));
+        $product = $productId ? Product::find($productId) : null;
 
         MolliePayment::updateOrCreate(
-            ['payment_id' => $payment->id], // Bedingung: nach payment_id suchen
+            ['payment_id' => $payment->id],
             [
                 'mode' => $payment->mode,
                 'amount_value' => $payment->amount->value,
                 'amount_currency' => $payment->amount->currency,
                 'settlement_amount_value' => $payment->settlementAmount->value ?? 0.00,
                 'settlement_amount_currency' => $payment->settlementAmount->currency ?? $product->currency,
-                'amount_refunded_value' => $payment->amountRefunded->value ?? 0.00,
-                'amount_remaining_value' => $payment->amountRemaining->value ?? 0.00,
                 'description' => $payment->description,
                 'method' => $payment->method,
                 'status' => $payment->status,
                 'created_at' => $payment->createdAt,
                 'paid_at' => $payment->paidAt ?? null,
-                'canceled_at' => $payment->canceledAt ?? null,
-                'expires_at' => $payment->expiresAt ?? null,
-                'failed_at' => $payment->failedAt ?? null,
                 'due_date' => $payment->dueDate ?? null,
-                'billing_email' => $payment->billingAddress->email ?? null,
-                'profile_id' => $payment->profileId ?? null,
-                'sequence_type' => $payment->sequenceType,
-                'redirect_url' => $payment->redirectUrl ?? null,
-                'webhook_url' => $payment->webhookUrl ?? null,
-                'mandate_id' => $payment->mandateId ?? null,
-                'subscription_id' => $payment->subscriptionId ?? null,
-                'order_id' => $payment->orderId ?? null,
-                'customer_id' => $customerId ?? null,
-                'country_code' => $payment->countryCode ?? null,
-                'metadata' => json_encode($payment->metadata), // Metadaten als JSON speichern
-                'details' => json_encode($payment->details) // Details als JSON speichern
+                'customer_id' => $customerId,
+                'metadata' => json_encode($metadata),
+                'details' => json_encode($payment->details),
             ]
         );
 
+        $company = isset($metadata->company_id) && $metadata->company_id != 0
+            ? Company::find($metadata->company_id)
+            : $this->initCompanyAccount($customerId);
 
-        if (isset($metadata->company_id) && $metadata->company_id != 0)
-        {
-            // firma existiert bereits
-            $company = Company::where('id', $metadata->company_id)->first();
-        }
-        else
-        {
-            // firma und useraccount für firma initiieren
-            $company = $this->initCompanyAccount($customerId);
-        }
-
-
-        // Unterscheide, ob eine Subscription erstellt werden muss
-        if ($payment->sequenceType === 'first')
-        {
-
-            // Hole den Kunden anhand der Customer ID
+        if ($payment->sequenceType === 'first') {
             $mandates = $this->getMandates($customerId);
 
-            $hasValidMandate = false;
-            foreach ($mandates['_embedded']['mandates'] as $mandate)
-            {
-                if ($mandate['status'] === 'valid')
-                {
-                    $hasValidMandate = true;
-                    break;
-                }
-            }
+            $hasValidMandate = collect($mandates['_embedded']['mandates'] ?? [])->contains('status', 'valid');
+            $intervals = [
+                'daily' => '1 day',
+                'weekly' => '1 week',
+                'monthly' => '1 month',
+                'annual' => '12 months',
+            ];
 
+            $startDate = $this->getStartDate($interval, $product);
+            $priceModel = $product->prices->firstWhere('interval', $interval);
+            $productPriceDec = $priceModel ? number_format($priceModel->price / 100, 2, '.', '') : number_format($product->price / 100, 2, '.', '');
 
-            $intervals['daily'] = '1 day';
-            $intervals['weekly'] = '1 week';
-            $intervals['monthly'] = '1 month';
-            $intervals['annual'] = '12 months';
-
-
-            $startDate = $this->getStartDate($product);
-
-            \Log::info('<---------------------------------->');
-            \Log::info('MANDATE ' . $customerId . ' ' . $hasValidMandate . ' -> ' . json_encode($mandates, JSON_PRETTY_PRINT));
-            \Log::info('<---------------------------------->');
-
-            $productPriceDec = number_format($product->price / 100, 2, '.', '');
-
-            if (isset($metadata->coupon_code) && $metadata->coupon_code != 0)
-            {
+            if (!empty($metadata->coupon_code)) {
                 $coupon = Coupon::where('code', $metadata->coupon_code)->first();
-
                 $cpCtrl = new CouponController;
                 $productPriceDec = number_format($cpCtrl->calculateTotalPrice($coupon->promotion, $product, false), 2, '.', '');
 
-                if ($coupon->infinite !== 1)
-                {
+                if ($coupon->infinite !== 1) {
                     $coupon->redeem();
                 }
             }
 
-            if ($hasValidMandate === true)
-            {
-                // Erstelle die Subscription
-                // Subscription-Daten (Diese können je nach Bedarf angepasst werden)
+            if ($hasValidMandate) {
                 $subscriptionData = [
                     'amount' => [
                         'currency' => $product->currency,
-                        'value' => $productPriceDec,  // Betrag der Subscription
+                        'value' => $productPriceDec,
                     ],
-                    'interval' => $intervals[$product->interval], // Intervall für wiederkehrende Zahlungen
-                    'description' => $product->name . ' ' . $product->description, // Korrigierte Beschreibung
-                    'startDate' => $startDate, // Startdatum der ersten Abonnementzahlung
-                    //  'webhookUrl' => route('mollie.subscriptionWebhook'), // Webhook URL für Subscription-Events
+                    'interval' => $intervals[$interval],
+                    'description' => $product->name . ' ' . $product->description,
+                    'startDate' => $startDate,
                     'webhookUrl' => route('mollie.paymentWebhook'),
                     'metadata' => [],
                 ];
 
                 $subscription = $this->createSubscription($customerId, $subscriptionData);
-
-                //\Log::info('Subscription: ' . json_encode($subscription, JSON_PRETTY_PRINT));
-
                 $this->syncLocalSubscription($subscription);
 
-                // Add the subscription_id for the specified payment
-                if (isset($subscription->id))
-                {
-                    MolliePayment::where('payment_id', $payment->id)
-                        ->update(['subscription_id' => $subscription->id]);
+                if (isset($subscription->id)) {
+                    MolliePayment::where('payment_id', $payment->id)->update(['subscription_id' => $subscription->id]);
                 }
 
-                $product->price = $productPriceDec * 100; // $productPrice is decimal contract in database is integer format
-
-                // contract erstellen
+                $product->price = $priceModel ? $priceModel->price : $product->price;
 
                 $additionalData = [];
-                if (!empty($coupon))
-                {
+                if (!empty($coupon)) {
                     $additionalData['promotion'] = $coupon->promotion;
                     $additionalData['bemerkung'] = 'Product über Promocode erworben';
                 }
 
-                $this->createContract($company, $product, $subscription, $startDate, $additionalData);
+                $this->createContract($company, $product, $subscription, $startDate, $additionalData, $interval);
             }
-            else
-            {
-                // Falls kein gültiges Mandat existiert
-                \Log::error('No valid mandate found for customer: ' . $hasValidMandate . ' ' . $customerId);
-            }
-
-        }
-        elseif ($payment->subscriptionId !== null)
-        {
-            \Log::error('subsctiption JA aber kein first payment ');
-            $subscription = $this->getMollieSubscription($payment->subscriptionId, $payment->customerId);
-
-            // Aktualisiere oder speichere die Subscription in der Datenbank
-            $this->syncLocalSubscription($subscription);
-
         }
 
-        // Rechnung erstellen
         $this->prepareInvoice($payment->id);
-
-
     }
 
 
@@ -281,87 +185,57 @@ class MolliePaymentController extends Controller
      * @param $startDate
      * @return void
      */
-    public function createContract($company, $product, $subscription = false, $startDate, array $additionalData = [])
+    public function createContract($company, $product, $subscription = false, $startDate, array $additionalData = [], $interval = 'monthly')
     {
-        // Füge das Produkt zu den zusätzlichen Daten hinzu
         $additionalData['ordered_product'] = $product;
+        $subscriptionId = is_object($subscription) ? $subscription->id : null;
 
-        if (!is_object($subscription))
-        {
-            $subscriptionId = null;
-        }
-        else
-        {
-            $subscriptionId = $subscription->id;
-        }
+        $taxRate = config('accounting.tax_rate', 19);
+        $grossPriceCents = $product->price;
+        $netPriceEuro = ($grossPriceCents / 100) / (1 + ($taxRate / 100));
+        $netPriceCents = round($netPriceEuro * 100);
 
 
-        \Log::info('<---------------------------------->');
-        \Log::info('CONTRACT ERSTELLEN FÜR COMPANY: ' . json_encode($company, JSON_PRETTY_PRINT));
-        \Log::info('<---------------------------------->');
-
-        $duration = $product->lz ?? 24;
-
-        $taxRate = config('accounting.tax_rate', 19); // 19%
-
-        $grossPriceCents = $product->price; // z. B. 29000 Cent
-        $grossPriceEuro = $grossPriceCents / 100; // → 290.00 €
-
-        $netPriceEuro = $grossPriceEuro / (1 + ($taxRate / 100)); // → 243.697 €
-        $netPriceCents = round($netPriceEuro * 100); // → 24370
-
-        // Erstelle und speichere den Vertrag
         $contract = new Contract([
-            'contractable_type' => \App\Models\Company::class,
-            'contractable_id' => $company->id, // Verknüpfung mit der Company
+            'contractable_type' => Company::class,
+            'contractable_id' => $company->id,
             'product_id' => $product->id,
-            'interval' => $product->interval,
+            'invoice_text' => $product->invoice_text,
+            'interval' => $interval,
             'price' => $netPriceCents,
             'subscription_id' => $subscriptionId,
             'subscription_start_date' => $startDate,
-            'duration' => $duration,
-            'data' => json_encode($additionalData), // JSON-Daten speichern
-            'order_date' => Carbon::now(),
-            'start_date' => \Carbon\Carbon::now()->addDays($product->trial_period_days),
-            'end_date' => Carbon::now()->addDays($product->trial_period_days)->addMonths($duration), // Enddatum berechnen
+            'duration' => $product->lz ?? 24,
+            'data' => json_encode($additionalData),
+            'order_date' => now(),
+            'start_date' => now()->addDays($product->trial_period_days),
+            'end_date' => now()->addDays($product->trial_period_days)->addMonths($product->lz ?? 24),
         ]);
 
         $contract->save();
-
         $this->contractID = $contract->id;
-
-        \Log::info('Contract erfolgreich erstellt: ' . json_encode($contract, JSON_PRETTY_PRINT));
 
         return $contract;
     }
+
 
     /**
      * @param $product
      * @return string
      */
-    private function getStartDate($product)
+    private function getStartDate($interval, $product)
     {
-        // Falls eine Testperiode existiert, füge die Testtage hinzu
-        if ($product->trial_period_days > 0)
-        {
+        if ($product->trial_period_days > 0) {
             return now()->addDays($product->trial_period_days)->toDateString();
         }
 
-        // Falls keine Testperiode existiert, bestimme das Startdatum basierend auf dem Intervall
-        switch ($product->interval)
-        {
-            case 'daily':
-                return now()->addDay()->toDateString();
-            case 'weekly':
-                return now()->addWeek()->toDateString();
-            case 'monthly':
-                return now()->addMonth()->toDateString();
-            case 'annual':
-                return now()->addYear()->toDateString();
-            default:
-                // Fallback-Startdatum, falls kein Intervall vorhanden oder ungenau ist
-                return now()->toDateString();
-        }
+        return match ($interval) {
+            'daily' => now()->addDay()->toDateString(),
+            'weekly' => now()->addWeek()->toDateString(),
+            'monthly' => now()->addMonth()->toDateString(),
+            'annual' => now()->addYear()->toDateString(),
+            default => now()->toDateString(),
+        };
     }
 
 

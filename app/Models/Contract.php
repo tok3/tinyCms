@@ -3,6 +3,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+
 
 class Contract extends Model
 {
@@ -22,6 +24,7 @@ class Contract extends Model
         'product_id',
         'product_name',
         'product_description',
+        'invoice_text',
         'price',
         'setup_fee',
         'interval',
@@ -132,4 +135,17 @@ class Contract extends Model
         return number_format($this->setup_fee / 100, 2, ',', '.');
     }
 
+    protected function priceGross(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => round($this->price * (1 + config('accounting.tax_rate') / 100), 2),
+        );
+    }
+
+    protected function priceGrossFormatted(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => number_format($this->price * (1 + config('accounting.tax_rate') / 100), 2, ',', '.') . ' €',
+        );
+    }
 }

@@ -9,4 +9,9 @@ use Filament\Resources\Pages\ViewRecord;
 class ViewContract extends ViewRecord
 {
     protected static string $resource = ContractResource::class;
+
+    public function getTitle(): string
+    {
+        return __('Vertragsinformation'); // Angepasster Seitentitel
+    }
 }
