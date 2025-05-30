@@ -30,6 +30,12 @@ class Pa11yUrlResource extends Resource
         return 'firmament-urls';
     }
 
+    public static function getBreadcrumb(): string
+    {
+
+        return 'URLs';
+    }
+
 
 
 
