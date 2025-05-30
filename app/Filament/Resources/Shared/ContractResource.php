@@ -8,6 +8,7 @@ use App\Models\Contract;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\Alignment;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -95,11 +96,11 @@ class ContractResource extends Resource
 
                         Placeholder::make('order_date')
                             ->label('Bestelldatum')
-                            ->content(fn ($record) => optional($record->order_date)->format('d.m.Y H:i')),
+                            ->content(fn ($record) => optional($record->order_date)->format('d.m.Y')),
 
                         Placeholder::make('start_date')
                             ->label('Startdatum')
-                            ->content(fn ($record) => optional($record->start_date)->format('d.m.Y H:i')),
+                            ->content(fn ($record) => optional($record->start_date)->format('d.m.Y')),
 
                         Placeholder::make('duration')
                             ->label('Dauer')
@@ -107,7 +108,7 @@ class ContractResource extends Resource
 
                         Placeholder::make('end_date')
                             ->label('Enddatum')
-                            ->content(fn ($record) => optional($record->end_date)->format('d.m.Y H:i')),
+                            ->content(fn ($record) => optional($record->end_date)->format('d.m.Y')),
                     ])->columns(2)
                     ->dehydrateStateUsing(function (callable $get) {
                         $start = Carbon::parse($get('start_date'));
@@ -138,16 +139,25 @@ class ContractResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Erworben am')
-                    ->dateTime('d.m.Y'),
+                    ->dateTime('d.m.Y')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('product_name')
-                    ->label('Name'),
+                    ->label('Name')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('product_description')
                     ->label('Beschreibung')
-                    ->formatStateUsing(fn ($state) => substr($state, 0,55)." ...")
+                    ->formatStateUsing(fn ($state) => strip_tags(substr($state, 0,55))." ...")
                     ->width('10%'),
                 Tables\Columns\TextColumn::make('price')
-                    ->label('Preis (€)')
-                    ->formatStateUsing(fn ($state) => number_format($state / 100, 2, ',', '.')." €"),
+                    ->label('Preis')
+                    ->formatStateUsing(fn ($state) => number_format($state / 100, 2, ',', '.')." €")
+                    ->alignment(Alignment::End)
+                ->sortable(),
+                Tables\Columns\TextColumn::make('price_gross')
+                    ->label(new \Illuminate\Support\HtmlString('Preis <small>(brutto)</small>'))
+                    ->html()
+                    ->formatStateUsing(fn ($state) => number_format($state / 100, 2, ',', '.')." €")
+                    ->alignment(Alignment::End),
                 Tables\Columns\TextColumn::make('interval')
                     ->label('Zahlung')
                     ->formatStateUsing(function ($state) {
@@ -155,7 +165,7 @@ class ContractResource extends Resource
                             'one_time' => 'einmalig',
                             'daily' => 'täglich',
                             'monthly' => 'monatlich',
-                            'annually' => 'jährlich',
+                            'annual' => 'jährlich',
                         ];
                         return $mapping[$state] ?? $state; // Return the mapped value or the original state if not found
                     }),

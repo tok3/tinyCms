@@ -11,7 +11,7 @@ class Product extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name', 'description', 'info', 'invoice_description', 'price', 'currency', 'payment_type', 'lz', 'interval', 'sequence', 'active', 'visible', 'upgrade', 'trial_period_days'
+        'name', 'description', 'info', 'invoice_text', 'price', 'currency', 'payment_type', 'lz', 'interval', 'sequence', 'active', 'visible', 'upgrade', 'trial_period_days'
     ];
 
     public static function boot()
@@ -21,9 +21,9 @@ class Product extends Model
         static::saving(function ($model) {
             $model->updateIntervalBasedOnPaymentType();
 
-            if (empty($model->invoice_description))
+            if (empty($model->invoice_text))
             {
-                $model->invoice_description = $model->description;
+                $model->invoice_text = $model->description;
             }
 
         });

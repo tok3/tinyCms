@@ -8,9 +8,6 @@
 @endphp
 
 
-
-
-
 <style>
     .error {
         color: red; /* Fehlerfarbe */
@@ -25,7 +22,7 @@
 </style>
 <div class=" bg-light p-5 rounded mb-4">
 
-<h4>Bestellinformationen</h4>
+        <h4>Bestellinformationen</h4>
 <div class="row">
     <div class="col-sm-6 mb-4">
         <div class="h6 d mb-2">Rechnungsempfänger:</div>

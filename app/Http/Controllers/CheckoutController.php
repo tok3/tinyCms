@@ -76,6 +76,8 @@ class CheckoutController extends MolliePaymentController
             $molieCostomer = $user->companies[0]->mollieCustomer;
             $customerID = $molieCostomer->mollie_customer_id;
             $billingEmail = $user->companies[0]->email;
+
+
         }
         else
         {
@@ -145,7 +147,7 @@ class CheckoutController extends MolliePaymentController
                 }
             }
 
-            $contract = $this->createContract($company, $orderedProduct, false, Carbon::now(), $additionalData);
+            $contract = $this->createContract($company, $orderedProduct, false, Carbon::now(), $additionalData, $interval);
 
             if ($orderedProduct->trial_period_days == 0)
             {
@@ -178,6 +180,7 @@ class CheckoutController extends MolliePaymentController
         // Zahlung erstellen
         $metadata = [
             "product_id" => $orderedProduct->id,
+            "interval" => $interval,
             "customer_id" => $customerID,
             "company" => $request->input('company')['name'],
             "coupon_code" => $request->input('coupon_code') ?? '0',
@@ -189,10 +192,10 @@ class CheckoutController extends MolliePaymentController
             $metadata['coupon_code'] = $couponCode;
         }
 
-        $descriptionText = FormatHelper::stripHtmlButKeepSpaces($orderedProduct->invoice_description ?: $orderedProduct->description);
+        $descriptionText = FormatHelper::stripHtmlButKeepSpaces($orderedProduct->invoice_text ?: $orderedProduct->description);
 
         $itemDescription = Str::limit(
-            $orderedProduct->name . ', ' . $descriptionText,
+             $descriptionText,
             $this->descriptionLength,
             '...'
         );
@@ -207,7 +210,7 @@ class CheckoutController extends MolliePaymentController
                 'billingEmail' => $billingEmail,
                 'description' => $itemDescription,
                 'redirectUrl' => $request->input('company_id')
-                    ? url('dashboard/' . $request->input('company_id') . '/subscriptions')
+                    ? url('dashboard/' . $request->input('company_id') . '/upgrade-page')
                     : url('preise#step-4'),
                 'webhookUrl' => route('mollie.paymentWebhook'),
                 "method" => ["creditcard", "directdebit", "paypal", "sofort", "klarnapaylater", "ideal", "banktransfer"],
@@ -227,7 +230,7 @@ class CheckoutController extends MolliePaymentController
                 'billingEmail' => $billingEmail,
                 'description' => $itemDescription,
                 'redirectUrl' => $request->input('company_id')
-                    ? url('dashboard/' . $request->input('company_id') . '/subscriptions')
+                    ? url('dashboard/' . $request->input('company_id') . '/upgrade-page')
                     : url('preise#step-4'),
                 'webhookUrl' => route('mollie.paymentWebhook'),
                 "method" => ["creditcard", "directdebit", "sofort", "klarnapaylater", "ideal", "paypal", "banktransfer"],
@@ -262,10 +265,10 @@ class CheckoutController extends MolliePaymentController
             $total_net = round($total_gross / (1 + ($tax_rate / 100)), 2); // Nettobetrag
             $tax = $total_gross - $total_net; // Steuerbetrag
 
-            $descriptionText = FormatHelper::stripHtmlButKeepSpaces($orderedProduct->invoice_description ?: $orderedProduct->description);
+            $descriptionText = FormatHelper::stripHtmlButKeepSpaces($orderedProduct->invoice_text ?: $orderedProduct->description);
 
             $itemDescription = Str::limit(
-                $orderedProduct->name . ', ' . $descriptionText,
+                 $descriptionText,
                 $this->descriptionLength,
                 '...'
             );
@@ -446,67 +449,4 @@ class CheckoutController extends MolliePaymentController
         return response()->json($productDetails);
     }
 
-    public function _getProductDetails(Request $request)
-    {
-        // Produkt-ID aus der Session abrufen
-        $productId = $request->input('product_id');
-        $couponCode = $request->input('coupon_code');
-
-        $selection  = $request->input('product_selection');
-        $couponCode = $request->input('coupon_code', '');
-        if (! $selection || ! str_contains($selection, ':')) {
-            return response()->json(['error' => 'Ungültige Produktauswahl.'], 400);
-        }
-
-        [$productId, $interval] = explode(':', $selection, 2);
-
-        if (!$productId)
-        {
-            return response()->json(['error' => 'Kein Produkt ausgewählt.'], 400);
-        }
-
-        // Produktdetails anhand der Produkt-ID abrufen
-        $product = Product::find($productId);
-
-        if (!$product)
-        {
-            return response()->json(['error' => 'Produkt nicht gefunden.'], 404);
-        }
-
-        // Produktdaten für die Ausgabe vorbereiten
-        $productDetails = [
-            'name' => $product->name,
-            'description' => $product->description,
-            'formattedPrice' => number_format($product->price / 100, 2, ',', '.'), // Preis in € formatieren
-            'interval' => $product->interval,
-            'trial_period_days' => $product->trial_period_days,
-            'laufzeit' => $product->lz
-        ];
-
-        if ($couponCode)
-        {
-            // Hier kannst du den Rabattcode validieren
-            $coupon = Coupon::where('code', $couponCode)->first();
-
-            // Produktdaten für die Ausgabe vorbereiten
-
-            $dicType = ($coupon->promotion->discount_type === 'fixed' ? $coupon->promotion->formatted_discount . ' €' : $coupon->promotion->formatted_discount . ' %');
-
-            $cpCtrl = new CouponController;
-            $subtotal = $cpCtrl->calculateTotalPrice($coupon->promotion, $product) ?? null;
-
-            $productDetails = [
-                'name' => $product->name,
-                'description' => $product->description . "<br> Aktionscode: <b>" . $coupon->code . '</b> angewendet.<br> ' . $coupon->promotion->description . '<br><span style="width:auto !important; display:inline-block; text-align:right;"><b>' . number_format($product->price / 100, 2, ',', '.') . ' &euro;</b><br><b>&minus; ' . $dicType . '</span>',
-                'formattedPrice' => $subtotal, // Preis in € formatieren
-                'interval' => $product->interval,
-                'trial_period_days' => $product->trial_period_days
-            ];
-
-
-        }
-
-        // Rückgabe der Produktdetails als JSON
-        return response()->json($productDetails);
-    }
 }

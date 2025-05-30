@@ -1,3 +1,15 @@
+@if (session()->has('coupon_code'))
+    @php
+        session()->forget('coupon_code');
+    @endphp
+<script>
+
+    sessionStorage.removeItem('couponCode');
+
+</script>
+
+@endif
+
 <div class="container">
     <div class="row justify-content-center text-center">
         <div class="col-xl-8">

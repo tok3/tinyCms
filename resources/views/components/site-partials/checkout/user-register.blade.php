@@ -69,7 +69,7 @@
                             <div class="text-danger mb-1" x-text="errors.plz"></div>
                             <div class="input-icon-group mb-3">
                                 <span class="input-icon"><i class="bx bx-map-pin"></i></span>
-                                <input id="plz" class="form-control" name="company[plz]" type="number" placeholder="PLZ" x-model="form.plz">
+                                <input id="plz" class="form-control" name="company[plz]" type="text" placeholder="PLZ / Postcode" x-model="form.plz">
                             </div>
                         </div>
 

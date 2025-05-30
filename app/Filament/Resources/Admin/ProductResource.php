@@ -51,6 +51,7 @@ class ProductResource extends Resource
                             ->numeric()
                             ->minValue(1)
                             ->maxValue(999)
+                            ->default(10)
                             ->extraInputAttributes([
                                 'style' => 'width: 4rem;',
                                 'class' => 'text-right',
@@ -62,7 +63,7 @@ class ProductResource extends Resource
                 // ROW 2: Beschreibung
                 Forms\Components\Section::make()
                     ->schema([
-                        Textarea::make('description')
+                        RichEditor::make('description')
                             ->label('Beschreibung Kurz')
                             ->extraInputAttributes([
                                 'style' => 'min-height: 5rem; max-height: 10rem; overflow-y: auto;',
@@ -70,20 +71,21 @@ class ProductResource extends Resource
                             ->nullable(),
                     ])
                     ->columns(2),
+
                 Forms\Components\Section::make()
                     ->schema([
                         RichEditor::make('info')
-                            ->label('Info/Eigenschaften')
-                            ->maxLength(1000),
+                            ->label('Info/Eigenschaften (wird in modal popup angezeigt)')
+                            ->maxLength(2000),
                     ])
                     ->columns(2),
 
                 // ROW 2: Beschreibung
                 Forms\Components\Section::make()
                     ->schema([
-                        TextInput::make('invoice_description')
-                            ->label('Rechnungstext (Text für Position/Zeile für Produkt in auf der Rechnung)')
-                            ->nullable(),
+                        TextInput::make('invoice_text')
+                            ->label('Rechnungstext (Text für Position/Zeile für Produkt auf der Rechnung)')
+                            ->required(),
                     ])
                     ->columns(2),
 
@@ -243,10 +245,12 @@ class ProductResource extends Resource
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime(),
+                    ->dateTime()
+                ->sortable(),
 
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime(),
+                    ->dateTime()
+                ->sortable(),
             ])
             ->filters([])
             ->actions([
