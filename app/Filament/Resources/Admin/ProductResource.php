@@ -225,12 +225,12 @@ class ProductResource extends Resource
                     )
                     ->sortable(false)
                     ->searchable(false),
+                Tables\Columns\TextColumn::make('formatted_price')
+                    ->label('preis alt ')
+                    ->sortable(false)
+                    ->searchable(false),
 
                 Tables\Columns\TextColumn::make('payment_type')
-                    ->sortable()
-                    ->searchable(),
-
-                Tables\Columns\TextColumn::make('interval')
                     ->sortable()
                     ->searchable(),
 
