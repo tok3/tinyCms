@@ -89,7 +89,6 @@ class InvoiceService
         return $invoice;
     }
 
-
     /**
      * @param $id
      * @return string
