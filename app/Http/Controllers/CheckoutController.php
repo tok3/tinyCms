@@ -69,7 +69,6 @@ class CheckoutController extends MolliePaymentController
 
         $user = \Auth::user();
 
-
         if ($user && $user->companies->isNotEmpty() && $user->companies[0]->mollieCustomer)
         {
             // User hat bereits eine Company und damit eine Mollie Customer ID
@@ -389,6 +388,7 @@ class CheckoutController extends MolliePaymentController
         // 1) Ziehe nur noch product_selection (z.B. "3:annual")
         $selection  = $request->input('product_selection');
         $couponCode = $request->input('coupon_code', '');
+
         if (! $selection || ! str_contains($selection, ':')) {
             return response()->json(['error' => 'Ungültige Produktauswahl.'], 400);
         }

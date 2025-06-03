@@ -67,10 +67,8 @@ class CompanyResource extends Resource
                                         Forms\Components\Grid::make(6)
                                             ->schema([
                                                 Forms\Components\TextInput::make('plz')
-                                                    ->label('PLZ')
-                                                    ->numeric()
-                                                    ->maxLength(5)
-                                                    ->placeholder('12345')
+                                                    ->label('PLZ/Postcode')
+                                                    ->placeholder('PLZ/Postcode')
                                                     ->columnSpan(2),
 
                                                 Forms\Components\TextInput::make('ort')

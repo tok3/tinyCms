@@ -69,7 +69,7 @@ class PromotionResource extends Resource
                     ->label('Produkt')
                     ->options(
                         \App\Models\Product::orderBy('name')->get()->mapWithKeys(function ($product) {
-                            return [$product->id => $product->name . ' - ' . \Str::limit(strip_tags($product->description), 55) . ' (' . $product->interval . ')'];
+                            return [$product->id => '[ID:'.$product->id.'] '.$product->name . ' - ' . \Str::limit(strip_tags($product->description), 55) . ' (' . $product->interval . ')'];
                         })
                     )
                     ->placeholder('Wähle ein Produkt aus')

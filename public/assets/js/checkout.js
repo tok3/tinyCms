@@ -237,8 +237,8 @@ $(document).ready(function () {
     });
 
     $('#offerAccept').click(function () {
-        saveProductAndCouponToSession($(this).val());
-       window.location.href = redirectUrl;
+        window.location.href = saveProductAndCouponToSession($(this).val());
+
     });
 
 
@@ -254,6 +254,7 @@ $(document).ready(function () {
         if (couponCode) {
             sessionStorage.setItem('couponCode', couponCode);
         }
+  return  redirectUrl+'/preise?interval='+interval+'#step-2'
     }
 
 //-----------

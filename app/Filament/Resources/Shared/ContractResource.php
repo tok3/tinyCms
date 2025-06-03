@@ -77,7 +77,7 @@ class ContractResource extends Resource
                             ->content(function ($record) {
                                 return new HtmlString(
                                     '<strong>' . e($record->product_name) . '</strong><br>' .
-                                    '<span style="color: #6b7280;">' . e($record->product_description) . '</span>'
+                                    '<span style="color: #6b7280;">' . $record->product_description . '</span>'
                                 );
                             })->columnSpan(2),
 
@@ -91,7 +91,7 @@ class ContractResource extends Resource
                             }),
 
                         Placeholder::make('price')
-                            ->label('Preis')
+                            ->label('Net. Preis')
                             ->content(fn ($record) => number_format($record->price / 100, 2, ',', '.') . ' €'),
 
                         Placeholder::make('order_date')

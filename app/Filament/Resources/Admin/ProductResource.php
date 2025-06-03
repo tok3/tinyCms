@@ -21,6 +21,8 @@ use Filament\Support\Enums\Alignment;
 use Illuminate\Support\Str;
 use App\Helpers\FormatHelper;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Get;
 
 class ProductResource extends Resource
 {
@@ -196,8 +198,33 @@ class ProductResource extends Resource
                                     $set('visible', false);
                                 }
                             }),
+
                     ])
                     ->columns(4),
+                \Filament\Forms\Components\Placeholder::make('direct_booking_links')
+                    ->label('Direktbuchungs-Links')
+                    ->visible(fn (callable $get, $livewire) =>
+                        $get('active') && ! $get('visible') && ! $get('upgrade') && filled($livewire->record?->prices)
+                    )
+                    ->content(function (callable $get, $state, $livewire) {
+                        $record = $livewire->record;
+                        if (! $record || ! $record->exists) {
+                            return null;
+                        }
+
+                        $productId = $record->id;
+                        $baseUrl = url('/preise');
+                        $availableIntervals = $record->prices->pluck('interval')->unique();
+
+                        $links = collect(['monthly', 'annual'])
+                            ->filter(fn ($interval) => $availableIntervals->contains($interval))
+                            ->map(fn ($interval) =>
+                            "<a href=\"{$baseUrl}?interval={$interval}&product={$productId}#step-2\" target=\"_blank\" class=\"underline text-primary-600\">Direktbuchung ({$interval})</a>"
+                            )
+                            ->implode('<br>');
+
+                        return new \Illuminate\Support\HtmlString("<div class='space-y-1'>{$links}</div>");
+                    }),
             ]);
     }
     public static function table(Table $table): Table

@@ -62,7 +62,7 @@
                                 <tr>
                                     <th scope="col" style="min-width: 290px;">
                                         <h6 class="mb-2"> {{$product->name}}</h6>
-                                        <small class="mb-0 d-block text-body-secondary"> {{$product->description}}</small>
+                                        <small class="mb-0 d-block text-body-secondary"> {!! $product->description !!}</small>
                                     </th>
                                 </tr>
                                 </thead>
@@ -193,6 +193,7 @@
                 document.querySelectorAll('tbody tr[data-interval]').forEach(tr => {
                     tr.style.display = (tr.dataset.interval === sel) ? '' : 'none';
                 });
+
             }
 
             document.addEventListener('DOMContentLoaded', () => {
@@ -222,7 +223,7 @@
 
             @else
             // Nicht eingeloggt: redirect zu Preisseite
-            const redirectUrl = `${appUrl}/preise#step-2`;
+            const redirectUrl = `${appUrl}`;
             @endif
         </script>
 

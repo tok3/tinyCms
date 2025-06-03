@@ -130,12 +130,28 @@ padding-bottom:15px;
         <form id="checkoutForm" class="_shadow-lg" action="{{ route('checkout.plan') }}" method="POST">
 
             @csrf
-            @if(session()->has('product_id') && session()->has('interval'))
+            @if(session()->has('product_id') && request()->input('interval'))
+
                 <input
                     type="hidden"
                     name="product_selection"
-                    value="{{ session('product_id') }}:{{ session('interval') }}"
+                    value="{{ session('product_id') }}:{{ request()->input('interval') }}"
                 >
+            @elseif(request()->input('product') && request()->input('interval')) {{-- custom linkg --}}
+                <input
+                    type="hidden"
+                    name="product_selection"
+                    value="{{ request()->input('product') }}:{{ request()->input('interval') }}"
+                >
+                <script>
+                    var productId = "{{request()->input('product')}}";
+                    var interval = "{{request()->input('interval')}}";
+
+                    if (productId && interval) {
+                        sessionStorage.setItem('selectedProductSelection', `${productId}:${interval}`);
+                    }
+                    sessionStorage.setItem('selectedProductSelection', `${productId}:${interval}`);
+                </script>
             @endif
             @if (session()->has('coupon_code'))
                 <input type="hidden" name="coupon_code" value="{{ session('coupon_code') }}">
@@ -143,9 +159,10 @@ padding-bottom:15px;
             @if (session()->has('product_id'))
                 <input type="hidden" name="product_id" value="{{ session('product_id') }}">
             @endif
-            @if (session()->has('interval'))
-                <input type="hidden" name="interval" value="{{ session('interval') }}">
+            @if (request()->input('interval'))
+                <input type="hidden" name="interval" value="{{ request()->input('interval') }}">
             @endif
+
             <!-- STEP 1 -->
             <div x-show="step === 0" x-cloak>
                 <x-site-partials.checkout.products :products="$products"/>

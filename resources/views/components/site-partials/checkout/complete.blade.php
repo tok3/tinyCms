@@ -1,4 +1,4 @@
-@if (session()->has('coupon_code'))
+{{--@if (session()->has('coupon_code'))
     @php
         session()->forget('coupon_code');
     @endphp
@@ -8,7 +8,7 @@
 
 </script>
 
-@endif
+@endif--}}
 
 <div class="container">
     <div class="row justify-content-center text-center">
