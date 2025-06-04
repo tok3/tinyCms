@@ -19,7 +19,8 @@ class EztextResource extends Resource
 {
     protected static ?string $model = Eztext::class;
     protected static ?string $recordTitleAttribute = 'text';
-
+    protected static ?string $label = 'Leichte Sprache'; // Singular name
+    protected static ?string $pluralModelLabel = 'Leichte Sprache'; // Plural name
 
     public static function getRecordTitle($record): ?string
     {
