@@ -14,4 +14,10 @@ class Eztext extends Model
         'ulid',
         'text',
     ];
+
+        public function company()
+    {
+        return $this->belongsTo(Company::class, 'ulid', 'ulid');
+    }
+
 }
