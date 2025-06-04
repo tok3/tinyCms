@@ -15,7 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Components\Tabs;
-
+use Filament\Notifications\Notification;
 class CompanyResource extends Resource
 {
     protected static ?string $model = Company::class;
@@ -125,11 +125,30 @@ class CompanyResource extends Resource
                                                 ->options([
                                                     'daily' => 'Täglich',
                                                     'weekly' => 'Wöchentlich',
-                                                    'monthly' => 'Monatlich',
                                                 ])
                                                 ->default('weekly')
                                                 ->reactive()
-                                                ->columnSpan(1), // Nimmt nur eine Spalte ein, aber bleibt in eigener Zeile
+                                                ->columnSpan(1)->reactive()
+                                                ->afterStateUpdated(function ($state, callable $set, callable $get, $livewire) {
+                                                    if ($state === 'daily') {
+                                                        $company = $livewire->record;
+
+                                                        // Prüfen, ob Feature vorhanden
+                                                        $hasFeature = $company->features()->where('slug', 'scan-daily')->exists();
+
+                                                        if (! $hasFeature) {
+                                                            Notification::make()
+                                                                ->title('Upgrade erforderlich')
+                                                                ->body('„Täglicher Scan“ ist nicht im gebuchten Paket enthalten. Bitte buchen Sie ein Upgrade.')
+                                                                ->danger()
+                                                                ->persistent()
+                                                                ->send();
+
+                                                            // Wert zurück auf "weekly" setzen
+                                                            $set('full_scan_interval', 'weekly');
+                                                        }
+                                                    }
+                                                }), // Nimmt nur eine Spalte ein, aber bleibt in eigener Zeile
                                         ]),
 
 
@@ -154,7 +173,7 @@ class CompanyResource extends Resource
 
                                         // Checkbox für Auto-URLs hinzufügen
                                         Forms\Components\Toggle::make('auto_add_urls')
-                                            ->label('Automatisch URLs hinzufügen')
+                                            ->label('URLs automatisch hinzufügen')
                                             ->default(true), // Falls leer → Standardwert setzen
                                     ]),
                             ]),
