@@ -76,7 +76,9 @@ class EztextResource extends Resource
                     ->searchable(),
                 Forms\Components\Textarea::make('text')
                     ->label('Text')
+                    ->rows(20)
                     ->required(),
+
                     //->columnSpanFull(),
                 Forms\Components\TextInput::make('count')
                     ->label('Abrufe')
