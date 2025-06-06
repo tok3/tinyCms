@@ -11,7 +11,7 @@ class Product extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name', 'description', 'info', 'invoice_text', 'price', 'currency', 'payment_type', 'lz', 'interval', 'sequence', 'active', 'visible', 'upgrade','excluded_feature_ids','feature_visibility_mode','trial_period_days'
+        'name', 'description', 'info', 'invoice_text', 'price', 'currency', 'payment_type', 'lz', 'interval', 'sequence', 'active', 'visible', 'upgrade','excluded_feature_ids', 'trial_period_days'
     ];
 
     protected $casts = [
@@ -74,73 +74,6 @@ class Product extends Model
             ->withTimestamps();
     }
 
-    /**
-     * @return mixed
-     */
-    public function getFeatureTagsAttribute()
-    {
-        return $this->features->map(function ($feature) {
-            return "<span class='inline-block bg-white text-xs text-gray-800 px-2 py-1 rounded-full mr-1 mb-1'>{$feature->name}</span>";
-        })->implode('');
-    }
-    /**
-     * Prüft, ob dieses Produkt bei der übergebenen Firma *nicht* zum Upselling
-     * angeboten werden soll, weil die Firma bereits mindestens eines seiner Features besitzt.
-     *
-     * @param  \App\Models\Company  $company
-     * @return bool  true = upsellbar; false = bereits abgedeckt
-     */
-    public function isUpsellableForCompany(\App\Models\Company $company): bool
-    {
-        // 1. Alle Feature-IDs, die die Firma bereits hat (aus company_feature-Pivot)
-        $companyFeatureIds = $company
-            ->features()
-            ->pluck('features.id')  // Collection mit IDs
-            ->toArray();
-
-        // 2. Alle Feature-IDs, die zu diesem Produkt gehören (aus product_feature-Pivot)
-        $productFeatureIds = $this
-            ->features()
-            ->pluck('features.id')
-            ->toArray();
-
-        // 3. Schnittmenge beider Arrays ermitteln:
-        $intersect = array_intersect($companyFeatureIds, $productFeatureIds);
-
-        // 4. Upsell nur, wenn KEINE Überschneidung existiert:
-        return count($intersect) === 0;
-    }
-
-    public function isVisibleForCompany(?\App\Models\Company $company): bool
-    {
-        if (! $this->upgrade) {
-            return false;
-        }
-
-        if (! $company) {
-            return false;
-        }
-
-        // Wenn keine Einschränkungen gesetzt sind oder Modus fehlt, dann anzeigen
-        if (empty($this->feature_visibility_mode)) {
-            return true;
-        }
-
-        $excluded = $this->excluded_feature_ids;
-
-        if (!is_array($excluded) || empty($excluded)) {
-            return $this->feature_visibility_mode !== 'include';
-        }
-
-        $companyFeatureIds = $company->features()->pluck('features.id')->toArray();
-        $overlap = array_intersect($excluded, $companyFeatureIds);
-
-        return match ($this->feature_visibility_mode) {
-            'exclude' => count($overlap) === 0,
-            'include' => count($overlap) > 0,
-            default => true,
-        };
-    }
     // Accessor to get the price in a formatted way
     public function getPriceAttribute($value)
     {
@@ -155,15 +88,6 @@ class Product extends Model
         return number_format($this->price / 100, 2, ',', '.');
     }
 
-    /**
-     * @return mixed
-     */
-    public function getFormattedPricesAttribute()
-    {
-        return $this->prices->map(function ($price) {
-            return ucfirst($price->interval) . ': ' . number_format($price->price / 100, 2) . ' €';
-        })->implode(' | ');
-    }
 
     public function updateIntervalBasedOnPaymentType()
     {

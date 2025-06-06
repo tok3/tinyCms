@@ -165,24 +165,15 @@ class ProductResource extends Resource
                 Forms\Components\Section::make()
                     ->schema([
                         Select::make('features')
-                            ->label('Produktfeatures')
+                            ->label('Features')
                             ->relationship('features', 'name')
                             ->multiple()
                             ->preload(),
                     ])
                     ->columns(2),
 
-                Select::make('feature_visibility_mode')
-                    ->label('Sichtbarkeitslogik für Features')
-                    ->options([
-                        'exclude' => 'Nicht anzeigen, wenn Kunde eines dieser Features hat',
-                        'include' => 'Nur anzeigen, wenn Kunde eines dieser Features hat',
-                    ])
-                    ->default('exclude')
-                    ->visible(fn (callable $get) => $get('upgrade'))
-                    ->columns(2),
                 Select::make('excluded_feature_ids')
-                    ->label('Features für Sichbarkeitslogik')
+                    ->label('Nicht anzeigen, wenn Kunde eines dieser Features hat')
                     ->multiple()
                     ->options(fn () => \App\Models\Feature::pluck('name', 'id'))
                     ->visible(fn (callable $get) => $get('upgrade'))
@@ -248,10 +239,7 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
-                    ->sortable()
-                    ->searchable(),
-      Tables\Columns\TextColumn::make('name')
+                Tables\Columns\TextColumn::make('name')
                     ->formatStateUsing(fn (?string $state) => Str::limit(
                         FormatHelper::stripHtmlButKeepSpaces($state ?? ''),
                         20,
