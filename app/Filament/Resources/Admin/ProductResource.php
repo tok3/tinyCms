@@ -239,7 +239,10 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                Tables\Columns\TextColumn::make('id')
+                    ->sortable()
+                    ->searchable(),
+      Tables\Columns\TextColumn::make('name')
                     ->formatStateUsing(fn (?string $state) => Str::limit(
                         FormatHelper::stripHtmlButKeepSpaces($state ?? ''),
                         20,

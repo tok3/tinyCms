@@ -49,7 +49,7 @@
                                     <div class="form-check">
                                         <input id="flexCheckDefault" type="checkbox" class="form-check-input" name="remember">
                                         <label class="form-check-label" for="flexCheckDefault">
-                                            {{ __('Remember me') }}
+                                            {{ __('auth.remember') }}
                                         </label>
                                     </div>
                                     <div>

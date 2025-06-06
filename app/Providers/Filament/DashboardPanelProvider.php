@@ -34,6 +34,7 @@ class DashboardPanelProvider extends PanelProvider
 
         $tenant_id = \Request::segment(2);
 
+
         $panel->id('dashboard')
             ->path('dashboard')
             ->profile()

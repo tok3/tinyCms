@@ -15,11 +15,13 @@ class FormatHelper
     {
         $hexColor = ltrim($hexColor, '#');
 
-        if (strlen($hexColor) === 3) {
+        if (strlen($hexColor) === 3)
+        {
             $hexColor = preg_replace('/(.)/', '$1$1', $hexColor);
         }
 
-        if (strlen($hexColor) !== 6) {
+        if (strlen($hexColor) !== 6)
+        {
             return 'rgba(0, 0, 0, ' . $alpha . ')'; // Fallback auf Schwarz
         }
 
@@ -59,8 +61,12 @@ class FormatHelper
      * @param string $html
      * @return string
      */
-    public static function stripHtmlButKeepSpaces(string $html): string
+    public static function stripHtmlButKeepSpaces(?string $html): string
     {
+        if ($html === null)
+        {
+            return '';
+        }
         // 1) Ersetze alle </p>, <br>, </div> … mit einem Leerzeichen
         $html = preg_replace(
             '#<\s*(br\s*/?|/p|/div|/h[1-6]|li|/li)[^>]*>#i',
