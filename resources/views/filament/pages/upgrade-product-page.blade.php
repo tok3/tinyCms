@@ -18,6 +18,9 @@
     <section class="py-0 bg-white md:py-16 dark:bg-gray-900 antialiased">
         <div class="bg-white">
             <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+
+
                 @foreach ($products as $product)
                     <div class="p-4 border border-gray-200 rounded-lg bg-white shadow">
                         <h3 class="text-xl font-bold text-gray-800">{{ $product->name }}</h3>

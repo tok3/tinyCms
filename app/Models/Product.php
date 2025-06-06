@@ -74,6 +74,34 @@ class Product extends Model
             ->withTimestamps();
     }
 
+    /**
+     * Prüft, ob dieses Produkt bei der übergebenen Firma *nicht* zum Upselling
+     * angeboten werden soll, weil die Firma bereits mindestens eines seiner Features besitzt.
+     *
+     * @param  \App\Models\Company  $company
+     * @return bool  true = upsellbar; false = bereits abgedeckt
+     */
+    public function isUpsellableForCompany(\App\Models\Company $company): bool
+    {
+        // 1. Alle Feature-IDs, die die Firma bereits hat (aus company_feature-Pivot)
+        $companyFeatureIds = $company
+            ->features()
+            ->pluck('features.id')  // Collection mit IDs
+            ->toArray();
+
+        // 2. Alle Feature-IDs, die zu diesem Produkt gehören (aus product_feature-Pivot)
+        $productFeatureIds = $this
+            ->features()
+            ->pluck('features.id')
+            ->toArray();
+
+        // 3. Schnittmenge beider Arrays ermitteln:
+        $intersect = array_intersect($companyFeatureIds, $productFeatureIds);
+
+        // 4. Upsell nur, wenn KEINE Überschneidung existiert:
+        return count($intersect) === 0;
+    }
+
     // Accessor to get the price in a formatted way
     public function getPriceAttribute($value)
     {
