@@ -11,7 +11,11 @@ class Product extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name', 'description', 'info', 'invoice_text', 'price', 'currency', 'payment_type', 'lz', 'interval', 'sequence', 'active', 'visible', 'upgrade', 'trial_period_days'
+        'name', 'description', 'info', 'invoice_text', 'price', 'currency', 'payment_type', 'lz', 'interval', 'sequence', 'active', 'visible', 'upgrade','excluded_feature_ids', 'trial_period_days'
+    ];
+
+    protected $casts = [
+        'excluded_feature_ids' => 'array',
     ];
 
     public static function boot()

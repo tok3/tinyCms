@@ -172,6 +172,14 @@ class ProductResource extends Resource
                     ])
                     ->columns(2),
 
+                Select::make('excluded_feature_ids')
+                    ->label('Nicht anzeigen, wenn Kunde eines dieser Features hat')
+                    ->multiple()
+                    ->options(fn () => \App\Models\Feature::pluck('name', 'id'))
+                    ->visible(fn (callable $get) => $get('upgrade'))
+                    ->searchable()
+                    ->preload()
+                    ->columns(2),
                 // Status & Sichtbarkeit
                 Forms\Components\Fieldset::make('Status')
                     ->schema([
@@ -232,6 +240,15 @@ class ProductResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
+                    ->formatStateUsing(fn (?string $state) => Str::limit(
+                        FormatHelper::stripHtmlButKeepSpaces($state ?? ''),
+                        20,
+                        '...'
+                    ))
+                    ->tooltip(function ($record) {
+                        $cleanText = FormatHelper::stripHtmlButKeepSpaces($record->name);
+                        return strlen($cleanText) > 20 ? $cleanText : null;
+                    })
                     ->sortable()
                     ->searchable(),
 
@@ -241,6 +258,10 @@ class ProductResource extends Resource
                         55,
                         '...'
                     ))
+                    ->tooltip(function ($record) {
+                        $cleanText = FormatHelper::stripHtmlButKeepSpaces($record->description);
+                        return strlen($cleanText) > 55 ? $cleanText : null;
+                    })
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('prices')
@@ -250,10 +271,6 @@ class ProductResource extends Resource
                         ->map(fn($p) => "{$p->interval}: ".number_format($p->price/100,2,',','.').' €')
                         ->implode(' / ')
                     )
-                    ->sortable(false)
-                    ->searchable(false),
-                Tables\Columns\TextColumn::make('formatted_price')
-                    ->label('preis alt ')
                     ->sortable(false)
                     ->searchable(false),
 
