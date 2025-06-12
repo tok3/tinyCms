@@ -11,7 +11,7 @@ class Product extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name', 'description', 'info', 'invoice_text', 'price', 'currency', 'payment_type', 'lz', 'interval', 'sequence', 'active', 'visible', 'upgrade','excluded_feature_ids', 'trial_period_days'
+        'name', 'description', 'info', 'invoice_text', 'price', 'currency', 'payment_type', 'lz', 'interval', 'sequence', 'active', 'visible', 'upgrade','excluded_feature_ids','feature_visibility_mode','trial_period_days'
     ];
 
     protected $casts = [
@@ -102,6 +102,36 @@ class Product extends Model
         return count($intersect) === 0;
     }
 
+    public function isVisibleForCompany(?\App\Models\Company $company): bool
+    {
+        if (! $this->upgrade) {
+            return false;
+        }
+
+        if (! $company) {
+            return false;
+        }
+
+        // Wenn keine Einschränkungen gesetzt sind oder Modus fehlt, dann anzeigen
+        if (empty($this->feature_visibility_mode)) {
+            return true;
+        }
+
+        $excluded = $this->excluded_feature_ids;
+
+        if (!is_array($excluded) || empty($excluded)) {
+            return $this->feature_visibility_mode !== 'include';
+        }
+
+        $companyFeatureIds = $company->features()->pluck('features.id')->toArray();
+        $overlap = array_intersect($excluded, $companyFeatureIds);
+
+        return match ($this->feature_visibility_mode) {
+            'exclude' => count($overlap) === 0,
+            'include' => count($overlap) > 0,
+            default => true,
+        };
+    }
     // Accessor to get the price in a formatted way
     public function getPriceAttribute($value)
     {
