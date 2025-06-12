@@ -172,6 +172,16 @@ class ProductResource extends Resource
                     ])
                     ->columns(2),
 
+
+                Select::make('feature_visibility_mode')
+                    ->label('Sichtbarkeitslogik für Features')
+                    ->options([
+                        'exclude' => 'Nicht anzeigen, wenn Kunde eines dieser Features hat',
+                        'include' => 'Nur anzeigen, wenn Kunde eines dieser Features hat',
+                    ])
+                    ->default('exclude')
+                    ->visible(fn (callable $get) => $get('upgrade'))
+                    ->columns(2),
                 Select::make('excluded_feature_ids')
                     ->label('Nicht anzeigen, wenn Kunde eines dieser Features hat')
                     ->multiple()
