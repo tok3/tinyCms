@@ -63,14 +63,14 @@ class ScriptController extends Controller
             if($companyFeatures->isEmpty()){
                 //$script = CompanySetting::where('company_id', $company->id)->first();
                 //$tool = $script->widget_features;
-                /*
+
                 if($ulid == '01JE6A5H2NQZCT4P9N3FEZG2CX'){
                             $tool = 'img.min';
 
                 } else {
                     return response('Feature not available', 404);
                 }
-                */
+
                 return response('Feature not available', 403);
             } else {
                 if ($companyFeatures->contains('feature_id', 4)){
@@ -79,13 +79,13 @@ class ScriptController extends Controller
                     if($value == 1){
                         $tool = 'img.min';
                     } else {
-                        /*
+
                         if($ulid == '01JE6A5H2NQZCT4P9N3FEZG2CX'){
                         $tool = 'img.min';
                         } else {
                             return response('Feature not available', 404);
                         }
-                        */
+
                         return response('Feature not available', 403);
                     }
                 } else {
