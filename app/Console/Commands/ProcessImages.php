@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 
 class ProcessImages extends Command
 {
-    protected $signature = 'images:process';
+    protected $signature = 'app:processImages';
     protected $description = 'Download, resize, hash, and store images from database URLs';
 
     public function handle()

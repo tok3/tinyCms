@@ -25,7 +25,7 @@ class ImageDescription extends Command
         $images = DB::table('imagetags')
         ->whereNull('description')
         ->whereNotNull('hash')
-        ->limit(20)
+        ->limit(10)
         ->get();
 
         if ($images->isEmpty()) {

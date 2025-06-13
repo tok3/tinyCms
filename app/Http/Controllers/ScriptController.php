@@ -40,22 +40,60 @@ class ScriptController extends Controller
                 }
             }
             //\Log::info($tool);
+
+
+            if($ulid == '01JE6A5H2NQZCT4P9N3FEZG2CX'){
+                $tool = 'tts_eztext_ezspeak';
+            }
+            if($ulid == '01JRT7ABK98TYXEXM62N11NHGR'){
+                $tool = 'tts_eztext_ezspeak';
+            }
+            if($ulid == '01JRSPY9VYFFM60FCSXX52BP8T'){
+                $tool = 'tts_eztext_ezspeak';
+            }
+            /*
+            if($ulid == '01JSPJB7M8358WNYBYKEF8E4B3' || $ulid == '01JSNNXB5HEDE3D26N51PQQ11A'){
+                $tool = 'pyr';
+            }
+            */
+        } elseif ($tool == 'altstar') {
+            $company = Company::where('ulid', $ulid)->first();
+            $companyFeatures = CompanyFeature::where('company_id', $company->id)->get();
+
+            if($companyFeatures->isEmpty()){
+                //$script = CompanySetting::where('company_id', $company->id)->first();
+                //$tool = $script->widget_features;
+                /*
+                if($ulid == '01JE6A5H2NQZCT4P9N3FEZG2CX'){
+                            $tool = 'img.min';
+
+                } else {
+                    return response('Feature not available', 404);
+                }
+                */
+                return response('Feature not available', 403);
+            } else {
+                if ($companyFeatures->contains('feature_id', 4)){
+                    $feature = $companyFeatures->firstWhere('feature_id', 4);
+                    $value = $feature->value;
+                    if($value == 1){
+                        $tool = 'img.min';
+                    } else {
+                        /*
+                        if($ulid == '01JE6A5H2NQZCT4P9N3FEZG2CX'){
+                        $tool = 'img.min';
+                        } else {
+                            return response('Feature not available', 404);
+                        }
+                        */
+                        return response('Feature not available', 403);
+                    }
+                } else {
+                    return response('Feature not available' , 403);
+                }
+            }
         }
 
-        if($ulid == '01JE6A5H2NQZCT4P9N3FEZG2CX'){
-            $tool = 'tts_eztext_ezspeak';
-        }
-        if($ulid == '01JRT7ABK98TYXEXM62N11NHGR'){
-            $tool = 'tts_eztext_ezspeak';
-        }
-        if($ulid == '01JRSPY9VYFFM60FCSXX52BP8T'){
-            $tool = 'tts_eztext_ezspeak';
-        }
-        /*
-        if($ulid == '01JSPJB7M8358WNYBYKEF8E4B3' || $ulid == '01JSNNXB5HEDE3D26N51PQQ11A'){
-            $tool = 'pyr';
-        }
-        */
 
 
         // Bestimme den Dateipfad für das gewünschte Tool
