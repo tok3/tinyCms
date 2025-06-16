@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Str;
 
 class ImagetagResource extends Resource
 {
@@ -63,6 +63,12 @@ class ImagetagResource extends Resource
                     ->maxLength(26),
                 */
 
+                Forms\Components\Select::make('company_id')
+                    ->label('Firma')
+                    ->relationship(name: 'company', titleAttribute: 'name')
+                    ->required()
+                    ->disabled()
+                    ->searchable(),
 
                 Forms\Components\TextInput::make('url')
                     ->label('Image')
@@ -94,6 +100,11 @@ class ImagetagResource extends Resource
                     ->extraAttributes(['class' => 'w-24 h-24'])
                     ->searchable(),
                 */
+                Tables\Columns\TextColumn::make('company.name')
+                    ->label('Firma')
+                    ->visible(fn () => auth()->user()?->isAdmin())
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('url')
                     ->label('Image')
                     ->view('filament.tables.columns.image-column'),
@@ -124,11 +135,13 @@ class ImagetagResource extends Resource
                 //Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
-            ->bulkActions([
+           /* ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])*/
+            ->bulkActions([])
+            ;
     }
 
     public static function getRelations(): array

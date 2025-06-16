@@ -86,7 +86,7 @@ class ScriptController extends Controller
                             return response('Feature not available', 404);
                         }
 
-                        return response('Feature not available', 403);
+                        //return response('Feature not available', 403);
                     }
                 } else {
                     return response('Feature not available' , 403);

@@ -121,7 +121,7 @@ class ImageDescription extends Command
                 $filePath = storage_path('app/images/' . $image->hash);
 
                 if (File::exists($filePath)) {
-                   // File::delete($filePath);
+                    File::delete($filePath);
                 }
                 $this->info("Image deleted.".storage_path('app/images/' . $image->hash));
 
