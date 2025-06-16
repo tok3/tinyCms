@@ -104,6 +104,8 @@ class FixsternController extends Controller
         foreach ($urls as $url) {
             // Replace with real image recognition API call if needed
             $img = Imagetag::where('ulid', $ulid)->where('url', $url)->first();
+            \Log::info($img);
+            \Log::info($url);
             if($img && $img->description != ''){
                 $descriptions[] = [
                     'url' => $url,
