@@ -118,6 +118,7 @@ class FixsternController extends Controller
                 ];
             } else {
                 // save empty imagetag entry
+                \Log::info("save empty imagetag entry".$url);
                 $img = new Imagetag();
                 $img->ulid = $ulid;
                 $img->url = $url;
