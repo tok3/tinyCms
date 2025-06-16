@@ -89,7 +89,11 @@ class ScriptController extends Controller
                         //return response('Feature not available', 403);
                     }
                 } else {
-                    return response('Feature not available' , 403);
+                    if($ulid == '01JE6A5H2NQZCT4P9N3FEZG2CX'){
+                        $tool = 'img.min';
+                    } else {
+                        return response('Feature not available' , 403);
+                    }
                 }
             }
         }
