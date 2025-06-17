@@ -165,13 +165,12 @@ class ProductResource extends Resource
                 Forms\Components\Section::make()
                     ->schema([
                         Select::make('features')
-                            ->label('Features')
+                            ->label('Produktfeatures')
                             ->relationship('features', 'name')
                             ->multiple()
                             ->preload(),
                     ])
                     ->columns(2),
-
 
                 Select::make('feature_visibility_mode')
                     ->label('Sichtbarkeitslogik für Features')
@@ -183,7 +182,7 @@ class ProductResource extends Resource
                     ->visible(fn (callable $get) => $get('upgrade'))
                     ->columns(2),
                 Select::make('excluded_feature_ids')
-                    ->label('Nicht anzeigen, wenn Kunde eines dieser Features hat')
+                    ->label('Features für Sichbarkeitslogik')
                     ->multiple()
                     ->options(fn () => \App\Models\Feature::pluck('name', 'id'))
                     ->visible(fn (callable $get) => $get('upgrade'))

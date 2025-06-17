@@ -75,6 +75,15 @@ class Product extends Model
     }
 
     /**
+     * @return mixed
+     */
+    public function getFeatureTagsAttribute()
+    {
+        return $this->features->map(function ($feature) {
+            return "<span class='inline-block bg-white text-xs text-gray-800 px-2 py-1 rounded-full mr-1 mb-1'>{$feature->name}</span>";
+        })->implode('');
+    }
+    /**
      * Prüft, ob dieses Produkt bei der übergebenen Firma *nicht* zum Upselling
      * angeboten werden soll, weil die Firma bereits mindestens eines seiner Features besitzt.
      *
@@ -146,6 +155,15 @@ class Product extends Model
         return number_format($this->price / 100, 2, ',', '.');
     }
 
+    /**
+     * @return mixed
+     */
+    public function getFormattedPricesAttribute()
+    {
+        return $this->prices->map(function ($price) {
+            return ucfirst($price->interval) . ': ' . number_format($price->price / 100, 2) . ' €';
+        })->implode(' | ');
+    }
 
     public function updateIntervalBasedOnPaymentType()
     {
