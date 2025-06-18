@@ -54,7 +54,10 @@ class FixsternController extends Controller
             //\Log::info("text: ".$text);
 
             $prompt = $prompts[$lang] ?? $prompts['en'];
-
+            //Stefan anweisung hardcoded vermeiden, dass bei Camindu "Einfache Sprache" jemals verwendet wird ("leichte Sprache" stattdessen)
+            if($ulid ==  '01JE6A5H2NQZCT4P9N3FEZG2CX' && $lang == 'de'){
+                $prompt = "Bitte übersetze folgenden Text kommentarlos und ohne Bestätigung in leichte Sprache nach dem Regelwerk für leichte Sprache auf dem Sprachniveau A1 oder A2. Bitte füge einen html-zeilenumbruch zwischen jeden Satz. Fremdworte sollen bitte vermieden oder erklärt werden. Begriffe in einer Fremdsprache sollten übersetzt werden. Ein 10-jähriger sollte den vereinfachten Text verstehen können. Abkürzungen sollten nach möglichkeit erst ausgeschrieben und dann in Klammern angegeben werden. Die Sätze sollten möglichst kurze aus etwa 8 Worten bestehende Hauptsätze sein. Bitte verwende statt dem Begriff 'Einfache Sprache' 'Leichte Sprache'. Bitte verwende ausser den Zeilenumbrüchen keine html-codes: ".$text;
+            }
             $openAIService = new OpenAIService();
             $res = $openAIService->generateText($prompt);
             $res = preg_replace('/^[\'"\`“”‘’]+|[\'"\`“”‘’]+$/u', '', $res);
