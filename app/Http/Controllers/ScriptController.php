@@ -19,6 +19,7 @@ class ScriptController extends Controller
         if ($tool == 'fixstern')
         {
             //$tool = 'aktion-bf';
+            /*
             $company = Company::where('ulid', $ulid)->first();
             $companyFeatures = CompanyFeature::where('company_id', $company->id)->get();
             //\Log::info($companyFeatures);
@@ -39,8 +40,18 @@ class ScriptController extends Controller
                     $tool = 'standard';
                 }
             }
+                */
             //\Log::info($tool);
+            $company = Company::where('ulid', $ulid)->first();
+            $companyFeatures = CompanyFeature::where('company_id', $company->id)->get();
+            $tool = 'standard'; // Default value
 
+            if ($companyFeatures->count() > 1) {
+                //if ($companyFeatures->contains(fn($feature) => $feature->feature_id == 8 && $feature->value == 1)) {
+                if ($companyFeatures->contains(fn($feature) => $feature->feature_id == 8)) {
+                    $tool = 'tts_eztext_ezspeak';
+                }
+            }
 
             if($ulid == '01JE6A5H2NQZCT4P9N3FEZG2CX'){
                 $tool = 'tts_eztext_ezspeak';
@@ -57,6 +68,26 @@ class ScriptController extends Controller
             }
             */
         } elseif ($tool == 'altstar') {
+            $company = Company::where('ulid', $ulid)->first();
+            $companyFeatures = CompanyFeature::where('company_id', $company->id)->get();
+            $specialUlid = '01JE6A5H2NQZCT4P9N3FEZG2CX';
+
+            if ($companyFeatures->count() > 1) {
+                if ($companyFeatures->contains(fn($feature) => $feature->feature_id == 4)) {
+                    $tool = 'img.min';
+                } elseif ($ulid === $specialUlid) {
+                    $tool = 'img.min';
+                } else {
+                    return response('Feature not available', 404);
+                }
+            } else {
+                if ($ulid === $specialUlid) {
+                    $tool = 'img.min';
+                } else {
+                    return response('Feature not available', $companyFeatures->isEmpty() ? 403 : 404);
+                }
+            }
+            /*
             $company = Company::where('ulid', $ulid)->first();
             $companyFeatures = CompanyFeature::where('company_id', $company->id)->get();
 
@@ -96,6 +127,8 @@ class ScriptController extends Controller
                     }
                 }
             }
+                */
+
         }
 
 
