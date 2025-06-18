@@ -86,7 +86,7 @@ class FixsternController extends Controller
 
 
     public function imageDescription(Request $request){
-        \Log::info($request);
+        //\Log::info($request);
         // Validate the request
         $request->validate([
             'urls' => 'required|array',
