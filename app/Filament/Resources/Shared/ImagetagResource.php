@@ -36,7 +36,7 @@ class ImagetagResource extends Resource
 
         }
         $tenant = Filament::getTenant();
-        $featureIds = DB::table('contracts')
+        /*$featureIds = DB::table('contracts')
                 ->join('product_feature', 'contracts.product_id', '=', 'product_feature.product_id')
                 ->where('contracts.contractable_id', $tenant->id)
                 ->where('contracts.deleted_at', null)
@@ -44,6 +44,14 @@ class ImagetagResource extends Resource
                 ->unique()
                 ->values()
                 ->toArray();
+        */
+        $featureIds = DB::table('company_feature')
+            ->where('company_id', $tenant->id)
+            ->where('deleted_at', null)
+            ->pluck('company_feature.feature_id')
+            ->unique()
+            ->values()
+            ->toArray();
         if(in_array(4, $featureIds)){
             return true;
         }
