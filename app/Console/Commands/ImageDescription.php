@@ -25,6 +25,7 @@ class ImageDescription extends Command
         $images = DB::table('imagetags')
         ->whereNull('description')
         ->whereNotNull('hash')
+        ->whereNull('deleted_at')
         ->limit(10)
         ->get();
 
