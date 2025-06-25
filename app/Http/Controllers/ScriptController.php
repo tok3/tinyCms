@@ -43,7 +43,9 @@ class ScriptController extends Controller
                 */
             //\Log::info($tool);
             $company = Company::where('ulid', $ulid)->first();
-            $companyFeatures = CompanyFeature::where('company_id', $company->id)->get();
+            $companyFeatures = CompanyFeature::where('company_id', $company->id)
+                ->whereNull('deleted_at')
+                ->get();
             $tool = 'standard'; // Default value
 
             if ($companyFeatures->count() > 1) {
@@ -51,11 +53,17 @@ class ScriptController extends Controller
                 if ($companyFeatures->contains(fn($feature) => $feature->feature_id == 8)) {
                     $tool = 'tts_eztext_ezspeak';
                 }
+                if ($companyFeatures->contains(fn($feature) => $feature->feature_id == 9) && !$companyFeatures->contains(fn($feature) => $feature->feature_id == 8)) {
+                    $tool = 'tts';
+                }
             }
+            //\Log::info('chosen tool: '.$tool);
+
 
             if($ulid == '01JE6A5H2NQZCT4P9N3FEZG2CX'){
                 $tool = 'tts_eztext_ezspeak';
             }
+
             if($ulid == '01JRT7ABK98TYXEXM62N11NHGR'){
                 $tool = 'tts_eztext_ezspeak';
             }
