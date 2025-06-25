@@ -38,6 +38,9 @@ class ProcessImages extends Command
                 // Download the image
                 $response = Http::timeout(10)->get($image->url);
                 if ($response->failed()) {
+                    DB::table('imagetags')
+                        ->where('id', $image->id)
+                        ->delete();
                     throw new \Exception("Failed to download image from {$image->url}");
                 }
 
@@ -62,6 +65,10 @@ class ProcessImages extends Command
                     'image/webp' => 'webp', // Added WebP support
                 ];
                 if (!isset($validFormats[$mime])) {
+                    DB::table('imagetags')
+                        ->where('id', $image->id)
+                        ->delete();
+                        Storage::disk('local')->delete($originalTempPath);
                     throw new \Exception("Unsupported image format: {$mime}");
                 }
                 $extension = $validFormats[$mime];
