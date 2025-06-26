@@ -63,6 +63,7 @@ class DashboardPanelProvider extends PanelProvider
                 Widgets\AccountWidget::class,
                 \App\Filament\Dashboard\Widgets\FixsternInfoWidget::class,
                 \App\Filament\Dashboard\Widgets\FixsternIntegrationWidget::class,
+                \App\Filament\Dashboard\Widgets\ImageTagsIntegrationWidget::class,
 
                 //\App\Filament\Dashboard\Widgets\Pa11yStatChart::class,
                 \App\Filament\Dashboard\Widgets\FirmamentInfoWidget::class,

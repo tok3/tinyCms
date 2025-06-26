@@ -18,13 +18,13 @@
             <div class="p-4 mb-4 text-sm text-gray-800 rounded-lg bg-gray-50 dark:bg-gray-800 dark:text-gray-300" role="alert">
                 <h2
                     class="grid flex-1 text-base font-semibold leading-6 text-gray-950 dark:text-white">
-                    <h2 class="text-lg font-bold">Integration des Widgets</h2>
+                    <h2 class="text-lg font-bold">Integration der automatischen Generierung von Image‐Alt‐Tags</h2>
                     <p>
-                        Um das Widget für die Barrierefreie Website schnell zu integrieren, kopieren Sie bitte den unten stehenden Code an das Ende Ihrer Website, direkt vor den <b>schließenden <code>&lt;/body&gt;</code>-Tag</b>.
+                        Um die automatische Generierung der Image‐Alt‐Tags schnell in Ihre Website zu integrieren, kopieren Sie bitte den unten stehenden Code an das Ende Ihrer Website, direkt vor den <b>schließenden <code>&lt;/body&gt;</code>-Tag</b>.
                     </p>
                 </h2>
             </div>
-
+{{--
             <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
                 <span class="font-bold">Hinweis !</span> Eine detaillierte, individualisierte Anleitung zur Integration, Positionierung des Trigger-Buttons oder Nutzung eines eigenen Buttons finden Sie im PDF <x-filament::link
                     color="gray"
@@ -42,7 +42,7 @@
                 </x-filament::link>, das Sie hier herunterladen können. Wenn die Einbindung von Ihrem Webmaster oder einer Agentur vorgenommen wird, lassen Sie ihnen dieses PDF bitte zukommen.
 
 
-            </div>
+            </div>--}}
 
             <div class="code-block-wrapper" style="padding: 1em; background-color: #292D3E; border-radius: 0.5rem; color: white;">
                 <div style="position: absolute; top: 1.5em; right: 0.8em; display: flex; align-items: center;">
@@ -59,8 +59,6 @@
                 </div>
                 <pre id="embedCode-aktion-bf" style="line-height: 1.4; padding: 1em; padding-bottom: 0px; margin: 0; color: white; text-align: left; border-radius: 5px;">
 <code class="language-html" id="code-block-text-aktion-bf">
-<span style="color: #569CD6">&lt;link</span> <span style="color: #4EC9B0">rel=</span><span style="color: #CE9178">"stylesheet"</span> <span style="color: #4EC9B0">href=</span><span
-        style="color: #CE9178">"{!! url('/service/fixstern.css') !!}"</span><span style="color: #569CD6">&gt;</span><br>
 <span style="color: #569CD6">&lt;script</span> <span style="color: #4EC9B0">src=</span><span style="color: #CE9178">"{!! url($fixsternLink) !!}"</span><span
         style="color: #569CD6">&gt;&lt;/script&gt;</span>
 </code>
