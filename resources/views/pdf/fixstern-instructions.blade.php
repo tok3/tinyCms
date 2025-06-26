@@ -208,5 +208,27 @@
         <span class="highlight">&lt;/button&gt;</span>
     </pre>
 </div>
+
+<br><br>
+<h1>Integration der automatischen Generierung von Image-Alt-Tags</h1>
+
+<p class="important">Dieses Produkt ist ein eigenständiges Produkt und muss in Ihrem Vertrag enthalten oder separat gebucht sein. Es ist kein Bestandteil des Widgets!</p>
+<p class="important">BITTE BEACHTEN: Der Einbindungscode ist nur für <strong>{{ $companyName }}</strong> gültig!</p>
+
+<h2>Integration</h2>
+<p>Um die automatische Generierung der Image-Alt-Tags schnell in Ihre Website zu integrieren, kopieren Sie bitte den untenstehenden Code an das Ende Ihrer Website, direkt vor den schließenden &lt;/body&gt;-Tag</p>.
+<div class="code-block-wrapper">
+    <pre>
+
+        <span class="highlight">&lt;script</span>
+        <span class="attribute">src=</span><span style="white-space: nowrap;" class="value">"{{ url('service/' . $company->ulid . '/altstar.js') }}"</span>
+        <span class="highlight">&gt;&lt;/script&gt;</span>
+    </pre>
+</div>
+
+<p>Nach dem Einfügen des Codes ist die automatische Generierung der Image-Alt-Tags aktiv. Die Tags werden nun live generiert, sobald eine Seite aufgerufen wird. Sie sehen die generierten Alt-Tags anschließend hier im Backend unter dem entsprechenden Menüpunkt und können diese bei Bedarf anpassen.
+</p>
+
+
 </body>
 </html>

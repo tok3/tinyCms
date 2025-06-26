@@ -24,6 +24,7 @@ use App\Models\Company;
 use Filament\Navigation\NavigationItem;
 use Filament\Pages\Dashboard;
 use Filament\MinimalTheme;
+use Filament\PluginServiceProvider;
 
 class DashboardPanelProvider extends PanelProvider
 {
@@ -33,6 +34,20 @@ class DashboardPanelProvider extends PanelProvider
     {
 
         $tenant_id = \Request::segment(2);
+
+       $tenant = Company::where('id', $tenant_id)->first();
+
+
+
+
+        $widgets = [
+            Widgets\AccountWidget::class,
+            \App\Filament\Dashboard\Widgets\FixsternInfoWidget::class,
+            \App\Filament\Dashboard\Widgets\FixsternIntegrationWidget::class,
+            \App\Filament\Dashboard\Widgets\ImageTagsIntegrationWidget::class,
+            \App\Filament\Dashboard\Widgets\FirmamentInfoWidget::class,
+        ];
+
 
 
         $panel->id('dashboard')
@@ -52,25 +67,16 @@ class DashboardPanelProvider extends PanelProvider
             ->pages([
                 Pages\Dashboard::class,
 
-                 ])
+            ])
             ->resources([
 
                 MollieSubscriptionResource::class,
 
                 // Weitere Ressourcen können hier hinzugefügt werden
             ])
-            ->widgets([
-                Widgets\AccountWidget::class,
-                \App\Filament\Dashboard\Widgets\FixsternInfoWidget::class,
-                \App\Filament\Dashboard\Widgets\FixsternIntegrationWidget::class,
-                \App\Filament\Dashboard\Widgets\ImageTagsIntegrationWidget::class,
-
-                //\App\Filament\Dashboard\Widgets\Pa11yStatChart::class,
-                \App\Filament\Dashboard\Widgets\FirmamentInfoWidget::class,
-
-                //Widgets\FilamentInfoWidget::class,
-
-            ])
+            ->widgets(
+                $widgets
+            )
             //->discoverWidgets(in: app_path('Filament/Dashboard/Widgets'), for: 'App\\Filament\\Dashboard\\Widgets')
 
             ->middleware([
