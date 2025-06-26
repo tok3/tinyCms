@@ -58,6 +58,9 @@ class ContractResource extends Resource
                         TextInput::make('product_name')
                             ->label('Product Name')
                             ->required(),
+                        TextInput::make('invoice_text')
+                            ->label('Rechnungstext')
+                            ->required(),
                         Textarea::make('product_description')
                             ->label('Product Description')
                             ->rows(3)
