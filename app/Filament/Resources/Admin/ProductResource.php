@@ -183,7 +183,7 @@ class ProductResource extends Resource
                     ->visible(fn (callable $get) => $get('upgrade'))
                     ->columns(2),
                 Select::make('excluded_feature_ids')
-                    ->label('Nicht anzeigen, wenn Kunde eines dieser Features hat')
+                    ->label('Features für Sichtbarkeitslogik')
                     ->multiple()
                     ->options(fn () => \App\Models\Feature::pluck('name', 'id'))
                     ->visible(fn (callable $get) => $get('upgrade'))
