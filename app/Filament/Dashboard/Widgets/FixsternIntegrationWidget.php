@@ -13,7 +13,13 @@ class FixsternIntegrationWidget extends Widget
 
     protected static string $view = 'filament.dashboard.widgets.fixstern-integration-widget';
 
+    public static function canView(): bool
+    {
+        $company = Filament::getTenant();
 
+        // true = Widget wird registriert, false = komplett ausgelassen
+        return $company?->hasFeature('widget-support') ?? false;
+    }
     public function render(): \Illuminate\Contracts\View\View
     {
 

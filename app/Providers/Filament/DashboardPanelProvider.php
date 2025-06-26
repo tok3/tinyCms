@@ -49,7 +49,6 @@ class DashboardPanelProvider extends PanelProvider
         ];
 
 
-
         $panel->id('dashboard')
             ->path('dashboard')
             ->profile()
@@ -77,8 +76,6 @@ class DashboardPanelProvider extends PanelProvider
             ->widgets(
                 $widgets
             )
-            //->discoverWidgets(in: app_path('Filament/Dashboard/Widgets'), for: 'App\\Filament\\Dashboard\\Widgets')
-
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
