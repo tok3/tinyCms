@@ -18,50 +18,19 @@ class ScriptController extends Controller
 
         if ($tool == 'fixstern')
         {
-            //$tool = 'aktion-bf';
+            $company = Company::where('ulid', $ulid)->first();
             /*
-            $company = Company::where('ulid', $ulid)->first();
-            $companyFeatures = CompanyFeature::where('company_id', $company->id)->get();
-            //\Log::info($companyFeatures);
-            if($companyFeatures->isEmpty()){
-                //$script = CompanySetting::where('company_id', $company->id)->first();
-                //$tool = $script->widget_features;
-                $tool = 'standard';
-            } else {
-                if ($companyFeatures->contains('feature_id', 8)){
-                    $feature = $companyFeatures->firstWhere('feature_id', 8);
-                    $value = $feature->value;
-                    if($value == 1){
-                        $tool = 'tts_eztext_ezspeak';
-                    } else {
-                        $tool = 'standard';
-                    }
-                } else {
-                    $tool = 'standard';
-                }
-            }
-                */
-            //\Log::info($tool);
-            $company = Company::where('ulid', $ulid)->first();
             $companyFeatures = CompanyFeature::where('company_id', $company->id)
                 ->whereNull('deleted_at')
                 ->get();
+                */
+
+            //$companyFeatures = $company->hasFeature('leichte-sprache');
             $tool = 'standard'; // Default value
-
-            if ($companyFeatures->count() > 1) {
-                //if ($companyFeatures->contains(fn($feature) => $feature->feature_id == 8 && $feature->value == 1)) {
-                if ($companyFeatures->contains(fn($feature) => $feature->feature_id == 8)) {
-                    $tool = 'tts_eztext_ezspeak';
-                }
-                if ($companyFeatures->contains(fn($feature) => $feature->feature_id == 9) && !$companyFeatures->contains(fn($feature) => $feature->feature_id == 8)) {
-                    $tool = 'tts';
-                }
-            }
-            //\Log::info('chosen tool: '.$tool);
-
-
-            if($ulid == '01JE6A5H2NQZCT4P9N3FEZG2CX'){
+            if($company->hasFeature('leichte-sprache') == 1){
                 $tool = 'tts_eztext_ezspeak';
+            } elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('screen-reader') == 1){
+                $tool =  'tts';
             }
 
             if($ulid == '01JRT7ABK98TYXEXM62N11NHGR'){
@@ -80,8 +49,10 @@ class ScriptController extends Controller
             $companyFeatures = CompanyFeature::where('company_id', $company->id)->get();
             $specialUlid = '01JE6A5H2NQZCT4P9N3FEZG2CX';
 
+
             if ($companyFeatures->count() > 1) {
-                if ($companyFeatures->contains(fn($feature) => $feature->feature_id == 4)) {
+                //if ($companyFeatures->contains(fn($feature) => $feature->feature_id == 4)) {
+                if($company->hasFeature('altstar') == 1) {
                     $tool = 'img.min';
                 } elseif ($ulid === $specialUlid) {
                     $tool = 'img.min';
@@ -95,48 +66,6 @@ class ScriptController extends Controller
                     return response('Feature not available', $companyFeatures->isEmpty() ? 403 : 404);
                 }
             }
-            /*
-            $company = Company::where('ulid', $ulid)->first();
-            $companyFeatures = CompanyFeature::where('company_id', $company->id)->get();
-
-            if($companyFeatures->isEmpty()){
-                //$script = CompanySetting::where('company_id', $company->id)->first();
-                //$tool = $script->widget_features;
-
-                if($ulid == '01JE6A5H2NQZCT4P9N3FEZG2CX'){
-                            $tool = 'img.min';
-
-                } else {
-                    return response('Feature not available', 404);
-                }
-
-                return response('Feature not available', 403);
-            } else {
-                if ($companyFeatures->contains('feature_id', 4)){
-                    $feature = $companyFeatures->firstWhere('feature_id', 4);
-                    $value = $feature->value;
-                    if($value == 1){
-                        $tool = 'img.min';
-                    } else {
-
-                        if($ulid == '01JE6A5H2NQZCT4P9N3FEZG2CX'){
-                        $tool = 'img.min';
-                        } else {
-                            return response('Feature not available', 404);
-                        }
-
-                        //return response('Feature not available', 403);
-                    }
-                } else {
-                    if($ulid == '01JE6A5H2NQZCT4P9N3FEZG2CX'){
-                        $tool = 'img.min';
-                    } else {
-                        return response('Feature not available' , 403);
-                    }
-                }
-            }
-                */
-
         }
 
 
