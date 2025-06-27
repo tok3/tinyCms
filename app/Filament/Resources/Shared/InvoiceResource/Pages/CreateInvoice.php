@@ -59,10 +59,7 @@ USt-IdNr. des Kunden: <b>' . $data['vat_id'] . '</b>';
         return $data;
     }
 
-    public function _getForm(string $name = null): \Filament\Forms\Form
-    {
-        return parent::getForm($name)->schema($this->getFormSchema());
-    }
+
 
     public function form(Form $form): Form
     {
@@ -104,30 +101,7 @@ USt-IdNr. des Kunden: <b>' . $data['vat_id'] . '</b>';
 
                     ]),
                 ]),
-                // Repeater *außerhalb* der Group
-                /*  Repeater::make('items')
-                      ->label('Rechnungspositionen')
-                      ->schema([
-                          Textarea::make('description')
-                              ->label('Beschreibung')
-                              ->required()
-                              ->columnSpan(8),
 
-                          TextInput::make('quantity')
-                              ->numeric()
-                              ->default(1)
-                              ->required()
-                              ->columnSpan(2),
-
-                          TextInput::make('line_total_amount')
-                              ->label('Einzelpreis (Netto in EUR)')
-                              ->numeric()
-                              ->required()
-                              ->columnSpan(2),
-                      ])
-                      ->minItems(1)
-                      ->columns(12)
-                      ->createItemButtonLabel('Position hinzufügen'),*/
                 Repeater::make('items')
                     ->label('Rechnungspositionen')
                     ->schema([
@@ -155,97 +129,6 @@ USt-IdNr. des Kunden: <b>' . $data['vat_id'] . '</b>';
                     ->reorderable()
                     ->createItemButtonLabel('Position hinzufügen'),
             ]);
-    }
-    protected function _getFormSchema(): array
-    {
-        return [
-            Grid::make(5)
-                ->schema([
-                    Select::make('company_id')
-                        ->label('Firma')
-                        ->relationship('company', 'name')
-                        ->required(),
-                    DatePicker::make('due_date')
-                        ->label('Fällig am')
-                        ->default(now()->addWeekdays(10)),
-
-                    Select::make('status')
-                        ->label('Status')
-                        ->options([
-                            'pending' => 'Ausstehend',
-                            'sent' => 'Gesendet',
-                            'paid' => 'Bezahlt',
-                            'canceled' => 'Storniert',
-                        ])
-                        ->default('pending'),
-                ]),
-            Grid::make(2)->schema([
-                Checkbox::make('no_vat')
-                    ->label('Steuerbefreit (innergemeinschaftliche Leistung)')
-                    ->columnSpan(8)
-                    ->reactive(),
-
-                Group::make([
-                    TextInput::make('vat_id')
-                        ->label('USt-IdNr. des Kunden')
-                        ->columnSpan(1)
-                        ->placeholder('z. B. FR123456789')
-                        ->required(fn ($get) => $get('no_vat'))
-                        ->visible(fn ($get) => $get('no_vat')),
-
-                ]),
-            ]),
-            // Repeater *außerhalb* der Group
-          /*  Repeater::make('items')
-                ->label('Rechnungspositionen')
-                ->schema([
-                    Textarea::make('description')
-                        ->label('Beschreibung')
-                        ->required()
-                        ->columnSpan(8),
-
-                    TextInput::make('quantity')
-                        ->numeric()
-                        ->default(1)
-                        ->required()
-                        ->columnSpan(2),
-
-                    TextInput::make('line_total_amount')
-                        ->label('Einzelpreis (Netto in EUR)')
-                        ->numeric()
-                        ->required()
-                        ->columnSpan(2),
-                ])
-                ->minItems(1)
-                ->columns(12)
-                ->createItemButtonLabel('Position hinzufügen'),*/
-            Repeater::make('items')
-                ->label('Rechnungspositionen')
-                ->schema([
-                    Grid::make(12)->schema([
-                        Textarea::make('description')
-                            ->label('Beschreibung')
-                            ->required()
-                            ->columnSpan(8),
-
-                        TextInput::make('quantity')
-                            ->label('Menge')
-                            ->numeric()
-                            ->default(1)
-                            ->required()
-                            ->columnSpan(2),
-
-                        TextInput::make('line_total_amount')
-                            ->label('Einzelpreis (Netto in EUR)')
-                            ->numeric()
-                            ->required()
-                            ->columnSpan(2),
-                    ]),
-                ])
-                ->minItems(3)
-                ->reorderable()
-                ->createItemButtonLabel('Position hinzufügen'),
-        ];
     }
 
     protected function handleRecordCreation(array $data): Invoice
