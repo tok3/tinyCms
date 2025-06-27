@@ -13,6 +13,7 @@ use Filament\Support\Enums\Alignment;
 use Filament\Tables;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
@@ -37,13 +38,20 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('companies.name') // Access companies via the pivot table
+                Tables\Columns\TextColumn::make('id') // Real existierendes Feld
                 ->label('Companies')
-                    ->formatStateUsing(function ($state, User $record) {
+                    ->getStateUsing(function (User $record) {
                         return $record->companies->pluck('name')->implode(', ');
                     })
-                    ->sortable()
-                    ->searchable(),
+                    ->sortable(function (Builder $query) {
+                        $direction = request()->get('sortDirection', 'asc');
+
+                        return $query
+                            ->leftJoin('company_user', 'users.id', '=', 'company_user.user_id')
+                            ->leftJoin('companies', 'companies.id', '=', 'company_user.company_id')
+                            ->orderBy('companies.name', $direction)
+                            ->select('users.*');
+                    }),
                 Tables\Columns\TextColumn::make('name')
                     ->label('Name'),
                 Tables\Columns\TextColumn::make('email')

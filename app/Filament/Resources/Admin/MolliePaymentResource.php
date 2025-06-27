@@ -142,18 +142,24 @@ class MolliePaymentResource extends Resource
                     //->tooltip(fn ($state) => Carbon::parse($state)->format('d/m/Y H:i')) // Optional tooltip for full date and time
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('company.name')
+                Tables\Columns\TextColumn::make('company_name')
                     ->label('Company Name')
-                    ->sortable(function (Builder $query) {
-                        return $query->orderByRaw(
-                            "(SELECT MIN(companies.name)
-              FROM companies
-              INNER JOIN mollie_customers ON mollie_customers.model_id = companies.id
-              WHERE mollie_customers.mollie_customer_id = mollie_payments.customer_id
-                AND companies.deleted_at IS NULL) ASC"
-                        );
+                    ->getStateUsing(function ($record) {
+                        return optional(
+                            \App\Models\Company::whereHas('mollieCustomers', function ($query) use ($record) {
+                                $query->where('mollie_customer_id', $record->customer_id);
+                            })->first()
+                        )?->name;
                     })
-                    ->searchable(),
+                    ->sortable(function (Builder $query) {
+                        $direction = request()->get('sortDirection', 'asc');
+
+                        return $query
+                            ->join('mollie_customers', 'mollie_payments.customer_id', '=', 'mollie_customers.mollie_customer_id')
+                            ->join('companies', 'mollie_customers.model_id', '=', 'companies.id')
+                            ->orderBy('companies.name', $direction)
+                            ->select('mollie_payments.*');
+                    }),
                 Tables\Columns\TextColumn::make('mode')
                     ->sortable()
                     ->searchable(),

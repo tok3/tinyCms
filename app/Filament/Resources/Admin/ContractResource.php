@@ -205,7 +205,6 @@ class ContractResource extends Resource
 
                 Tables\Columns\TextColumn::make('contractable.name')
                     ->label('Firma')
-
                     ->searchable()
                     ->sortable(
                         query: fn (Builder $query, string $direction): Builder => $query
