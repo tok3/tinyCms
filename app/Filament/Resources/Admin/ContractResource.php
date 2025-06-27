@@ -205,8 +205,12 @@ class ContractResource extends Resource
 
                 Tables\Columns\TextColumn::make('contractable.name')
                     ->label('Firma')
-                    ->sortable()
-                    ->searchable(),
+
+                    ->searchable()
+                    ->sortable(
+                        query: fn (Builder $query, string $direction): Builder => $query
+                            ->join('companies', 'contracts.contractable_id', '=', 'companies.id')
+                            ->orderBy('companies.name', $direction)),
 
                 Tables\Columns\TextColumn::make('contractable.kd_nr')
                     ->label('Kd-Nr.')
