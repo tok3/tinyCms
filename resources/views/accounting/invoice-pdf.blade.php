@@ -247,6 +247,7 @@
 
     @endif
 
+
     @if($invoice->type === 'KR' && $invoice->ref_to_id)
 
         <div class="row m-t">
@@ -321,6 +322,19 @@
             </tbody>
         </table>
 
+        @if(isset($invoice->data['noVat']))
+
+            <div class="row m-t">
+                <div class="col-md-6">
+                    <div class="callout callout-danger">
+                        <h4>Hinweis</h4>
+
+                        <p>{!!  nl2br($invoice->data['noVat'])!!}</p>
+                    </div>
+                </div>
+            </div>
+
+        @endif
 
         @if($invoice['mollie_payment_id'] == "" && $invoice['type'] !== 'KR')
             <table style="margin-top:10em;">
