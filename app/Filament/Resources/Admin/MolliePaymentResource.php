@@ -16,6 +16,7 @@ use Filament\Forms\Components\TextInput;
 use GuzzleHttp\Client;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use App\Models\MollieCustomer;
 class MolliePaymentResource extends Resource
 {
     protected static ?string $model = MolliePayment::class;
@@ -146,17 +147,16 @@ class MolliePaymentResource extends Resource
                     ->label('Company Name')
                     ->getStateUsing(function ($record) {
                         return optional(
-                            \App\Models\Company::whereHas('mollieCustomers', function ($query) use ($record) {
-                                $query->where('mollie_customer_id', $record->customer_id);
-                            })->first()
+                            \App\Models\MollieCustomer::where('mollie_customer_id', $record->customer_id)->first()?->model
                         )?->name;
                     })
-                    ->sortable(function (Builder $query) {
-                        $direction = request()->get('sortDirection', 'asc');
-
+                    ->sortable(query: function (Builder $query, string $direction) {
                         return $query
-                            ->join('mollie_customers', 'mollie_payments.customer_id', '=', 'mollie_customers.mollie_customer_id')
-                            ->join('companies', 'mollie_customers.model_id', '=', 'companies.id')
+                            ->leftJoin('mollie_customers', 'mollie_payments.customer_id', '=', 'mollie_customers.mollie_customer_id')
+                            ->leftJoin('companies', function ($join) {
+                                $join->on('mollie_customers.model_id', '=', 'companies.id')
+                                    ->where('mollie_customers.model_type', '=', \App\Models\Company::class);
+                            })
                             ->orderBy('companies.name', $direction)
                             ->select('mollie_payments.*');
                     }),
