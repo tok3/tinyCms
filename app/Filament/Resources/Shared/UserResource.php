@@ -51,11 +51,14 @@ class UserResource extends Resource
                             ->leftJoin('companies', 'companies.id', '=', 'company_user.company_id')
                             ->orderBy('companies.name', $direction)
                             ->select('users.*');
-                    }),
+                    })
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Name'),
+                    ->label('Name')
+                  ->searchable(),
                 Tables\Columns\TextColumn::make('email')
-                    ->label('Email'),
+                    ->label('Email')
+                  ->searchable(),
                 Tables\Columns\TextColumn::make('email_verified_at')
                     ->label('Email verifiziert')
                     ->default('0000-00-00')
