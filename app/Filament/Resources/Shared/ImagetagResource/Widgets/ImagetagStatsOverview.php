@@ -18,7 +18,7 @@ class ImagetagStatsOverview extends BaseWidget
             Stat::make('Total cost', OpenaiLog::sum('estimated_cost_usd'))
                 ->description('Estimated total cost in USD')
                 ->color('warning'),
-            Stat::make('Postproc', Imagetag::where('created_at', '!=', 'updated_at')->count())
+            Stat::make('Postproc', Imagetag::whereRaw('created_at != updated_at')->count())
                 ->description('Total amount of image-alt-tags post processed')
                 ->color('primary'),
         ];
