@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Models\Company;
 class EztextResource extends Resource
 {
     protected static ?string $model = Eztext::class;
@@ -48,6 +49,7 @@ class EztextResource extends Resource
                 ->values()
                 ->toArray();
         */
+        /*
         $featureIds = DB::table('company_feature')
             ->where('company_id', $tenant->id)
             ->where('deleted_at', null)
@@ -61,6 +63,13 @@ class EztextResource extends Resource
             return true;
         }
         return false;
+        */
+        $company = Company::where('id', $tenant->id)->first();
+        if($company->hasFeature('leichte-sprache') || $company->hasFeature('eztext') || $company->hasFeature('ezspeak')){
+            return true;
+        }
+        return false;
+
     }
 
         public static function canCreate(): bool

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Models\Company;
 
 class ImagetagResource extends Resource
 {
@@ -45,6 +46,7 @@ class ImagetagResource extends Resource
                 ->values()
                 ->toArray();
         */
+        /*
         $featureIds = DB::table('company_feature')
             ->where('company_id', $tenant->id)
             ->where('deleted_at', null)
@@ -56,6 +58,14 @@ class ImagetagResource extends Resource
             return true;
         }
         return false;
+        */
+        $company = Company::where('id', $tenant->id)->first();
+        if($company->hasFeature('image-alt-tags')){
+            return true;
+        }
+        return false;
+
+
     }
 
     public static function canCreate(): bool
