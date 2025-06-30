@@ -109,9 +109,15 @@ class ProcessImages extends Command
                 Log::error("Error processing image ID {$image->id}: {$e->getMessage()}");
                 $this->error("Failed to process image ID {$image->id}: {$e->getMessage()}");
                 // Clean up database
+                /*
                 DB::table('imagetags')
                         ->where('id', $image->id)
                         ->delete();
+                */
+                $now = now()->toDateTimeString();
+                DB::table('imagetags')
+                    ->where('id', $image->id)
+                    ->update(['deleted_at' => $now]);
 
                 // Clean up temporary files if they exist
                 if (isset($originalTempPath)) {
