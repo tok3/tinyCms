@@ -38,9 +38,15 @@ class ProcessImages extends Command
                 // Download the image
                 $response = Http::timeout(10)->get($image->url);
                 if ($response->failed()) {
-                    DB::table('imagetags')
+                    /*DB::table('imagetags')
                         ->where('id', $image->id)
                         ->delete();
+                        */
+
+                $now = now()->toDateTimeString();
+                DB::table('imagetags')
+                    ->where('id', $image->id)
+                    ->update(['deleted_at' => $now]);
                     throw new \Exception("Failed to download image from {$image->url}");
                 }
 
