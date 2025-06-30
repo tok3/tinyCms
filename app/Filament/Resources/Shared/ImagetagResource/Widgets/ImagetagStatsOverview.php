@@ -5,19 +5,20 @@ namespace App\Filament\Resources\Shared\ImagetagResource\Widgets;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use App\Models\OpenaiLog;
+use App\Models\Imagetag;
 
 class ImagetagStatsOverview extends BaseWidget
 {
     protected function getStats(): array
     {
         return [
-            Stat::make('Total images', OpenaiLog::count())
+            Stat::make('Total images', Imagetag::count())
                 ->description('Total amount of image-alt-tags generated')
                 ->color('success'),
             Stat::make('Total cost', OpenaiLog::sum('estimated_cost_usd'))
                 ->description('Estimated total cost in USD')
                 ->color('warning'),
-            Stat::make('Postproc', OpenaiLog::where('created_at', '<>', 'updated_at')->count())
+            Stat::make('Postproc', Imagetag::where('created_at', '<>', 'updated_at')->count())
                 ->description('Total amount of image-alt-tags post processed')
                 ->color('primary'),
         ];
