@@ -108,6 +108,10 @@ class ProcessImages extends Command
             } catch (\Exception $e) {
                 Log::error("Error processing image ID {$image->id}: {$e->getMessage()}");
                 $this->error("Failed to process image ID {$image->id}: {$e->getMessage()}");
+                // Clean up database
+                DB::table('imagetags')
+                        ->where('id', $image->id)
+                        ->delete();
 
                 // Clean up temporary files if they exist
                 if (isset($originalTempPath)) {
