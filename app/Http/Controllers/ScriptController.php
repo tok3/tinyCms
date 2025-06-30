@@ -26,13 +26,33 @@ class ScriptController extends Controller
                 */
 
             //$companyFeatures = $company->hasFeature('leichte-sprache');
-            $tool = 'standard'; // Default value
+            /*$tool = 'standard'; // Default value
             if($company->hasFeature('leichte-sprache') == 1){
                 $tool = 'tts_eztext_ezspeak';
             } elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('screen-reader') == 1){
                 $tool =  'tts';
             }
-
+            */
+            $tool = 'standard'; // Default value
+            if($company->hasFeature('leichte-sprache') == 1){
+                $tool = 'tts_eztext_ezspeak';
+            //} elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('screen-reader') == 1){
+            } elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('eztext') == 0 && $company->hasFeature('ezspeak') == 0 && $company->hasFeature('screen-reader') == 1  ){
+                $tool =  'tts';
+            } elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('eztext') == 1 && $company->hasFeature('ezspeak') == 0 && $company->hasFeature('screen-reader') == 0  ){
+                $tool = 'eztext';
+            } elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('eztext') == 1 && $company->hasFeature('ezspeak') == 1 && $company->hasFeature('screen-reader') == 0  ){
+                $tool = 'eztext_ezspeak';
+            } elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('eztext') == 1 && $company->hasFeature('ezspeak') == 1 && $company->hasFeature('screen-reader') == 1  ){
+                $tool = 'tts_eztext_ezspeak';
+            } elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('eztext') == 0 && $company->hasFeature('ezspeak') == 1 && $company->hasFeature('screen-reader') == 0  ){
+                $tool = 'ezspeak';
+            } elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('eztext') == 0 && $company->hasFeature('ezspeak') == 1 && $company->hasFeature('screen-reader') == 1  ){
+                $tool = 'tts_ezspeak';
+            } elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('eztext') == 1 && $company->hasFeature('ezspeak') == 0 && $company->hasFeature('screen-reader') == 1  ){
+                $tool = 'tts_eztext';
+            }
+            //\Log::info($tool);
             if($ulid == '01JRT7ABK98TYXEXM62N11NHGR'){
                 $tool = 'tts_eztext_ezspeak';
             }
