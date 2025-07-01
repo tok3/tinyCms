@@ -3,39 +3,41 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
-use OpenAI;
+use Illuminate\Support\Facades\File;
+use Spatie\Image\Image;
+use Spatie\Image\Enums\Fit;
+use Imagick;
 use Carbon\Carbon;
 
 class ImageDescription extends Command
 {
-
     protected $signature = 'app:image-description';
-    protected $description = 'Get Image Description from Chat GPT';
+    protected $description = 'Get Image Description from OpenAI, converting SVGs to PNG';
 
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
+        // Ensure temp directory exists
+        Storage::disk('local')->makeDirectory('temp');
+
         $images = DB::table('imagetags')
-        ->whereNull('description')
-        ->whereNotNull('hash')
-        ->whereNull('deleted_at')
-        ->limit(10)
-        ->get();
+            ->whereNull('description')
+            ->whereNotNull('hash')
+            ->whereNull('deleted_at')
+            ->limit(10)
+            ->get();
 
         if ($images->isEmpty()) {
             $this->info('No images to process.');
             return 0;
         }
+
         $this->info("Processing {$images->count()} images...");
+
         foreach ($images as $image) {
-            //var_dump(storage_path('app/images/' . $image->hash)); die();
             try {
                 $imagePath = storage_path('app/images/' . $image->hash);
                 if (!File::exists($imagePath)) {
@@ -44,14 +46,57 @@ class ImageDescription extends Command
                 }
 
                 $mimeType = File::mimeType($imagePath);
-
                 if (!str_starts_with($mimeType, 'image/')) {
-                    Log::info("Invalid image file type: {$mimeType}"); //return response()->json(['error' => 'The file is not a valid image.'], 400);
+                    Log::info("Invalid image file type: {$mimeType}");
                     continue;
                 }
 
-                $imageContent = base64_encode(File::get($imagePath));
+                $extension = pathinfo($imagePath, PATHINFO_EXTENSION);
+                $tempImagePath = $imagePath;
 
+                // Handle SVG conversion to PNG
+                if ($mimeType === 'image/svg+xml' || strtolower($extension) === 'svg') {
+                    $tempPngPath = storage_path("app/temp/{$image->hash}_converted.png");
+                    $imagick = new Imagick();
+                    $imagick->readImage($imagePath);
+                    $imagick->setImageFormat('png');
+                    $imagick->writeImage($tempPngPath);
+                    $imagick->clear();
+                    $imagick->destroy();
+
+                    // Resize the converted PNG to 512x512
+                    $resizedPngPath = storage_path("app/temp/{$image->hash}_resized.png");
+                    Image::load($tempPngPath)
+                        ->fit(Fit::Contain, 512, 512)
+                        ->quality(85)
+                        ->save($resizedPngPath);
+
+                    $tempImagePath = $resizedPngPath;
+                    $mimeType = 'image/png'; // Update MIME type for PNG
+                } else {
+                    // For non-SVG images, resize directly to 512x512
+                    $tempResizedPath = storage_path("app/temp/{$image->hash}_resized.{$extension}");
+                    Image::load($imagePath)
+                        ->fit(Fit::Contain, 512, 512)
+                        ->quality(85)
+                        ->save($tempResizedPath);
+                    $tempImagePath = $tempResizedPath;
+                }
+
+                // Read the processed image (either converted PNG or resized original)
+                $imageContent = base64_encode(File::get($tempImagePath));
+                if (empty($imageContent)) {
+                    Log::warning("Empty image content for {$image->hash}");
+                    // Clean up temporary files
+                    Storage::disk('local')->delete([
+                        "temp/{$image->hash}_converted.png",
+                        "temp/{$image->hash}_resized.{$extension}",
+                        "temp/{$image->hash}_resized.png",
+                    ]);
+                    continue;
+                }
+
+                // Prepare OpenAI payload
                 $payload = [
                     'model' => 'gpt-4o',
                     'messages' => [
@@ -60,8 +105,7 @@ class ImageDescription extends Command
                             'content' => [
                                 [
                                     'type' => 'text',
-                                    //'text' => 'Kurzbeschreibung des Bildes für HTML aria-label or alt tag.',
-                                    'text' => 'Produziere eine prägnante, sachliche Bildbeschreibung auf Deutsch (kein "Bild von..", keine Emojis,maximal 125 Zeichen inkl. Leerzeichen',
+                                    'text' => 'Produziere eine prägnante, sachliche Bildbeschreibung auf Deutsch (kein "Bild von..", keine Emojis, maximal 125 Zeichen inkl. Leerzeichen)',
                                 ],
                                 [
                                     'type' => 'image_url',
@@ -75,24 +119,34 @@ class ImageDescription extends Command
                     'max_tokens' => 100,
                 ];
 
+                // Send request to OpenAI
                 $response = Http::withToken(env('OPENAI_API_KEY'))
                     ->post('https://api.openai.com/v1/chat/completions', $payload);
-                $desc = $response->json()['choices'][0]['message']['content'] ?? 'No description received.';
-                Log::info('OpenAI API raw response', $response->json());
+
                 if (!$response->successful()) {
                     Log::error('OpenAI request failed', [
                         'status' => $response->status(),
                         'body' => $response->body(),
                     ]);
+                    // Clean up temporary files
+                    Storage::disk('local')->delete([
+                        "temp/{$image->hash}_converted.png",
+                        "temp/{$image->hash}_resized.{$extension}",
+                        "temp/{$image->hash}_resized.png",
+                    ]);
+                    continue;
                 }
 
+                $desc = $response->json()['choices'][0]['message']['content'] ?? 'No description received.';
+                Log::info('OpenAI API raw response', $response->json());
 
+                // Update database with description
                 DB::table('imagetags')
                     ->where('id', $image->id)
                     ->update(['description' => $desc]);
 
+                // Log OpenAI usage
                 $json = $response->json();
-
                 $usage = $json['usage'] ?? null;
 
                 if ($usage) {
@@ -100,14 +154,12 @@ class ImageDescription extends Command
                     $completionTokens = $usage['completion_tokens'];
                     $totalTokens = $usage['total_tokens'];
 
-                    // Your custom cost estimation logic (example prices)
                     $costPerPromptToken = 0.03 / 1000;
                     $costPerCompletionToken = 0.06 / 1000;
-
                     $totalCost = ($promptTokens * $costPerPromptToken) + ($completionTokens * $costPerCompletionToken);
 
-                    // Log it (to file or DB)
-                    DB::table('openai_logs')->insert(['type' => 'image-description',
+                    DB::table('openai_logs')->insert([
+                        'type' => 'image-description',
                         'prompt_tokens' => $promptTokens,
                         'completion_tokens' => $completionTokens,
                         'total_tokens' => $totalTokens,
@@ -117,21 +169,31 @@ class ImageDescription extends Command
                     ]);
                 }
 
-                // delete file
-                //Storage::disk('local')->delete('app/images/' . $image->hash);
-                $filePath = storage_path('app/images/' . $image->hash);
-
-                if (File::exists($filePath)) {
-                    File::delete($filePath);
+                // Delete original and temporary files
+                if (File::exists($imagePath)) {
+                    File::delete($imagePath);
                 }
-                $this->info("Image deleted.".storage_path('app/images/' . $image->hash));
+                Storage::disk('local')->delete([
+                    "temp/{$image->hash}_converted.png",
+                    "temp/{$image->hash}_resized.{$extension}",
+                    "temp/{$image->hash}_resized.png",
+                ]);
 
-
+                $this->info("Processed and deleted image: {$image->hash} (Description: {$desc})");
 
             } catch (\Exception $e) {
-                Log::error($e->getMessage());
+                Log::error("Error processing image ID {$image->id}: {$e->getMessage()}");
+                // Clean up temporary files on error
+                Storage::disk('local')->delete([
+                    "temp/{$image->hash}_converted.png",
+                    "temp/{$image->hash}_resized.{$extension}",
+                    "temp/{$image->hash}_resized.png",
+                ]);
             }
         }
 
+        $this->info('Image processing completed.');
+        return 0;
     }
 }
+
