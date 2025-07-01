@@ -225,6 +225,7 @@ class CompanyResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('ID')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('kd_nr')->label('Kd-Nr')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('name')->label('Name')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('plz')->label('plz')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('ort')->label('Ort')->searchable()->sortable(),
