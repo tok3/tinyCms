@@ -6,6 +6,7 @@ use App\Filament\Resources\Shared\ImagetagResource\Pages;
 use App\Filament\Resources\Shared\ImagetagResource\RelationManagers;
 use App\Models\Imagetag;
 use Filament\Forms;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -19,6 +20,8 @@ use App\Models\Company;
 use Filament\Tables\Columns\ViewColumn;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Facades\Http;
+use Filament\Forms\Components\Placeholder;
+
 class ImagetagResource extends Resource
 {
 
@@ -84,29 +87,45 @@ class ImagetagResource extends Resource
                     ->required()
                     ->maxLength(26),
                 */
+                Grid::make()
+                    ->columns(12)
+                    ->schema([
+                        Placeholder::make('company_info')
+                            ->label('Firma')
+                            ->content(fn ($record) => new HtmlString(
+                                '<div class="space-y-1 pb-2">
+            <span class="block text-lg font-bold"> '.$record->company?->name .'</span>'))
+                            ->columnSpan(3),
+                    ]),
 
-                Forms\Components\Select::make('company_id')
-                    ->label('Firma')
-                    ->relationship(name: 'company', titleAttribute: 'name')
-                    ->required()
-                    ->disabled()
-                    ->searchable(),
+                Grid::make()
+                    ->columns(6)
+                    ->extraAttributes(['class' => 'py-4'])
+                    ->schema([
+                        Forms\Components\TextInput::make('url')
+                            ->label('Image')
+                            ->view('filament.tables.columns.image-column-form')
+                            ->columnSpan(2),
+                        Forms\Components\Textarea::make('description')
+                            //->maxLength(255)
+                            ->label('Bildbeschreibung (alt-tag)')
+                            ->required()
+                            ->default(null)
+                        ->columnSpan(3),
+                    ]),
 
-                Forms\Components\TextInput::make('url')
-                    ->label('Image')
-                    ->view('filament.tables.columns.image-column-form'),
-                Forms\Components\TextInput::make('url')
-                    ->disabled(),
+
+                Placeholder::make('url_display')
+                    ->label('Image-URL')
+                    ->content(fn (callable $get) => $get('url') ?? '–')
+                    ->columnSpan(3),
+
                 /*
                 Forms\Components\TextInput::make('hash')
                     ->maxLength(255)
                     ->default(null),
                 */
-                Forms\Components\Textarea::make('description')
-                    //->maxLength(255)
-                    ->label('Beschreibung')
-                    ->required()
-                    ->default(null),
+
 
             ]);
     }
