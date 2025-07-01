@@ -16,7 +16,9 @@ use Filament\Facades\Filament;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Models\Company;
-
+use Filament\Tables\Columns\ViewColumn;
+use Illuminate\Support\HtmlString;
+use Illuminate\Support\Facades\Http;
 class ImagetagResource extends Resource
 {
 
@@ -125,9 +127,25 @@ class ImagetagResource extends Resource
                     ->visible(fn () => auth()->user()?->isAdmin())
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('url')
-                    ->label('Image')
-                    ->view('filament.tables.columns.image-column'),
+
+//                Tables\Columns\TextColumn::make('url')
+//                    ->label('Image')
+//                    ->view('filament.tables.columns.image-column'),
+
+                ViewColumn::make('image_info')
+                    ->label('Bild')
+                    ->view('filament.tables.columns.image-with-info')
+                    ->getStateUsing(fn ($record) => [
+                        'url'    => $record->url,
+                        'alt'  => $record->description,
+                        'width'  => $record->image_width,
+                        'height' => $record->image_height,
+                        'size'   => $record->image_size, // z.B. in KB, bereits in DB gespeichert
+                    ])
+                    ->extraAttributes([
+                        'class' => 'flex items-center', // optional, wenn du mehr als nur das Bild rendern willst
+                    ]),
+
                 //Tables\Columns\TextColumn::make('hash')
                 //    ->searchable(),
                 Tables\Columns\TextColumn::make('description')

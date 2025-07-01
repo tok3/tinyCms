@@ -7,6 +7,7 @@ use App\Filament\Resources\Shared\EztextResource\RelationManagers;
 use App\Models\Eztext;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Components\Grid;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -16,6 +17,9 @@ use Filament\Facades\Filament;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Models\Company;
+use Filament\Forms\Components\Placeholder;
+use Illuminate\Support\HtmlString;
+
 class EztextResource extends Resource
 {
     protected static ?string $model = Eztext::class;
@@ -80,33 +84,32 @@ class EztextResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
+            ->columns(2)            // <-- alle Felder in einer Spalte
             ->schema([
-                /*
-                Forms\Components\TextInput::make('company_name')
+                Grid::make()
+                    ->columns(12)
+                    ->schema([
+                        Forms\Components\Select::make('company_id')
+                            ->label('Firma')
+                            ->relationship(name: 'company', titleAttribute: 'name')
+                            ->required()
+                            ->disabled()
+                            ->searchable()
+                            ->visible(fn () => auth()->user()?->isAdmin())
+                    ->columnSpan(3),
+                    ]),
 
-                    ->label('Firma')
-                    ->disabled()
-                    ->hidden(fn () => ! auth()->user()?->isAdmin())
-                    ->maxLength(26),
-                */
-                Forms\Components\Select::make('company_id')
-                    ->label('Firma')
-                    ->relationship(name: 'company', titleAttribute: 'name')
-                    ->required()
-                    ->disabled()
-                    ->searchable(),
                 Forms\Components\Textarea::make('text')
                     ->label('Text')
                     ->rows(20)
                     ->required(),
 
-                    //->columnSpanFull(),
-                Forms\Components\TextInput::make('count')
+                Placeholder::make('count')
                     ->label('Abrufe')
-                    ->numeric()
-                    ->disabled(),
-
-
+                    ->columnSpan(2)
+                    ->content(fn (callable $get) => new HtmlString(
+                        '<strong>' . e($get('count')) . '</strong>'
+                    )),
             ]);
     }
 

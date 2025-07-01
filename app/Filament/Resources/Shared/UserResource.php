@@ -14,6 +14,7 @@ use Filament\Tables;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
@@ -38,6 +39,13 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('kd_nr')
+                    ->label('KD-Nr')
+                    ->getStateUsing(fn(User $user) =>
+                    $user->companies
+                        ->pluck('kd_nr')
+                        ->implode(', ')
+                    ),
                 Tables\Columns\TextColumn::make('id') // Real existierendes Feld
                 ->label('Companies')
                     ->getStateUsing(function (User $record) {
