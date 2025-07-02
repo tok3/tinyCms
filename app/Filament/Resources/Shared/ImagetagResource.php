@@ -12,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,9 @@ use Filament\Tables\Columns\ViewColumn;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Facades\Http;
 use Filament\Forms\Components\Placeholder;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Model;
+
 
 class ImagetagResource extends Resource
 {
@@ -172,6 +176,10 @@ class ImagetagResource extends Resource
                     ->wrap()
                     ->searchable(),
 
+                Tables\Columns\TextColumn::make('url')
+                    ->label('URL')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -207,6 +215,40 @@ class ImagetagResource extends Resource
             //
         ];
     }
+
+
+    /*
+        // Customize global search to include multiple columns
+    public static function getGlobalSearchResults(string $search): Collection
+    {
+        \Log::info("search");
+        $query = static::getModel()::query();
+
+        // Split search query into individual terms for more flexible matching
+        $searchTerms = collect(explode(' ', $search))->filter()->map(fn($term) => trim($term));
+
+        // Build the query to search 'url' and 'description' columns
+        $query->where(function (Builder $query) use ($searchTerms) {
+            foreach ($searchTerms as $term) {
+                $query->orWhere('url', 'like', "%{$term}%")
+                      ->orWhere('description', 'like', "%{$term}%");
+            }
+        });
+
+        // Execute the query and return a Collection
+        return $query->limit(50)->get(); // Limit to 50 results for performance
+    }
+        */
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['description', 'url',];
+    }
+
+    public static function getGlobalSearchResultTitle(Model $record): string | Htmlable
+{
+    //return static::getRecordTitle($record);
+    return substr($record->description, 0, 35)."... (".$record->url.")";
+}
 
     public static function getPages(): array
     {

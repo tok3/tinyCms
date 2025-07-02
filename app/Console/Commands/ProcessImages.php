@@ -69,6 +69,7 @@ class ProcessImages extends Command
                     'image/png' => 'png',
                     'image/gif' => 'gif',
                     'image/webp' => 'webp', // Added WebP support
+                    'image/svg+xml' => 'svg', // Added SVG support
                 ];
                 if (!isset($validFormats[$mime])) {
                     DB::table('imagetags')
@@ -86,30 +87,42 @@ class ProcessImages extends Command
                     $originalTempPath = $newOriginalTempPath;
                 }
 
-                // Prepare paths for resized image
-                $resizedTempPath = "temp/{$hash}_resized.{$extension}";
+                // Prepare paths for the final image
                 $filename = "{$hash}.{$extension}";
                 $storagePath = "images/{$filename}";
 
-                // Resize the image to 512x512 while maintaining aspect ratio
-                Image::load(storage_path("app/{$originalTempPath}"))
-                    ->fit(Fit::Contain, 512, 512)
-                    ->quality(85)
-                    ->save(storage_path("app/{$resizedTempPath}"));
+                if ($extension === 'svg') {
+                    // For SVG, skip resizing and store the original file directly
+                    Storage::disk('local')->put($storagePath, $imageContent);
+                } else {
+                // Prepare paths for resized image
+                    $resizedTempPath = "temp/{$hash}_resized.{$extension}";
 
-                // Read the resized image and store it in the final location
-                $resizedContent = Storage::disk('local')->get($resizedTempPath);
-                Storage::disk('local')->put($storagePath, $resizedContent);
+
+                    // Resize the image to 512x512 while maintaining aspect ratio
+                    Image::load(storage_path("app/{$originalTempPath}"))
+                        ->fit(Fit::Contain, 512, 512)
+                        ->quality(85)
+                        ->save(storage_path("app/{$resizedTempPath}"));
+
+                    // Read the resized image and store it in the final location
+                    $resizedContent = Storage::disk('local')->get($resizedTempPath);
+                    Storage::disk('local')->put($storagePath, $resizedContent);
+
+                    // Delete the resized temporary file
+                    Storage::disk('local')->delete($resizedTempPath);
+                }
+
 
                 // Update the database with the hash
                 DB::table('imagetags')
                     ->where('id', $image->id)
                     ->update(['hash' => $filename]);
 
-                // Delete temporary files
-                Storage::disk('local')->delete([$originalTempPath, $resizedTempPath]);
+                 // Delete the original temporary file
+                Storage::disk('local')->delete($originalTempPath);
 
-                $this->info("Processed image ID {$image->id} (Hash: {$hash})");
+                $this->info("Processed image ID {$image->id} (Hash: {$hash}, Format: {$extension})");
 
             } catch (\Exception $e) {
                 Log::error("Error processing image ID {$image->id}: {$e->getMessage()}");
