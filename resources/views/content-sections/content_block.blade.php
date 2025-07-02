@@ -49,7 +49,12 @@
                                     </div>
                                 @elseif($data['media_type'] === 'image' && !empty($data['image']))
 
-                                    <img src="{{ asset('storage/' . $data['image']) }}" class="img-fluid" alt="{{$data['alt_text']}}" {!! $data['opt_tags'] !!}>
+                                    <img
+                                        src="{{ asset('storage/' . $data['image']) }}"
+                                        class="img-fluid"
+                                        alt="{{ $data['alt_text'] }}"
+                                        {!! $data['opt_tags'] ?? '' !!}
+                                    >
                                 @endif
                             @endif
                         </div>
@@ -59,18 +64,22 @@
                 <!-- Bild/Vimeo links, Text rechts (Default) -->
                 <div class="col-12 col-md-6">
                     <div class="d-flex flex-column justify-content-between mw-md-md h-100">
-                            @if(!empty($data['media_type']))
-                                @if($data['media_type'] === 'video' && !empty($data['vimeo_url']))
-                                    <div class="embed-container">
-                                        <iframe src="{{ $data['vimeo_url'] }}" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
-                                    </div>
+                        @if(!empty($data['media_type']))
+                            @if($data['media_type'] === 'video' && !empty($data['vimeo_url']))
+                                <div class="embed-container">
+                                    <iframe src="{{ $data['vimeo_url'] }}" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+                                </div>
 
-                                @elseif($data['media_type'] === 'image' && !empty($data['image']))
+                            @elseif($data['media_type'] === 'image' && !empty($data['image']))
 
-
-                                <img src="{{ asset('storage/' . $data['image']) }}" class="img-fluid" alt="{{$data['alt_text']}}" {!! $data['opt_tags'] !!}>
-                                @endif
+                                <img
+                                    src="{{ asset('storage/' . $data['image']) }}"
+                                    class="img-fluid"
+                                    alt="{{ $data['alt_text'] }}"
+                                    {!! $data['opt_tags'] ?? '' !!}
+                                >
                             @endif
+                        @endif
 
                     </div>
                 </div>
