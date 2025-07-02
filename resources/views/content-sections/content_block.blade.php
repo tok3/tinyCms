@@ -48,7 +48,8 @@
                                         <iframe src="{{ $data['vimeo_url'] }}" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
                                     </div>
                                 @elseif($data['media_type'] === 'image' && !empty($data['image']))
-                                    <img src="{{ asset('storage/' . $data['image']) }}" class="img-fluid" alt="Content Image">
+
+                                    <img src="{{ asset('storage/' . $data['image']) }}" class="img-fluid" alt="{{$data['alt_text']}}" {!! $data['opt_tags'] !!}>
                                 @endif
                             @endif
                         </div>
@@ -65,7 +66,9 @@
                                     </div>
 
                                 @elseif($data['media_type'] === 'image' && !empty($data['image']))
-                                    <img src="{{ asset('storage/' . $data['image']) }}" class="img-fluid" alt="Content Image">
+
+
+                                <img src="{{ asset('storage/' . $data['image']) }}" class="img-fluid" alt="{{$data['alt_text']}}" {!! $data['opt_tags'] !!}>
                                 @endif
                             @endif
 

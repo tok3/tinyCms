@@ -376,6 +376,16 @@ class   PageResource extends Resource
                                                                 ->columnSpan(6), // **Soll direkt unter dem Upload sein**
                                                         ])
                                                         ->columns(12),
+
+                                                    Forms\Components\Grid::make(12)
+                                                        ->schema([
+                                                            Forms\Components\TextInput::make('opt_tags')
+                                                                ->label('optionale Tags wie z.b. style="" oder id="" ')
+                                                                ->placeholder("optionale Tags wie z.b. style Id oder dergeleichen")
+                                                                ->hidden(fn (callable $get) => $get('media_type') !== 'image')
+                                                                ->columnSpan(6), // **Soll direkt unter dem Upload sein**
+                                                        ])
+                                                        ->columns(12),
                                                 ])
                                                 ->columns(12),
                                             //-------------------------------------
