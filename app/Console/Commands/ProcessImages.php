@@ -25,7 +25,7 @@ class ProcessImages extends Command
             ->whereNull('hash')
             ->whereNull('deleted_at')
             ->limit(20)
-            ->get(['id', 'url', 'ulid', 'lang']);
+            ->get(['id', 'url']);
 
         if ($images->isEmpty()) {
             $this->info('No images to process.');
@@ -44,11 +44,11 @@ class ProcessImages extends Command
                         ->delete();
                         */
 
-                    $now = now()->toDateTimeString();
-                    DB::table('imagetags')
-                        ->where('id', $image->id)
-                        ->update(['deleted_at' => $now]);
-                        throw new \Exception("Failed to download image from {$image->url}");
+                $now = now()->toDateTimeString();
+                DB::table('imagetags')
+                    ->where('id', $image->id)
+                    ->update(['deleted_at' => $now]);
+                    throw new \Exception("Failed to download image from {$image->url}");
                 }
 
                 $imageContent = $response->body();
@@ -75,8 +75,6 @@ class ProcessImages extends Command
                 if (!isset($validFormats[$mime])) {
                     DB::table('imagetags')
                         ->where('id', $image->id)
-                        //->where('ulid', $image->ulid)
-                        //->where('url', $image->url)
                         ->delete();
                         Storage::disk('local')->delete($originalTempPath);
                     throw new \Exception("Unsupported image format: {$mime}");
@@ -92,7 +90,7 @@ class ProcessImages extends Command
 
                 // Prepare paths for the final image
                 $filename = "{$hash}.{$extension}";
-                $storagePath = "images/{$image->lang}_{$filename}";
+                $storagePath = "images/{$filename}";
 
                 if ($extension === 'svg') {
                     // For SVG, skip resizing and store the original file directly
@@ -120,8 +118,6 @@ class ProcessImages extends Command
                 // Update the database with the hash
                 DB::table('imagetags')
                     ->where('id', $image->id)
-                    //->where('ulid', $image->ulid)
-                    //->where('url', $image->url)
                     ->update(['hash' => $filename]);
 
                  // Delete the original temporary file
