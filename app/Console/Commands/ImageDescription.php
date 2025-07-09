@@ -39,9 +39,9 @@ class ImageDescription extends Command
 
         foreach ($images as $image) {
             try {
-                $imagePath = storage_path('app/images/' . $image->hash);
+                $imagePath = storage_path('app/images/' . $image->lang . '_' . $image->hash);
                 if (!File::exists($imagePath)) {
-                    Log::info("Image not found: {$image->hash}");
+                    Log::info("Image not found: {$image->lang}_{$image->hash}");
                     continue;
                 }
 
@@ -56,7 +56,7 @@ class ImageDescription extends Command
 
                 // Handle SVG conversion to PNG
                 if ($mimeType === 'image/svg+xml' || strtolower($extension) === 'svg') {
-                    $tempPngPath = storage_path("app/temp/{$image->hash}_converted.png");
+                    $tempPngPath = storage_path("app/temp/{$image->lang}_{$image->hash}_converted.png");
                     $imagick = new Imagick();
                     $imagick->readImage($imagePath);
                     $imagick->setImageFormat('png');
@@ -65,7 +65,7 @@ class ImageDescription extends Command
                     $imagick->destroy();
 
                     // Resize the converted PNG to 512x512
-                    $resizedPngPath = storage_path("app/temp/{$image->hash}_resized.png");
+                    $resizedPngPath = storage_path("app/temp/{$image->lang}_{$image->hash}_resized.png");
                     Image::load($tempPngPath)
                         ->fit(Fit::Contain, 512, 512)
                         ->quality(85)
@@ -86,14 +86,35 @@ class ImageDescription extends Command
                 // Read the processed image (either converted PNG or resized original)
                 $imageContent = base64_encode(File::get($tempImagePath));
                 if (empty($imageContent)) {
-                    Log::warning("Empty image content for {$image->hash}");
+                    Log::warning("Empty image content for {$image->lang}_{$image->hash}");
                     // Clean up temporary files
                     Storage::disk('local')->delete([
-                        "temp/{$image->hash}_converted.png",
-                        "temp/{$image->hash}_resized.{$extension}",
-                        "temp/{$image->hash}_resized.png",
+                        "temp/{$image->lang}_{$image->hash}_converted.png",
+                        "temp/{$image->lang}_{$image->hash}_resized.{$extension}",
+                        "temp/{$image->lang}_{$image->hash}_resized.png",
                     ]);
                     continue;
+                }
+                $prompt = '';
+                switch($image->lang){
+                    case 'en':
+                        $prompt = 'Produce a concise, factual image description in English (no "image of..", no emojis, max 125 characters incl. spaces).';
+                        break;
+                    case 'fr':
+                        $prompt = "Produisez une description d'image concise et factuelle en français (pas de 'image de..', pas d'emojis, max 125 caractères incl. espaces). Utilisez l'unicode pour les caractères spéciaux.";
+                        break;
+                    case 'it':
+                        $prompt = "Produci una descrizione dell'immagine concisa e fattuale in italiano (no 'immagine di..', no emoji, max 125 caratteri incl. spazi). Usa unicode per i caratteri speciali.";
+                        break;
+                    case 'dk':
+                        $prompt = 'Udarbejd en kortfattet, faktuel billedbeskrivelse på dansk (ingen "billede af..", ingen emojis, max 125 tegn inkl. mellemrum). Brug unicode til specialtegn.';
+                        break;
+                    case 'pl':
+                        $prompt = 'Stwórz zwięzły, rzeczowy opis obrazu po polsku (bez "obraz..", bez emotikonów, maks. 125 znaków z przerwami). Użyj unikodu dla znaków specjalnych.';
+                        break;
+                    default:
+                        $prompt = 'Produziere eine prägnante, sachliche Bildbeschreibung auf Deutsch (kein "Bild von..", keine Emojis, maximal 125 Zeichen inkl. Leerzeichen)';
+                        break;
                 }
 
                 // Prepare OpenAI payload
@@ -105,7 +126,7 @@ class ImageDescription extends Command
                             'content' => [
                                 [
                                     'type' => 'text',
-                                    'text' => 'Produziere eine prägnante, sachliche Bildbeschreibung auf Deutsch (kein "Bild von..", keine Emojis, maximal 125 Zeichen inkl. Leerzeichen)',
+                                    'text' => $prompt,
                                 ],
                                 [
                                     'type' => 'image_url',
@@ -130,9 +151,9 @@ class ImageDescription extends Command
                     ]);
                     // Clean up temporary files
                     Storage::disk('local')->delete([
-                        "temp/{$image->hash}_converted.png",
-                        "temp/{$image->hash}_resized.{$extension}",
-                        "temp/{$image->hash}_resized.png",
+                        "temp/{$image->lang}_{$image->hash}_converted.png",
+                        "temp/{$image->lang}_{$image->hash}_resized.{$extension}",
+                        "temp/{$image->lang}_{$image->hash}_resized.png",
                     ]);
                     continue;
                 }
@@ -174,20 +195,20 @@ class ImageDescription extends Command
                     File::delete($imagePath);
                 }
                 Storage::disk('local')->delete([
-                    "temp/{$image->hash}_converted.png",
-                    "temp/{$image->hash}_resized.{$extension}",
-                    "temp/{$image->hash}_resized.png",
+                    "temp/{$image->lang}_{$image->hash}_converted.png",
+                    "temp/{$image->lang}_{$image->hash}_resized.{$extension}",
+                    "temp/{$image->lang}_{$image->hash}_resized.png",
                 ]);
 
-                $this->info("Processed and deleted image: {$image->hash} (Description: {$desc})");
+                $this->info("Processed and deleted image: {$image->lang}_{$image->hash} (Description: {$desc})");
 
             } catch (\Exception $e) {
                 Log::error("Error processing image ID {$image->id}: {$e->getMessage()}");
                 // Clean up temporary files on error
                 Storage::disk('local')->delete([
-                    "temp/{$image->hash}_converted.png",
-                    "temp/{$image->hash}_resized.{$extension}",
-                    "temp/{$image->hash}_resized.png",
+                    "temp/{$image->lang}_{$image->hash}_converted.png",
+                    "temp/{$image->lang}_{$image->hash}_resized.{$extension}",
+                    "temp/{$image->lang}_{$image->hash}_resized.png",
                 ]);
             }
         }
