@@ -94,12 +94,12 @@ class FixsternController extends Controller
             'lang' => 'required|string|in:en,de,fr,it,da,pl', // Ensure lang is validated
         ]);
 
-        \Log::info('Request data:', $data);
+
 
 
         $urls = $request->input('urls');
         $ulid = $request->input('ulid');
-        $lang = $request->input('lang');
+        $lang = $request->input('lang') ?? 'de';
         $company = Company::where('ulid', $ulid)->first();
         if (!$company) {
             return response()->json([
