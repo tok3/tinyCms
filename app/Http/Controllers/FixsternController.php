@@ -88,10 +88,14 @@ class FixsternController extends Controller
     public function imageDescription(Request $request){
         //\Log::info($request);
         // Validate the request
-        $request->validate([
+        $data = $request->validate([
             'urls' => 'required|array',
             'urls.*' => 'required|url',
+            'lang' => 'required|string|in:en,de,fr,it,da,pl', // Ensure lang is validated
         ]);
+
+        \Log::info('Request data:', $data);
+
 
         $urls = $request->input('urls');
         $ulid = $request->input('ulid');
