@@ -23,8 +23,9 @@ class ProcessImages extends Command
         // Fetch images where hash is null
         $images = DB::table('imagetags')
             ->whereNull('hash')
+            ->whereNull('deleted_at')
             ->limit(20)
-            ->get(['id', 'url']);
+            ->get(['id', 'url', 'ulid', 'lang']);
 
         if ($images->isEmpty()) {
             $this->info('No images to process.');
@@ -38,15 +39,10 @@ class ProcessImages extends Command
                 // Download the image
                 $response = Http::timeout(10)->get($image->url);
                 if ($response->failed()) {
-                    /*DB::table('imagetags')
+                    $now = now()->toDateTimeString();
+                    DB::table('imagetags')
                         ->where('id', $image->id)
-                        ->delete();
-                        */
-
-                $now = now()->toDateTimeString();
-                DB::table('imagetags')
-                    ->where('id', $image->id)
-                    ->update(['deleted_at' => $now]);
+                        ->update(['deleted_at' => $now]);
                     throw new \Exception("Failed to download image from {$image->url}");
                 }
 
@@ -68,14 +64,14 @@ class ProcessImages extends Command
                     'image/jpeg' => 'jpg',
                     'image/png' => 'png',
                     'image/gif' => 'gif',
-                    'image/webp' => 'webp', // Added WebP support
-                    'image/svg+xml' => 'svg', // Added SVG support
+                    'image/webp' => 'webp',
+                    'image/svg+xml' => 'svg',
                 ];
                 if (!isset($validFormats[$mime])) {
                     DB::table('imagetags')
                         ->where('id', $image->id)
                         ->delete();
-                        Storage::disk('local')->delete($originalTempPath);
+                    Storage::disk('local')->delete($originalTempPath);
                     throw new \Exception("Unsupported image format: {$mime}");
                 }
                 $extension = $validFormats[$mime];
@@ -87,17 +83,43 @@ class ProcessImages extends Command
                     $originalTempPath = $newOriginalTempPath;
                 }
 
-                // Prepare paths for the final image
+                // Create filename with hash and extension for database check
                 $filename = "{$hash}.{$extension}";
-                $storagePath = "images/{$filename}";
+
+                // Check if hash exists with non-null description and same created_at/updated_at (if description was modified by user don't copy); check for the same language
+                $existingImage = DB::table('imagetags')
+                    ->where('hash', $filename)
+                    ->whereNotNull('description')
+                    ->whereRaw('created_at = updated_at')
+                    ->where('lang', $image->lang)
+                    ->where('ulid', $image->ulid)
+                    ->first();
+
+                if ($existingImage) {
+                    // Copy description from existing entry and update hash
+                    DB::table('imagetags')
+                        ->where('id', $image->id)
+                        ->update([
+                            'hash' => $filename,
+                            'description' => $existingImage->description
+                        ]);
+
+                    $this->info("Copied description for image ID {$image->id} (Hash: {$filename}) from existing entry");
+
+                    // Delete the temporary file
+                    Storage::disk('local')->delete($originalTempPath);
+                    continue; // Skip to next image
+                }
+
+                // Prepare paths for the final image
+                $storagePath = "images/{$image->lang}_{$filename}";
 
                 if ($extension === 'svg') {
                     // For SVG, skip resizing and store the original file directly
                     Storage::disk('local')->put($storagePath, $imageContent);
                 } else {
-                // Prepare paths for resized image
+                    // Prepare paths for resized image
                     $resizedTempPath = "temp/{$hash}_resized.{$extension}";
-
 
                     // Resize the image to 512x512 while maintaining aspect ratio
                     Image::load(storage_path("app/{$originalTempPath}"))
@@ -113,13 +135,12 @@ class ProcessImages extends Command
                     Storage::disk('local')->delete($resizedTempPath);
                 }
 
-
                 // Update the database with the hash
                 DB::table('imagetags')
                     ->where('id', $image->id)
                     ->update(['hash' => $filename]);
 
-                 // Delete the original temporary file
+                // Delete the original temporary file
                 Storage::disk('local')->delete($originalTempPath);
 
                 $this->info("Processed image ID {$image->id} (Hash: {$hash}, Format: {$extension})");
@@ -127,12 +148,7 @@ class ProcessImages extends Command
             } catch (\Exception $e) {
                 Log::error("Error processing image ID {$image->id}: {$e->getMessage()}");
                 $this->error("Failed to process image ID {$image->id}: {$e->getMessage()}");
-                // Clean up database
-                /*
-                DB::table('imagetags')
-                        ->where('id', $image->id)
-                        ->delete();
-                */
+
                 $now = now()->toDateTimeString();
                 DB::table('imagetags')
                     ->where('id', $image->id)

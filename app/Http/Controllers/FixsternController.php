@@ -88,13 +88,18 @@ class FixsternController extends Controller
     public function imageDescription(Request $request){
         //\Log::info($request);
         // Validate the request
-        $request->validate([
+        $data = $request->validate([
             'urls' => 'required|array',
             'urls.*' => 'required|url',
+            'lang' => 'required|string|in:en,de,fr,it,da,pl', // Ensure lang is validated
         ]);
+
+
+
 
         $urls = $request->input('urls');
         $ulid = $request->input('ulid');
+        $lang = $request->input('lang') ?? 'de';
         $company = Company::where('ulid', $ulid)->first();
         if (!$company) {
             return response()->json([
@@ -107,7 +112,7 @@ class FixsternController extends Controller
         // Generate descriptions (placeholder logic)
         foreach ($urls as $url) {
             // Replace with real image recognition API call if needed
-            $img = Imagetag::withTrashed()->where('ulid', $ulid)->where('url', $url)->first();
+            $img = Imagetag::withTrashed()->where('ulid', $ulid)->where('url', $url)->where('lang', $lang)->first();
             //\Log::info($img);
             //\Log::info($url);
             if($img && $img->description != ''){
@@ -125,13 +130,37 @@ class FixsternController extends Controller
             } else {
                 // save empty imagetag entry
                 //\Log::info("save empty imagetag entry".$url);
+                $pseudo = 'Bild Beschriftung ';
+                switch($lang){
+                    case 'en':
+                        $pseudo = 'Image description ';
+                        break;
+                    case 'fr':
+                        $pseudo = 'Description de l\'image ';
+                        break;
+                    case 'it':
+                        $pseudo = 'Descrizione dell\'immagine ';
+                        break;
+                    case 'dk':
+                        $pseudo = 'Beskrivelse af billedet ';
+                        break;
+                    case 'pl':
+                        $pseudo = 'Opis obrazu ';
+                        break;
+                    default:
+                        $pseudo = 'Bild Beschriftung ';
+                        break;
+                }
+
+
                 $img = new Imagetag();
                 $img->ulid = $ulid;
                 $img->url = $url;
+                $img->lang = $lang;
                 $img->save();
                 $descriptions[] = [
                     'url' => $url,
-                    'description' => 'Bild Beschriftung '.$url,
+                    'description' => $pseudo.$url,
                 ];
             }
         }

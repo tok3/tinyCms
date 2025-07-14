@@ -22,8 +22,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('backup:clean')->daily()->at('13:00');
         $schedule->command('backup:run')->daily()->at('13:30');
         $schedule->command('app:cleanup')->daily()->at('9:30');
-        $schedule->command('app:image-description')->everyFiveMinutes();
-        $schedule->command('app:processImages')->everyFiveMinutes();
+        $schedule->command('app:image-description')->everyThreeMinutes();
+        $schedule->command('app:processImages')->everyThreeMinutes();
 
     }
 
