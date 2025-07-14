@@ -30,7 +30,7 @@ return [
             'email' => 'info@aktion-barrierefrei.org',
         ],
         'bank' => [
-            'iban' => 'DE43 7952 0070 0032 9269 83',
+            'iban' => 'DE77 7952 0070 0045 0403 13',
             'bic' => 'HYVE DEMM 407',
         ],
         'business_process' => 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0',  // Peppol-Prozess
