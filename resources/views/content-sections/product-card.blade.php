@@ -41,7 +41,11 @@
                                     <h2 class="gb-card__title">{{$data['heading_box']}}</h2>
                                 @endif
                                 <div class="gb-card__body">
-                                    <span class="gb-card-variant2__text">
+                                    <span class="gb-card-variant2__text" style=" font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.92rem;
+    color: #111;
+    margin: 0;
+    line-height: 1.5;">
                                         {!! $data['text_box'] !!}
                                     </span>
                                 </div>
