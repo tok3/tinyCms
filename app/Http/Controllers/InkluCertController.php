@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 
 class InkluCertController extends Controller
 {
+
     public function showInkluCertForm()
     {
         return view('inklu-cert');

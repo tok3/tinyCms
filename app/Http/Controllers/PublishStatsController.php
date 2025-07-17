@@ -16,6 +16,9 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 use App\Models\PdfExport;
 
+
+use function Ramsey\Uuid\v1;
+
 class PublishStatsController extends Controller
 {
     public function exportIssuesCsv($id): StreamedResponse
@@ -76,18 +79,21 @@ class PublishStatsController extends Controller
     }
 
     public function exportIssuesPdf($id): Response
+
+    //public function exportIssuesPdf($id)
     {
         $urlinfo = Pa11yUrl::findOrFail($id);
         $showContrastErrors = CompanySetting::where('company_id', $urlinfo->company_id)->firstOrFail();
 
-        $query = Pa11yAccessibilityIssue::where('url_id', '=', $id);
+        $query = Pa11yAccessibilityIssue::where('url_id', '=', $id)->with('accessibilityRule');
+
 
         if (!$showContrastErrors->contrast_errors) {
             $query->whereNotIn('code', ['color-contrast', 'color-contrast-enhanced']);
         }
 
         $records = $query->get()->map(function ($record) {
-            foreach (['issue', 'selector', 'code', 'type', 'typeCode', 'context', 'standard', 'wcag_level'] as $field) {
+            foreach (['description_html', 'issue', 'selector', 'code', 'type', 'typeCode', 'context', 'standard', 'wcag_level', ] as $field) {
                 if (isset($record->$field)) {
                     $value = (string) $record->$field;
                     if (!mb_check_encoding($value, 'UTF-8')) {
@@ -96,8 +102,14 @@ class PublishStatsController extends Controller
                     $record->$field = $value;
                 }
             }
+
+
+
+
             return $record;
         });
+
+
 
         $url = Pa11yUrl::findOrFail($id);
         $company = Company::findOrFail($url->company_id);
@@ -115,8 +127,18 @@ class PublishStatsController extends Controller
         $exportId = $pdfExport->id;
         // Encode the ID to base62 +
         $encodedId = $this->base62Encode($exportId .''. now()->timestamp);
-
+        //\Log::info($records); die();
         // Generate the PDF content
+/*
+        return view('pdf.legal', [
+            'records' => $records,
+            'url' => $url,
+            'company' => $company,
+            'exportDate' => now()->format('d.m.Y H:i:s'),
+            'encodedId' => $encodedId,
+        ]);
+*/
+
         $pdf = Pdf::loadView('pdf.legal', [
             'records' => $records,
             'url' => $url,
@@ -127,7 +149,7 @@ class PublishStatsController extends Controller
 
         // Get the PDF binary content
         $pdfContent = $pdf->output();
-
+        //$pdf->render();
         // Calculate the hash of the PDF content
         $hash = hash('sha256', $pdfContent);
 
@@ -140,6 +162,93 @@ class PublishStatsController extends Controller
         // Return the PDF for download
         return $pdf->download("issues_export_{$id}.pdf");
     }
+
+
+
+    public function puppeteerexportIssuesPdf($id): Response
+{
+    // Existing data fetching logic remains unchanged
+    $urlinfo = Pa11yUrl::findOrFail($id);
+    $showContrastErrors = CompanySetting::where('company_id', $urlinfo->company_id)->firstOrFail();
+
+    $query = Pa11yAccessibilityIssue::where('url_id', '=', $id);
+    if (!$showContrastErrors->contrast_errors) {
+        $query->whereNotIn('code', ['color-contrast', 'color-contrast-enhanced']);
+    }
+
+    $records = $query->get()->map(function ($record) {
+        foreach (['issue', 'selector', 'code', 'type', 'typeCode', 'context', 'standard', 'wcag_level'] as $field) {
+            if (isset($record->$field)) {
+                $value = (string) $record->$field;
+                if (!mb_check_encoding($value, 'UTF-8')) {
+                    $value = iconv('UTF-8', 'UTF-8//IGNORE', $value);
+                }
+                $record->$field = $value;
+            }
+        }
+        return $record;
+    });
+
+    $url = Pa11yUrl::findOrFail($id);
+    $company = Company::findOrFail($url->company_id);
+
+    $url->url = mb_check_encoding($url->url, 'UTF-8') ? $url->url : iconv('UTF-8', 'UTF-8//IGNORE', $url->url);
+    $company->name = mb_check_encoding($company->name, 'UTF-8') ? $company->name : iconv('UTF-8', 'UTF-8//IGNORE', $company->name);
+
+    $pdfExport = PdfExport::create([
+        'url' => $url->url,
+        'company_id' => $company->id,
+    ]);
+
+    $exportId = $pdfExport->id;
+    $encodedId = $this->base62Encode($exportId . '' . now()->timestamp);
+
+    // Generate HTML
+    $html = view('pdf.legal', [
+        'records' => $records,
+        'url' => $url,
+        'company' => $company,
+        'exportDate' => now()->format('d.m.Y H:i:s'),
+        'encodedId' => $encodedId,
+    ])->render();
+
+    // Save HTML to temporary file
+    $tempHtmlPath = storage_path('app/temp/temp_html_' . $id . '.html');
+    $tempPdfPath = storage_path('app/temp/temp_pdf_' . $id . '.pdf');
+    file_put_contents($tempHtmlPath, $html);
+
+    // Run Node.js script
+    $nodeScript = base_path('scripts/generate-pdf.js');
+    $command = "node {$nodeScript} {$tempHtmlPath} {$tempPdfPath}";
+    \Log::info($command);
+    exec($command, $output, $returnVar);
+
+    if ($returnVar !== 0) {
+        \Log::error('PDF generation failed: ' . implode("\n", $output));
+        abort(500, 'Failed to generate PDF');
+    }
+
+    // Read PDF content
+    $pdfContent = file_get_contents($tempPdfPath);
+
+    // Calculate hash
+    $hash = hash('sha256', $pdfContent);
+
+    // Update database
+    $pdfExport->update([
+        'encoded_id' => $encodedId,
+        'hash' => $hash,
+    ]);
+
+    // Clean up
+    unlink($tempHtmlPath);
+    unlink($tempPdfPath);
+
+    // Return PDF
+    return response($pdfContent)
+        ->header('Content-Type', 'application/pdf')
+        ->header('Content-Disposition', "attachment; filename=issues_export_{$id}.pdf");
+}
 
     /**
      * Encode a number to base62
