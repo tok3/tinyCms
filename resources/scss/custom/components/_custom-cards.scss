@@ -1,0 +1,615 @@
+/* styles.css */
+.product-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.25rem;
+    background: #ffffff;
+    max-width: 1000px;
+    font-family: sans-serif;
+    margin-bottom: 1rem; /* entspricht mb-3 */
+}
+
+.product-card__image-wrapper {
+    flex-shrink: 0;
+}
+
+.product-card__image {
+    width: 250px;
+    height: auto;
+    border-radius: 0.3rem;
+}
+
+.product-card__content {
+    flex: 1;
+}
+
+.product-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.product-card__title {
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.product-card__provider {
+    font-size: 1.0rem;
+    color: #6b7280;
+}
+
+.product-card__description {
+    margin: 0.5rem 0;
+    color: #050708;
+    font-size: 1.0rem;
+    line-height: 1.4;
+}
+
+
+.product-card__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Tags-Container an den rechten Rand ausrichten */
+.product-card__tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+    margin-left: auto;    /* schiebt ihn ganz nach rechts */
+}
+
+.tag {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    display: inline-block;
+}
+
+/* Spezifische Tag-Varianten */
+.tag--dsgvo {
+    background-color: #ecfdf5;
+    color: #065f46;
+}
+
+.tag--bitv {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.tag--wcag {
+    background-color: #e0f2fe;
+    color: #0369a1;
+}
+/* styles.css */
+/* Basisklasse für alle Provider-Icons */
+.product-card__provider--icon {
+    display: inline-block;
+    width: 3.25rem;            /* fixe Breite */
+    height: 2.25rem;           /* fixe Höhe */
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    line-height: 0;
+    vertical-align: middle;
+}
+.product-card__provider--icon + .product-card__provider--icon {
+    margin-left: 3px;
+}
+/* Modifier-Klassen nur für das jeweilige Icon */
+.product-card__provider--icon.feature {
+    background-image: url("{{ URL::asset('assets/img/produkte/feature-white.png') }}");
+}
+.product-card__provider--icon.audio {
+    background-image: url("{{ URL::asset('assets/img/produkte/audio-white.png') }}");
+
+}
+.product-card__provider--icon.standalone {
+    background-image: url("{{ URL::asset('assets/img/produkte/standalone.svg') }}");
+}
+.product-card__provider--icon.addon {
+    background-image: url("{{ URL::asset('assets/img/produkte/addON.svg') }}");
+}
+/* Wrapper um alle Icons */
+.product-card__provider-icons {
+    display: flex;
+    gap: 3px;        /* Abstand zwischen den Icons */
+    margin-left: auto; /* ganz nach rechts ausrichten */
+}
+
+/* floatendes Bild innerhalb des Fließtexts */
+.product-card__image--float {
+    float: left;               /* Bild nach links floaten */
+    width: 250px;              /* fixe Breite, Höhe passt sich an */
+    height: auto;
+    margin: 0 1rem 1rem 0;     /* rechts und unten Abstand für den Umfluss */
+    border-radius: 0.3rem;     /* optional, wie gehabt */
+}
+
+/* Footer-Container wie Header */
+.product-card__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;        /* damit es auf engen Viewports umbrechen kann */
+    width: 100%;            /* volle Breite der Card */
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb; /* optional Abgrenzung */
+}
+
+/* Linke Seite: Titel + Text */
+.product-card__footer-info {
+    display: flex;
+    flex-direction: column;
+    max-width: 60%;         /* auf großen Viewports Beschränkung, damit Actions rechts Platz haben */
+}
+.product-card__footer-title {
+    margin: 0 0 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+.product-card__footer-text {
+    margin: 0;
+    color: #6b7280;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+/* Rechte Seite: Button-Group */
+.product-card__footer-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: auto;       /* schiebt die Actions ganz nach rechts */
+}
+.product-card__footer-actions .btn {
+    white-space: nowrap;
+}
+
+/* Responsive: ab 768px einspaltig */
+@media (max-width: 768px) {
+    .product-card__footer {
+        flex-direction: column;
+        align-items: stretch;  /* zieht beide Bereiche über die volle Breite */
+    }
+    .product-card__footer-info {
+        max-width: 100%;
+        margin-bottom: 1rem;
+    }
+    .product-card__footer-actions {
+        margin-left: 0;
+        justify-content: flex-start;
+        width: 100%;
+    }
+    /* Optional: Buttons untereinander auf sehr kleinen Viewports */
+    @media (max-width: 480px) {
+        .product-card__footer-actions {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .product-card__footer-actions .btn {
+            width: 100%;
+        }
+    }
+}
+.product-card__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;   /* statt flex-start */
+    flex-wrap: wrap;
+    width: 100%;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+@media (max-width: 768px) {
+    .product-card__footer-actions {
+        margin-left: 0;         /* hebt das vorherige auto wieder auf */
+        width: 100%;            /* bleibt volle Breite */
+        justify-content: center;/* schiebt die Buttons mittig */
+    }
+
+    /* very small viewports: Buttons untereinander */
+    @media (max-width: 480px) {
+        .product-card__footer-actions {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .product-card__footer-actions .btn {
+            width: 100%;
+        }
+    }
+}
+
+
+/* --- Card Grundlayout --- */
+.gb-card {
+    position: relative;
+    /* DEFAULT-FARBEN als CSS-Variablen */
+    --card-bg:       #76bbd0;
+    --footer-top:    #e07044;
+    --footer-bottom: #f0ab61;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 2.0rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    color: #fff;
+    overflow: hidden;
+    max-width: 100%;
+    margin: 2rem auto;
+}
+
+.gb-card__title {
+    font-family: 'karla', sans-serif;
+    font-size: 2.0rem;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+}
+
+.gb-card__body p {
+    font-family: 'Pontano Sans', sans-serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: .75rem;
+}
+
+/* Sidebar ganz unten rechts, 20% der Höhe */
+.gb-card__sidebar {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 24px;
+    height: 50px;
+    display: flex;
+    flex-direction: column;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    overflow: hidden;
+}
+
+.gb-card__block {
+    flex: 1;
+    display: block;
+}
+/* Farben lesen aus den Variablen */
+.gb-card__block--top {
+    background-color: var(--footer-top);
+}
+.gb-card__block--bottom {
+    background-color: var(--footer-bottom);
+}
+
+.gb-card--legal {
+    background-color: #f5f5f5;  /* hellgrau */
+    color: #111;                /* fast schwarz */
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    box-shadow: none;          /* keine auffällige Karte */
+    position: relative;
+}
+
+.gb-card--legal .gb-card__title {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #111;
+}
+
+.gb-card--legal .gb-card-variant2__text {
+    font-size: 0.95rem;
+    color: #111;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.gb-card--legal .gb-card__sidebar {
+    display: none; /* optional: Sidebar-Elemente bei Legal-Card entfernen */
+}
+/* === Sechs Varianten === */
+
+/* 1) Primary */
+.gb-card--primary {
+    --card-bg:       #0d6efd;
+    --footer-top:    #0747a6;
+    --footer-bottom: #3d7bfa;
+}
+/* 2) Secondary */
+.gb-card--secondary {
+    --card-bg:       #6c757d;
+    --footer-top:    #495057;
+    --footer-bottom: #adb5bd;
+}
+
+.gb-card--light {
+    color:#111111;
+    --card-bg:       #f5f5f5;
+    --footer-top:    #adb5bd;
+    --footer-bottom: #ced4da;
+}
+
+
+/* 3) Success */
+.gb-card--success {
+    --card-bg:       #198754;
+    --footer-top:    #117a39;
+    --footer-bottom: #45ba6b;
+}
+/* 4) Danger */
+.gb-card--danger {
+    --card-bg:       #dc3545;
+    --footer-top:    #a71d2a;
+    --footer-bottom: #ed6473;
+}
+/* 5) Warning */
+.gb-card--warning {
+    --card-bg:       #ffc107;
+    --footer-top:    #e0a800;
+    --footer-bottom: #ffcd39;
+}
+/* 6) Info */
+.gb-card--info {
+    --card-bg:       #0dcaf0;
+    --footer-top:    #0aa3b5;
+    --footer-bottom: #3eefec;
+}
+
+     /* === Basis-Styles Variant 2 === */
+ .gb-card-variant2 {
+     display: flex;
+     border-radius: 8px;
+     overflow: hidden;
+     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+     /*max-width: 800px;*/
+     margin: 2rem auto;
+     container-type: inline-size;
+     container-name: card;
+ }
+
+/* Linke Spalte mit Verlauf und Grafik */
+.gb-card-variant2__left {
+    --c1: var(--left-color-1, #f7029f);
+    --c2: var(--left-color-2, #1121c2);
+    flex: 0 0 35%;
+    background: linear-gradient(
+            to bottom right,
+            var(--c1) 0%,
+            var(--c2) 100%
+    );
+    display: flex;
+    flex-direction: column;    /* stapelt Icons untereinander */
+    align-items: center;       /* horizontal zentriert */
+    justify-content: flex-start; /* oben beginnen */
+    gap: 1rem;                 /* Abstand zwischen den Icons */
+    padding: 1.5rem 0;         /* vertikales Padding */
+    max-width: 250px;
+
+}
+
+.gb-card-variant2__icon {
+    max-width: 80%;
+    height: auto;
+    display: block;
+}
+.fadeout-pink {
+    background: linear-gradient(to bottom right, #f7029f, #f7029f);
+    -webkit-mask-image: linear-gradient(to bottom, #ce00cd 0px, #ce00cd 300px, transparent 100%);
+    mask-image: linear-gradient(to bottom, #ce00cd 0px, #ce00cd 300px, transparent 100%);
+}
+/* Rechte Spalte mit Text */
+.gb-card-variant2__right {
+    flex: 1;
+    background: #fff;
+    padding: 2rem;
+    padding-bottom: 1.5rem;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+}
+.gb-card-variant2__text-left {
+    flex: 1;
+    background: transparent;
+    padding: 2rem;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+}
+
+/* === Header: Titel + Icons === */
+.gb-card-variant2__header {
+    position: relative;
+    margin-bottom: -0.0rem;  /* fixer Abstand zum Subtitle */
+}
+
+.gb-card-variant2__title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.9rem;
+    margin: 0 0 0.8rem;
+    color: #222;
+}
+
+/* Icons absolut oben rechts, strecken den Header nicht */
+.gb-card-variant2__header-icons {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom:  0.8rem;
+}
+
+.gb-card-variant2__icon-small {
+    width: auto;
+    height: 20px;
+    display: block;
+}
+
+/* Subtitle & Text */
+.gb-card-variant2__subtitle {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #555;
+    margin: 0 0 1rem;
+}
+
+.gb-card-variant2__text {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin: 0;
+    color: #444;
+}
+
+/* === Demo-Variante: nur Farben konfigurieren === */
+.gb-card-variant2--pink {
+    --left-color-1: #f7029f; /* Pink oben */
+    --left-color-2: #ce00cd; /* Violett unten */
+}
+
+
+.gb-card-variant2__footer {
+    border-top: 1px lightgray solid;
+    padding-top:1rem;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+    gap: 0.5rem; /* falls mehrere Buttons folgen */
+
+}
+
+
+/* Container Query – wenn die Card mind. 856px breit ist */
+@container card (min-width: 857px) {
+    .gb-card-variant2__footer {
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: center;
+    }
+
+    .gb-card-variant2__footer .gradient-button-wrapper {
+        width: 180px;
+    }
+}
+@media (max-width: 768px) {
+    .gb-card-variant2 {
+        flex-direction: column;
+    }
+
+    .gb-card-variant2__header-icons {
+        position: relative;
+        margin-top: 0.8em !important;
+        right: 0;
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.8rem;
+
+    }
+    .gb-card-variant2__left {
+        flex: none;
+        width: 100%;
+        max-width: 100%;
+        padding: 1rem;
+        flex-direction: row;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .gb-card-variant2__right {
+        padding: 1.5rem;
+        align-items: center;
+        text-align: center;
+    }
+
+    .gb-card-variant2__header-icons {
+        position: static;
+        justify-content: center;
+        margin-top: 0.5rem;
+    }
+
+    .gb-card-variant2__footer {
+        flex-direction: column;
+        align-items: stretch;
+        width:100% !important;
+    }
+
+    .gb-card-variant2__footer a {
+        width:100% !important;
+
+    }
+
+    .gb-card-variant2__footer .btn span {
+        width:100% !important;
+        white-space: nowrap;
+    }
+}
+
+.gradient-button-wrapper {
+    padding: 2px; /* für Rahmen-Effekt */
+    border-radius: 8px;
+    background: linear-gradient(135deg, #d3089a, #6f42c1); /* Beispiel: Indigo */
+    width: 100%;
+}
+
+.gradient-button-wrapper .btn {
+    background-color: #fff;
+    border: none;
+    width: 100%;
+    display: block;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background 0.3s ease;
+}
+
+.gradient-button-wrapper .btn:hover {
+    background-color: #f8f9fa;
+}
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #1abc9c, #3498db);
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, #28a745, #218838);
+}
+
+.bg-gradient-danger {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+}
+
+.bg-gradient-purple {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+}
+
+.bg-gradient-indigo {
+    background: linear-gradient(135deg, #6610f2, #6f42c1);
+}
+
+.bg-gradient-teal {
+    background: linear-gradient(135deg, #20c997, #17a2b8);
+}
+
+.bg-gradient-night {
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+}
+
+.bg-gradient-sunset {
+    background: linear-gradient(135deg, #fd746c, #ff9068);
+}
+
+.bg-gradient-iceblue {
+    background: linear-gradient(135deg, #00c6ff, #0072ff);
+}

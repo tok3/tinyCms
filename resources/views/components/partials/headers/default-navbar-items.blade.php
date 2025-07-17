@@ -179,6 +179,7 @@ if(!isset($page))
       <div class="dropend">
         <a class="dropdown-item dropdown-toggle" data-bs-toggle="dropdown" href="{{ URL('assan/#') }}">Misc</a>
         <div class="dropdown-menu">
+          <a class="dropdown-item" href="{{ URL('assan/test-start-neu.html') }}">Aktion Barrierefrei Custom Cards</a>
           <a class="dropdown-item" href="{{ URL('assan/page-misc-error-404.html') }}">Error 404</a>
           <a class="dropdown-item" href="{{ URL('assan/page-misc-coming-soon.html') }}">Coming Soon</a>
           <a class="dropdown-item" href="{{ URL('assan/page-misc-maintenance.html') }}">Maintenance</a>

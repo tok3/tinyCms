@@ -279,6 +279,117 @@ class   PageResource extends Resource
 
                                             //-------------------------------------
 
+                                            Forms\Components\Builder\Block::make('product-card')
+                                                ->label('Produktkarte')
+                                                ->schema([
+                                                    Forms\Components\TextInput::make('heading')
+                                                        ->label('Überschrift')
+                                                        ->required()
+                                                        ->columnSpan(6),
+
+                                                    Forms\Components\TextInput::make('heading_sub')
+                                                        ->label('Subline')
+                                                        ->columnSpan(6),
+
+                                                    Forms\Components\RichEditor::make('text')
+                                                        ->label('Text')
+                                                        ->required()
+                                                        ->columnSpanFull(),
+
+                                                    Forms\Components\TextInput::make('heading_box')
+                                                        ->label('Box Heading')
+                                                        ->columnSpanFull(),
+                                                    Forms\Components\RichEditor::make('text_box')
+                                                        ->label('Box Text')
+                                                        ->columnSpanFull(),
+
+                                                    Forms\Components\TextInput::make('btn_1_txt')
+                                                        ->label('Button 1 – Text')
+                                                        ->columnSpan(3),
+
+                                                    Forms\Components\TextInput::make('btn_1_target')
+                                                        ->label('Button 1 – Ziel')
+                                                        ->columnSpan(3),
+
+                                                    Forms\Components\TextInput::make('btn_2_txt')
+                                                        ->label('Button 2 – Text')
+                                                        ->columnSpan(3),
+
+                                                    Forms\Components\TextInput::make('btn_2_target')
+                                                        ->label('Button 2 – Ziel')
+                                                        ->columnSpan(3),
+
+                                                    Forms\Components\FileUpload::make('product_image')
+                                                        ->label('Produktbild (links)')
+                                                        ->image()
+                                                        ->columnSpan(6),
+                                                    Forms\Components\TextInput::make('product_image_alt')
+                                                        ->label('Alt-Text')
+                                                        ->columnSpan(4 ),
+                                                    Forms\Components\Repeater::make('header_icons')
+                                                        ->label('Header-Icons')
+                                                        ->schema([
+                                                            Forms\Components\FileUpload::make('icon')
+                                                                ->label('Icon')
+                                                                ->image()
+                                                                ->required()
+                                                                ->columnSpan(6),
+                                                            Forms\Components\TextInput::make('alt')
+                                                                ->label('Alt-Text')
+                                                                ->columnSpan(2 ),
+                                                            Forms\Components\TextInput::make('height')
+                                                                ->label('Höhe (px)')
+                                                                ->default(27 )
+                                                                ->columnSpan(2 ),
+                                                        ])
+                                                        ->columns(12)
+                                                        ->reorderable(true)
+                                                        ->addActionLabel('Icon hinzufügen')
+                                                        ->columnSpanFull(),
+
+                                                    Forms\Components\Section::make('Erscheinungsbild')
+                                                        ->schema([
+                                                            Forms\Components\Select::make('gradient_style')
+                                                                ->label('Linke Seite BG-Gradient-Stil ')
+                                                                ->options([
+                                                                    'gb-card-variant2--pink' => 'Pink',
+                                                                    'pink-blue' => 'Pink-Blau',
+                                                                ])
+                                                                ->default('gb-card-variant2--pink')
+                                                                ->required()
+                                                                ->columnSpan(4),
+
+                                                            Forms\Components\Select::make('width_class')
+                                                                ->label('Breite der Card')
+                                                                ->options([
+                                                                    'col-lg-8' => 'col-lg-8',
+                                                                    'col-lg-10' => 'col-lg-10',
+                                                                    'col-lg-12' => 'col-lg-12',
+                                                                ])
+                                                                ->default('col-lg-10')
+                                                                ->columnSpan(4),
+
+                                                            Forms\Components\Select::make('background_class')
+                                                                ->label('Hintergrund der Section')
+                                                                ->options([
+                                                                    '' => '– Kein Hintergrund –',
+                                                                    'bg-blend-lighten' => 'bg-blend-lighten',
+                                                                    'bg-body-tertiary' => 'bg-body-tertiary',
+                                                                    'bg-gradient-light' => 'bg-gradient-light',
+                                                                    'bg-gradient-primary' => 'bg-gradient-primary',
+                                                                    'bg-gradient-blue' => 'bg-gradient-blue',
+                                                                    'bg-dark' => 'bg-dark',
+                                                                ])
+                                                                ->default('bg-blend-lighten')
+                                                                ->columnSpan(4),
+                                                        ])
+                                                        ->columns(12)
+                                                        ->collapsible()
+                                                        ->collapsed(false),
+                                                ])
+                                                ->columns(12),
+                                            //-------------------------------------
+
                                             Forms\Components\Builder\Block::make('content_block')
                                                 ->label('Text Bild / Embed Vid')
                                                 ->schema([
