@@ -1,3 +1,4 @@
+
 /* styles.css */
 .product-card {
     display: flex;
@@ -305,7 +306,8 @@
 }
 
 .gb-card--legal .gb-card-variant2__text {
-    font-size: 0.95rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.92rem;
     color: #111;
     margin: 0;
     line-height: 1.5;
@@ -361,7 +363,6 @@
     --footer-top:    #0aa3b5;
     --footer-bottom: #3eefec;
 }
-
      /* === Basis-Styles Variant 2 === */
  .gb-card-variant2 {
      display: flex;
@@ -391,9 +392,15 @@
     gap: 1rem;                 /* Abstand zwischen den Icons */
     padding: 1.5rem 0;         /* vertikales Padding */
     max-width: 250px;
-
+    position: relative;
 }
 
+
+.icon-bottom-right {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+}
 .gb-card-variant2__icon {
     max-width: 80%;
     height: auto;
@@ -462,7 +469,7 @@
 }
 
 .gb-card-variant2__text {
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: 'Open Sans', sans-serif;
     font-size: 1rem;
     line-height: 1.5;
     margin: 0;
