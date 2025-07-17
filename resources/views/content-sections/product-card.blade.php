@@ -41,11 +41,8 @@
                                     <h2 class="gb-card__title">{{$data['heading_box']}}</h2>
                                 @endif
                                 <div class="gb-card__body">
-                                    <span class="gb-card-variant2__text" style=" font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 0.92rem;
-    color: #111;
-    margin: 0;
-    line-height: 1.5;">
+                                    <span class="gb-card-variant2__text">
+                                     Rechtsgrundlage: BITV 2.0, § 3 Abs. 1 i. V. m. Anlage 2, WCAG 2.1 – Success Criteria 1.4.x Deckt die Anforderung ab, dass Inhalte wahrnehmbar und vergrößerbar sind (Kontrast ≥ 4,5 : 1, Text-Zoom bis 200 %).
                                         {!! $data['text_box'] !!}
                                     </span>
                                 </div>
