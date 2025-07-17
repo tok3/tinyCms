@@ -282,7 +282,12 @@ class   PageResource extends Resource
                                             Forms\Components\Builder\Block::make('product-card')
                                                 ->label('Produktkarte')
                                                 ->schema([
-                                                    Forms\Components\TextInput::make('heading')
+                                                    /*Forms\Components\Toggle::make('visible')
+                                                        ->label('Sichtbar')
+                                                        ->default(true)
+                                                        ->inline(false)
+                                                        ->columnSpanFull(),
+                                                    */Forms\Components\TextInput::make('heading')
                                                         ->label('Überschrift')
                                                         ->required()
                                                         ->columnSpan(6),
