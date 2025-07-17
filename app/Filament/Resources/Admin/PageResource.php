@@ -342,6 +342,7 @@ class   PageResource extends Resource
                                                                 ->default(27 )
                                                                 ->columnSpan(2 ),
                                                         ])
+                                                        ->minItems(0)
                                                         ->columns(12)
                                                         ->reorderable(true)
                                                         ->addActionLabel('Icon hinzufügen')
