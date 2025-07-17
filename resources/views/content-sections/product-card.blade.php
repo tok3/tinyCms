@@ -32,7 +32,7 @@
                             <h3 class="gb-card-variant2__subtitle">{{$data['heading_sub']}}</h3>
                         @endif
                         <p class="gb-card-variant2__text">
-                            {{$data['text']}}
+                            {!! $data['text'] !!}
                         </p>
                         @if(isset($data['text_box']))
 
@@ -41,11 +41,9 @@
                                     <h2 class="gb-card__title">{{$data['heading_box']}}</h2>
                                 @endif
                                 <div class="gb-card__body">
-                                    <p class="gb-card-variant2__text">
-                                        Rechtsgrundlage: BITV 2.0, § 3 Abs. 1 i. V. m. Anlage 2, WCAG 2.1 – Success Criteria 1.4.x
-                                        Deckt die Anforderung ab, dass Inhalte wahrnehmbar und vergrößerbar sind
-                                        (Kontrast ≥ 4,5 : 1, Text-Zoom bis 200 %).
-                                    </p>
+                                    <span class="gb-card-variant2__text">
+                                        {!! $data['text_box'] !!}
+                                    </span>
                                 </div>
                                 <div class="gb-card__sidebar">
                                     <span class="gb-card__block gb-card__block--top"></span>
