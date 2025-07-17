@@ -334,18 +334,21 @@ class   PageResource extends Resource
                                                                 ->image()
                                                                 ->required()
                                                                 ->columnSpan(6),
+
                                                             Forms\Components\TextInput::make('alt')
                                                                 ->label('Alt-Text')
-                                                                ->columnSpan(2 ),
+                                                                ->columnSpan(2),
+
                                                             Forms\Components\TextInput::make('height')
                                                                 ->label('Höhe (px)')
-                                                                ->default(27 )
-                                                                ->columnSpan(2 ),
+                                                                ->default(27)
+                                                                ->columnSpan(2),
                                                         ])
-                                                        ->minItems(0)
                                                         ->columns(12)
                                                         ->reorderable(true)
                                                         ->addActionLabel('Icon hinzufügen')
+                                                        ->minItems(0)
+                                                        ->default([])
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Section::make('Erscheinungsbild')
