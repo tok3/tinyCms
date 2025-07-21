@@ -85,9 +85,10 @@
         <legend>Abonnement Zahlungsweise</legend>
         <div id="pay_by_invoice_error"></div>
         <div class="form-group">
+
             <input type="radio" name="pay_by_invoice" value="0" id="payment_creditcard" >
 
-            <label for="payment_creditcard">&nbsp;<i class="bi bi-credit-card"></i>&nbsp;<i class="bi bi-paypal"></i>&nbsp;<i class="bi bi-wallet2"></i>&nbsp;<i class="bi bi-credit-card-2-front"></i> Standard</label>
+                <label for="payment_creditcard">&nbsp;<i class="bi bi-credit-card"></i>&nbsp;<i class="bi bi-paypal"></i>&nbsp;<i class="bi bi-wallet2"></i>&nbsp;<i class="bi bi-credit-card-2-front"></i> Standard</label>
             &nbsp;&nbsp;&nbsp; <input type="radio" name="pay_by_invoice" value="1" id="payment_sepa">
             <label for="payment_sepa"><i class="bi bi-receipt"></i> Kauf auf Rechnung </label>
         </div>

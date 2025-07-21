@@ -20,6 +20,24 @@ class UpgradeProductPage extends Page
 
     public function mount(): void
     {
+        if (\Auth::check() && !session()->has('cached_user')) {
+            $user = \Auth::user();
+            $company = $user->companies->first(); // oder [0], je nachdem
+
+            session()->put('cached_user', [
+                'name' => $user->name,
+                'email' => $user->email,
+                'company' => [
+                    'id' => $company?->id,
+                    'name' => $company?->name,
+                    'str' => $company?->str,
+                    'plz' => $company?->plz,
+                    'ort' => $company?->ort,
+                    'email' => $company?->email,
+                ],
+            ]);
+        }
+
         $company = CompanyHelper::currentCompany();
 
         $this->products = Product::where('upgrade', 1)->get()->filter(

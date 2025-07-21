@@ -59,6 +59,10 @@
             <div class="row pb-5 align-items-start">
 
                 <form action="{{ route('checkout.plan')}}" id="checkout" method="POST">
+                    @php
+                        $cachedUser = session('cached_user');
+                    @endphp
+
                     @csrf
 
                     @if (session()->has('coupon_code'))
@@ -70,9 +74,8 @@
                     @if (session()->has('product_id'))
                         <input type="hidden" name="product_id" value="{{ session('product_id') }}">
                     @endif
-                    <input type="hidden" name="company[name]" value="{{Auth::user()->companies[0]->name}}">
-                    <input type="hidden" name="company_id" value="{{Auth::user()->companies[0]->id}}">
-
+                    <input type="hidden" name="company[name]" value="{{$cachedUser['name']}}">
+                    <input type="hidden" name="company_id" value="{{$cachedUser['company']['id']}}">
 
                     <x-site-partials.checkout.summary-upgrade
                         :product="$product"
@@ -127,11 +130,12 @@
             $(document).ready(function () {
                 //updateProductDetails({{session('product_id')}});
 
-                $('#customer-name').text("{{Auth::user()->name}}");
-                $('#company-name').text("{{Auth::user()->companies[0]->name}}");
-                $('#customer-address').text("{{Auth::user()->companies[0]->str}}");
-                $('#customer-plz-ort').text("{{Auth::user()->companies[0]->plz}}" + ' ' + "{{Auth::user()->companies[0]->ort}}");
-                $('#company-email').text("{{Auth::user()->companies[0]->email}}");
+
+                $('#customer-name').text("{{ $cachedUser['name'] ?? '' }}");
+                $('#company-name').text("{{ $cachedUser['company']['name'] ?? '' }}");
+                $('#customer-address').text("{{ $cachedUser['company']['str'] ?? '' }}");
+                $('#customer-plz-ort').text("{{ $cachedUser['company']['plz'] ?? '' }} {{ $cachedUser['company']['ort'] ?? '' }}");
+                $('#company-email').text("{{ $cachedUser['company']['email'] ?? '' }}");
 
             });
 
