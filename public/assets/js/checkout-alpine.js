@@ -317,7 +317,41 @@ window.checkoutAlpine = function () {
                 });
         },
         validEmail(email) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            const blacklist = [
+                '10minutemail.com',
+                'mailinator.com',
+                'guerrillamail.com',
+                'trashmail.com',
+                'tempmail.com',
+                'byom.de',
+                'fakeinbox.com',
+                'getnada.com',
+                'maildrop.cc',
+                'dispostable.com',
+                'yopmail.com',
+                'sharklasers.com',
+                'throwawaymail.com',
+                'emailondeck.com',
+                'mintemail.com',
+                'spamgourmet.com',
+                'mailnesia.com',
+                'mailnull.com',
+                'mytemp.email',
+                'inboxkitten.com',
+                'anonymbox.com'
+                // ... weitere Domains nach Bedarf
+            ];
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!emailRegex.test(email)) return false;
+
+            const domain = email.split('@')[1].toLowerCase();
+
+            // prüft auch Subdomains
+            return !blacklist.some(badDomain =>
+                domain === badDomain || domain.endsWith('.' + badDomain)
+            );
         },
         saveProductToSession(value) {
             this.form.product_selection = value;
