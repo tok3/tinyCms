@@ -342,6 +342,8 @@ mark-blue,
     visibility:hidden;
 }
 
-.scroll-top {
-    scroll-margin-top: 120px; /* Menü-Höhe */
+.scroll-anchor {
+    scroll-margin-top: 120px;
+    display: block;
+    height: 0; /* damit es keine Lücke gibt */
 }

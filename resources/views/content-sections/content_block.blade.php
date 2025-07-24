@@ -22,6 +22,7 @@
     }
 
 </style>
+
 <section class="py-5 overflow-hidden
     @if(!empty($data['background'])) bg-gradient-light @endif
     @if(!empty($data['border_top'])) border-top @endif">

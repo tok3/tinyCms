@@ -432,6 +432,7 @@ class   PageResource extends Resource
                                                     // Zeile mit Layout-Optionen & Checkboxen
                                                     Forms\Components\Grid::make(12)
                                                         ->schema([
+
                                                             Forms\Components\Radio::make('layout')
                                                                 ->label('Layout')
                                                                 ->options([
@@ -453,6 +454,7 @@ class   PageResource extends Resource
                                                                 ->default(false)
                                                                 ->helperText('Fügt eine obere Trennlinie hinzu')
                                                                 ->columnSpan(3),
+
                                                         ])
                                                         ->columns(12),
 
