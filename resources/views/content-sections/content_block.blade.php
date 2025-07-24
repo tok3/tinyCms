@@ -22,10 +22,13 @@
     }
 
 </style>
-
+@if(!empty($data['container_id']))
+    <span id="{{ $data['container_id'] }}" class="scroll-anchor"></span>
+@endif
 <section class="py-5 overflow-hidden
     @if(!empty($data['background'])) bg-gradient-light @endif
-    @if(!empty($data['border_top'])) border-top @endif">
+    @if(!empty($data['border_top'])) border-top @endif"
+>
     <div class="container">
         <div class="row g-16">
 

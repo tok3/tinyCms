@@ -343,7 +343,9 @@ mark-blue,
 }
 
 .scroll-anchor {
-    scroll-margin-top: 120px;
     display: block;
-    height: 0; /* damit es keine Lücke gibt */
+    height: 0;
+    padding: 0;
+    margin: 0;
+    scroll-margin-top: 120px !important;
 }

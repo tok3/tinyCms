@@ -31,7 +31,8 @@ use Filament\Forms\Components\Group;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\ViewField;
 use Filament\Forms\Components\Repeater;
-
+use Filament\Forms\Get;
+use Illuminate\Support\HtmlString;
 class   PageResource extends Resource
 {
 
@@ -430,6 +431,17 @@ class   PageResource extends Resource
                                                 ->label('Text Bild / Embed Vid')
                                                 ->schema([
                                                     // Zeile mit Layout-Optionen & Checkboxen
+                                                    Section::make(fn (Get $get) => 'Container ID #' . ($get('container_id') ? $get('container_id') : ''))
+                                                        ->collapsible()
+                                                        ->collapsed()
+                                                        ->schema([
+                                                            TextInput::make('container_id')
+                                                                ->label(false) // kein Label
+                                                                ->placeholder('z. B. anchor-1')
+                                                                ->columnSpan(2)
+                                                                ->maxLength(64),
+                                                        ])
+                                                        ->columns(12),
                                                     Forms\Components\Grid::make(12)
                                                         ->schema([
 
