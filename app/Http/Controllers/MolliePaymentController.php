@@ -90,8 +90,23 @@ class MolliePaymentController extends Controller
         $productId = $metadata->product_id ?? null;
         $customerId = $payment->customerId ?? $metadata->customer_id ?? null;
         $interval = $metadata->interval ?? 'monthly';
-
         $product = $productId ? Product::find($productId) : null;
+
+        // Fallback für wiederkehrende Zahlungen ohne metadata
+        if (!$product && !empty($payment->subscriptionId))
+        {
+            \Log::info('Recurring payment ohne metadata – hole Produkt über subscriptionId: ' . $payment->subscriptionId);
+
+            $contract = Contract::where('subscription_id', $payment->subscriptionId)->first();
+
+            if ($contract)
+            {
+                $product = $contract->product;
+                $company = $contract->contractable;
+                $this->contractID = $contract->id;
+                $interval = $contract->interval ?? $interval;
+            }
+        }
 
         MolliePayment::updateOrCreate(
             ['payment_id' => $payment->id],
@@ -113,11 +128,15 @@ class MolliePaymentController extends Controller
             ]
         );
 
-        $company = isset($metadata->company_id) && $metadata->company_id != 0
-            ? Company::find($metadata->company_id)
-            : $this->initCompanyAccount($customerId);
+        if (!isset($company))
+        {
+            $company = isset($metadata->company_id) && $metadata->company_id != 0
+                ? Company::find($metadata->company_id)
+                : $this->initCompanyAccount($customerId);
+        }
 
-        if ($payment->sequenceType === 'first') {
+        if ($payment->sequenceType === 'first')
+        {
             $mandates = $this->getMandates($customerId);
 
             $hasValidMandate = collect($mandates['_embedded']['mandates'] ?? [])->contains('status', 'valid');
@@ -132,17 +151,20 @@ class MolliePaymentController extends Controller
             $priceModel = $product->prices->firstWhere('interval', $interval);
             $productPriceDec = $priceModel ? number_format($priceModel->price / 100, 2, '.', '') : number_format($product->price / 100, 2, '.', '');
 
-            if (!empty($metadata->coupon_code)) {
+            if (!empty($metadata->coupon_code))
+            {
                 $coupon = Coupon::where('code', $metadata->coupon_code)->first();
                 $cpCtrl = new CouponController;
                 $productPriceDec = number_format($cpCtrl->calculateTotalPrice($coupon->promotion, $product, false), 2, '.', '');
 
-                if ($coupon->infinite !== 1) {
+                if ($coupon->infinite !== 1)
+                {
                     $coupon->redeem();
                 }
             }
 
-            if ($hasValidMandate) {
+            if ($hasValidMandate)
+            {
                 $subscriptionData = [
                     'amount' => [
                         'currency' => $product->currency,
@@ -158,14 +180,16 @@ class MolliePaymentController extends Controller
                 $subscription = $this->createSubscription($customerId, $subscriptionData);
                 $this->syncLocalSubscription($subscription);
 
-                if (isset($subscription->id)) {
+                if (isset($subscription->id))
+                {
                     MolliePayment::where('payment_id', $payment->id)->update(['subscription_id' => $subscription->id]);
                 }
 
                 $product->price = $priceModel ? $priceModel->price : $product->price;
 
                 $additionalData = [];
-                if (!empty($coupon)) {
+                if (!empty($coupon))
+                {
                     $additionalData['promotion'] = $coupon->promotion;
                     $additionalData['bemerkung'] = 'Product über Promocode erworben';
                 }
@@ -174,7 +198,10 @@ class MolliePaymentController extends Controller
             }
         }
 
+
         $this->prepareInvoice($payment->id);
+
+        return response()->json(['status' => 'ok'], 200);
     }
 
 
@@ -225,11 +252,13 @@ class MolliePaymentController extends Controller
      */
     private function getStartDate($interval, $product)
     {
-        if ($product->trial_period_days > 0) {
+        if ($product->trial_period_days > 0)
+        {
             return now()->addDays($product->trial_period_days)->toDateString();
         }
 
-        return match ($interval) {
+        return match ($interval)
+        {
             'daily' => now()->addDay()->toDateString(),
             'weekly' => now()->addWeek()->toDateString(),
             'monthly' => now()->addMonth()->toDateString(),
