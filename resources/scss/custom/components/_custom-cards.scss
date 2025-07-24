@@ -362,17 +362,17 @@
     --footer-top:    #0aa3b5;
     --footer-bottom: #3eefec;
 }
-     /* === Basis-Styles Variant 2 === */
- .gb-card-variant2 {
-     display: flex;
-     border-radius: 8px;
-     overflow: hidden;
-     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-     /*max-width: 800px;*/
-     margin: 2rem auto;
-     container-type: inline-size;
-     container-name: card;
- }
+/* === Basis-Styles Variant 2 === */
+.gb-card-variant2 {
+    display: flex;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    /*max-width: 800px;*/
+    margin: 2rem auto;
+    container-type: inline-size;
+    container-name: card;
+}
 
 /* Linke Spalte mit Verlauf und Grafik */
 .gb-card-variant2__left {

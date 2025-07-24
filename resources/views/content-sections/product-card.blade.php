@@ -1,5 +1,5 @@
-<section class="position-relative {{ $data['background_class'] ?: '' }} ">
-    <div class="container position-relative">
+<section class="position-relative {{ $data['background_class'] ?: '' }} " >
+    <div class="container position-relative" >
         <div class="row mb-5 mb-lg-9 justify-content-between align-items-end">
             <div class="{{ $data['width_class'] ?: '' }}  col-md-12 mx-auto">
 
@@ -52,22 +52,27 @@
                                 </div>
                             </div>
                         @endif
-                        <div class="gb-card-variant2__footer">
+                        @if(!empty($data['btn_1_txt']) || !empty($data['btn_2_txt']))
+                            <div class="gb-card-variant2__footer">
 
-                            @if($data['btn_1_txt'])
-                                <div class="gradient-button-wrapper">
-                                    <a type="button" class="btn btn-white w-100" href="{{ $data['btn_1_target'] ?: '#' }}">{{$data['btn_1_txt']}}</a>
-                                </div>
-                            @endif
+                                @if(!empty($data['btn_1_txt']))
+                                    <div class="gradient-button-wrapper">
+                                        <a type="button" class="btn btn-white w-100" href="{{ $data['btn_1_target'] ?: '#' }}">
+                                            {{ $data['btn_1_txt'] }}
+                                        </a>
+                                    </div>
+                                @endif
 
-                            @if($data['btn_2_txt'])
+                                @if(!empty($data['btn_2_txt']))
+                                    <div class="gradient-button-wrapper">
+                                        <a type="button" class="btn btn-white w-100" href="{{ $data['btn_2_target'] ?: '#' }}">
+                                            {{ $data['btn_2_txt'] }}
+                                        </a>
+                                    </div>
+                                @endif
 
-                                <div class="gradient-button-wrapper">
-                                    <a type="button" class="btn btn-white w-100" href="{{ $data['btn_2_target'] ?: '#' }}">{{$data['btn_2_txt']}}</a>
-                                </div>
-                            @endif
-
-                        </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
 

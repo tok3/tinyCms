@@ -280,7 +280,17 @@ class   PageResource extends Resource
                                             //-------------------------------------
 
                                             Forms\Components\Builder\Block::make('product-card')
-                                                ->label('Produktkarte')
+                                                ->label(function (?array $state): string {
+                                                    $defaultLabel = 'Produktkarte';
+
+                                                    if (! is_array($state) || empty($state['heading'])) {
+                                                        return $defaultLabel;
+                                                    }
+
+                                                    $label = $defaultLabel . ' ( '. trim(strip_tags($state['heading'])).' )';
+
+                                                    return $label !== '' ? $label : $defaultLabel;
+                                                })
                                                 ->schema([
                                                     /*Forms\Components\Toggle::make('visible')
                                                         ->label('Sichtbar')
@@ -300,13 +310,30 @@ class   PageResource extends Resource
                                                         ->label('Text')
                                                         ->required()
                                                         ->columnSpanFull(),
+                                                    // Infobox-Schalter
+                                                    Forms\Components\Toggle::make('infobox_enabled')
+                                                        ->label('Infobox anzeigen')
+                                                        ->inline(false)
+                                                        ->default(false)
+                                                        ->reactive()
+                                                        ->helperText('Zeigt eine optionale Infobox unten im Textbereich an.')
+                                                        ->columnSpanFull(),
 
+// Infobox-Heading
                                                     Forms\Components\TextInput::make('heading_box')
                                                         ->label('Box Heading')
-                                                        ->columnSpanFull(),
+                                                        ->columnSpanFull()
+                                                        ->visible(fn ($get) =>
+                                                            $get('infobox_enabled') || ! empty($get('heading_box')) || ! empty($get('text_box'))
+                                                        ),
+
+// Infobox-Text
                                                     Forms\Components\RichEditor::make('text_box')
                                                         ->label('Box Text')
-                                                        ->columnSpanFull(),
+                                                        ->columnSpanFull()
+                                                        ->visible(fn ($get) =>
+                                                            $get('infobox_enabled') || ! empty($get('heading_box')) || ! empty($get('text_box'))
+                                                        ),
 
                                                     Forms\Components\TextInput::make('btn_1_txt')
                                                         ->label('Button 1 – Text')
