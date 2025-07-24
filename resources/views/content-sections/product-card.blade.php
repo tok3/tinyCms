@@ -1,6 +1,6 @@
 <section class="position-relative {{ $data['background_class'] ?: '' }} " >
     <div class="container position-relative" >
-        <div class="row mb-5 mb-lg-9 justify-content-between align-items-end">
+        <div class=" justify-content-between align-items-end">
             <div class="{{ $data['width_class'] ?: '' }}  col-md-12 mx-auto">
 
 
