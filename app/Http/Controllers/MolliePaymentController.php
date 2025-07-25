@@ -92,22 +92,31 @@ class MolliePaymentController extends Controller
         $interval = $metadata->interval ?? 'monthly';
         $product = $productId ? Product::find($productId) : null;
 
+
         // Fallback für wiederkehrende Zahlungen ohne metadata
         if (!$product && !empty($payment->subscriptionId))
         {
-            \Log::info('Recurring payment ohne metadata – hole Produkt über subscriptionId: ' . $payment->subscriptionId);
-
             $contract = Contract::where('subscription_id', $payment->subscriptionId)->first();
 
-            if ($contract)
-            {
-                $product = $contract->product;
+            if ($contract) {
+                $product = (object)[
+                    'id' => $contract->product_id,
+                    'name' => $contract->product_name,
+                    'description' => $contract->product_description,
+                    'price' => $contract->price,
+                    'setup_fee' => $contract->setup_fee,
+                    'interval' => $contract->interval,
+                    'invoice_text' => $contract->invoice_text,
+                    'data' => $contract->data,
+                ];
+
                 $company = $contract->contractable;
-                $this->contractID = $contract->id;
                 $interval = $contract->interval ?? $interval;
+                $this->contractID = $contract->id;
+            } else {
+                \Log::warning('Kein Contract für subscriptionId: ' . $payment->subscriptionId);
             }
         }
-
         MolliePayment::updateOrCreate(
             ['payment_id' => $payment->id],
             [
@@ -115,7 +124,9 @@ class MolliePaymentController extends Controller
                 'amount_value' => $payment->amount->value,
                 'amount_currency' => $payment->amount->currency,
                 'settlement_amount_value' => $payment->settlementAmount->value ?? 0.00,
-                'settlement_amount_currency' => $payment->settlementAmount->currency ?? $product->currency,
+                'settlement_amount_currency' => optional($payment->settlementAmount)->currency
+                    ?? optional($payment->amount)->currency
+                        ?? 'EUR',
                 'description' => $payment->description,
                 'method' => $payment->method,
                 'status' => $payment->status,
@@ -125,6 +136,7 @@ class MolliePaymentController extends Controller
                 'customer_id' => $customerId,
                 'metadata' => json_encode($metadata),
                 'details' => json_encode($payment->details),
+                'subscription_id' => $payment->subscriptionId ?? null,
             ]
         );
 

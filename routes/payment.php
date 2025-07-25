@@ -67,4 +67,16 @@ Route::get('/mollie/index', [MollieTestController::class, 'index']);
 Route::get('/mollie/create-subscription', [MollieTestController::class, 'createSubscription']);
 
 
+Route::get('/test-payment-webhook', function () {
+    $paymentId = 'tr_bbWazubJm7L2BFYTisoBJ';
+
+    $request = Request::create(
+        '/webhook/payment',
+        'POST',
+        ['id' => $paymentId]
+    );
+
+    return app(App\Http\Controllers\MolliePaymentController::class)
+        ->handlePaymentNotification($request);
+});
 // ende mollie test
