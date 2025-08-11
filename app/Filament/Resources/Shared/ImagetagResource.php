@@ -71,6 +71,7 @@ class ImagetagResource extends Resource
         return false;
         */
         $company = Company::where('id', $tenant->id)->first();
+
         if($company->hasFeature('image-alt-tags')){
             return true;
         }
@@ -83,8 +84,17 @@ class ImagetagResource extends Resource
     {
         return false;
     }
-    public static function form(Form $form): Form
+    public static function form_wotitletags(Form $form): Form
     {
+        $hasTitleTagFeature = false;
+        if(auth()->user()->is_admin == 1){
+            $hasTitleTagFeature = true;
+        } else {
+            $tenant = Filament::getTenant();
+            $company = Company::where('id', $tenant->id)->first();
+            $hasTitleTagFeature = ($company && $company->hasFeature('titletags') || auth()->user()->is_admin == 1);
+        }
+
         return $form
             ->schema([
                /* Forms\Components\TextInput::make('ulid')
@@ -102,21 +112,30 @@ class ImagetagResource extends Resource
                             ->columnSpan(3),
                     ]),
 
-                Grid::make()
-                    ->columns(6)
-                    ->extraAttributes(['class' => 'py-4'])
-                    ->schema([
-                        Forms\Components\TextInput::make('url')
-                            ->label('Image')
-                            ->view('filament.tables.columns.image-column-form')
-                            ->columnSpan(2),
-                        Forms\Components\Textarea::make('description')
-                            //->maxLength(255)
-                            ->label('Bildbeschreibung (alt-tag)')
-                            ->required()
-                            ->default(null)
+            Grid::make()
+                ->columns(6)
+                ->extraAttributes(['class' => 'py-4'])
+                ->schema([
+                    Forms\Components\TextInput::make('url')
+                        ->label('Image')
+                        ->view('filament.tables.columns.image-column-form')
+                        ->columnSpan(2),
+                    Grid::make()
+                        ->columns(1) // Single column to stack fields vertically
+                        ->schema([
+                            Forms\Components\Textarea::make('description')
+                                ->label('Bildbeschreibung (alt-tag)')
+                                ->required()
+                                ->default(null),
+                            // Conditionally add titletag field
+                            ...($hasTitleTagFeature ? [
+                                Forms\Components\Textarea::make('titletag')
+                                    ->label('Title Tag')
+                                    ->default(null),
+                            ] : []),
+                        ])
                         ->columnSpan(3),
-                    ]),
+                ]),
 
 
                 Placeholder::make('url_display')
@@ -133,6 +152,76 @@ class ImagetagResource extends Resource
 
             ]);
     }
+
+
+    public static function form(Form $form): Form
+{
+    $isAdmin = auth()->user()->is_admin == 1;
+    $record = $form->getRecord(); // Get the current record
+    $companyForRecord = $record ? Company::where('id', $record->ulid)->first() : null;
+    //\Log::info($record);
+    $hasTitleTagFeature = false; // Default for non-admin or when tenant is unavailable
+    $recordCompanyHasTitleTags = $companyForRecord && $companyForRecord->hasFeature('titletags');
+
+    // For non-admin users, check the tenant's company for the titletags feature
+    if (!$isAdmin) {
+        $tenant = Filament::getTenant();
+        if ($tenant) {
+            $company = Company::where('id', $tenant->id)->first();
+            $hasTitleTagFeature = $company && $company->hasFeature('titletags');
+        }
+    }
+
+    return $form
+        ->schema([
+            Grid::make()
+                ->columns(12)
+                ->schema([
+                    Placeholder::make('company_info')
+                        ->label('Firma')
+                        ->content(fn ($record) => new HtmlString(
+                            '<div class="space-y-1 pb-2">
+                                <span class="block text-lg font-bold"> ' . ($record->company?->name ?? '') . '</span>'
+                        ))
+                        ->columnSpan(3),
+                ]),
+
+            Grid::make()
+                ->columns(6)
+                ->extraAttributes(['class' => 'py-4'])
+                ->schema([
+                    Forms\Components\TextInput::make('url')
+                        ->label('Image')
+                        ->view('filament.tables.columns.image-column-form')
+                        ->columnSpan(2),
+                    Grid::make()
+                        ->columns(1) // Single column to stack fields vertically
+                        ->schema([
+                            Forms\Components\Textarea::make('description')
+                                ->label('Bildbeschreibung (alt-tag)')
+                                ->required()
+                                ->default(null),
+                            // Conditionally add titletag field for admin or tenant with titletags feature
+                            ...($isAdmin || $hasTitleTagFeature ? [
+                                Forms\Components\Textarea::make('titletag')
+                                    ->label('Title Tag')
+                                    ->default(null)
+                                    ->disabled($isAdmin && !$recordCompanyHasTitleTags) // Disable if admin and company lacks feature
+                                    ->placeholder($isAdmin && !$recordCompanyHasTitleTags
+                                        ? "Feature 'titletags' is not active for this company"
+                                        : null)
+                                    ->dehydrated($isAdmin && !$recordCompanyHasTitleTags ? false : true), // Prevent saving if disabled
+                            ] : []),
+                        ])
+                        ->columnSpan(3),
+                ]),
+
+            Placeholder::make('url_display')
+                ->label('Image-URL')
+                ->content(fn (callable $get) => $get('url') ?? '–')
+                ->columnSpan(3),
+        ]);
+}
 
     public static function table(Table $table): Table
     {
@@ -241,7 +330,7 @@ class ImagetagResource extends Resource
         */
     public static function getGloballySearchableAttributes(): array
     {
-        return ['description', 'url',];
+        return ['description', 'url', 'titletag',];
     }
 
     public static function getGlobalSearchResultTitle(Model $record): string | Htmlable

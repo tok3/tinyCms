@@ -1,4 +1,4 @@
-@props(['navbarType'=>1, 'page'=>''])
+@props(['navbarType'=>1, 'page'=>'', 'pageinclucert'=>''])
     <!doctype html>
 <html lang="de" data-bs-theme="light">
 <head>
@@ -40,7 +40,17 @@
 
     @yield('add-head')
     @stack('add-head')
-    <title>{{ isset(json_decode($page, true)['title']) ? json_decode($page, true)['title'] : '' }}</title>
+
+
+
+@if(isset(json_decode($page, true)['title']))
+    <title>{{ json_decode($page, true)['title'] }}</title>
+@elseif(isset($pageinclucert['title']))
+    <title>IncluCert PDF</title>
+@else
+    <title></title>
+@endif
+    <!--<title>{{ isset(json_decode($page, true)['title']) ? json_decode($page, true)['title'] : '' }}</title>-->
 
 </head>
 

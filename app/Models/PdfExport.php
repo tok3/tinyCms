@@ -6,21 +6,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Imagetag extends Model
+class PdfExport extends Model
 {
     use HasFactory, SoftDeletes;
-
-    protected $fillable = [
-        'ulid',
+    protected $fillable = ['hash',
+        'company_id',
         'url',
-        'hash',
-        'description',
-        'titletag',
-    ];
+        'encoded_id'];
 
     public function company()
     {
-        return $this->belongsTo(Company::class, 'ulid', 'ulid');
+        return $this->belongsTo(Company::class);
     }
 
 }
+
