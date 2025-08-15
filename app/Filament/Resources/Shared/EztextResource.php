@@ -19,6 +19,8 @@ use Illuminate\Support\Str;
 use App\Models\Company;
 use Filament\Forms\Components\Placeholder;
 use Illuminate\Support\HtmlString;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Model;
 
 class EztextResource extends Resource
 {
@@ -30,6 +32,17 @@ class EztextResource extends Resource
     public static function getRecordTitle($record): ?string
     {
         return Str::limit($record->text, 30); // Replace 'name' with your attribute
+    }
+
+    public static function getGlobalSearchResultTitle(Model $record): string | Htmlable
+    {
+        //return static::getRecordTitle($record);
+        return substr($record->text, 0, 35)."... (".$record->url.")";
+}
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['text', 'url',];
     }
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
@@ -104,6 +117,13 @@ class EztextResource extends Resource
                     ->rows(20)
                     ->required(),
 
+                Placeholder::make('url')
+                    ->label('Url')
+                    ->columnSpan(2)
+                    ->content(fn (callable $get) => new HtmlString(
+                        '<a style="text-decoration: underline;" href="' . e($get('url')) . '" target="_blank">' . e($get('url')) . '</a>'
+                    )),
+
                 Placeholder::make('count')
                     ->label('Abrufe')
                     ->columnSpan(2)
@@ -126,6 +146,11 @@ class EztextResource extends Resource
                     ->label('Text')
                     ->wrap()
                     ->searchable(),
+                Tables\Columns\TextColumn::make('url')
+                    ->label('Url')
+                    ->wrap()
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('count')
                     ->label('Abrufe')
                     ->numeric()
