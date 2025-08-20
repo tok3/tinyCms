@@ -8,9 +8,19 @@ class PublicAccessibilityCheckController extends Controller
 {
     public function check(Request $request)
     {
+
+
         $request->validate(['url' => 'required|url']);
 
         $url = $request->input('url');
+
+        // Eigenes Logfile (z. B. storage/logs/url-checks.log)
+        $logFile = storage_path('logs/url-checks.log');
+        $logEntry = sprintf("[%s] Checked URL: %s%s", now()->toDateTimeString(), $url, PHP_EOL);
+
+        // Anhängen an Logfile
+        file_put_contents($logFile, $logEntry, FILE_APPEND);
+
         $summary = [
             'errors' => 0,
             'warnings' => 0,
