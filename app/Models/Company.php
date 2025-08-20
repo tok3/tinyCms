@@ -117,7 +117,7 @@ class Company extends Model
             'max-url-10' => 10,
             'max-url-50' => 50,
             'max-url-100' => 100,
-            'max-url-500' => 100,
+            'max-url-500' => 500,
             'max-url-1500' => 1500,
             'max-url-10k' => 10000,
             'max-url-15k' => 15000,
