@@ -464,6 +464,10 @@ class   PageResource extends Resource
                                                                 ->options([
                                                                     'gb-card-variant2--pink' => 'Pink',
                                                                     'pink-blue' => 'Pink-Blau',
+                                                                    'gb-card-variant2--tint-blue' => 'Grape',
+                                                                    'gb-card-variant2--trust-blue' => 'Ultra Blau',
+                                                                    'gb-card-variant2--deep-violet' => 'Deep Violett',
+                                                                    'gb-card-variant2--blackberry' => 'Blackberry',
                                                                 ])
                                                                 ->default('gb-card-variant2--pink')
                                                                 ->required()
