@@ -491,6 +491,26 @@ margin-bottom:  0.8rem;
         --left-color-2: #ce00cd; /* Violett unten */
     }
 
+    .gb-card-variant2--tint-blue {
+        --left-color-1: #5c1bb0; /* Pink oben */
+        --left-color-2: #310e5f; /* Violett unten */
+    }
+
+    .gb-card-variant2--trust-blue {
+        --left-color-1: #043363; /* Pink oben */
+        --left-color-2: #0b5985; /* Violett unten */
+    }
+
+    .gb-card-variant2--deep-violet {
+        --left-color-1: #5c1bb0; /* Pink oben */
+        --left-color-2: #6b26ba; /* Violett unten */
+    }
+
+        .gb-card-variant2--blackberry {
+        --left-color-1: #5c1bb0; /* Pink oben */
+        --left-color-2: #851484; /* Violett unten */
+    }
+
 
     .gb-card-variant2__footer {
         border-top: 1px lightgray solid;
@@ -655,6 +675,58 @@ margin-bottom:  0.8rem;
                     <!-- card variant 2 reflow -->
 
 
+                    <div class="gb-card-variant2 gb-card-variant2--tint-blue ">
+                        <div class="gb-card-variant2__left">
+                            <img src="{{ URL::asset('assets/img/produkte/web-fit-white.png') }}" class="gb-card-variant2__icon" />
+                        </div>
+                        <div class="gb-card-variant2__right">
+
+                            <!-- Neuer Header-Bereich -->
+                            <div class="gb-card-variant2__header">
+                                <div class="gb-card-variant2__header-icons">
+                                    <!-- kleine Logos als <img> oder <span> mit background-image -->
+
+                                    <img src="{{ URL::asset('assets/img/produkte/service-black-frame.png') }}"  style="height:17px;margin-top:8px;"  alt="direct fix"   class="gb-card-variant2__icon-small">
+                                           <img src="{{ URL::asset('assets/img/produkte/custom-fix.png') }}"  style="height:27px;"  alt="direct fix"   class="gb-card-variant2__icon-small">
+                                     </div>
+
+                                <h2 class="gb-card-variant2__title">Auto Image Alt-Tags</h2>
+
+                            </div>
+
+                            <h3 class="gb-card-variant2__subtitle">KI generierte Bildbeschreibungen</h3>
+                            <p class="gb-card-variant2__text">
+                                Unser Vorlese-Reader wird mit einem Klick auf den Widget-Button „Vorlesemodus“ aktiviert. Danach genügt es, den Mauszeiger über beliebigen Webseiten­text zu bewegen: Ein kleiner Spinner signalisiert den Start, und der Inhalt wird sofort vorgelesen. Zur Wahl stehen 11 natürlich klingende Stimmen; standardmäßig beginnt die Stimme „Anna“ zu sprechen, kann aber jederzeit über das Auswahlmenü gewechselt werden.
+                            </p>
+                            <div class="gb-card gb-card--legal mt--10">
+                                <h2 class="gb-card__title">Rechtsgrundlage</h2>
+                                <div class="gb-card__body">
+                                    <p class="gb-card-variant2__text">
+                                        Rechtsgrundlage: BITV 2.0, § 3 Abs. 1 i. V. m. Anlage 2, WCAG 2.1 – Success Criteria 1.4.x
+                                        Deckt die Anforderung ab, dass Inhalte wahrnehmbar und vergrößerbar sind
+                                        (Kontrast ≥ 4,5 : 1, Text-Zoom bis 200 %).
+                                    </p>
+                                </div>
+                                <div class="gb-card__sidebar">
+                                    <span class="gb-card__block gb-card__block--top"></span>
+                                    <span class="gb-card__block gb-card__block--bottom"></span>
+                                </div>
+                            </div>
+                            <div class="gb-card-variant2__footer">
+
+
+                                <div class="gradient-button-wrapper">
+                                    <button type="button" class="btn btn-white w-100">Mehr erfahren …</button>
+                                </div>
+
+                                <div class="gradient-button-wrapper">
+                                    <button type="button" class="btn btn-white w-100">Plan wählen …</button>
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
                     <div class="gb-card-variant2">
                         <div class="gb-card-variant2__left">
                             <img src="{{ URL::asset('assets/img/produkte/altstar.png') }}" class="gb-card-variant2__icon" />

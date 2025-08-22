@@ -1,11 +1,41 @@
 <x-page-layout navbarType="{{$page->navbar_type}}" page="{!! $page !!}">
     @section('add-head')
         <link rel="stylesheet" href="{{url('js/repeating-countdown-timer/css/style.css')}}">
+        <style>
+            /* Fixed Alert über der Navbar */
+            .page-alert{
+                position: fixed;
+                left: 50%;
+                transform: translateX(-50%);
+                top: calc(var(--navbar-height, 64px) + 10px); /* 64px anpassen, falls deine Navbar höher ist */
+                z-index: 1080; /* höher als Navbar (Bootstrap-Navbar ~1030) */
+                width: min(920px, calc(100% - 2rem)); /* hübsche Breite */
+            }
+        </style>
     @endsection
 
 
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show shadow page-alert" role="alert">
+                {!!  session('success')  !!}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Schließen"></button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show shadow page-alert" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Schließen"></button>
+            </div>
+        @endif
+
+
+
+
    {{-- @include('content-sections.countdown-timer')--}}
-    {!! $content !!}
+
+
+        {!! $content !!}
 
 
 

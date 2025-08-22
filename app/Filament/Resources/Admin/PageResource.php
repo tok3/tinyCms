@@ -283,22 +283,12 @@ class   PageResource extends Resource
                                             Forms\Components\Builder\Block::make('product-card')
                                                 ->label(function (?array $state): string {
                                                     $defaultLabel = 'Produktkarte';
-
-                                                    if (! is_array($state) || empty($state['heading'])) {
-                                                        return $defaultLabel;
-                                                    }
-
-                                                    $label = $defaultLabel . ' ( '. trim(strip_tags($state['heading'])).' )';
-
+                                                    if (! is_array($state) || empty($state['heading'])) return $defaultLabel;
+                                                    $label = $defaultLabel . ' ( ' . trim(strip_tags($state['heading'])) . ' )';
                                                     return $label !== '' ? $label : $defaultLabel;
                                                 })
                                                 ->schema([
-                                                    /*Forms\Components\Toggle::make('visible')
-                                                        ->label('Sichtbar')
-                                                        ->default(true)
-                                                        ->inline(false)
-                                                        ->columnSpanFull(),
-                                                    */Forms\Components\TextInput::make('heading')
+                                                    Forms\Components\TextInput::make('heading')
                                                         ->label('Überschrift')
                                                         ->required()
                                                         ->columnSpan(6),
@@ -311,7 +301,8 @@ class   PageResource extends Resource
                                                         ->label('Text')
                                                         ->required()
                                                         ->columnSpanFull(),
-                                                    // Infobox-Schalter
+
+                                                    // Infobox
                                                     Forms\Components\Toggle::make('infobox_enabled')
                                                         ->label('Infobox anzeigen')
                                                         ->inline(false)
@@ -320,7 +311,6 @@ class   PageResource extends Resource
                                                         ->helperText('Zeigt eine optionale Infobox unten im Textbereich an.')
                                                         ->columnSpanFull(),
 
-// Infobox-Heading
                                                     Forms\Components\TextInput::make('heading_box')
                                                         ->label('Box Heading')
                                                         ->columnSpanFull()
@@ -328,7 +318,6 @@ class   PageResource extends Resource
                                                             $get('infobox_enabled') || ! empty($get('heading_box')) || ! empty($get('text_box'))
                                                         ),
 
-// Infobox-Text
                                                     Forms\Components\RichEditor::make('text_box')
                                                         ->label('Box Text')
                                                         ->columnSpanFull()
@@ -336,29 +325,112 @@ class   PageResource extends Resource
                                                             $get('infobox_enabled') || ! empty($get('heading_box')) || ! empty($get('text_box'))
                                                         ),
 
-                                                    Forms\Components\TextInput::make('btn_1_txt')
-                                                        ->label('Button 1 – Text')
-                                                        ->columnSpan(3),
+                                                    // --- BUTTON 1: Eigene Zeile ---
+                                                    Forms\Components\Fieldset::make('Button 1')
+                                                        ->schema([
+                                                            Forms\Components\TextInput::make('btn_1_txt')
+                                                                ->label('Button 1 – Text')
+                                                                ->columnSpan(12),
 
-                                                    Forms\Components\TextInput::make('btn_1_target')
-                                                        ->label('Button 1 – Ziel')
-                                                        ->columnSpan(3),
+                                                            Forms\Components\Grid::make(12)
+                                                                ->schema([
+                                                                    Forms\Components\Select::make('btn_1_action')
+                                                                        ->label('Button 1 – Aktion')
+                                                                        ->options([
+                                                                            'link' => 'Link öffnen',
+                                                                            'email_modal' => 'Kontaktformular (Modal)',
+                                                                        ])
+                                                                        ->default('link')
+                                                                        ->reactive()
+                                                                        ->columnSpan(4),
 
-                                                    Forms\Components\TextInput::make('btn_2_txt')
-                                                        ->label('Button 2 – Text')
-                                                        ->columnSpan(3),
+                                                                    Forms\Components\TextInput::make('btn_1_target')
+                                                                        ->label('Button 1 – Ziel (URL)')
+                                                                        ->visible(fn ($get) => $get('btn_1_action') === 'link')
+                                                                        ->columnSpan(8),
 
-                                                    Forms\Components\TextInput::make('btn_2_target')
-                                                        ->label('Button 2 – Ziel')
-                                                        ->columnSpan(3),
+                                                                    Forms\Components\TextInput::make('btn_1_mail_to')
+                                                                        ->label('Button 1 – Mail an')
+                                                                        ->helperText('Zieladresse für das Modal-Formular')
+                                                                        ->email()
+                                                                        ->visible(fn ($get) => $get('btn_1_action') === 'email_modal')
+                                                                        ->columnSpan(6),
 
-                                                    Forms\Components\FileUpload::make('product_image')
-                                                        ->label('Produktbild (links)')
-                                                        ->image()
-                                                        ->columnSpan(6),
-                                                    Forms\Components\TextInput::make('product_image_alt')
-                                                        ->label('Alt-Text')
-                                                        ->columnSpan(4 ),
+                                                                    Forms\Components\TextInput::make('btn_1_subject')
+                                                                        ->label('Button 1 – Betreff (optional)')
+                                                                        ->visible(fn ($get) => $get('btn_1_action') === 'email_modal')
+                                                                        ->columnSpan(6),
+
+                                                                    Forms\Components\Textarea::make('btn_1_formtext')
+                                                                        ->label('Formular-Hinweistext')
+                                                                        ->rows(2)
+                                                                        ->helperText('Kurzer Text im Formular, z. B. „Bitte informieren Sie mich über …“')
+                                                                        ->visible(fn ($get) => $get('btn_1_action') === 'email_modal')
+                                                                        ->columnSpanFull(),
+                                                                ]),
+                                                        ])
+                                                        ->columns(12)
+                                                        ->columnSpanFull(),
+
+
+// --- BUTTON 2: Eigene Zeile ---
+                                                    Forms\Components\Fieldset::make('Button 2')
+                                                        ->schema([
+                                                            Forms\Components\TextInput::make('btn_2_txt')
+                                                                ->label('Button 2 – Text')
+                                                                ->columnSpan(12),
+
+                                                            Forms\Components\Grid::make(12)
+                                                                ->schema([
+                                                                    Forms\Components\Select::make('btn_2_action')
+                                                                        ->label('Button 2 – Aktion')
+                                                                        ->options([
+                                                                            'link' => 'Link öffnen',
+                                                                            'email_modal' => 'Kontaktformular (Modal)',
+                                                                        ])
+                                                                        ->default('link')
+                                                                        ->reactive()
+                                                                        ->columnSpan(4),
+
+                                                                    Forms\Components\TextInput::make('btn_2_target')
+                                                                        ->label('Button 2 – Ziel (URL)')
+                                                                        ->visible(fn ($get) => $get('btn_2_action') === 'link')
+                                                                        ->columnSpan(8),
+
+                                                                    Forms\Components\TextInput::make('btn_2_mail_to')
+                                                                        ->label('Button 2 – Mail an')
+                                                                        ->helperText('Zieladresse für das Modal-Formular')
+                                                                        ->email()
+                                                                        ->visible(fn ($get) => $get('btn_2_action') === 'email_modal')
+                                                                        ->columnSpan(6),
+
+                                                                    Forms\Components\TextInput::make('btn_2_subject')
+                                                                        ->label('Button 2 – Betreff (optional)')
+                                                                        ->visible(fn ($get) => $get('btn_2_action') === 'email_modal')
+                                                                        ->columnSpan(6),
+
+                                                                    Forms\Components\Textarea::make('btn_2_formtext')
+                                                                        ->label('Formular-Hinweistext')
+                                                                        ->rows(2)
+                                                                        ->helperText('Kurzer Text im Formular, z. B. „Senden Sie uns hier eine Nachricht …“')
+                                                                        ->visible(fn ($get) => $get('btn_2_action') === 'email_modal')
+                                                                        ->columnSpanFull(),
+                                                                ]),
+                                                        ])
+                                                        ->columns(12)
+                                                        ->columnSpanFull(),
+                                                    Forms\Components\Grid::make(12)
+                                                        ->schema([
+                                                            Forms\Components\FileUpload::make('product_image')
+                                                                ->label('Produktbild (links)')
+                                                                ->image()
+                                                                ->columnSpan(6),
+
+                                                            Forms\Components\TextInput::make('product_image_alt')
+                                                                ->label('Alt-Text')
+                                                                ->columnSpan(6),
+                                                        ]),
+                                                    // Icons
                                                     Forms\Components\Repeater::make('header_icons')
                                                         ->label('Header-Icons')
                                                         ->schema([
@@ -370,12 +442,12 @@ class   PageResource extends Resource
 
                                                             Forms\Components\TextInput::make('alt')
                                                                 ->label('Alt-Text')
-                                                                ->columnSpan(2),
+                                                                ->columnSpan(3),
 
                                                             Forms\Components\TextInput::make('height')
                                                                 ->label('Höhe (px)')
                                                                 ->default(27)
-                                                                ->columnSpan(2),
+                                                                ->columnSpan(3),
                                                         ])
                                                         ->columns(12)
                                                         ->reorderable(true)
@@ -384,10 +456,11 @@ class   PageResource extends Resource
                                                         ->default([])
                                                         ->columnSpanFull(),
 
+                                                    // Erscheinungsbild
                                                     Forms\Components\Section::make('Erscheinungsbild')
                                                         ->schema([
                                                             Forms\Components\Select::make('gradient_style')
-                                                                ->label('Linke Seite BG-Gradient-Stil ')
+                                                                ->label('Linke Seite BG-Gradient-Stil')
                                                                 ->options([
                                                                     'gb-card-variant2--pink' => 'Pink',
                                                                     'pink-blue' => 'Pink-Blau',

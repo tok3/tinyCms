@@ -111,6 +111,8 @@ class PageController extends Controller
                 ->with('data', $block['data'])
                 ->with('prevElem', $prevElem)
                 ->with('nextElem', $nextElem)
+                ->with('blockIndex', $key)
+                ->with('pageSlug', optional($this->page ?? null)->slug ?? ($this->page->slug ?? null))
                 ->render();
 
 

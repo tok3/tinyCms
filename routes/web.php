@@ -6,6 +6,7 @@ use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\NewsletterSubscriptionController;
 use App\Http\Controllers\Filament;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\ProductCardContactController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ImageUploadController;
@@ -237,6 +238,10 @@ Route::post('/clear-session', function (Request $request) {
 
 Route::get('/{slug}', [PageController::class, 'getIndex'])->name('frontend');
 Route::get('/', [PageController::class, 'getIndex'])->name('home');
+
+Route::post('/product-card/contact', [ProductCardContactController::class, 'send'])
+    ->name('productcard.contact')
+    ->middleware('throttle:10,1'); // optional Rate-Limit
 
 
 //Route::get('/home/impressum-page', [PageController::class, 'getIndex'])->name('page.show2');
