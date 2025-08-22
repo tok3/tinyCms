@@ -486,10 +486,17 @@ class   PageResource extends Resource
                                                                     'gb-card-variant2--trust-blue' => 'Ultra Blau',
                                                                     'gb-card-variant2--deep-violet' => 'Deep Violett',
                                                                     'gb-card-variant2--blackberry' => 'Blackberry',
+                                                                    'gb-card-variant2--midnight-sky' => 'midnight-sky',
+                                                                    'gb-card-variant2--violet-dusk' => 'violet-dusk',
+                                                                    'gb-card-variant2--iceberry' => 'iceberry',
+                                                                    'gb-card-variant2--royal-blend' => 'royal-blend',
+                                                                    'gb-card-variant2--midberry' => 'midberry',
+
                                                                 ])
                                                                 ->default('gb-card-variant2--pink')
                                                                 ->required()
                                                                 ->columnSpan(4),
+
 
                                                             Forms\Components\Select::make('width_class')
                                                                 ->label('Breite der Card')
