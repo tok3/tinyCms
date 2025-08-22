@@ -42,7 +42,7 @@
                         <p class="gb-card-variant2__text">
                             {!! $data['text'] !!}
                         </p>
-                        @if(isset($data['text_box']))
+                        @if(isset($data['text_box']) && ($data['infobox_enabled'] ?? true))
 
                             <div class="gb-card gb-card--legal mt--10">
                                 @if(isset($data['heading_box']))
