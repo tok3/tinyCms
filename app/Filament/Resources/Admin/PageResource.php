@@ -288,6 +288,12 @@ class   PageResource extends Resource
                                                     return $label !== '' ? $label : $defaultLabel;
                                                 })
                                                 ->schema([
+                                                    Forms\Components\Toggle::make('visible')
+                                                        ->label('Sichtbar')
+                                                        ->default(true)
+                                                        ->inline(false)
+                                                        ->helperText('Wenn deaktiviert, wird die Karte nicht angezeigt.')
+                                                        ->columnSpanFull(),
                                                     Forms\Components\TextInput::make('heading')
                                                         ->label('Überschrift')
                                                         ->required()

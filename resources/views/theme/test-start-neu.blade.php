@@ -441,8 +441,10 @@
 
     /* === Header: Titel + Icons === */
     .gb-card-variant2__header {
+        display: flex;
+        flex-direction: column;
+        height: 100%; /* Wichtig, wenn du Höhe steuern willst */
         position: relative;
-        margin-bottom: -0.0rem;  /* fixer Abstand zum Subtitle */
     }
 
     .gb-card-variant2__title {
@@ -450,8 +452,11 @@
         font-size: 1.9rem;
         margin: 0 0 0.8rem;
         color: #222;
-    }
 
+    }
+    /* Platzhalter zwischen Title und Icons */
+    .gb-card-variant2__title {
+    }
     /* Icons absolut oben rechts, strecken den Header nicht */
     .gb-card-variant2__header-icons {
         position: absolute;
@@ -686,7 +691,7 @@ margin-bottom:  0.8rem;
                                 <div class="gb-card-variant2__header-icons">
                                     <!-- kleine Logos als <img> oder <span> mit background-image -->
 
-                                    <img src="{{ URL::asset('assets/img/produkte/service-black-frame.png') }}"  style="height:17px;margin-top:8px;"  alt="direct fix"   class="gb-card-variant2__icon-small">
+                                    <img src="{{ URL::asset('assets/img/produkte/service-black-frame.png') }}"  style="height:17px;"  alt="direct fix"   class="gb-card-variant2__icon-small">
                                            <img src="{{ URL::asset('assets/img/produkte/custom-fix.png') }}"  style="height:27px;"  alt="direct fix"   class="gb-card-variant2__icon-small">
                                      </div>
 

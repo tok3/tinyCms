@@ -3,6 +3,9 @@
     $modalId1 = 'productModal1_'.$idSuffix;
     $modalId2 = 'productModal2_'.$idSuffix;
 @endphp
+@if($data['visible'] ?? true)
+    {{-- Produktkarte anzeigen --}}
+
 <section class="position-relative {{ $data['background_class'] ?: '' }} " >
     <div class="container position-relative" >
         <div class=" justify-content-between align-items-end">
@@ -200,3 +203,4 @@
         </div>
     @endif
 </section>
+@endif
