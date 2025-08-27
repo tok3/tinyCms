@@ -69,7 +69,12 @@ USt-IdNr. des Kunden: <b>' . $data['vat_id'] . '</b>';
                     ->schema([
                         Select::make('company_id')
                             ->label('Firma')
-                            ->relationship('company', 'name')
+                            ->relationship(
+                                name: 'company',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn ($query) => $query->select('id', 'name', 'kd_nr')
+                            )
+                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->name} ({$record->kd_nr})")
                             ->required(),
                         DatePicker::make('due_date')
                             ->label('Fällig am')
