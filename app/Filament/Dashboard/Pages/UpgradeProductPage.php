@@ -20,7 +20,7 @@ class UpgradeProductPage extends Page
 
     public function mount(): void
     {
-        if (\Auth::check() && !session()->has('cached_user')) {
+     //   if (\Auth::check() && !session()->has('cached_user')) {
             $user = \Auth::user();
             $company = $user->companies->first(); // oder [0], je nachdem
 
@@ -36,7 +36,7 @@ class UpgradeProductPage extends Page
                     'email' => $company?->email,
                 ],
             ]);
-        }
+       // }
 
         $company = CompanyHelper::currentCompany();
 

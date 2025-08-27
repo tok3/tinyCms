@@ -39,9 +39,9 @@ class Pa11yUrlResource extends Resource
 
 
 
-    protected static ?string $navigationIcon = 'heroicon-o-link';
+    protected static ?string $navigationIcon = 'icon-altstar';
     protected static ?string $navigationLabel = 'URLs';
-    protected static ?string $navigationGroup = 'Firmament';
+    protected static ?string $navigationGroup = 'Site-Scan';
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -161,11 +161,11 @@ class Pa11yUrlResource extends Resource
             ->headerActions(
                 auth()->user()->is_admin ? [] : [
                 Action::make('exportAllStatsCsv')
-                    ->label('Overall Stats')
+                    ->label('Gesamtstatistiken')
                     ->url(fn () => route('all_stats_export.csv', ['id' => Filament::getTenant()->id]))
                     ->icon('heroicon-o-arrow-down-tray'),
                 Action::make('exportAllIssuesCsv')
-                    ->label('Overall Issues')
+                    ->label('Gesamte Fehler')
                     ->url(fn () => route('all_issues_export.csv', ['id' => Filament::getTenant()->id]))
                     ->icon('heroicon-o-arrow-down-tray'),
                 ]

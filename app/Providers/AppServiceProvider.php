@@ -16,6 +16,8 @@ use App\Models\Company;
 use Laravel\Cashier\Cashier;
 use Illuminate\Support\Facades\URL;
 use Cviebrock\EloquentSluggable\SluggableObserver;
+use Filament\Facades\Filament;
+use Filament\Support\Facades\FilamentIcon;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(\Illuminate\Http\Request $request): void
     {
+
 
         if (!\Illuminate\Support\Facades\App::runningUnitTests()) {
             Company::observe(SluggableObserver::class);

@@ -21,13 +21,12 @@ class VerifyEmailController extends Controller
 
         $id = \Request::segment(2);
         $token = \Request::segment(3);
-        $expires = \Request::input('expires');
+        $expires = (int)\Request::input('expires');
         $user = User::where('id', $id)->first();
 
 
         if ($expires > time())
         {
-
 
 
             if (!$user->hasVerifiedEmail())
@@ -49,6 +48,24 @@ class VerifyEmailController extends Controller
 
                 Auth::login($user);
 
+                // === Trial-Redirect auf Scan-Ergebnisseite ===
+                // Annahmen:
+                // - Trial = Company ohne Contracts
+                // - Pro Trial-Company genau 1 URL
+                $company = $user->companies()->first();
+
+                if ($company && !$company->contracts()->exists())
+                {
+                    session(['current_company_id' => $company->id]);
+                    if ($url = $company->pa11yUrls()->first())
+                    {
+                        return redirect("/dashboard/{$company->id}/firmament-issues/grouped/2.1?url_id={$url->id}");
+                    }
+
+                    // fallback für Trials ohne URL:
+                    return redirect($user->getPanelUri() . '?verified=1&no_url=1');
+                }
+
                 return redirect($user->getPanelUri() . '?verified=1');
             }
             else
@@ -56,7 +73,7 @@ class VerifyEmailController extends Controller
 
                 //die('already verified');
 
-                return redirect(url('/verify-token-expired/' . $id . '/' . $token.'?verified=1'));
+                return redirect(url('/verify-token-expired/' . $id . '/' . $token . '?verified=1'));
             }
 
         }
@@ -64,11 +81,11 @@ class VerifyEmailController extends Controller
 
 
         if ($user->hasVerifiedEmail())
-            {
-                return redirect(url('/verify-token-expired/' . $id . '/' . $token.'?verified=1'));
-            }
+        {
+            return redirect(url('/verify-token-expired/' . $id . '/' . $token . '?verified=1'));
+        }
 
-        return redirect(url('/verify-token-expired/' . $id . '/' . $token.'?expired=1'));
+        return redirect(url('/verify-token-expired/' . $id . '/' . $token . '?expired=1'));
 
         die('token expired');
     }

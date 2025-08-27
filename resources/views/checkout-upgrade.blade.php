@@ -61,6 +61,7 @@
                 <form action="{{ route('checkout.plan')}}" id="checkout" method="POST">
                     @php
                         $cachedUser = session('cached_user');
+
                     @endphp
 
                     @csrf
@@ -136,6 +137,28 @@
                 $('#customer-address').text("{{ $cachedUser['company']['str'] ?? '' }}");
                 $('#customer-plz-ort').text("{{ $cachedUser['company']['plz'] ?? '' }} {{ $cachedUser['company']['ort'] ?? '' }}");
                 $('#company-email').text("{{ $cachedUser['company']['email'] ?? '' }}");
+
+                let fullName = "{{ $cachedUser['name'] ?? '' }}".trim();
+
+                let vorname = '';
+                let nachname = '';
+
+                if (fullName.includes(' ')) {
+                    let parts = fullName.split(' ');
+                    nachname = parts.pop();              // letzter Teil
+                    vorname = parts.join(' ');           // alles davor
+                } else {
+                    // Falls nur ein Wort drin ist -> als Vorname speichern
+                    vorname = fullName;
+                }
+
+                $('#vorname').val(vorname);
+                $('#name').val(nachname);
+                $('#compName').val("{{ $cachedUser['company']['name'] ?? '' }}");
+                $('#str').val("{{ $cachedUser['company']['str'] ?? '' }}");
+                $('#plz').val("{{ $cachedUser['company']['plz'] ?? '' }}");
+                $('#ort').val("{{ $cachedUser['company']['ort'] ?? '' }}");
+                $('#compEmail').val("{{ $cachedUser['company']['email'] ?? '' }}");
 
             });
 
