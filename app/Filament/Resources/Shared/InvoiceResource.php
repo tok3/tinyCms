@@ -33,7 +33,6 @@ class InvoiceResource extends Resource
     {
         return 'Rechnungen'; // Name des Navigationseintrags
     }
-
     public static function getPluralModelLabel(): string
     {
         return 'Rechnungen';
