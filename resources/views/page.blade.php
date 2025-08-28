@@ -12,6 +12,7 @@
                 width: min(920px, calc(100% - 2rem)); /* hübsche Breite */
             }
         </style>
+        <meta name="csrf-token" content="{{ csrf_token() }}">
     @endsection
 
 
@@ -44,6 +45,96 @@
     <script src="{{url('js/repeating-countdown-timer/js/app.js')}}?t={{time()}}"></script>
             <script src="{{url('js/wcag-check.js')}}"></script>
 
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const csrf      = document.querySelector('meta[name="csrf-token"]')?.content;
+                    const urlInput  = document.getElementById('urlInput');
+                    const summary   = document.getElementById('summaryOutput');
+                    const trialBox  = document.getElementById('trialFormSection');
+                    const trialForm = document.getElementById('trialForm');
+                    const trialUrl  = document.getElementById('trial_url');
+                    const trialAlert= document.getElementById('trialAlert');
+                    const submitBtn = document.getElementById('trialSubmitBtn');
+                    const textNodes  = document.querySelectorAll('[data-page-text]');
+                    if (!trialForm) return; // falls die Trial-Box auf anderen Seiten nicht existiert
+
+                    // URL aus dem Check-Form übernehmen (initial + on input)
+                    const syncUrl = () => {
+                        const currentUrl = urlInput?.value || '';
+                        if (trialUrl) trialUrl.value = currentUrl;
+
+                        textNodes.forEach(node => {
+                            node.innerHTML = node.innerHTML.replace(/%%page%%/g, currentUrl);
+                        });
+                    };
+
+                    syncUrl();
+                    urlInput?.addEventListener('input', syncUrl);
+
+                    // Trial-Form einblenden, sobald Summary sichtbar ist
+                    const showTrial = () => { if (trialBox && trialBox.style.display === 'none') trialBox.style.display = 'block'; };
+                    if (summary && (getComputedStyle(summary).display !== 'none' || summary.classList.contains('fade-in'))) {
+                        showTrial();
+                    } else if (summary) {
+                        const mo = new MutationObserver(() => {
+                            if (summary.classList.contains('fade-in') || getComputedStyle(summary).display !== 'none') {
+                                showTrial(); mo.disconnect();
+                            }
+                        });
+                        mo.observe(summary, { attributes: true, attributeFilter: ['class','style'] });
+                    }
+
+                    // AJAX Submit des Trial-Forms
+                    trialForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+
+                        // UI reset
+                        trialAlert.className = 'alert d-none';
+                        trialAlert.textContent = '';
+                        trialForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                        trialForm.querySelectorAll('.invalid-feedback[data-field]').forEach(el => el.textContent = '');
+
+                        submitBtn.disabled = true;
+
+                        try {
+                            const resp = await fetch(trialForm.getAttribute('action'), {
+                                method: 'POST',
+                                headers: { 'X-CSRF-TOKEN': csrf || '', 'Accept': 'application/json' },
+                                body: new FormData(trialForm),
+                            });
+
+                            if (resp.ok) {
+                                trialForm.classList.add('d-none');           // oder: trialForm.style.display = 'none';
+
+                                // Erfolgsmeldung anzeigen
+                                trialAlert.className = 'alert alert-success mt-5'; // entfernt d-none
+                                trialAlert.innerHTML = '<strong>Fast geschafft!</strong><br>Wir haben Ihnen eine E-Mail zum Freischalten Ihres Benutzerkontos zugesendet. Bitte prüfen Sie Ihren Posteingang und klicken Sie auf den Link, um Ihre E-Mail zu bestätigen und die Analyse zu öffnen. Sollten Sie die E-Mail nicht erhalten haben, senden wir Ihnen gerne eine neue zu.';
+
+                            } else if (resp.status === 422) {
+                                const data = await resp.json();
+                                const errors = data.errors || {};
+                                Object.entries(errors).forEach(([field, messages]) => {
+                                    const input = trialForm.querySelector(`[name="${field}"]`);
+                                    input?.classList.add('is-invalid');
+                                    const fb = trialForm.querySelector(`.invalid-feedback[data-field="${field}"]`);
+                                    if (fb) fb.textContent = Array.isArray(messages) ? messages[0] : String(messages);
+                                });
+                                trialAlert.className = 'alert alert-warning';
+                                trialAlert.textContent = 'Bitte Eingaben prüfen.';
+                            } else {
+                                trialAlert.className = 'alert alert-danger';
+                                trialAlert.textContent = 'Unerwarteter Fehler. Bitte später erneut versuchen.';
+                            }
+                        } catch (e2) {
+                            trialAlert.className = 'alert alert-danger';
+                            trialAlert.textContent = 'Netzwerkfehler. Bitte später erneut versuchen.';
+                            console.error(e2);
+                        } finally {
+                            submitBtn.disabled = false;
+                        }
+                    });
+                });
+            </script>
 
             <script>
                 document.getElementById('checkAccessibilityForm').addEventListener('submit', function (e) {

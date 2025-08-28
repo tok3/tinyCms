@@ -114,6 +114,7 @@ class Company extends Model
     public function getMaxUrlsAttribute(): int
     {
         $features = [
+            'max-url-1' => 1,
             'max-url-10' => 10,
             'max-url-50' => 50,
             'max-url-100' => 100,
@@ -124,7 +125,7 @@ class Company extends Model
             'max-url-100k' => 100000,
         ];
 
-        $maxLimit = 10; // Fallback-Wert (Standard)
+        $maxLimit = 1; // Fallback-Wert (Standard)
 
         foreach ($features as $feature => $limit) {
             if ($this->hasFeature($feature) && $limit > $maxLimit) {

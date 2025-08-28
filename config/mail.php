@@ -125,9 +125,12 @@ return [
 
     'markdown' => [
         'theme' => 'default',
-
         'paths' => [
             resource_path('views/vendor/mail'),
+        ],
+        'options' => [
+            'html_input' => 'allow',       // <— HTML nicht escapen
+            'allow_unsafe_links' => false, // optional
         ],
     ],
 

@@ -80,9 +80,33 @@ class CheckoutController extends MolliePaymentController
         }
         else
         {
+
             $name = $request->input('user')['vorname'] . ' ' . $request->input('user')['name'];
             $email = $request->input('user')['email'];
             $billingEmail = $request->input('company')['email'];
+
+            if ($request->boolean('firstContract')) {
+                // wenn user einen reinen trial account hatte und die erste bestellung über das upgrade form macht
+
+                // --- Company Update ---
+                $companyData = $request->input('company', []);
+                $company = auth()->user()->companies()->first(); // oder dein Mechanismus
+
+                if ($company && !empty($companyData)) {
+                    $company->update($companyData);
+                }
+
+                // --- User Update ---
+                $userData = $request->input('user', []);
+                $user = auth()->user();
+
+                if ($user && !empty($userData)) {
+                    // Namen zusammensetzen
+                    $user->name = trim(($userData['vorname'] ?? '') . ' ' . ($userData['name'] ?? ''));
+
+                    $user->save();
+                }
+            }
 
             $customer = Mollie::api()->customers->create([
                 'name' => $name,
@@ -155,9 +179,11 @@ class CheckoutController extends MolliePaymentController
             }
             if (auth()->check())
             {
-                return url('dashboard/'.$company->id.'/upgrade-page');
 
+
+                return url('dashboard/'.$company->id.'/upgrade-page');
             }
+
             return route('view.plans') . '#step-4';
 
         }

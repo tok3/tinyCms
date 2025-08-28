@@ -20,7 +20,7 @@ class UpgradeProductPage extends Page
 
     public function mount(): void
     {
-        if (\Auth::check() && !session()->has('cached_user')) {
+     //   if (\Auth::check() && !session()->has('cached_user')) {
             $user = \Auth::user();
             $company = $user->companies->first(); // oder [0], je nachdem
 
@@ -36,13 +36,23 @@ class UpgradeProductPage extends Page
                     'email' => $company?->email,
                 ],
             ]);
-        }
+       // }
 
         $company = CompanyHelper::currentCompany();
 
-        $this->products = Product::where('upgrade', 1)->get()->filter(
-            fn($product) => $product->isVisibleForCompany($company)
-        );
+        if ($company && ! $company->contracts()->exists()) {
+            // Trial: alle regulären Pakete anzeigen (aktiv + sichtbar)
+            $this->products = Product::query()
+                ->where('active', 1)   // passe ggf. Spaltennamen an: is_active
+                ->where('visible', 1)  // ggf. is_visible
+                ->orderBy('sequence')      // falls vorhanden
+                ->get();
+        } else {
+            // Bisheriges Verhalten (Upgrade-Produkte + Visibility-Check)
+            $this->products = Product::where('upgrade', 1)
+                ->get()
+                ->filter(fn ($product) => $product->isVisibleForCompany($company));
+        }
     }
 
     public function getTitle(): string

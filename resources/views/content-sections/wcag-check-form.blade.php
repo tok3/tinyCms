@@ -123,7 +123,7 @@ position:absolute;
                     <div class="d-flex flex-column flex-md-row">
                         <div class="mb-2 flex-grow-1 mb-md-0 me-md-2">
                             <label for="urlInput" id="urllabel" class="shrink">Zu prüfende URL eingeben</label>
-                            <input type="url" id="urlInput" name="url" required="required"  placeholder="https://ihre-domain.de" class="form-control" >
+                            <input type="url" id="urlInput" name="url" required="required"  placeholder="https://ihre-domain.de"  class="form-control" >
                         </div>
                         <div class="flex-shrink-0">
                             <button type="submit" class="btn btn-primary">Prüfung starten</button>
@@ -196,7 +196,63 @@ position:absolute;
             </div>
         </div>
 
+        {{-- Trial: Detaillierte Einsicht anfordern (zunächst versteckt) --}}
 
+        <div  class="container py-4 py-lg-6">
+            <div class="bg-body overflow-hidden shadow-lg px-4 py-6 px-lg-5">
+                <div id="trialFormSection" class="container py-4" style="display:none;">
+                    <h2 class="mb-3 display-5">Detaillierte Einsicht jetzt anfordern</h2>
+                    <p class="mb-5 mb-md-0 pe-lg-11 lead" data-page-text>
+                        senden Sie einfach das Formular ab, um <mark-green><strong>sofort kostenlos</strong></mark-green> Zugriff auf die detaillierte Fehleranalyse der URL <strong>%%page%%</strong> Ihrer Online-Präsenz zu erhalten.
+                    </p>
+                    <div id="trialAlert" class="alert d-none mt-5" role="alert"></div>
+
+                    <form class="mt-5" id="trialForm" method="post" action="{{ route('trial.store') }}" novalidate>
+                        @csrf
+                        {{-- Hidden URL – wird aus #urlInput übernommen --}}
+                        <input type="hidden" id="trial_url" name="url" value="">
+
+                        <div class="mb-3">
+                            <label for="trial_first_name" class="form-label">Vorname</label>
+                            <input type="text" id="trial_first_name" name="first_name" class="form-control"
+                                   placeholder="Vorname" required>
+                            <div class="invalid-feedback" data-field="first_name"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="trial_last_name" class="form-label">Nachname</label>
+                            <input type="text" id="trial_last_name" name="last_name" class="form-control"
+                                   placeholder="Name" required>
+                            <div class="invalid-feedback" data-field="last_name"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="trial_email" class="form-label">E-Mail</label>
+                            <input type="email" id="trial_email" name="email" class="form-control"
+                                   placeholder="ihre@mailadresse.de" required>
+                            <div class="invalid-feedback" data-field="email"></div>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="trial_consent" name="consent" required>
+                            <label class="form-check-label" for="trial_consent">
+                                Ja, ich stimme den Datenschutzbestimmungen zu.
+                            </label>
+                            <div class="invalid-feedback d-block" data-field="consent"></div>
+                        </div>
+
+                        {{-- Honeypot --}}
+                        <input type="text" name="website" class="d-none" tabindex="-1" autocomplete="off">
+
+                        <button class="btn btn-primary" type="submit" id="trialSubmitBtn">
+                            Jetzt kostenlos anfordern
+                        </button>
+                    </form>
+                    <div id="trialSuccessMessage" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+        {{-- ENDE Trial: Detaillierte Einsicht anfordern (zunächst versteckt) --}}
     <!-- cta -->
     @if($data['showCta'] == 1)
         <div id="ctaSection" class="container py-4 py-lg-6 cta-hidden">

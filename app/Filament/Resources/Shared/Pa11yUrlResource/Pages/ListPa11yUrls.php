@@ -40,8 +40,8 @@ class ListPa11yUrls extends ListRecords
             // Wenn das Limit erreicht ist, zeige den Upgrade‑Button an
             return [
                 Action::make('create_url')
-                    ->label('Upgrade')
-                    ->icon('heroicon-o-plus')
+                    ->label('Neue URL hinzufügen')
+                    ->icon('heroicon-o-sparkles')
                     ->modalHeading('Limit erreicht')
                     ->modalContent(fn() => new HtmlString('Sie haben das URL-Limit von ' . $maxUrls . ' für Ihren aktuellen Plan erreicht. <br>Für Upgrade-Optionen und weitere Informationen klicken Sie auf den Button.'))
                     ->modalActions([
@@ -58,7 +58,7 @@ class ListPa11yUrls extends ListRecords
         return [
             Action::make('create_url')
                 ->label('Neue URL hinzufügen')
-                ->icon('heroicon-o-plus')
+                ->icon('icon-feature-2')
                 ->url(Pa11yUrlResource::getUrl('create')),
         ];
     }

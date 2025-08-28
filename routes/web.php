@@ -234,6 +234,15 @@ Route::post('/clear-session', function (Request $request) {
 
     return response()->json(['status' => 'error', 'message' => 'No session keys provided or invalid format'], 400);
 });
+
+// -----------------------------------------------
+
+use App\Http\Controllers\TrialController;
+
+Route::get('/trial', [TrialController::class, 'create'])->name('trial.create');
+Route::post('/trial', [TrialController::class, 'store'])->name('trial.store');
+Route::get('/trial/info', [TrialController::class, 'info'])->name('trial.info');
+
 // -----------------------------------------------
 
 Route::get('/{slug}', [PageController::class, 'getIndex'])->name('frontend');
