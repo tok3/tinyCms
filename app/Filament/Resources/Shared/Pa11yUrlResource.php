@@ -38,8 +38,8 @@ class Pa11yUrlResource extends Resource
 
 
 
-
-    protected static ?string $navigationIcon = 'icon-altstar';
+//  protected static ?string $navigationIcon = 'icon-altstar';
+    protected static ?string $navigationIcon = 'heroicon-o-link';
     protected static ?string $navigationLabel = 'URLs';
     protected static ?string $navigationGroup = 'Site-Scan';
 

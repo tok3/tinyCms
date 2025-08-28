@@ -31,8 +31,9 @@ class TrialController extends Controller
         // 1) Validate + Honeypot
         $data = $request->validate([
             'url'        => ['required', 'url', 'max:2048'],
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name'  => ['required', 'string', 'max:100'],
             'email'      => ['required', 'email', 'max:255'],
-            'accept_tos' => ['accepted'],
             'consent'    => ['accepted'],
             'website'    => ['nullable', 'max:0'], // Honeypot
         ]);
@@ -43,10 +44,11 @@ class TrialController extends Controller
         }
         RateLimiter::hit('trial:' . $request->ip(), 60);
 
+        $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
         // 3) User anlegen/holen
         $user = User::firstOrCreate(
             ['email' => strtolower($data['email'])],
-            ['name' => Str::before($data['email'], '@')]
+            ['name'  => $fullName]
         );
 
         // 4) Zufälliges Passwort setzen (nur falls der User noch keines hat)
@@ -98,11 +100,22 @@ class TrialController extends Controller
         Mail::to($user->email)->send(new TrialVerifyMail(
             verifyUrl: $verifyUrl,
             scannedUrl: $pa11y->url,
-            plainPassword: $plainPassword ?? '• • • • • • • •'
+            plainPassword: $plainPassword ?? '• • • • • • • •',
+            userEmail: $user->email,
         ));
 
+        // === JSON-Antwort für AJAX ===
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok'         => true,
+                'message'    => 'Verification mail sent.',
+                'user_id'    => $user->id,
+                'company_id' => $company->id,
+                'url_id'     => $pa11y->id,
+            ], 201);
+        }
         // Optional: aktuellen Request-User einloggen (für direkten Zugriff auf /dashboard etc.)
-        Auth::login($user);
+        //Auth::login($user);
 
         // 12) Info-Seite
         return redirect()->route('trial.info');

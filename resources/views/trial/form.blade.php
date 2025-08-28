@@ -20,19 +20,23 @@
                        placeholder="https://ihre-domain.de"
                        value="{{ old('url') }}" required>
             </div>
+            <div class="mb-3">
+                <label for="first_name" class="form-label">Vorname</label>
+                <input type="text" id="first_name" name="first_name" class="form-control"
+                       value="{{ old('first_name') }}" required>
+            </div>
 
+            <div class="mb-3">
+                <label for="last_name" class="form-label">Nachname</label>
+                <input type="text" id="last_name" name="last_name" class="form-control"
+                       value="{{ old('last_name') }}" required>
+            </div>
             <div class="mb-3">
                 <label for="email" class="form-label">E‑Mail</label>
                 <input type="email" id="email" name="email" class="form-control"
                        value="{{ old('email') }}" required>
             </div>
 
-            <div class="form-check mb-2">
-                <input class="form-check-input" type="checkbox" id="accept_tos" name="accept_tos" required>
-                <label class="form-check-label" for="accept_tos">
-                    Ich habe die AGB gelesen und akzeptiere diese.
-                </label>
-            </div>
 
             <div class="form-check mb-4">
                 <input class="form-check-input" type="checkbox" id="consent" name="consent" required>

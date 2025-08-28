@@ -40,9 +40,19 @@ class UpgradeProductPage extends Page
 
         $company = CompanyHelper::currentCompany();
 
-        $this->products = Product::where('upgrade', 1)->get()->filter(
-            fn($product) => $product->isVisibleForCompany($company)
-        );
+        if ($company && ! $company->contracts()->exists()) {
+            // Trial: alle regulären Pakete anzeigen (aktiv + sichtbar)
+            $this->products = Product::query()
+                ->where('active', 1)   // passe ggf. Spaltennamen an: is_active
+                ->where('visible', 1)  // ggf. is_visible
+                ->orderBy('sequence')      // falls vorhanden
+                ->get();
+        } else {
+            // Bisheriges Verhalten (Upgrade-Produkte + Visibility-Check)
+            $this->products = Product::where('upgrade', 1)
+                ->get()
+                ->filter(fn ($product) => $product->isVisibleForCompany($company));
+        }
     }
 
     public function getTitle(): string
