@@ -43,6 +43,7 @@ class InvoiceResource extends Resource
 //        return 'Finanzen'; // Name der Gruppe, in der der Eintrag erscheint
 //    }
 
+
     public static function canCreate(): bool
     {
         return auth()->user()?->isAdmin() ?? false;

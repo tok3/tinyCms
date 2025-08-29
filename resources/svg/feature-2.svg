@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 133 46" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-6.90044,-2.05279)">
+        <g transform="matrix(2.93781,0,0,2.54969,15.7139,-5.59627)">
+            <path d="M-1,21C-1.55,21 -2.021,20.804 -2.412,20.413C-2.804,20.021 -3,19.55 -3,19L-3,5C-3,4.45 -2.804,3.979 -2.412,3.587C-2.021,3.196 -1.55,3 -1,3L40,3C40.55,3 41.021,3.196 41.413,3.587C41.804,3.979 42,4.45 42,5L42,19C42,19.55 41.804,20.021 41.413,20.413C41.021,20.804 40.55,21 40,21L-1,21ZM-0.734,18L19.5,19L39.734,18L39.734,6L19.553,5L-0.734,6L-0.734,18Z" fill="currentColor"/>
+        </g>
+        <g transform="matrix(2.16374,0,0,2.16374,-11.9807,13.8156)">
+            <text x="12.361px" y="10.05px" style="font-family:'Kanit-SemiBoldItalic', 'Kanit';font-weight:600;font-style:italic;font-size:16px;">f<tspan x="17.817px " y="10.05px ">e</tspan>atur<tspan x="57.577px " y="10.05px ">e</tspan></text>
+        </g>
+    </g>
+</svg>
