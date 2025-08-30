@@ -73,7 +73,7 @@ class Company extends Model
     {
         static::created(function (Company $company) {
             $company->settings()->create([
-                'contrast_errors'   => 0,
+                'contrast_errors'   => 1,
                 'default_standard'  => '2.1',
                 'full_scan_interval'=> 'weekly',
                 'max_urls'          => 10,
