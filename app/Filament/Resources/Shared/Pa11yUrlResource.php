@@ -39,7 +39,8 @@ class Pa11yUrlResource extends Resource
 
 
 //  protected static ?string $navigationIcon = 'icon-altstar';
-    protected static ?string $navigationIcon = 'heroicon-o-link';
+  //  protected static ?string $navigationIcon = 'heroicon-o-link';
+    protected static ?string $navigationIcon = 'icon-site-scan';
     protected static ?string $navigationLabel = 'URLs';
     protected static ?string $navigationGroup = 'Site-Scan';
 
@@ -164,6 +165,7 @@ class Pa11yUrlResource extends Resource
                     ->label('Gesamtstatistiken')
                     ->url(fn () => route('all_stats_export.csv', ['id' => Filament::getTenant()->id]))
                     ->icon('heroicon-o-arrow-down-tray'),
+
                 Action::make('exportAllIssuesCsv')
                     ->label('Gesamte Fehler')
                     ->url(fn () => route('all_issues_export.csv', ['id' => Filament::getTenant()->id]))
@@ -171,8 +173,19 @@ class Pa11yUrlResource extends Resource
                 ]
             )
             ->actions([
-                Tables\Actions\Action::make('rescan21')
+
+
+                Action::make('view_results')
+                    ->label('View Results')
+                    ->url(fn($record) => Pa11yAccessibilityIssueResource::getUrl('index', [
+                        'standard' => 'grouped/2.1',
+                        'url_id' => $record->id,
+                    ]))
+                    ->icon('heroicon-o-eye'),
+
+                Action::make('rescan21')
                     ->label('Rescan (2.1)')
+                    ->icon('icon-refresh')
                     ->action(function ($record) {
 
                         $includeNotices = true; // Notices aktivieren
@@ -196,12 +209,13 @@ class Pa11yUrlResource extends Resource
                 Action::make('exportStatsCsv')
                     ->label('Stats')
                     ->url(fn ($record) => route('stats_export.csv', ['id' => $record->id]))
-                    ->icon('heroicon-o-arrow-down-tray'),
+                    ->icon('icon-stats'),
 
                 Action::make('exportIssuesCsv')
                     ->label('Issues')
+
                     ->url(fn ($record) => route('issues_export.csv', ['id' => $record->id]))
-                    ->icon('heroicon-o-arrow-down-tray'),
+                    ->icon('icon-bug_report'),
                 /*
                 Tables\Actions\Action::make('view_pdf')
                     ->label('View Pdf')
@@ -227,19 +241,10 @@ class Pa11yUrlResource extends Resource
 
                 Tables\Actions\Action::make('view_pdf')
                     //->icon('heroicon-o-eye')
-                    ->icon('heroicon-o-arrow-down-tray')
+                    ->icon('icon-adobe-acrobat-reader')
                     ->label('Pdf')
                     ->url(fn ($record) => route('pdf.exportIssuesPdf', ['id' => $record->id]))
                     ->openUrlInNewTab(),
-
-                Tables\Actions\Action::make('view_results')
-                    ->label('View Results')
-                    ->url(fn($record) => Pa11yAccessibilityIssueResource::getUrl('index', [
-                        'standard' => 'grouped/2.1',
-                        'url_id' => $record->id,
-                    ]))
-                    ->icon('heroicon-o-eye'),
-
 
 
                 // Edit-Action (automatisch verfügbar)
