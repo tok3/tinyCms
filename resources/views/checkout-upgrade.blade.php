@@ -75,7 +75,7 @@
                     @if (session()->has('product_id'))
                         <input type="hidden" name="product_id" value="{{ session('product_id') }}">
                     @endif
-                    <input type="hidden" name="company[name]" value="{{$cachedUser['name']}}">
+
                     <input type="hidden" name="company_id" value="{{$cachedUser['company']['id']}}">
 
                     <x-site-partials.checkout.summary-upgrade
@@ -154,7 +154,15 @@
 
                 $('#vorname').val(vorname);
                 $('#name').val(nachname);
-                $('#compName').val("{{ $cachedUser['company']['name'] ?? '' }}");
+
+                let compName = "{{ $cachedUser['company']['name'] ?? '' }}";
+
+                // Wenn der Name mit "Trial-" + Zahl beginnt → leeren
+                if (/^Trial-\d+$/i.test(compName)) {
+                    compName = '';
+                }
+
+                $('#compName').val(compName);
                 $('#str').val("{{ $cachedUser['company']['str'] ?? '' }}");
                 $('#plz').val("{{ $cachedUser['company']['plz'] ?? '' }}");
                 $('#ort').val("{{ $cachedUser['company']['ort'] ?? '' }}");

@@ -3,130 +3,103 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PublicAccessibilityCheckController extends Controller
 {
-    public function check(Request $request)
+    public function check(Request $request): StreamedResponse
     {
+        $validated = $request->validate(['url' => 'required|url']);
+        $url = $validated['url'];
 
+        // Debugbar bei Streaming sicherheitshalber ausschalten
+        if (class_exists(\Debugbar::class)) {
+            try { \Debugbar::disable(); } catch (\Throwable $e) {}
+        }
 
-        $request->validate(['url' => 'required|url']);
+        // Optional: eigenes Log — darf niemals den Stream stören
+        try {
+            @file_put_contents(
+                storage_path('logs/url-checks.log'),
+                sprintf("[%s] Checked URL: %s\n", now()->toDateTimeString(), $url),
+                FILE_APPEND
+            );
+        } catch (\Throwable $e) {}
 
-        $url = $request->input('url');
+        return response()->stream(function () use ($url) {
+            // Alle Output-Buffer schließen
+            while (ob_get_level() > 0) { @ob_end_flush(); }
+            @flush();
 
-        // Eigenes Logfile (z. B. storage/logs/url-checks.log)
-        $logFile = storage_path('logs/url-checks.log');
-        $logEntry = sprintf("[%s] Checked URL: %s%s", now()->toDateTimeString(), $url, PHP_EOL);
+            $send = function (array $payload): void {
+                echo json_encode($payload, JSON_UNESCAPED_UNICODE) . "\n";
+                if (ob_get_level() > 0) { @ob_flush(); }
+                @flush();
+            };
 
-        // Anhängen an Logfile
-        file_put_contents($logFile, $logEntry, FILE_APPEND);
+            $send(['step' => 'Initializing', 'progress' => 10]);
 
-        $summary = [
-            'errors' => 0,
-            'warnings' => 0,
-            'notices' => 0,
-        ];
+            try {
+                // Step 1: WCAG 2.1 (axe)
+                $send(['step' => 'Scanning WCAG 2.1 (axe)', 'progress' => 50]);
 
-        $includeNotices = true; // Standardmäßig Notices scannen
-
-        // Response als Streaming starten
-        return response()->stream(function () use ($url, &$summary, $includeNotices) {
-            // Initialisiere Fortschritt
-            echo json_encode(['step' => 'Initializing', 'progress' => 10]) . "\n";
-            ob_flush();
-            flush();
-
-            try
-            {
-                // **Step 1:** Hauptscan mit WCAG 2.1 (axe)
-                echo json_encode(['step' => 'Scanning WCAG 2.1 (axe)', 'progress' => 50]) . "\n";
-                ob_flush();
-                flush();
-
-                $processArgs = [
+                $args1 = [
                     'pa11y',
                     $url,
                     '--runner', 'axe',
                     '--reporter', 'json',
                     '--include-warnings',
                 ];
+                // Hinweis: escapeshellarg je nach Umgebung; hier simpel zusammenfügen:
+                $cmd1   = implode(' ', array_map('escapeshellarg', $args1));
+                $output = shell_exec($cmd1 . ' 2>&1');
 
-                $command = implode(' ', $processArgs);
-                $output = shell_exec($command . ' 2>&1');
-
-                if (empty($output)) {
-                    throw new \Exception("Kein Output von pa11y. Die Webseite existiert vermutlich nicht oder ist nicht erreichbar.");
+                if ($output === null || $output === '') {
+                    throw new \RuntimeException('Kein Output von pa11y (axe).');
                 }
+                $axe = json_decode($output, true, 512, JSON_THROW_ON_ERROR);
 
-                $wcag21Results = json_decode($output, true);
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    throw new \Exception("Ungültige JSON-Daten von pa11y: " . $output);
-                }
-
-                if (!empty($wcag21Results)) {
-                    foreach ($wcag21Results as $result) {
-                        if (isset($result['type']) && $result['type'] === 'error') {
-                            $summary['errors']++;
-                        } elseif (isset($result['type']) && $result['type'] === 'warning') {
-                            $summary['warnings']++;
-                        }
+                $summary = ['errors' => 0, 'warnings' => 0, 'notices' => 0];
+                if (is_array($axe)) {
+                    foreach ($axe as $row) {
+                        $type = $row['type'] ?? null;
+                        if ($type === 'error')   $summary['errors']++;
+                        if ($type === 'warning') $summary['warnings']++;
                     }
                 }
 
+                // Step 2: Notices (htmlcs, WCAG2AAA)
+                $send(['step' => 'Scanning WCAG 2.0 AAA for Notices', 'progress' => 75]);
 
-                // **Step 2:** Zusätzlicher Scan für Notices mit WCAG 2.0 AAA (htmlcs)
-                if ($includeNotices) {
-                    echo json_encode(['step' => 'Scanning WCAG 2.0 AAA for Notices', 'progress' => 75]) . "\n";
-                    ob_flush();
-                    flush();
-
-                    $processArgs = [
-                        'pa11y',
-                        $url,
-                        '--runner', 'htmlcs',
-                        '--reporter', 'json',
-                        '--standard', 'WCAG2AAA',
-                        '--include-notices',
-                    ];
-
-                    $command = implode(' ', $processArgs);
-                    $output = shell_exec($command . ' 2>&1');
-
-                    // Prüfe, ob der Output leer ist
-                    if (empty($output)) {
-                        throw new \Exception("Kein Output vom zusätzlichen pa11y-Scan. Die Webseite ist möglicherweise nicht erreichbar.");
-                    }
-
-                    // Versuche, den Output als JSON zu decodieren
-                    $wcag20NoticesResults = json_decode($output, true);
-                    if (json_last_error() !== JSON_ERROR_NONE) {
-                        throw new \Exception("Ungültige JSON-Daten vom zusätzlichen pa11y-Scan: " . $output);
-                    }
-
-                    if (!empty($wcag20NoticesResults)) {
-                        foreach ($wcag20NoticesResults as $result) {
-                            if (isset($result['type']) && $result['type'] === 'notice') {
-                                $summary['notices']++;
-                            }
-                        }
+                $args2 = [
+                    'pa11y',
+                    $url,
+                    '--runner', 'htmlcs',
+                    '--reporter', 'json',
+                    '--standard', 'WCAG2AAA',
+                    '--include-notices',
+                ];
+                $cmd2    = implode(' ', array_map('escapeshellarg', $args2));
+                $output2 = shell_exec($cmd2 . ' 2>&1');
+                if ($output2 === null || $output2 === '') {
+                    throw new \RuntimeException('Kein Output vom pa11y-Notices-Scan.');
+                }
+                $notices = json_decode($output2, true, 512, JSON_THROW_ON_ERROR);
+                if (is_array($notices)) {
+                    foreach ($notices as $row) {
+                        if (($row['type'] ?? null) === 'notice') $summary['notices']++;
                     }
                 }
 
-                // Fortschritt abschließen
-                echo json_encode(['step' => 'Completed', 'progress' => 100, 'summary' => $summary]) . "\n";
-                ob_flush();
-                flush();
-            }
-            catch (\Exception $e)
-            {
-                echo json_encode(['step' => 'Error', 'message' => $e->getMessage(), 'progress' => 100]) . "\n";
-                ob_flush();
-                flush();
+                $send(['step' => 'Completed', 'progress' => 100, 'summary' => $summary]);
+            } catch (\Throwable $e) {
+                $send(['step' => 'Error', 'message' => $e->getMessage(), 'progress' => 100]);
             }
         }, 200, [
-            'Content-Type' => 'text/event-stream',
-            'Cache-Control' => 'no-cache',
-            'Connection' => 'keep-alive',
+            'Content-Type'      => 'application/x-ndjson; charset=utf-8',
+            'Cache-Control'     => 'no-cache, no-transform',
+            'X-Accel-Buffering' => 'no',
+            'Connection'        => 'keep-alive',
         ]);
     }
 

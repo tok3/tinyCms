@@ -81,7 +81,9 @@ class CheckoutController extends MolliePaymentController
         else
         {
 
+
             $name = $request->input('user')['vorname'] . ' ' . $request->input('user')['name'];
+
             $email = $request->input('user')['email'];
             $billingEmail = $request->input('company')['email'];
 

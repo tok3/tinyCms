@@ -80,7 +80,7 @@
                             <div class="text-danger mb-1" x-text="errors.street"></div>
                             <div class="input-icon-group mb-3">
                                 <span class="input-icon"><i class="bx bx-map"></i></span>
-                                <input id="str" class="form-control" name="company[str]" type="text" placeholder="Straße / Haus-Nr." x-model="form.street">
+                                <input id="str" class="form-control" required="required" name="company[str]" type="text" placeholder="Straße / Haus-Nr." x-model="form.street">
                             </div>
                         </div>
 
@@ -104,7 +104,7 @@
                 </fieldset>
 
             @else
-
+                <input type="hidden" name="user[email]" value="{{\Auth::user()->email}}">
                 <div class="h6 d mb-2">Rechnungsempfänger:</div>
                 <div id="customer-name"></div>
                 <div id="company-name"></div>

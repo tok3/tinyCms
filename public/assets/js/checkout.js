@@ -341,10 +341,20 @@ $(document).ready(function () {
 
 //-----------
     $('#upgrade').on('click', function(){
-        validatePriv();
+        const compOk = validateCompData();
+        const privOk = validatePriv();
+
+        if (compOk && privOk) {
+            $('#checkout').submit();
+            sessionStorage.removeItem('couponCode');
+        }
+
+        return false; // Formular nur absenden, wenn beide true
     });
 
     window.validatePriv = function () {
+
+
         // AGB + Datenschutz
         $('#agb').rules('add', {
             required: true,
@@ -395,6 +405,94 @@ $(document).ready(function () {
         }
     };
 
+//-----------
+    const $form = $('#checkout');
+
+    if (!$form.data('validator')) {
+        $form.validate({
+            ignore: [],                 // auch versteckte/dynamische Felder validieren
+            errorClass: 'error',
+            errorElement: 'span',
+            focusInvalid: false,
+            errorPlacement: function (error, element) {
+                if (element.attr('name') === 'pay_by_invoice') {
+                    error.appendTo('#pay_by_invoice_error');
+                } else {
+                    error.insertAfter(element);
+                }
+            },
+            highlight: function (el) {
+                $(el).addClass('error text-danger').attr('aria-invalid', 'true');
+            },
+            unhighlight: function (el) {
+                $(el).removeClass('error text-danger').attr('aria-invalid', 'false');
+            },
+        });
+    }
+    const v = $form.data('validator');
+
+// === Firmen-Basisdaten validieren (nur wenn 'firstContract' existiert) ===
+    window.validateCompData = function () {
+        // nur im Erstvertrag-Fall validieren
+        if ($form.find('input[name="firstContract"]').length === 0) {
+            return true;
+        }
+
+        let ok = true;
+
+        // Helper: Regeln setzen (vorher alte entfernen), normalizer trimmt Whitespaces
+        function addRequired($el, msg, extraRules = {}) {
+            if (!$el.length) return true;
+            $el.rules('remove'); // doppelte Regeln vermeiden
+            $el.rules('add', Object.assign({
+                required: true,
+                normalizer: function (value) { return $.trim(value); }
+            }, extraRules, {
+                messages: Object.assign({ required: msg }, extraRules.messages || {})
+            }));
+            return v.element($el[0]); // einzelne Feldprüfung
+        }
+
+        const $email  = $form.find('[name="company[email]"]');
+        const $street = $form.find('[name="company[str]"]');
+        const $plz    = $form.find('[name="company[plz]"]');
+        const $ort    = $form.find('[name="company[ort]"]');
+
+        ok = addRequired($email,  "Bitte eine Rechnungs-E-Mail angeben.", {
+            email: true,
+            messages: { email: "Bitte eine gültige E-Mail-Adresse eingeben." }
+        }) && ok;
+
+        ok = addRequired($street, "Bitte Straße und Hausnummer angeben.") && ok;
+
+        ok = addRequired($plz, "Bitte PLZ angeben.") && ok;
+
+        ok = addRequired($ort,    "Bitte Ort angeben.") && ok;
+
+        addRequired($form.find('[name="company[name]"]'), 'Bitte Firmenname angeben.') && (ok = ok && true);
+
+        return ok;
+    };
+
+// === Klick-Handler kombinieren ===
+    $('#upgrade').on('click', function (e) {
+        e.preventDefault();
+
+        const compOk = validateCompData();
+        const privOk = validatePriv(); // sollte true/false zurückgeben
+
+        if (compOk && privOk) {
+            $form.submit();
+            sessionStorage.removeItem('couponCode');
+        } else {
+            // zum ersten Fehler springen
+            const $firstErr = $form.find('label.error:visible, .error:visible').first();
+            if ($firstErr.length) {
+                $('html, body').animate({ scrollTop: $firstErr.offset().top - 120 }, 250);
+            }
+        }
+        return false;
+    });
 //-----------
 
     $('input[name="payment_method"]').on('change', function(){
