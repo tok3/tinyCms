@@ -207,12 +207,12 @@ class Pa11yUrlResource extends Resource
                     ->icon('heroicon-o-eye'),*/
 
                 Action::make('exportStatsCsv')
-                    ->label('Stats')
+                    ->label('Stats⬇︎')
                     ->url(fn ($record) => route('stats_export.csv', ['id' => $record->id]))
                     ->icon('icon-stats'),
 
                 Action::make('exportIssuesCsv')
-                    ->label('Issues')
+                    ->label('Issues⬇︎')
 
                     ->url(fn ($record) => route('issues_export.csv', ['id' => $record->id]))
                     ->icon('icon-bug_report'),
@@ -242,7 +242,7 @@ class Pa11yUrlResource extends Resource
                 Tables\Actions\Action::make('view_pdf')
                     //->icon('heroicon-o-eye')
                     ->icon('icon-adobe-acrobat-reader')
-                    ->label('Pdf')
+                    ->label('PDF⬇︎')
                     ->url(fn ($record) => route('pdf.exportIssuesPdf', ['id' => $record->id]))
                     ->openUrlInNewTab(),
 
