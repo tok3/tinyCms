@@ -176,7 +176,7 @@ class Pa11yUrlResource extends Resource
 
 
                 Action::make('view_results')
-                    ->label('View Results')
+                    ->label('Ansehen')
                     ->url(fn($record) => Pa11yAccessibilityIssueResource::getUrl('index', [
                         'standard' => 'grouped/2.1',
                         'url_id' => $record->id,

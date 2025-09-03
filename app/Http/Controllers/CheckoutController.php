@@ -18,6 +18,7 @@ use GuzzleHttp\Client;
 use App\Models\TemporaryUserData;
 use Illuminate\Support\Str;
 use App\Helpers\FormatHelper;
+
 /**
  *
  */
@@ -87,6 +88,13 @@ class CheckoutController extends MolliePaymentController
             $email = $request->input('user')['email'];
             $billingEmail = $request->input('company')['email'];
 
+            $customer = Mollie::api()->customers->create([
+                'name' => $name,
+                'email' => $email,
+            ]);
+
+            $customerID = $customer->id;
+
             if ($request->boolean('firstContract')) {
                 // wenn user einen reinen trial account hatte und die erste bestellung über das upgrade form macht
 
@@ -96,6 +104,13 @@ class CheckoutController extends MolliePaymentController
 
                 if ($company && !empty($companyData)) {
                     $company->update($companyData);
+
+                    // MollieCustomer anlegen (mit Bezug zur Company)
+                    MollieCustomer::create([
+                        'model_id'          => $company->id,
+                        'model_type'        => get_class($company), // z. B. App\Models\Company
+                        'mollie_customer_id'=> $customerID ?? null, // hier die Mollie-ID einsetzen
+                    ]);
                 }
 
                 // --- User Update ---
@@ -110,12 +125,6 @@ class CheckoutController extends MolliePaymentController
                 }
             }
 
-            $customer = Mollie::api()->customers->create([
-                'name' => $name,
-                'email' => $email,
-            ]);
-
-            $customerID = $customer->id;
 
 
             if ($request->input('payment_method') === 'sepa')
@@ -222,7 +231,7 @@ class CheckoutController extends MolliePaymentController
         $descriptionText = FormatHelper::stripHtmlButKeepSpaces($orderedProduct->invoice_text ?: $orderedProduct->description);
 
         $itemDescription = Str::limit(
-             $descriptionText,
+            $descriptionText,
             $this->descriptionLength,
             '...'
         );
@@ -295,7 +304,7 @@ class CheckoutController extends MolliePaymentController
             $descriptionText = FormatHelper::stripHtmlButKeepSpaces($orderedProduct->invoice_text ?: $orderedProduct->description);
 
             $itemDescription = Str::limit(
-                 $descriptionText,
+                $descriptionText,
                 $this->descriptionLength,
                 '...'
             );
@@ -471,7 +480,7 @@ class CheckoutController extends MolliePaymentController
                 'trial_period_days'     => $product->trial_period_days,
                 'has_discount'          => true,
                 'discountedPriceCents'  => $subtotal * 100,          // <— evtl. extra Feld
-                 ];
+            ];
         }
 
         return response()->json($productDetails);
