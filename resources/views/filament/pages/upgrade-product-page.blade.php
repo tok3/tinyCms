@@ -72,6 +72,14 @@
                                             <td>
                                                 <h5 class="font-semibold m-1">Zahlungsinterval</h5>
                                                 @foreach ($product->prices as $price)
+                                                    @php
+                                                        $plan = $price->interval;
+                                                        $formattedPrice = number_format($price->price / 100, 2, ',', '.');
+                                                        $trialHint = '';
+                                                        if($product->trial_period_days > 0) {
+                                                            $trialHint = $product->trial_period_days . ' Tage kostenlos Testen';
+                                                        }
+                                                    @endphp
                                                     <div>
                                                         <label class="inline-flex items-center">
                                                             <input type="radio" name="interval" value="{{ $price->interval }}" {{ $loop->first ? 'checked' : '' }} class="mr-2">
@@ -80,13 +88,18 @@
                                                                 {{ number_format($price->price / 100, 2, ',', '.') }} {{ $product->currency }} &euro;
                                                             </strong>&nbsp;<small>(inkl. MwSt)</small>
                                                         </label>
+
                                                     </div>
                                                 @endforeach
+
                                             </td>
                                             <td class="text-right">
                                                 <button type="submit" class="inline-block mt-4 py-2 px-4 bg-blue-600 text-white rounded">
                                                     Bestellen ...
                                                 </button>
+                                                <div class="">
+                                                    <sub>{{ $trialHint }}</sub>
+                                                </div>
                                             </td>
                                         </tr>
                                     </table>
