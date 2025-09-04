@@ -96,6 +96,11 @@ class DashboardPanelProvider extends PanelProvider
             ])
             ->navigationItems([
 
+                NavigationItem::make('Termin Vereinbaren')
+                    ->url('https://calendar.google.com/calendar/appointments/schedules/AcZssZ002z7FSLxfqDLL47QcSvPz_XZbGC-2uwnyJso0MjsOmuNK9FDuwO_HG3uJKMpsWoLqfOBefBw9?gv=true', shouldOpenInNewTab: true)
+                    ->icon('heroicon-o-calendar')
+                    ->sort(99)
+                    ->visible(fn () => auth()->check()), // oder eigene Policy/Permission
                 /*    NavigationItem::make('Firmendaten')
                         ->url('/'.$panel->getId().'/'.$tenant_id.'/companies/'.$tenant_id.'/edit', shouldOpenInNewTab: false)
                         ->icon('heroicon-o-newspaper')

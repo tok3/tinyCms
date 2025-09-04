@@ -10,7 +10,7 @@ use App\Filament\Resources\Shared\Pa11yUrlResource;
 
 class CalendarAppointmentWidget extends Widget
 {
-    protected static ?int $sort = -0;
+    protected static ?int $sort = -10;
     protected int|string|array $columnSpan = 1;
     protected static bool $isLazy = false;
     protected static string $view = 'filament.dashboard.widgets.calendar-appointment-widget';
