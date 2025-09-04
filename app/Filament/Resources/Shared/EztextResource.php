@@ -45,7 +45,7 @@ class EztextResource extends Resource
         return ['text', 'url',];
     }
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'icon-leichte-sprache';
 
     public static function shouldRegisterNavigation(): bool
     {
