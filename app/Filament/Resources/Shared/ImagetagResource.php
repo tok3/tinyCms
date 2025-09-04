@@ -36,7 +36,7 @@ class ImagetagResource extends Resource
     protected static ?string $pluralModelLabel = 'altStar'; // Plural name
 
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'icon-img-tag';
 
 
     public static function shouldRegisterNavigation(): bool
