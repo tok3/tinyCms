@@ -32,8 +32,8 @@ class ImagetagResource extends Resource
 
     protected static ?string $model = Imagetag::class;
     protected static ?string $recordTitleAttribute = 'description';
-    protected static ?string $label = 'Image alt-tags'; // Singular name
-    protected static ?string $pluralModelLabel = 'Image alt-tags'; // Plural name
+    protected static ?string $label = 'altStar'; // Singular name
+    protected static ?string $pluralModelLabel = 'altStar'; // Plural name
 
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';

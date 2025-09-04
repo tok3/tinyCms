@@ -1,3 +1,13 @@
 @import '/vendor/filament/filament/resources/css/theme.css';
 
 @config 'tailwind.config.js';
+
+/* Override in der Utilities-Layer, damit es NACH Tailwind-Utilities kommt */
+@layer utilities {
+    .fi-sidebar .fi-sidebar-item-label,
+    .fi-sidebar .fi-sidebar-group-label,
+    .fi-sidebar .fi-sidebar-item a {
+        text-transform: none !important;
+        letter-spacing: normal !important; /* falls das Theme tracking-wider setzt */
+    }
+}
