@@ -33,10 +33,11 @@ class ImagetagResource extends Resource
     protected static ?string $model = Imagetag::class;
     protected static ?string $recordTitleAttribute = 'description';
     protected static ?string $label = 'altStar'; // Singular name
-    protected static ?string $pluralModelLabel = 'altStar'; // Plural name
+    protected static ?string $pluralModelLabel = ''; // Plural name
 
-
+    protected static ?string $navigationLabel = 'altStar'; // Text im Menü
     protected static ?string $navigationIcon = 'icon-img-tag';
+
 
 
     public static function shouldRegisterNavigation(): bool
