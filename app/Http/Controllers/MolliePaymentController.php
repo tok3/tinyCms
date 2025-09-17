@@ -98,7 +98,8 @@ class MolliePaymentController extends Controller
         {
             $contract = Contract::where('subscription_id', $payment->subscriptionId)->first();
 
-            if ($contract) {
+            if ($contract)
+            {
                 $product = (object)[
                     'id' => $contract->product_id,
                     'name' => $contract->product_name,
@@ -113,7 +114,9 @@ class MolliePaymentController extends Controller
                 $company = $contract->contractable;
                 $interval = $contract->interval ?? $interval;
                 $this->contractID = $contract->id;
-            } else {
+            }
+            else
+            {
                 \Log::warning('Kein Contract für subscriptionId: ' . $payment->subscriptionId);
             }
         }
@@ -224,45 +227,57 @@ class MolliePaymentController extends Controller
      * @param $startDate
      * @return void
      */
-    public function createContract($company, $product, $subscription = false, $startDate, array $additionalData = [], $interval = 'monthly')
+    public function createContract(
+        \App\Models\Company $company,
+                            $product,
+                            $subscription = false,
+                            $startDate,
+        array               $additionalData = [],
+        string              $interval = 'monthly',
+        int                 $finalGrossCents // 👈 Pflicht: finaler BRUTTO-Betrag (Cent) nach Rabatt(en)
+    )
     {
         $additionalData['ordered_product'] = $product;
         $subscriptionId = is_object($subscription) ? $subscription->id : null;
 
-        // WICHTIG: $product->price ist NETTO in CENTS (bereits via priceFor($interval) gesetzt)
-        $netPriceCents = (int) $product->price;
+        $taxRate = (float)config('accounting.tax_rate', 19);
 
-        // Agentur-Rabatt als Snapshot in den Vertrag übernehmen
-        $agency = $company?->agency;
+        // BRUTTO → NETTO (in Cent)
+        $finalNet = round(($finalGrossCents / 100) / (1 + $taxRate / 100), 2); // € netto
+        $finalNetCents = (int)round($finalNet * 100);
+
+        // Agentur-Rabatt-Snapshot (Coupons NICHT speichern; nur Agentur)
+        $agency = $company->agency ?? null;
         $discountPercent = 0.0;
-        $discountLabel   = null;
+        $discountLabel = null;
 
-        if ($agency && $agency->is_agency && (float) $agency->agency_discount_percent > 0) {
-            $discountPercent = (float) $agency->agency_discount_percent;
-            $discountLabel   = 'Agentur-Rabatt';
+        if ($agency && $agency->is_agency && (float)$agency->agency_discount_percent > 0)
+        {
+            $discountPercent = (float)$agency->agency_discount_percent;
+            $discountLabel = 'Agentur-Rabatt';
         }
 
-        $contract = new Contract([
-            'contractable_type'       => Company::class,
-            'contractable_id'         => $company->id,
-            'product_id'              => $product->id,
-            'invoice_text'            => $product->invoice_text,
-            'interval'                => $interval,
+        $contract = new \App\Models\Contract([
+            'contractable_type' => \App\Models\Company::class,
+            'contractable_id' => $company->id,
+            'product_id' => $product->id,
+            'invoice_text' => $product->invoice_text,
+            'interval' => $interval,
 
-            // NETTO in CENTS im Vertrag speichern:
-            'price'                   => $netPriceCents,
+            // ✅ NETTO (Cent) speichern
+            'price' => $finalNetCents,
 
-            'subscription_id'         => $subscriptionId,
+            'subscription_id' => $subscriptionId,
             'subscription_start_date' => $startDate,
-            'duration'                => $product->lz ?? 24,
-            'data'                    => json_encode($additionalData),
-            'order_date'              => now(),
-            'start_date'              => now()->addDays($product->trial_period_days),
-            'end_date'                => now()->addDays($product->trial_period_days)->addMonths($product->lz ?? 24),
+            'duration' => $product->lz ?? 24,
+            'data' => json_encode($additionalData),
+            'order_date' => now(),
+            'start_date' => now()->addDays($product->trial_period_days),
+            'end_date' => now()->addDays($product->trial_period_days)->addMonths($product->lz ?? 24),
 
-            // Rabatt-Snapshot:
-            'discount_percent'        => $discountPercent,
-            'discount_label'          => $discountLabel,
+            // Optionaler Snapshot:
+            'discount_percent' => $discountPercent,
+            'discount_label' => $discountLabel,
         ]);
 
         $contract->save();
@@ -400,85 +415,97 @@ class MolliePaymentController extends Controller
      */
     public function prepareInvoice($paymentId)
     {
-        $payment = MolliePayment::where('payment_id', $paymentId)->first();
-
-        if (!$payment || $payment->amount_value <= 0.00) {
+        $payment = \App\Models\MolliePayment::where('payment_id', $paymentId)->first();
+        if (!$payment || $payment->amount_value <= 0.00)
+        {
             return;
         }
 
-        $customer = MollieCustomer::where('mollie_customer_id', $payment->customer_id)->first();
+        $customer = \App\Models\MollieCustomer::where('mollie_customer_id', $payment->customer_id)->first();
 
-        // Mollie liefert BRUTTO als String, z.B. "29.00"
-        $total_gross = (float) $payment->amount_value;
+        // Mollie: BRUTTO als String, z.B. "69.93"
+        $total_gross = (float)$payment->amount_value;
 
-        $tax_rate = (float) config('accounting.tax_rate', 19);
-        $total_net = round($total_gross / (1 + ($tax_rate / 100)), 2);
-        $tax       = round($total_gross - $total_net, 2);
+        $tax_rate = (float)config('accounting.tax_rate', 19);
 
-        // Vertrag ermitteln (first payment setzt $this->contractID, sonst via subscription)
+        // BRUTTO → NETTO/MwSt (für Summen)
+        $total_net = round($total_gross / (1 + $tax_rate / 100), 2);
+        $tax = round($total_gross - $total_net, 2);
+
+        // Vertrag ermitteln
         $contract = null;
-        if ($this->contractID) {
-            $contract = Contract::find($this->contractID);
-        } elseif (!empty($payment->subscriptionId)) {
-            $contract = Contract::where('subscription_id', $payment->subscriptionId)->first();
+        if ($this->contractID)
+        {
+            $contract = \App\Models\Contract::find($this->contractID);
+        }
+        elseif (!empty($payment->subscriptionId))
+        {
+            $contract = \App\Models\Contract::where('subscription_id', $payment->subscriptionId)->first();
         }
 
-        $discountPercent = (float) ($contract->discount_percent ?? 0);
-        $discountLabel   = $contract->discount_label ?? null;
+        $discountPercent = (float)($contract->discount_percent ?? 0);
+        $discountLabel = $contract->discount_label ?? null;
 
         $items = [];
 
-        if ($discountPercent > 0) {
-            // Produkt-NETTO VOR Rabatt rekonstruieren:
-            //   net_final = net_before * (1 - p/100)  =>  net_before = net_final / (1 - p/100)
-            $productNetBefore = round($total_net / (1 - ($discountPercent / 100)), 2);
-            $discountNet      = round($productNetBefore - $total_net, 2); // positive Zahl
+        if ($discountPercent > 0)
+        {
+            // 1) BRUTTO vor Rabatt rekonstruieren
+            // finalGross = grossBefore * (1 - p/100) => grossBefore = finalGross / (1 - p/100)
+            $productGrossBefore = round($total_gross / (1 - ($discountPercent / 100)), 2);
+            $discountGross = round($productGrossBefore - $total_gross, 2); // positiv (brutto)
+
+            // 2) BRUTTO → NETTO (Positionsbeträge sind netto)
+            $productNetBefore = round($productGrossBefore / (1 + $tax_rate / 100), 2);
+            $discountNet = round($discountGross / (1 + $tax_rate / 100), 2);
 
             // Pos 1: Produkt (NETTO vor Rabatt)
             $items[] = [
-                'id'                => '1',
-                'description'       => $payment->description,
-                'quantity'          => 1,
+                'id' => '1',
+                'description' => $payment->description,
+                'quantity' => 1,
                 'line_total_amount' => number_format($productNetBefore, 2, '.', ''),
             ];
 
-            // Pos 2: Rabatt als NEGATIVE NETTO-Zeile
+            // Pos 2: Rabatt (NETTO negativ)
             $items[] = [
-                'id'                => '2',
-                'description'       => $discountLabel
+                'id' => '2',
+                'description' => $discountLabel
                     ? ($discountLabel . ' ' . number_format($discountPercent, 2, '.', '') . '%')
                     : 'Rabatt',
-                'quantity'          => 1,
+                'quantity' => 1,
                 'line_total_amount' => '-' . number_format($discountNet, 2, '.', ''),
             ];
-        } else {
-            // Kein Rabatt → eine Position mit finalem NETTO
+        }
+        else
+        {
+            // Kein Agentur-Rabatt → eine Netto-Position (final)
             $items[] = [
-                'id'                => '1',
-                'description'       => $payment->description,
-                'quantity'          => 1,
+                'id' => '1',
+                'description' => $payment->description,
+                'quantity' => 1,
                 'line_total_amount' => number_format($total_net, 2, '.', ''),
             ];
         }
 
         $invoiceData = [
-            'company_id'        => $customer->model_id,   // Firma verknüpfen
-            'contract_id'       => $contract?->id,        // kann null sein (one-time)
-            'issue_date'        => now()->format('Y-m-d'),
+            'company_id' => $customer->model_id,
+            'contract_id' => $contract?->id,
+            'issue_date' => now()->format('Y-m-d'),
             'mollie_payment_id' => $payment->payment_id,
-            'due_date'          => $payment->paid_at,
-            'payment_date'      => $payment->paid_at,
-            'total_net'         => $total_net,            // FINAL netto (nach Rabatt)
-            'total_gross'       => $total_gross,          // FINAL brutto (gezahlt)
-            'tax'               => $tax,
-            'tax_rate'          => $tax_rate,
-            'status'            => 'paid',
-            'data'              => [
+            'due_date' => $payment->paid_at,
+            'payment_date' => $payment->paid_at,
+            'total_net' => $total_net,    // Summen NETTO
+            'total_gross' => $total_gross,  // Summen BRUTTO (wie gezahlt)
+            'tax' => $tax,
+            'tax_rate' => $tax_rate,
+            'status' => 'paid',
+            'data' => [
                 'items' => $items,
             ],
         ];
 
-        $invoiceService = new InvoiceService();
+        $invoiceService = new \App\Services\InvoiceService();
         $invoiceService->createInvoice($invoiceData);
         $invoiceService->sendInvoiceEmail();
     }

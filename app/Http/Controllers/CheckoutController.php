@@ -301,91 +301,94 @@ class CheckoutController extends MolliePaymentController
 
     public function prepareInvoicePurchaseByInvoice($orderedProduct, $company, $contract = null)
     {
-
         // Steuersatz
         $tax_rate = config('accounting.tax_rate');
 
-        $productNet = round($orderedProduct->price / 100, 2);
+        // 1) Produktpreis BRUTTO aus DB (Cent -> €)
+        $productGross = round($orderedProduct->price / 100, 2);
 
-        if ($orderedProduct->promotion)
-        {
+        // 2) Promotion (falls vorhanden) – liefert Brutto
+        if ($orderedProduct->promotion) {
             $cpCtrl = new CouponController;
-            $productNet = round($cpCtrl->calculateTotalPrice($orderedProduct->promotion, $orderedProduct, false), 2);
+            $productGross = round($cpCtrl->calculateTotalPrice($orderedProduct->promotion, $orderedProduct, false), 2);
         }
 
-        // Agentur-Rabatt ermitteln
+        // 3) Agentur-Rabatt ermitteln
         $discountPercent = 0.0;
-        $discountLabel = null;
-
+        $discountLabel   = null;
         $agency = $company->agency ?? null;
-        if ($agency && $agency->is_agency && (float)$agency->agency_discount_percent > 0)
-        {
-            $discountPercent = (float)$agency->agency_discount_percent; // z. B. 20.00
-            $discountLabel = 'Agentur-Rabatt';
+
+        if ($agency && $agency->is_agency && (float) $agency->agency_discount_percent > 0) {
+            $discountPercent = (float) $agency->agency_discount_percent;
+            $discountLabel   = 'Agentur-Rabatt';
         }
 
-        // Rabatt (NETTO) berechnen
-        $discountNet = $discountPercent > 0
-            ? round($productNet * ($discountPercent / 100), 2)
+        // 4) Rabatt BRUTTO berechnen
+        $discountGross = $discountPercent > 0
+            ? round($productGross * ($discountPercent / 100), 2)
             : 0.00;
 
-        // 3) Summen berechnen (NETTO → Steuer → BRUTTO)
-        $final_total_net = round($productNet - $discountNet, 2);
-        $tax = round($final_total_net * ($tax_rate / 100), 2);
-        $final_total_gross = round($final_total_net + $tax, 2);
+        // 5) Brutto nach Rabatt
+        $final_total_gross = round($productGross - $discountGross, 2);
 
-        // 4) Beschreibung kürzen
-        $descriptionText = \App\Helpers\FormatHelper::stripHtmlButKeepSpaces($orderedProduct->invoice_text ?: $orderedProduct->description);
+        // 6) Netto & Steuer aus Brutto herausrechnen
+        $final_total_net = round($final_total_gross / (1 + ($tax_rate / 100)), 2);
+        $tax             = round($final_total_gross - $final_total_net, 2);
+
+        // 7) Beschreibung kürzen
+        $descriptionText = \App\Helpers\FormatHelper::stripHtmlButKeepSpaces(
+            $orderedProduct->invoice_text ?: $orderedProduct->description
+        );
         $itemDescription = \Illuminate\Support\Str::limit($descriptionText, $this->descriptionLength, '...');
 
-        // 5) Positionen aufbauen: Pos 1 = Produkt (NETTO), Pos 2 = Rabatt (NETTO negativ)
+        // 8) Positionen aufbauen: Pos 1 = Produkt BRUTTO, Pos 2 = Rabatt BRUTTO negativ
         $items = [
             [
-                'id' => '1',
-                'description' => $itemDescription,
-                'quantity' => 1,
-                'line_total_amount' => number_format($productNet, 2, '.', ''),
+                'id'                => '1',
+                'description'       => $itemDescription,
+                'quantity'          => 1,
+                'line_total_amount' => number_format($productGross, 2, '.', ''),
             ],
         ];
 
-        if ($discountNet > 0)
-        {
+        if ($discountGross > 0) {
             $items[] = [
-                'id' => '2',
-                'description' => $discountLabel ? ($discountLabel . ' ' . number_format($discountPercent, 2, '.', '') . '%') : 'Rabatt',
-                'quantity' => 1,
-                'line_total_amount' => '-' . number_format($discountNet, 2, '.', ''), // NEGATIV
+                'id'                => '2',
+                'description'       => $discountLabel
+                    ? ($discountLabel . ' ' . number_format($discountPercent, 2, '.', '') . '%')
+                    : 'Rabatt',
+                'quantity'          => 1,
+                'line_total_amount' => '-' . number_format($discountGross, 2, '.', ''), // NEGATIV
             ];
         }
 
-        // 6) Contract um Rabatt-Felder ergänzen (persistenter Snapshot)
-        if (isset($contract) && $discountPercent > 0)
-        {
+        // 9) Contract mit Rabatt-Feldern aktualisieren
+        if (isset($contract) && $discountPercent > 0) {
             $contract->update([
                 'discount_percent' => $discountPercent,
-                'discount_label' => $discountLabel,
+                'discount_label'   => $discountLabel,
             ]);
         }
 
-        // 7) Invoice-Daten mit FINALEN Summen
+        // 10) Invoice-Daten
         $invoiceData = [
-            'company_id' => $company->id,
-            'contract_id' => $contract->id,
-            'issue_date' => now()->format('Y-m-d'),
+            'company_id'        => $company->id,
+            'contract_id'       => $contract->id,
+            'issue_date'        => now()->format('Y-m-d'),
             'mollie_payment_id' => null,
-            'due_date' => \Carbon\Carbon::now()->addWeekdays(10)->format('Y-m-d'),
-            'payment_date' => null,
-            'total_net' => $final_total_net,     // NETTO nach Rabatt
-            'total_gross' => $final_total_gross,   // BRUTTO nach Rabatt
-            'tax' => $tax,
-            'tax_rate' => $tax_rate,
-            'status' => 'sent',
-            'data' => [
+            'due_date'          => \Carbon\Carbon::now()->addWeekdays(10)->format('Y-m-d'),
+            'payment_date'      => null,
+            'total_net'         => $final_total_net,
+            'total_gross'       => $final_total_gross,
+            'tax'               => $tax,
+            'tax_rate'          => $tax_rate,
+            'status'            => 'sent',
+            'data'              => [
                 'items' => $items,
             ],
         ];
 
-        // erzeugen & mailen
+        // 11) erzeugen & mailen
         $invoiceService = new \App\Services\InvoiceService();
         $invoiceService->createInvoice($invoiceData);
         $invoiceService->sendInvoiceEmail();
