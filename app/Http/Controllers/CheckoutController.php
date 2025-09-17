@@ -281,6 +281,7 @@ class CheckoutController extends MolliePaymentController
     }
 
 
+
     public function prepareInvoicePurchaseByInvoice($orderedProduct, $company, $contract = null)
     {
 
