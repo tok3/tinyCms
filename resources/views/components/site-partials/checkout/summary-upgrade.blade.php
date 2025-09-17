@@ -27,7 +27,10 @@
 
     <div class="row">
         <div class="col-sm-6 mb-4">
-            @if(count(\Auth::user()->companies->first()->contracts) == 0)
+            @php($company = \App\Helpers\CompanyHelper::currentCompany())
+
+            @if ($company && $company->contracts()->doesntExist())
+
                 <input type="hidden" name="firstContract" value="1">
                 <input type="hidden" name="user[email]" value="{{\Auth::user()->email}}">
                 <fieldset>
@@ -40,7 +43,7 @@
 
                             <div class="text-danger mb-1" x-text="errors.vorname"></div>
                             <div class="input-icon-group mb-3">
-                                <span class="input-icon"><i class="bx bx-user"></i></span>
+                                    <span class="input-icon"><i class="bx bx-user"></i></span>
                                 <input id="vorname" class="form-control" id="customer-name" name="user[vorname]" type="text" placeholder="Vorname" x-model="form.vorname">
                             </div>
                         </div>
@@ -104,6 +107,7 @@
                 </fieldset>
 
             @else
+                <input type="hidden" id="compName" name="company[name]" value="">
                 <input type="hidden" name="user[email]" value="{{\Auth::user()->email}}">
                 <div class="h6 d mb-2">Rechnungsempfänger:</div>
                 <div id="customer-name"></div>
@@ -148,7 +152,7 @@
                     <td class="text-danger align-top"><i class="bi bi-info-circle"></i></td>
                     <td class="text-danger small">
                         <strong class="trial-days">–</strong> Tage kostenlose Testphase.<br>
-                        Sie zahlen heute <strong>0,00 €</strong>.<br>
+                        Sie zahlen heute <strong>0,00&nbsp;€</strong>.<br>
                         Nutzen Sie das Produkt über die Testphase hinaus,<br>
                         stellen wir Ihnen am <span class="trial-ends">–</span> <strong class="trial-price">–</strong> <span class="trial-modality">–</span> in Rechnung.
                     </td>

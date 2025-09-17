@@ -117,6 +117,30 @@ class CompanyResource extends Resource
 
                         Forms\Components\Tabs\Tab::make('Einstellungen')
                             ->schema([
+
+                                // === NEU: Affiliate Settings ===
+                                Forms\Components\Fieldset::make('Affiliate Settings')
+                                    ->visible(fn () => auth()->user()?->is_admin ?? false) // nur für Admins
+                                    ->schema([
+                                        Forms\Components\Toggle::make('is_agency')
+                                            ->label('Ist Agentur / Affiliate')
+                                            ->reactive()
+                                            ->default(false),
+
+                                        Forms\Components\TextInput::make('agency_discount_percent')
+                                            ->label('Rabatt %')
+                                            ->numeric()
+                                            ->inputMode('decimal')
+                                            ->minValue(0)
+                                            ->maxValue(100)
+                                            ->step('0.01')
+                                            ->suffix('%')
+                                            ->default(20)
+                                            ->visible(fn (callable $get) => (bool) $get('is_agency'))
+                                            ->required(fn (callable $get) => (bool) $get('is_agency')),
+                                    ])
+                                    ->columns(2),
+
                                 Forms\Components\Fieldset::make('Site Observer')
                                     ->relationship('settings', CompanySetting::class)
                                     ->schema([
@@ -227,6 +251,33 @@ class CompanyResource extends Resource
                 Tables\Columns\TextColumn::make('id')->label('ID')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('kd_nr')->label('Kd-Nr')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('name')->label('Name')->searchable()->sortable(),
+                Tables\Columns\IconColumn::make('is_agency')
+                    ->label('')
+                    ->icon(function ($record) {
+                        if ($record->is_agency) {
+                            return 'icon-tenancy'; // agentur
+                        }
+
+                        if (! empty($record->agency_company_id)) {
+                            return 'icon-tenant'; // tenant
+                        }
+
+                        return null; // nichts anzeigen
+                    })
+                    ->color(function ($record) {
+                        if ($record->is_agency) {
+                            return 'primary';
+                        }
+
+                        if (! empty($record->agency_company_id)) {
+                            return 'success';
+                        }
+
+                        return 'default';
+                    })
+                    ->falseIcon('heroicon-o-building-office-2')
+                    ->size('sm')
+                    ->grow(false),          // schmal halten
                 Tables\Columns\TextColumn::make('plz')->label('plz')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('ort')->label('Ort')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('created_at')->dateTime('d.m.Y H:i')->label('Erstellt')->sortable(),

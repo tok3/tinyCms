@@ -49,6 +49,7 @@ class DashboardPanelProvider extends PanelProvider
             \App\Filament\Dashboard\Widgets\FixsternIntegrationWidget::class,
             \App\Filament\Dashboard\Widgets\ImageTagsIntegrationWidget::class,
             \App\Filament\Dashboard\Widgets\FirmamentInfoWidget::class,
+            \App\Filament\Dashboard\Widgets\AgencyCreateCustomerWidget::class,
 
         ];
 

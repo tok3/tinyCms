@@ -19,9 +19,8 @@ class ListImagetags extends ListRecords
     {
         return new HtmlString(
             '<div class="flex items-center gap-3" style="width:80%; color:#262629;">'
-            . file_get_contents(resource_path('svg/altstar.svg'))
-            . '
-    </div>'
+            . file_get_contents(public_path('assets/icons/altstar.svg'))
+            . '</div>'
         );
     }
 

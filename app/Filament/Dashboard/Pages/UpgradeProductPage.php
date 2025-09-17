@@ -25,6 +25,8 @@ class UpgradeProductPage extends Page
             $user = \Auth::user();
             $company = $user->companies->first(); // oder [0], je nachdem
 
+        $company = CompanyHelper::currentCompany();
+
             session()->put('cached_user', [
                 'name' => $user->name,
                 'email' => $user->email,
@@ -39,7 +41,7 @@ class UpgradeProductPage extends Page
             ]);
        // }
 
-        $company = CompanyHelper::currentCompany();
+
 
         if ($company && ! $company->contracts()->exists()) {
             // Trial: alle regulären Pakete anzeigen (aktiv + sichtbar)
@@ -58,7 +60,7 @@ class UpgradeProductPage extends Page
 
     public function getTitle(): string
     {
-        return __('Produkterweiterungen');
+        return __('Produkte und Erweiterungen');
     }
 
 }
