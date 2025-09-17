@@ -55,8 +55,7 @@ class CheckoutController extends MolliePaymentController
     {
 
         $selection = $request->input('product_selection');       // z.B. "3:annual"
-        if (!$selection || !str_contains($selection, ':'))
-        {
+        if (! $selection || ! str_contains($selection, ':')) {
             abort(400, 'Ungültige Produktauswahl.');
         }
 
@@ -71,14 +70,15 @@ class CheckoutController extends MolliePaymentController
         $couponCode = $request->input('coupon_code') ?? '0';
 
         $user = \Auth::user();
-        $company = CompanyHelper::currentCompany();
 
-        if ($user && $company && $company->mollieCustomer)
+        if ($user && $user->companies->isNotEmpty() && $user->companies[0]->mollieCustomer)
         {
-            // Aktuelle Company hat bereits eine Mollie Customer ID
-            $mollieCustomer = $company->mollieCustomer;
-            $customerID = $mollieCustomer->mollie_customer_id;
-            $billingEmail = $company->email;
+            // User hat bereits eine Company und damit eine Mollie Customer ID
+            $molieCostomer = $user->companies[0]->mollieCustomer;
+            $customerID = $molieCostomer->mollie_customer_id;
+            $billingEmail = $user->companies[0]->email;
+
+
         }
         else
         {
@@ -96,23 +96,21 @@ class CheckoutController extends MolliePaymentController
 
             $customerID = $customer->id;
 
-            if ($request->boolean('firstContract'))
-            {
+            if ($request->boolean('firstContract')) {
                 // wenn user einen reinen trial account hatte und die erste bestellung über das upgrade form macht
 
                 // --- Company Update ---
                 $companyData = $request->input('company', []);
+                $company = auth()->user()->companies()->first(); // oder dein Mechanismus
 
-
-                if ($company && !empty($companyData))
-                {
+                if ($company && !empty($companyData)) {
                     $company->update($companyData);
 
                     // MollieCustomer anlegen (mit Bezug zur Company)
                     MollieCustomer::create([
-                        'model_id' => $company->id,
-                        'model_type' => get_class($company), // z. B. App\Models\Company
-                        'mollie_customer_id' => $customerID ?? null, // hier die Mollie-ID einsetzen
+                        'model_id'          => $company->id,
+                        'model_type'        => get_class($company), // z. B. App\Models\Company
+                        'mollie_customer_id'=> $customerID ?? null, // hier die Mollie-ID einsetzen
                     ]);
                 }
 
@@ -120,14 +118,14 @@ class CheckoutController extends MolliePaymentController
                 $userData = $request->input('user', []);
                 $user = auth()->user();
 
-                if ($user && !empty($userData))
-                {
+                if ($user && !empty($userData)) {
                     // Namen zusammensetzen
                     $user->name = trim(($userData['vorname'] ?? '') . ' ' . ($userData['name'] ?? ''));
 
                     $user->save();
                 }
             }
+
 
 
             if ($request->input('payment_method') === 'sepa')
@@ -160,8 +158,7 @@ class CheckoutController extends MolliePaymentController
             if (auth()->check())
             {
                 // Eingeloggt = upgrade
-
-                $company = CompanyHelper::currentCompany();
+                $company = auth()->user()->companies[0];
             }
             else
             {
@@ -174,14 +171,13 @@ class CheckoutController extends MolliePaymentController
             {
                 $coupon = Coupon::where('code', $couponCode)->first();
 
-                if ($coupon)
-                {
+                if ($coupon) {
                     $cpCtrl = new CouponController;
                     $discountedPriceDecimal = $cpCtrl->calculateTotalPrice($coupon->promotion, $orderedProduct, false);
                     $orderedProduct->price = round($discountedPriceDecimal * 100); // Preis im Produkt überschreiben (zentral korrekt in Cent!)
 
                     $additionalData['promotion'] = $coupon->promotion;
-                    $additionalData['bemerkung'] = 'Product über Promocode #' . $couponCode . ' erworben';
+                    $additionalData['bemerkung'] = 'Product über Promocode #'.$couponCode.' erworben';
                     session()->forget('coupon_code');
                 }
             }
@@ -197,41 +193,27 @@ class CheckoutController extends MolliePaymentController
             {
 
 
-                return url('dashboard/' . $company->id . '/upgrade-page');
+                return url('dashboard/'.$company->id.'/upgrade-page');
             }
 
             return route('view.plans') . '#step-4';
 
         }
 
-        $priceCents = (int) $orderedProduct->price;
+        $price = $orderedProduct->price;
 
-        if ($couponCode) {
-            if ($coupon = Coupon::where('code', $couponCode)->first()) {
-                $cpCtrl = new CouponController;
+        if ($couponCode)
+        {
+            $coupon = Coupon::where('code', $couponCode)->first();
 
-                $priceNetDecimal = $cpCtrl->calculateTotalPrice($coupon->promotion, $orderedProduct, false);
-                $priceCents = (int) round($priceNetDecimal * 100);
-            }
+            $cpCtrl = new CouponController;
+            $price = $cpCtrl->calculateTotalPrice($coupon->promotion, $orderedProduct, false) * 100 ?? null;
         }
 
-
-        $company = \App\Helpers\CompanyHelper::currentCompany();
-        $agency  = $company?->agency;
-        $agencyDiscountPercent = 0.0;
-
-        if ($agency && $agency->is_agency && (float) $agency->agency_discount_percent > 0) {
-            $agencyDiscountPercent = (float) $agency->agency_discount_percent; // z. B. 20.00
-            $priceCents = (int) round($priceCents * (1 - ($agencyDiscountPercent / 100)));
-            // Hinweis: Den Prozentwert schreiben wir beim Contract-Create (Schritt 2) in den Vertrag.
+        if ($orderedProduct->trial_period_days > 0)
+        {
+            $price = 0.00;
         }
-
-        if ($orderedProduct->trial_period_days > 0) {
-            $priceCents = 0;
-        }
-
-        $priceValue = number_format($priceCents / 100, 2, '.', '');
-
         // Zahlung erstellen
         $metadata = [
             "product_id" => $orderedProduct->id,
@@ -260,7 +242,7 @@ class CheckoutController extends MolliePaymentController
             $payment = Mollie::api()->payments->create([
                 "amount" => [
                     "currency" => $orderedProduct->currency,
-                    "value" => $priceValue
+                    "value" => number_format($price / 100, 2, '.', '')
                 ],
                 'billingEmail' => $billingEmail,
                 'description' => $itemDescription,
@@ -278,7 +260,7 @@ class CheckoutController extends MolliePaymentController
             $payment = Mollie::api()->payments->create([
                 "amount" => [
                     "currency" => $orderedProduct->currency,
-                    "value" => $priceValue
+                    "value" => number_format($price / 100, 2, '.', '')
                 ],
                 'customerId' => $customerID,
                 'sequenceType' => 'first',
