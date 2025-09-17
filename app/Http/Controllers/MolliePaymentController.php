@@ -220,6 +220,7 @@ class MolliePaymentController extends Controller
     }
 
 
+
     /**
      * @param $company
      * @param $product
@@ -227,46 +228,24 @@ class MolliePaymentController extends Controller
      * @param $startDate
      * @return void
      */
-    public function createContract(
-        \App\Models\Company $company,
-                            $product,
-                            $subscription = false,
-                            $startDate,
-        array               $additionalData = [],
-        string              $interval = 'monthly',
-        int                 $finalGrossCents // 👈 Pflicht: finaler BRUTTO-Betrag (Cent) nach Rabatt(en)
-    )
+    public function createContract($company, $product, $subscription = false, $startDate, array $additionalData = [], $interval = 'monthly')
     {
         $additionalData['ordered_product'] = $product;
         $subscriptionId = is_object($subscription) ? $subscription->id : null;
 
-        $taxRate = (float)config('accounting.tax_rate', 19);
+        $taxRate = config('accounting.tax_rate', 19);
+        $grossPriceCents = $product->price;
+        $netPriceEuro = ($grossPriceCents / 100) / (1 + ($taxRate / 100));
+        $netPriceCents = round($netPriceEuro * 100);
 
-        // BRUTTO → NETTO (in Cent)
-        $finalNet = round(($finalGrossCents / 100) / (1 + $taxRate / 100), 2); // € netto
-        $finalNetCents = (int)round($finalNet * 100);
 
-        // Agentur-Rabatt-Snapshot (Coupons NICHT speichern; nur Agentur)
-        $agency = $company->agency ?? null;
-        $discountPercent = 0.0;
-        $discountLabel = null;
-
-        if ($agency && $agency->is_agency && (float)$agency->agency_discount_percent > 0)
-        {
-            $discountPercent = (float)$agency->agency_discount_percent;
-            $discountLabel = 'Agentur-Rabatt';
-        }
-
-        $contract = new \App\Models\Contract([
-            'contractable_type' => \App\Models\Company::class,
+        $contract = new Contract([
+            'contractable_type' => Company::class,
             'contractable_id' => $company->id,
             'product_id' => $product->id,
             'invoice_text' => $product->invoice_text,
             'interval' => $interval,
-
-            // ✅ NETTO (Cent) speichern
-            'price' => $finalNetCents,
-
+            'price' => $netPriceCents,
             'subscription_id' => $subscriptionId,
             'subscription_start_date' => $startDate,
             'duration' => $product->lz ?? 24,
@@ -274,10 +253,6 @@ class MolliePaymentController extends Controller
             'order_date' => now(),
             'start_date' => now()->addDays($product->trial_period_days),
             'end_date' => now()->addDays($product->trial_period_days)->addMonths($product->lz ?? 24),
-
-            // Optionaler Snapshot:
-            'discount_percent' => $discountPercent,
-            'discount_label' => $discountLabel,
         ]);
 
         $contract->save();
@@ -285,6 +260,7 @@ class MolliePaymentController extends Controller
 
         return $contract;
     }
+
 
 
     /**
