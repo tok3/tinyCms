@@ -98,8 +98,7 @@ class MolliePaymentController extends Controller
         {
             $contract = Contract::where('subscription_id', $payment->subscriptionId)->first();
 
-            if ($contract)
-            {
+            if ($contract) {
                 $product = (object)[
                     'id' => $contract->product_id,
                     'name' => $contract->product_name,
@@ -114,9 +113,7 @@ class MolliePaymentController extends Controller
                 $company = $contract->contractable;
                 $interval = $contract->interval ?? $interval;
                 $this->contractID = $contract->id;
-            }
-            else
-            {
+            } else {
                 \Log::warning('Kein Contract für subscriptionId: ' . $payment->subscriptionId);
             }
         }
@@ -220,8 +217,6 @@ class MolliePaymentController extends Controller
     }
 
 
-
-
     /**
      * @param $company
      * @param $product
@@ -261,7 +256,6 @@ class MolliePaymentController extends Controller
 
         return $contract;
     }
-
 
 
     /**
