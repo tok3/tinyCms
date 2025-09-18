@@ -19,6 +19,7 @@ use GuzzleHttp\Client;
 use App\Models\TemporaryUserData;
 use Illuminate\Support\Str;
 use App\Helpers\FormatHelper;
+use App\Services\PricingService;
 
 /**
  *
@@ -63,7 +64,18 @@ class CheckoutController extends MolliePaymentController
         // Zero-/Rechnung-Flow (keine Gateway-Zahlung)
         if ($this->isZeroOrInvoiceFlow($orderedProduct, $request))
         {
-            return $this->handleZeroOrInvoice($request, $orderedProduct, $customerID, $interval);
+            $couponCode = $request->input('coupon_code') ?: null;
+            $company = auth()->check()
+                ? auth()->user()->companies[0]
+                : null;
+
+            $calc = PricingService::buildForContract($orderedProduct, $interval, $couponCode, $company);
+
+            // Einfacher JSON-Dump (statt Rechnung/Contract)
+            echo "<pre>";
+            print_r($calc);
+            echo "</pre>";
+            die();
         }
 
         // Preis berechnen (Coupon + Trial)
@@ -242,32 +254,28 @@ class CheckoutController extends MolliePaymentController
             : $this->initCompanyAccount($customerID);
 
         $couponCode = $request->input('coupon_code') ?: null;
-        // Finalpreis + Rabattzeile
-        [$finalCents, $discountLine, $discountMeta] =
-            $this->computePriceWithBreakdown($orderedProduct, $couponCode, $company);
+
+        // NEU: kaskadiert und mit mehreren Zeilen
+        [$finalCents, $discounts, $discountMeta] = $this->computePriceWithBreakdown($orderedProduct, $couponCode, $company);
+
         if (!empty($couponCode)) {
-            // Einmalige Verwendung sicherstellen: sofort aus Session und Request entfernen
             session()->forget('coupon_code');
             $request->merge(['coupon_code' => null]);
         }
 
-        // Produktpreis für Contract setzen
+        // finaler BRUTTO in Cent für Contract/Invoice
         $orderedProduct->price = $finalCents;
+
         $additionalData = [];
-        if ($discountMeta)
-        {
-            $additionalData['discount'] = $discountMeta;
-            $additionalData['bemerkung'] = $discountMeta['type'] === 'coupon'
-                ? ('Produkt über Promocode #' . ($discountMeta['code'] ?? '') . ' erworben')
-                : 'Agentur-Rabatt angewendet';
+        if (!empty($discountMeta)) {
+            $additionalData['discounts'] = $discountMeta; // alle Metas (coupon/agency)
         }
 
-        $contract = $this->createContract($company, $orderedProduct, false, Carbon::now(), $additionalData, $interval);
+        $contract = $this->createContract($company, $orderedProduct, false, \Carbon\Carbon::now(), $additionalData, $interval);
 
-        // Rechnung bei Kauf auf Rechnung direkt vorbereiten – Rabattzeile übergeben
-        if ((int)$orderedProduct->trial_period_days === 0)
-        {
-            $this->prepareInvoicePurchaseByInvoice($orderedProduct, $company, $contract, discountLine: $discountLine);
+        if ((int)$orderedProduct->trial_period_days === 0) {
+            // Mehrere Rabattzeilen als Array übergeben
+            $this->prepareInvoicePurchaseByInvoice($orderedProduct, $company, $contract, $discounts);
         }
 
         return auth()->check()
@@ -283,65 +291,78 @@ class CheckoutController extends MolliePaymentController
      */
     private function computePriceWithBreakdown($orderedProduct, ?string $couponCode, ?\App\Models\Company $company): array
     {
-        // echo "-->".$orderedProduct->price;
+        $taxRate = (float) (config('accounting.tax_rate') ?? 19);
 
-        // Normalisiere Grundpreis auf Cent (unterstützt Euro- und Cent-Quelle)
-        $baseRaw = $orderedProduct->price_cents ?? $orderedProduct->price; // kann Euro (99.90) oder Cent (9990) sein
-        $baseCents = (int) (
-            is_numeric($baseRaw)
-                ? ($baseRaw < 1000 ? round(((float)$baseRaw) * 100) : round($baseRaw))
-                : 0
-        );
+        // Grundpreis BRUTTO (Cent)
+        $baseRaw   = $orderedProduct->price_cents ?? $orderedProduct->price;
+        $baseCents = (int) (is_numeric($baseRaw) ? ($baseRaw < 1000 ? round(((float)$baseRaw) * 100) : round($baseRaw)) : 0);
 
-        // 1) Coupon
-        if ($couponCode && ($coupon = Coupon::where('code', $couponCode)->first()))
-        {
-            $cpCtrl = new CouponController();
-            $discountedDecimal = $cpCtrl->calculateTotalPrice($coupon->promotion, $orderedProduct, false); // Euro
-            $finalCents = (int)round($discountedDecimal * 100);
+        $finalCents  = $baseCents;
+        $discounts   = []; // Brutto-Cent je Rabatt (für später Netto-Ableitung)
+        $discountMeta = []; // flach für Contract/Notes
 
-            $discountAmount = $baseCents - $finalCents; // Cent
-            $discountLine = $this->buildDiscountLineItem(
-                title: 'Gutschein ' . $coupon->code,
-                amountCents: -abs($discountAmount),
-                taxRate: $orderedProduct->vat_rate ?? 0
-            );
+        // 1) Coupon → reduziert finalCents
+        if ($couponCode && ($coupon = \App\Models\Coupon::where('code', $couponCode)->first())) {
+            $cpCtrl = new \App\Http\Controllers\CouponController;
 
-            $discountMeta = [
-                'type' => 'coupon',
-                'code' => $coupon->code,
-                'amount_cents' => -abs($discountAmount),
-                'vat_rate' => $orderedProduct->vat_rate ?? 0,
-            ];
+            // Deine calculateTotalPrice liefert NETTO → wir schlagen MwSt. drauf
+            $netAfter  = (float) $cpCtrl->calculateTotalPrice($coupon->promotion, $orderedProduct, false);
+            $grossAfterCents = (int) round($netAfter * (1 + $taxRate / 100) * 100);
 
-            return [$finalCents, $discountLine, $discountMeta];
+            // Fallback, falls sie doch brutto liefert
+            if ($grossAfterCents <= 0 || $grossAfterCents >= $finalCents) {
+                $grossAfter  = (float) $cpCtrl->calculateTotalPrice($coupon->promotion, $orderedProduct, true);
+                $grossAfterCents = (int) round($grossAfter * 100);
+            }
+
+            $couponDiscount = max(0, $finalCents - $grossAfterCents);
+            if ($couponDiscount > 0) {
+                $discounts[] = [
+                    'type'       => 'coupon',
+                    'label'      => 'Gutschein ' . $coupon->code,
+                    'grossCents' => $couponDiscount,
+                ];
+                $discountMeta[] = [
+                    'type'        => 'coupon',
+                    'code'        => $coupon->code,
+                    'amount_cents'=> -$couponDiscount,
+                    'vat_rate'    => $orderedProduct->vat_rate ?? 0,
+                ];
+                $finalCents = $grossAfterCents;
+            }
         }
 
-        // 2) Agency
-        if ($company && $company->is_agency && $company->agency_discount_percent > 0)
-        {
-            $factor = max(0, 100 - (float)$company->agency_discount_percent) / 100;
-            $finalCents = (int)round($baseCents * $factor);
-
-            $discountAmount = $baseCents - $finalCents; // Cent
-            $discountLine = $this->buildDiscountLineItem(
-                title: 'Agentur-Rabatt ' . rtrim(rtrim((string)$company->agency_discount_percent, '0'), '.') . '%',
-                amountCents: -abs($discountAmount),
-                taxRate: $orderedProduct->vat_rate ?? 0
-            );
-
-            $discountMeta = [
-                'type' => 'agency',
-                'percent' => (float)$company->agency_discount_percent,
-                'amount_cents' => -abs($discountAmount),
-                'vat_rate' => $orderedProduct->vat_rate ?? 0,
-            ];
-
-            return [$finalCents, $discountLine, $discountMeta];
+        // 2) Agentur-Rabatt → kaskadiert auf bereits reduzierten Brutto
+        $agency = null;
+        if ($company) {
+            if ((int)($company->is_agency ?? 0) === 1) {
+                $agency = $company;
+            } elseif (!empty($company->agency_company_id)) {
+                $agency = \App\Models\Company::find($company->agency_company_id);
+            }
         }
 
-        // 3) Kein Rabatt
-        return [$baseCents, null, null];
+        if ($agency && (int)($agency->is_agency ?? 0) === 1 && (float)($agency->agency_discount_percent ?? 0) > 0) {
+            $pct = (float) $agency->agency_discount_percent;
+            $agencyDiscount = (int) round($finalCents * ($pct / 100));
+
+            if ($agencyDiscount > 0) {
+                $discounts[] = [
+                    'type'       => 'agency',
+                    'label'      => 'Agentur-Rabatt ' . rtrim(rtrim(number_format($pct, 2, ',', ''), '0'), ',') . '%',
+                    'grossCents' => $agencyDiscount,
+                ];
+                $discountMeta[] = [
+                    'type'         => 'agency',
+                    'percent'      => $pct,
+                    'amount_cents' => -$agencyDiscount,
+                    'vat_rate'     => $orderedProduct->vat_rate ?? 0,
+                ];
+                $finalCents = max(0, $finalCents - $agencyDiscount);
+            }
+        }
+
+        return [$finalCents, $discounts, $discountMeta];
     }
 
     /**
@@ -486,72 +507,61 @@ class CheckoutController extends MolliePaymentController
     }
 
 
-    private function prepareInvoicePurchaseByInvoice($orderedProduct, $company, $contract, ?array $discountLine = null)
+    private function prepareInvoicePurchaseByInvoice($orderedProduct, $company, $contract, array $discounts = [])
     {
-        $tax_rate = (float)config('accounting.tax_rate'); // z. B. 19.0
-        $final_gross = round(((int)$orderedProduct->price) / 100, 2); // € brutto nach Rabatt
+        $tax_rate    = (float) config('accounting.tax_rate'); // z.B. 19
+        $final_gross = round(((int)$orderedProduct->price) / 100, 2); // € brutto nach allen Rabatten
+        if ($final_gross <= 0.0) return;
 
-        if ($final_gross <= 0.0)
-        {
-            return;
+        $divisor   = 1 + ($tax_rate / 100);
+        $sumDiscGross = 0.0;
+        foreach ($discounts as $d) {
+            $sumDiscGross += round(($d['grossCents'] ?? 0) / 100, 2);
         }
 
-        // Rabatt-Brutto (positiver Betrag in €), falls vorhanden
-        $discount_gross = 0.0;
-        $discount_title = null;
+        $base_gross = round($final_gross + $sumDiscGross, 2);
 
-        if ($discountLine) {
-            // akzeptiere mehrere mögliche Schlüsselnamen aus buildDiscountLineItem()
-            $cents = $discountLine['amount_cents']
-                ?? $discountLine['total_cents']
-                ?? $discountLine['unit_price_cents']
-                ?? null;
-
-            if ($cents !== null) {
-                $discount_gross = round(abs((int) $cents) / 100, 2);
-                $discount_title = $discountLine['title'] ?? 'Rabatt';
-            }
-        }
-
-        // Basis-Position: Brutto vor Rabatt = final + rabatt
-        $base_gross = round($final_gross + $discount_gross, 2);
-
-        // Netto/Steuer je Position
-        $divisor = 1 + ($tax_rate / 100);
+        // Produktzeile (netto)
         $base_net = round($base_gross / $divisor, 2);
         $base_tax = round($base_gross - $base_net, 2);
 
-        $disc_net = round($discount_gross / $divisor, 2);
-        $disc_tax = round($discount_gross - $disc_net, 2);
+        // Rabattzeilen (netto)
+        $items = [];
+        $descriptionText = \App\Helpers\FormatHelper::stripHtmlButKeepSpaces($orderedProduct->invoice_text ?: $orderedProduct->description);
+        $itemDescription = \Illuminate\Support\Str::limit($descriptionText, $this->descriptionLength, '...');
 
-        // Gesamtsummen der Rechnung
-        $total_net = round($base_net - $disc_net, 2);
-        $tax = round($base_tax - $disc_tax, 2);
-        $total_gross = round($final_gross, 2); // sollte = base_gross - discount_gross sein
-
-        // Positionen bauen (netto-Beträge)
-        $descriptionText = FormatHelper::stripHtmlButKeepSpaces($orderedProduct->invoice_text ?: $orderedProduct->description);
-        $itemDescription = Str::limit($descriptionText, $this->descriptionLength, '...');
-
-        $items = [
-            [
-                'id' => '1',
-                'description' => $itemDescription,
-                'quantity' => 1,
-                'line_total_amount' => $base_net,     // netto
-            ],
+        $items[] = [
+            'id' => '1',
+            'description' => $itemDescription,
+            'quantity' => 1,
+            'line_total_amount' => $base_net, // netto
         ];
 
-        if ($discount_gross > 0.0)
-        {
+        $sumDiscNet = 0.0;
+        $sumDiscTax = 0.0;
+        $i = 2;
+
+        foreach ($discounts as $d) {
+            $dg = round(($d['grossCents'] ?? 0) / 100, 2);
+            if ($dg <= 0) continue;
+
+            $dn = round($dg / $divisor, 2);
+            $dt = round($dg - $dn, 2);
+
             $items[] = [
-                'id' => '2',
-                'description' => $discount_title,
+                'id' => (string)$i++,
+                'description' => $d['label'] ?? 'Rabatt',
                 'quantity' => 1,
-                'line_total_amount' => -$disc_net,    // netto negativ
-                // optional kannst du hier weitere Flags setzen (z. B. 'is_discount' => true)
+                'line_total_amount' => -$dn, // netto negativ
             ];
+
+            $sumDiscNet += $dn;
+            $sumDiscTax += $dt;
         }
+
+        $total_net   = round($base_net - $sumDiscNet, 2);
+        $tax         = round($base_tax - $sumDiscTax, 2);
+        $total_gross = round($final_gross, 2); // Konsistenz
 
         $invoiceData = [
             'company_id' => $company->id,
@@ -565,12 +575,19 @@ class CheckoutController extends MolliePaymentController
             'tax' => $tax,
             'tax_rate' => $tax_rate,
             'status' => 'sent',
-            'data' => [
-                'items' => $items,
-            ],
+            'data' => ['items' => $items],
         ];
 
-        $invoiceService = new InvoiceService();
+
+
+// Sanity-Check: Netto aus Items nachrechnen
+        $sumItemsNet = 0.0;
+        foreach ($invoiceData['data']['items'] as $it) {
+            $sumItemsNet += (float) $it['line_total_amount'];
+        }
+        \Log::channel('stack')->info('INVOICE DEBUG: sum items net', ['sum_items_net' => $sumItemsNet]);
+
+        $invoiceService = new \App\Services\InvoiceService();
         $invoiceService->createInvoice($invoiceData);
         $invoiceService->sendInvoiceEmail();
     }
@@ -716,4 +733,148 @@ class CheckoutController extends MolliePaymentController
         return response()->json($productDetails);
     }
 
+
+    public function debugPricing(Request $request)
+    {
+        // Eingaben
+        $productId  = (int) $request->query('product');      // z.B. ?product=3
+        $interval   = $request->query('interval', 'monthly'); // z.B. monthly|annual|one_time
+        $couponCode = trim((string) $request->query('coupon', '')); // optional
+        $companyId  = (int) $request->query('company_id');   // optional, sonst currentCompany()
+        $taxRate    = (float) (config('accounting.tax_rate') ?? 19);
+
+        // Produkt & Preis holen
+        $product = \App\Models\Product::find($productId);
+        if (!$product) {
+            return response()->json(['error' => 'Produkt nicht gefunden.'], 404);
+        }
+        $priceModel = $product->prices()->where('interval', $interval)->first();
+        if (!$priceModel) {
+            return response()->json(['error' => 'Kein Preis für dieses Intervall gefunden.'], 404);
+        }
+
+        // Company ermitteln (für Agentur-Rabatt)
+        $company = $companyId ? \App\Models\Company::find($companyId) : (\App\Helpers\CompanyHelper::currentCompany() ?? null);
+
+        // Grundpreis BRUTTO in Cent
+        $baseGrossCents = (int) $priceModel->price;
+
+        // ===== COUPON-BLOCK (reine Simulation, keine Seiteneffekte) =====
+        $coupon = null;
+        $finalGrossCents = $baseGrossCents;
+        $discounts = []; // je: ['type'=>'coupon|agency', 'label'=>..., 'grossCents'=>positiver Betrag in Cent]
+
+        if ($couponCode !== '' && ($coupon = \App\Models\Coupon::where('code', $couponCode)->first())) {
+            $cpCtrl = new \App\Http\Controllers\CouponController;
+
+            // Wir probieren beides (NETTO- oder BRUTTO-Rückgabe) und wählen etwas Plausibles:
+            $netAfterDec           = (float) $cpCtrl->calculateTotalPrice($coupon->promotion, $priceModel, false);
+            $grossAfterFromNetCents = (int) round($netAfterDec * (1 + $taxRate / 100) * 100);
+
+            $grossAfterDec          = (float) $cpCtrl->calculateTotalPrice($coupon->promotion, $priceModel, true);
+            $grossAfterDirectCents  = (int) round($grossAfterDec * 100);
+
+            $candidates = array_filter([$grossAfterFromNetCents, $grossAfterDirectCents], fn($v) => $v > 0 && $v < $baseGrossCents);
+            $grossAfterCents = !empty($candidates) ? min($candidates) : $baseGrossCents;
+
+            $couponDiscountCents = max(0, $baseGrossCents - $grossAfterCents);
+            if ($couponDiscountCents > 0) {
+                $discounts[] = [
+                    'type'       => 'coupon',
+                    'label'      => 'Gutschein ' . $coupon->code,
+                    'grossCents' => $couponDiscountCents,
+                ];
+                $finalGrossCents = $grossAfterCents;
+            }
+        }
+
+        // ===== AGENTUR-RABATT (kaskadiert NACH evtl. Coupon) =====
+        $agency = null;
+        if ($company) {
+            // self-agency oder FK
+            if ((int) ($company->is_agency ?? 0) === 1) {
+                $agency = $company;
+            } elseif (!empty($company->agency_company_id)) {
+                $agency = \App\Models\Company::find($company->agency_company_id);
+            }
+        }
+
+        $agencyPercent = 0.0;
+        if ($agency && (int) ($agency->is_agency ?? 0) === 1 && (float) ($agency->agency_discount_percent ?? 0) > 0) {
+            $agencyPercent = (float) $agency->agency_discount_percent;
+            $agencyDiscountCents = (int) round($finalGrossCents * ($agencyPercent / 100));
+            if ($agencyDiscountCents > 0) {
+                $discounts[] = [
+                    'type'       => 'agency',
+                    'label'      => 'Agentur-Rabatt ' . rtrim(rtrim(number_format($agencyPercent, 2, ',', ''), '0'), ',') . '%',
+                    'grossCents' => $agencyDiscountCents,
+                ];
+                $finalGrossCents = max(0, $finalGrossCents - $agencyDiscountCents);
+            }
+        }
+
+        // ===== Rechnungs-Vorschau aus BRUTTO (Position Produkt netto, Rabatte netto) =====
+        $baseGrossEuro    = round(($baseGrossCents) / 100, 2);
+        $finalGrossEuro   = round(($finalGrossCents) / 100, 2);
+        $totalDiscountGrossEuro = round(($baseGrossCents - $finalGrossCents) / 100, 2);
+
+        $divisor = 1 + ($taxRate / 100);
+        $baseNetEuro   = round($baseGrossEuro / $divisor, 2);
+        $baseTaxEuro   = round($baseGrossEuro - $baseNetEuro, 2);
+
+        $discountLines = [];
+        $sumDiscNetEuro = 0.0;
+        $sumDiscTaxEuro = 0.0;
+
+        foreach ($discounts as $d) {
+            $dGrossEuro = round($d['grossCents'] / 100, 2);
+            $dNetEuro   = round($dGrossEuro / $divisor, 2);
+            $dTaxEuro   = round($dGrossEuro - $dNetEuro, 2);
+
+            $discountLines[] = [
+                'label'       => $d['label'],
+                'gross'       => $dGrossEuro,
+                'net'         => $dNetEuro,
+                'tax'         => $dTaxEuro,
+                'net_for_invoice_line' => -$dNetEuro, // so würdest du es als negative Netto-Position schreiben
+            ];
+
+            $sumDiscNetEuro += $dNetEuro;
+            $sumDiscTaxEuro += $dTaxEuro;
+        }
+
+        $totalNetEuro  = round($baseNetEuro - $sumDiscNetEuro, 2);
+        $totalTaxEuro  = round($baseTaxEuro - $sumDiscTaxEuro, 2);
+        $checkGross    = round($totalNetEuro + $totalTaxEuro, 2); // sollte = $finalGrossEuro sein
+
+        return response()->json([
+            'input' => [
+                'product_id'  => $productId,
+                'interval'    => $interval,
+                'coupon'      => $couponCode ?: null,
+                'company_id'  => $company?->id,
+                'tax_rate'    => $taxRate,
+            ],
+            'base' => [
+                'gross_cents' => $baseGrossCents,
+                'gross_eur'   => $baseGrossEuro,
+            ],
+            'discounts' => $discounts, // Brutto in Cent je Rabatt
+            'final' => [
+                'gross_cents' => $finalGrossCents,
+                'gross_eur'   => $finalGrossEuro,
+            ],
+            'invoice_preview' => [
+                'product_line_net' => $baseNetEuro,
+                'discount_lines'   => $discountLines, // netto negativ pro Position ableitbar
+                'total_net'        => $totalNetEuro,
+                'tax'              => $totalTaxEuro,
+                'total_gross'      => $checkGross,    // sollte == final.gross_eur
+            ],
+            'consistency' => [
+                'gross_discount_total_eur' => $totalDiscountGrossEuro,
+                'final_equals_net_plus_tax' => ($checkGross === $finalGrossEuro),
+            ],
+        ], 200, ['Cache-Control' => 'no-store'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
 }
