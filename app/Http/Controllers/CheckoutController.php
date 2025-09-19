@@ -153,50 +153,56 @@ class CheckoutController extends MolliePaymentController
         // 0.00 Zahler, Gratis Accounts, oder zahlung auf rechnung gehen nicht über payment gateway
         if (($orderedProduct->payment_type == 'one_time' && $orderedProduct->price <= 0) || $request->input('pay_by_invoice') == 1)
         {
+            // Company
+            $company = auth()->check()
+                ? auth()->user()->companies[0]
+                : $this->initCompanyAccount($customerID);
 
-            if (auth()->check())
-            {
-                // Eingeloggt = upgrade
-                $company = auth()->user()->companies[0];
-            }
-            else
-            {
-                $company = $this->initCompanyAccount($customerID);
-            }
-            //$company = Company::where('id', 264)->first();
-            $additionalData = [];
+            // Kaskadierte Berechnung
+            $calc = $this->computePricingBreakdown($orderedProduct, $interval, ($request->input('coupon_code') ?: null), $company);
 
-            if ($couponCode)
-            {
-                $coupon = Coupon::where('code', $couponCode)->first();
+            // Snapshot für Contract->data (damit PDF & Recurring dieselben Zeilen bauen können)
+            $rawDesc = FormatHelper::stripHtmlButKeepSpaces($orderedProduct->invoice_text ?: $orderedProduct->description);
+            $itemDescription = Str::limit($rawDesc, $this->descriptionLength, '...');
 
-                if ($coupon) {
-                    $cpCtrl = new CouponController;
-                    $discountedPriceDecimal = $cpCtrl->calculateTotalPrice($coupon->promotion, $orderedProduct, false);
-                    $orderedProduct->price = round($discountedPriceDecimal * 100); // Preis im Produkt überschreiben (zentral korrekt in Cent!)
+            $contractData = [
+                'ordered_product' => [
+                    'id'           => $orderedProduct->id,
+                    'name'         => $orderedProduct->name,
+                    'invoice_text' => $orderedProduct->invoice_text,
+                    'description'  => $orderedProduct->description,
+                    'interval'     => $interval,
+                ],
+                'tax_rate'   => $calc['tax_rate'],
+                'base_net'   => $calc['base']['net_eur'],   // z.B. 84.03
+                'discounts'  => $calc['discounts']['net'],  // [{label, net, tax, gross, type}], net=positiv – später als NEGATIVE Position schreiben
+                'item_desc'  => $itemDescription,
+            ];
 
-                    $additionalData['promotion'] = $coupon->promotion;
-                    $additionalData['bemerkung'] = 'Product über Promocode #'.$couponCode.' erworben';
-                    session()->forget('coupon_code');
-                }
-            }
+            // Contract.price = final NETTO (Cent)
+            $finalNetCents = (int) round($calc['final']['net_eur'] * 100);
 
-            $contract = $this->createContract($company, $orderedProduct, false, Carbon::now(), $additionalData, $interval);
+            $additionalData = $contractData; // da createContract json_encode($additionalData) macht
 
+            $contract = $this->createContract(
+                $company,
+                $orderedProduct,    // wird als ordered_product in data gespeichert, das ist okay
+                false,
+                Carbon::now(),
+                $additionalData,
+                $interval
+            );
+
+            // Sofort Rechnung erzeugen, wenn kein Trial
             if ($orderedProduct->trial_period_days == 0)
             {
-
-                $this->prepareInvoicePurchaseByInvoice($orderedProduct, $company, $contract);
-            }
-            if (auth()->check())
-            {
-
-
-                return url('dashboard/'.$company->id.'/upgrade-page');
+                // baue die Items exakt aus dem Contract-Snapshot
+                $this->prepareInvoiceFromContractSnapshot($company, $contract);
             }
 
-            return route('view.plans') . '#step-4';
-
+            return auth()->check()
+                ? url('dashboard/'.$company->id.'/upgrade-page')
+                : route('view.plans') . '#step-4';
         }
 
         $price = $orderedProduct->price;
@@ -282,72 +288,12 @@ class CheckoutController extends MolliePaymentController
 
     public function prepareInvoicePurchaseByInvoice($orderedProduct, $company, $contract = null)
     {
-
-        $tax_rate = config('accounting.tax_rate');
-
-        $total_gross = $orderedProduct->price / 100; // Bruttobetrag
-
-        if ($total_gross > 0.00)
-        {
-            if ($orderedProduct->promotion)
-            {
-                $cpCtrl = new CouponController;
-                $total_gross = number_format($cpCtrl->calculateTotalPrice($orderedProduct->promotion, $orderedProduct, false), 2, '.', '');
-            }
-
-            $tax_rate = config('accounting.tax_rate'); // 19% Steuersatz
-
-            // Berechnungen
-            $total_net = round($total_gross / (1 + ($tax_rate / 100)), 2); // Nettobetrag
-            $tax = $total_gross - $total_net; // Steuerbetrag
-
-            $descriptionText = FormatHelper::stripHtmlButKeepSpaces($orderedProduct->invoice_text ?: $orderedProduct->description);
-
-            $itemDescription = Str::limit(
-                $descriptionText,
-                $this->descriptionLength,
-                '...'
-            );
-
-            $invoiceData = [
-                'company_id' => $company->id, // Eine existierende company_id, um eine Firma zu verknüpfen
-                'contract_id' => $contract->id, // vertrags id
-                'issue_date' => now()->format('Y-m-d'),
-                'mollie_payment_id' => null,
-                'due_date' => \Carbon\Carbon::now()->addWeekdays(10)->format('Y-m-d'),
-                'payment_date' => null,
-                'total_net' => $total_net,
-                'total_gross' => $total_gross, // Mit Mehrwertsteuer
-                'tax' => $tax, // Mit Mehrwertsteuer
-                'tax_rate' => $tax_rate, // Mehrwertsteuer
-                'status' => 'sent',
-                'data' => [
-                    // Position 1
-                    'items' => [
-                        [
-                            'id' => '1', // Positionsnummer
-                            'description' => $itemDescription, // Beschreibung
-                            'quantity' => 1, // Menge
-                            'line_total_amount' => $total_net, // Gesamtbetrag für diese Position
-                        ],
-                        /*   [
-                               'id' => '2', // Positionsnummer
-                               'description' => 'description',
-                               'quantity' => 1,
-                               'line_amount' => '199.00',
-                           ],*/
-                    ],
-
-                ]
-            ];
-
-
-            $invoiceService = new InvoiceService();
-
-            $invoiceService->createInvoice($invoiceData);
-
-            $invoiceService->sendInvoiceEmail();
+        if (!$contract) {
+            return; // ohne Vertrag kein Snapshot -> nichts tun
         }
+
+        // NEU: keine Berechnung mehr hier – nur aus dem Contract-Snapshot bauen
+        $this->prepareInvoiceFromContractSnapshot($company, $contract);
 
     }
 
@@ -486,4 +432,58 @@ class CheckoutController extends MolliePaymentController
         return response()->json($productDetails);
     }
 
-}
+    /**
+     * Kaskadierte Preisberechnung + Netto-Zeilenableitung (für Invoice/Contract).
+     * Gibt ALLES zurück, was du brauchst, um Contract->price (final NETTO) zu setzen
+     * und Invoice-Items (Produktzeile NETTO + Rabattzeilen NETTO) zu bauen.
+     */
+    private function computePricingBreakdown(Product $product, string $interval, ?string $couponCode, ?Company $company): array
+    {
+        $taxRate = (float) (config('accounting.tax_rate') ?? 19);
+        $divisor = 1 + ($taxRate / 100);
+
+        // Basis: BRUTTO in Cent aus dem Intervall
+        $priceModel = $product->prices()->where('interval', $interval)->first();
+        $baseGrossCents = (int) ($priceModel ? $priceModel->price : $product->priceFor($interval));
+
+        $currentGrossCents = $baseGrossCents;
+        $discountsGross = []; // [['label'=>'..', 'grossCents'=>1234], ...]
+
+        // 1) Coupon (so wie deine Logik: calculateTotalPrice($promo, $product, false) => NETTO-Euro)
+        if (!empty($couponCode) && ($coupon = \App\Models\Coupon::where('code', $couponCode)->first())) {
+            $cpCtrl = new \App\Http\Controllers\CouponController();
+
+            // versuche netto → addiere MwSt
+            $netAfter = (float) $cpCtrl->calculateTotalPrice($coupon->promotion, $product, false);
+            $grossAfterCents = (int) round($netAfter * $divisor * 100);
+
+            // Fallback: falls die Methode direkt Brutto liefert
+            if ($grossAfterCents <= 0 || $grossAfterCents >= $currentGrossCents) {
+                $grossAfter = (float) $cpCtrl->calculateTotalPrice($coupon->promotion, $product, true);
+                $grossAfterCents = (int) round($grossAfter * 100);
+            }
+
+            $couponDiscount = max(0, $currentGrossCents - $grossAfterCents);
+            if ($couponDiscount > 0) {
+                $discountsGross[] = [
+                    'type'       => 'coupon',
+                    'label'      => 'Gutschein ' . $coupon->code,
+                    'grossCents' => $couponDiscount,
+                ];
+                $currentGrossCents = $grossAfterCents;
+            }
+        }
+
+        // 2) Agentur-Rabatt (kaskadiert)
+        $agency = null;
+        if ($company) {
+            if ((int)($company->is_agency ?? 0) === 1) {
+                $agency = $company;
+            } elseif (!empty($company->agency_company_id)) {
+                $agency = \App\Models\Company::find($company->agency_company_id);
+            }
+        }
+        if ($agency && (int)($agency->is_agency ?? 0) === 1 && (float)($agency->agency_discount_percent ?? 0) > 0) {
+            $pct = (float) $agency->agency_discount_percent;
+            $agencyDiscount = (int) round($currentGrossCents * ($pct / 100));
+            if ($agencyDiscount > 0) {
