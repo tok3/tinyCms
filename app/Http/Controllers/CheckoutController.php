@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Filament\Resources\Shared\CompanyResource\Pages\ListCompanies;
 use App\Http\Middleware\PreventRequestsDuringMaintenance;
 use App\Models\MollieCustomer;
 use App\Services\InvoiceService;
@@ -161,8 +162,10 @@ class CheckoutController extends MolliePaymentController
             }
             else
             {
-                $company = $this->initCompanyAccount($customerID);
+              //  $company = $this->initCompanyAccount($customerID);
+                $company = Company::first();
             }
+
             //$company = Company::where('id', 264)->first();
             $additionalData = [];
 
@@ -188,6 +191,8 @@ class CheckoutController extends MolliePaymentController
 
                 $this->prepareInvoicePurchaseByInvoice($orderedProduct, $company, $contract);
             }
+
+          die();
             if (auth()->check())
             {
 
@@ -341,7 +346,10 @@ class CheckoutController extends MolliePaymentController
                 ]
             ];
 
-
+            echo "<pre>";
+            print_r($invoiceData);
+            echo "</pre>";
+die();
             $invoiceService = new InvoiceService();
 
             $invoiceService->createInvoice($invoiceData);
