@@ -112,7 +112,56 @@ class CompanyResource extends Resource
                                                     ->placeholder('Webseiten-URL eingeben')
                                                     ->columnSpan(2),
                                             ]),
+
+
                                     ]),
+                                Forms\Components\Section::make('SEPA-Lastschrift')
+                                    ->description('Mandate für diese Firma verwalten (für Rechnungshinweise).')
+                                    ->schema([
+                                        Forms\Components\Repeater::make('sepaMandates')
+                                            ->label('SEPA-Mandate')
+                                            ->relationship('sepaMandates') // bindet direkt an die HasMany-Relation
+                                            ->addActionLabel('Mandat hinzufügen')
+                                            ->itemLabel(fn (array $state) =>
+                                            ($state['mandate_reference'] ?? null)
+                                                ? 'Mandat '.$state['mandate_reference'] .' | ' . $state['iban']
+                                                : 'Neues Mandat'
+                                            )
+                                            ->schema([
+                                                Forms\Components\Toggle::make('is_active')->label('Aktiv')->inline(false)->default(true),
+                                                Forms\Components\DatePicker::make('signature_date')->label('Datum der Unterschrift'),
+                                                Forms\Components\TextInput::make('account_holder')
+                                                    ->label('Kontoinhaber')
+                                                    ->required()
+                                                    ->maxLength(150),
+                                                Forms\Components\TextInput::make('bank_name')
+                                                    ->label('Bank')
+                                                    ->maxLength(100),
+                                                Forms\Components\TextInput::make('iban')
+                                                    ->label('IBAN')
+                                                    ->required()
+                                                    ->maxLength(34)
+                                                    ->rule('min:15') // einfache Basiskontrolle
+                                                    ->helperText('Ohne Leerzeichen eingeben.'),
+
+                                                Forms\Components\TextInput::make('bic')
+                                                    ->label('BIC')
+                                                    ->maxLength(11)
+                                                    ->helperText('Optional.'),
+
+                                                Forms\Components\Toggle::make('is_default')
+                                                    ->label('Als Standard verwenden')
+                                                    ->inline(false),
+                                            ])
+                                            ->columns(2)           // IBAN/BIC nebeneinander
+                                            ->grid(1)              // zwei Spalten im Repeater
+                                            ->minItems(0)
+                                            ->collapsible()
+                                            ->collapsed()
+                                            ->reorderable(true),
+                                    ])
+                                    ->collapsed()
+                                    ->visible(fn () => auth()->user()?->is_admin),
                             ]),
 
                         Forms\Components\Tabs\Tab::make('Einstellungen')

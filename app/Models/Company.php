@@ -83,6 +83,12 @@ class Company extends Model
         });
     }
 
+    // App\Models\Company.php
+    public function sepaMandates()
+    {
+        return $this->hasMany(\App\Models\SepaMandate::class);
+    }
+
     // Polymorphe Beziehung zu Contracts
     public function contracts()
     {

@@ -6,6 +6,7 @@ use App\Filament\Resources\Admin;
 use App\Filament\Resources\ContractResource\Pages;
 use App\Filament\Resources\ContractResource\RelationManagers;
 use App\Models\Contract;
+use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Support\Enums\Alignment;
@@ -42,7 +43,7 @@ class ContractResource extends Resource
                     ->schema([
                         Placeholder::make('company_name')
                             ->label('')
-                            ->content(fn($record) => $record->contractable?->name . "nl" . $record->contractable?->name_2)
+                            ->content(fn($record) => $record->contractable?->name . " " . $record->contractable?->name_2)
                             ->columnSpan(4),
 
                         Placeholder::make('company_plz')
@@ -88,7 +89,36 @@ class ContractResource extends Resource
                                 'one_time' => 'One-time',
                             ])
                             ->required(),
+                        Select::make('sepa_mandate_id')
+                            ->label('SEPA-Mandat')
+                            ->options(function ($record) {
+                                if (! $record || ! $record->contractable instanceof \App\Models\Company) {
+                                    return [];
+                                }
 
+                                return $record->contractable
+                                    ->sepaMandates()
+                                    ->get()
+                                    ->mapWithKeys(function ($mandate) {
+                                        $labelParts = [];
+
+                                        if ($mandate->mandate_reference) {
+                                            $labelParts[] = 'Ref: ' . $mandate->mandate_reference;
+                                        }
+                                        if ($mandate->bank_name) {
+                                            $labelParts[] = $mandate->bank_name;
+                                        }
+                                        if ($mandate->iban) {
+                                            // Nur die letzten 4 Ziffern der IBAN für Übersichtlichkeit
+                                            $labelParts[] = 'IBAN ' . $mandate->iban;
+                                        }
+
+                                        return [$mandate->id => implode(' | ', $labelParts)];
+                                    });
+                            })
+                            ->searchable()
+                            ->preload()
+                            ->nullable(),
                         TextInput::make('subscription_id')
                             ->label('Subscription ID')
                             ->required()

@@ -4,7 +4,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-
+use App\Models\Company;
 
 class Contract extends Model
 {
@@ -90,6 +90,32 @@ class Contract extends Model
     }
 
 
+    public function sepaMandate()
+    {
+        return $this->belongsTo(\App\Models\SepaMandate::class);
+    }
+
+    // "Recurring": passe das an deine Realität an (z. B. interval != 'one_time')
+    // Wiederkehrend = z. B. monatlich/jährlich
+    public function scopeRecurring($q)
+    {
+        return $q->whereIn('interval', ['monthly', 'yearly']);
+    }
+
+    // Filter für eine Company (polymorph)
+    public function scopeForCompany($q, int $companyId)
+    {
+        return $q->where('contractable_type', Company::class)
+            ->where('contractable_id', $companyId);
+    }
+
+    // Bulk-Zuordnung des Mandats für alle recurring-Verträge einer Company
+    public static function bulkAssignSepaMandateForCompany(int $companyId, int $mandateId): int
+    {
+        return static::forCompany($companyId)
+            ->recurring()
+            ->update(['sepa_mandate_id' => $mandateId]);
+    }
     public function assignFeaturesToCompany()
     {
         \Log::info("Triggered Contract ID {$this->id}, Product ID: {$this->product_id}");

@@ -341,27 +341,46 @@
 
                 <tr>
                     <td>
+                        @if ($invoice->contract?->sepa_mandate_id)
 
-                        <div class="m-t">
-                            Bitte überweisen Sie den Gesamtbetrag in Höhe von <strong>{!! number_format((float) $invoice['total_gross'], 2, ',', '.')  !!}&nbsp;&euro;</strong> unter Nennung des
-                            Verwendungszwecks
-                            <strong style="white-space:nowrap;">{{$invoice['invoice_number']}}X{{$invoice['company']['kd_nr']}}</strong> bis
-                            zum {{\Carbon\Carbon::parse($invoice['due_date'])->formatLocalized('%d.%m.%Y')}}
-                            (Zahlungseingang)
-                            auf das folgende Konto:
-                            <br><br>
-                            camindu GmbH<br>
-                            Hypovereinsbank<br>
-                            IBAN {{ config('accounting.company_details.bank.iban') }}<br>
-                            Swift (BIC) {{ config('accounting.company_details.bank.bic') }}<br>
-                        </div>
+                            <div class="m-t">
+                                Die Forderung von
+                                <strong>{{ number_format((float) $invoice['total_gross'], 2, ',', '.') }}&nbsp;€</strong>
+                                ziehen wir per SEPA-Lastschrift mit der Mandatsreferenz
+                                <strong>{{ $invoice->contract?->sepaMandate?->mandate_reference ?? $invoice['company']['kd_nr'] }}</strong>
+                                und der Gläubiger-Identifikationsnummer
+                                <strong>{{ config('accounting.sepa.gid') }}</strong>
+                                von Ihrem Konto IBAN
+                                <strong>…{{ substr($invoice->contract?->sepaMandate?->iban ?? '', -4) }}</strong>
+                                bei der
+                                <strong>{{ $invoice->contract?->sepaMandate?->bank_name }}</strong>
+                                zum Fälligkeitsdatum
+                                <strong>{{ \Carbon\Carbon::parse($invoice['due_date'])->translatedFormat('d.m.Y') }}</strong>
+                                ein. <br>
+                                Wir bitten Sie, für ausreichende Kontodeckung zu sorgen.
+                            </div>
+
+                        @else
+                            <div class="m-t">
+                                Bitte überweisen Sie den Gesamtbetrag in Höhe von <strong>{!! number_format((float) $invoice['total_gross'], 2, ',', '.')  !!}&nbsp;&euro;</strong> unter Nennung des
+                                Verwendungszwecks
+                                <strong style="white-space:nowrap;">{{$invoice['invoice_number']}}X{{$invoice['company']['kd_nr']}}</strong> bis
+                                zum {{\Carbon\Carbon::parse($invoice['due_date'])->formatLocalized('%d.%m.%Y')}}
+                                (Zahlungseingang)
+                                auf das folgende Konto:
+                                <br><br>
+                                camindu GmbH<br>
+                                Hypovereinsbank<br>
+                                IBAN {{ config('accounting.company_details.bank.iban') }}<br>
+                                Swift (BIC) {{ config('accounting.company_details.bank.bic') }}<br>
+                            </div>
 
                     </td>
                     <td>
                         <img id="bezahlcode"
                              src="https://dev.matthiasschaffer.com/bezahlcode/api.php?iban={!! urlencode(config('accounting.company_details.bank.iban')) !!}&bic={!! urlencode(config('accounting.company_details.bank.bic')) !!}&name={!! urlencode('camindu GmbH') !!}&usage={!! urlencode($invoice['invoice_number'].'X'.$invoice['company']['kd_nr']) !!}&amount={!! urlencode(number_format((float) $invoice['total_gross'], 2, ',', '.')) !!}"
                              alt="bezahlcode">
-
+                        @endif
                     </td>
                 </tr>
             </table>
