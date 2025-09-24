@@ -41,7 +41,31 @@ class ImageDescription extends Command
             try {
                 $imagePath = storage_path('app/images/' . $image->lang . '_' . $image->hash);
                 if (!File::exists($imagePath)) {
-                    Log::info("Image not found: {$image->lang}_{$image->hash}");
+
+                    $existingImage = DB::table('imagetags')
+                    ->where('hash', $image->hash)
+                    ->whereNotNull('description')
+                    //->whereRaw('created_at = updated_at')
+                    ->where('lang', $image->lang)
+                    ->where('ulid', $image->ulid)
+                    ->first();
+
+                    if($existingImage){
+                        // Copy description from existing entry and update hash
+
+                        DB::table('imagetags')
+                            ->where('id', $image->id)
+                            ->update([
+                                //'hash' => $image->hash,
+                                'description' => $existingImage->description
+                            ]);
+
+                        Log::info("Image description copied: {$image->lang}_{$image->hash}");
+                    } else {
+                        Log::info("Image not found: {$image->lang}_{$image->hash}");
+                    }
+
+
                     continue;
                 }
 
