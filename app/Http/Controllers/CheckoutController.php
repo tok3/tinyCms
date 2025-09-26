@@ -55,7 +55,8 @@ class CheckoutController extends MolliePaymentController
     {
 
         $selection = $request->input('product_selection');       // z.B. "3:annual"
-        if (! $selection || ! str_contains($selection, ':')) {
+        if (!$selection || !str_contains($selection, ':'))
+        {
             abort(400, 'Ungültige Produktauswahl.');
         }
 
@@ -96,21 +97,23 @@ class CheckoutController extends MolliePaymentController
 
             $customerID = $customer->id;
 
-            if ($request->boolean('firstContract')) {
+            if ($request->boolean('firstContract'))
+            {
                 // wenn user einen reinen trial account hatte und die erste bestellung über das upgrade form macht
 
                 // --- Company Update ---
                 $companyData = $request->input('company', []);
                 $company = auth()->user()->companies()->first(); // oder dein Mechanismus
 
-                if ($company && !empty($companyData)) {
+                if ($company && !empty($companyData))
+                {
                     $company->update($companyData);
 
                     // MollieCustomer anlegen (mit Bezug zur Company)
                     MollieCustomer::create([
-                        'model_id'          => $company->id,
-                        'model_type'        => get_class($company), // z. B. App\Models\Company
-                        'mollie_customer_id'=> $customerID ?? null, // hier die Mollie-ID einsetzen
+                        'model_id' => $company->id,
+                        'model_type' => get_class($company), // z. B. App\Models\Company
+                        'mollie_customer_id' => $customerID ?? null, // hier die Mollie-ID einsetzen
                     ]);
                 }
 
@@ -118,14 +121,14 @@ class CheckoutController extends MolliePaymentController
                 $userData = $request->input('user', []);
                 $user = auth()->user();
 
-                if ($user && !empty($userData)) {
+                if ($user && !empty($userData))
+                {
                     // Namen zusammensetzen
                     $user->name = trim(($userData['vorname'] ?? '') . ' ' . ($userData['name'] ?? ''));
 
                     $user->save();
                 }
             }
-
 
 
             if ($request->input('payment_method') === 'sepa')
@@ -162,7 +165,7 @@ class CheckoutController extends MolliePaymentController
             }
             else
             {
-              //  $company = $this->initCompanyAccount($customerID);
+                //  $company = $this->initCompanyAccount($customerID);
                 $company = Company::first();
             }
 
@@ -173,13 +176,14 @@ class CheckoutController extends MolliePaymentController
             {
                 $coupon = Coupon::where('code', $couponCode)->first();
 
-                if ($coupon) {
+                if ($coupon)
+                {
                     $cpCtrl = new CouponController;
                     $discountedPriceDecimal = $cpCtrl->calculateTotalPrice($coupon->promotion, $orderedProduct, false);
                     $orderedProduct->price = round($discountedPriceDecimal * 100); // Preis im Produkt überschreiben (zentral korrekt in Cent!)
 
                     $additionalData['promotion'] = $coupon->promotion;
-                    $additionalData['bemerkung'] = 'Product über Promocode #'.$couponCode.' erworben';
+                    $additionalData['bemerkung'] = 'Product über Promocode #' . $couponCode . ' erworben';
                     session()->forget('coupon_code');
                 }
             }
@@ -188,16 +192,16 @@ class CheckoutController extends MolliePaymentController
 
             if ($orderedProduct->trial_period_days == 0)
             {
+                $this->prepareInvoicePurchaseByInvoice($orderedProduct, $company, $contract, $couponCode ?: null, $interval);
 
-                $this->prepareInvoicePurchaseByInvoice($orderedProduct, $company, $contract);
             }
 
-          die();
+
             if (auth()->check())
             {
 
 
-                return url('dashboard/'.$company->id.'/upgrade-page');
+                return url('dashboard/' . $company->id . '/upgrade-page');
             }
 
             return route('view.plans') . '#step-4';
@@ -285,78 +289,163 @@ class CheckoutController extends MolliePaymentController
     }
 
 
-    public function prepareInvoicePurchaseByInvoice($orderedProduct, $company, $contract = null)
+    public function prepareInvoicePurchaseByInvoice($orderedProduct, $company, $contract = null, ?string $couponCode = null, ?string $interval = null)
     {
+        $tax_rate = (float)config('accounting.tax_rate', 19);
+        $divisor = 1 + ($tax_rate / 100);
+        $interval = $interval ?? ($orderedProduct->interval ?? 'annual');
 
-        $tax_rate = config('accounting.tax_rate');
-
-        $total_gross = $orderedProduct->price / 100; // Bruttobetrag
-
-        if ($total_gross > 0.00)
+        // 1) Basispreis BRUTTO aus der Preise-Tabelle (nicht aus $orderedProduct->price!)
+        $priceModel = $orderedProduct->prices()->where('interval', $interval)->first();
+        if (!$priceModel)
         {
-            if ($orderedProduct->promotion)
+            return;
+        } // safety
+        $base_cents = (int)$priceModel->price;
+        $base_gross = round($base_cents / 100, 2); // z.B. 100.00 €
+
+        // 2) Coupon -> finaler BRUTTO
+        $coupon_discount_gross = 0.00;
+        $coupon_label = null;
+
+        if (!empty($couponCode) && ($coupon = \App\Models\Coupon::where('code', $couponCode)->first()))
+        {
+            $cp = new \App\Http\Controllers\CouponController;
+
+            // deine calculateTotalPrice(false) liefert NETTO; wir schlagen MwSt. drauf
+            $netAfter = (float)$cp->calculateTotalPrice($coupon->promotion, $priceModel, false);
+            $grossAfterFromNet = round($netAfter * $divisor, 2);
+
+            // Fallback: falls true bereits BRUTTO liefert
+            $grossAfterDirect = round((float)$cp->calculateTotalPrice($coupon->promotion, $priceModel, true), 2);
+
+            // plausiblen Kandidaten wählen (< Basis, > 0)
+            $candidates = array_filter([$grossAfterFromNet, $grossAfterDirect], fn($v) => $v > 0 && $v < $base_gross);
+            $grossAfter = !empty($candidates) ? min($candidates) : $base_gross;
+
+            $coupon_discount_gross = max(0, round($base_gross - $grossAfter, 2)); // z.B. 30.00 €
+            if ($coupon_discount_gross > 0)
             {
-                $cpCtrl = new CouponController;
-                $total_gross = number_format($cpCtrl->calculateTotalPrice($orderedProduct->promotion, $orderedProduct, false), 2, '.', '');
+                $coupon_label = 'Aktionscode ' . $coupon->code;
             }
-
-            $tax_rate = config('accounting.tax_rate'); // 19% Steuersatz
-
-            // Berechnungen
-            $total_net = round($total_gross / (1 + ($tax_rate / 100)), 2); // Nettobetrag
-            $tax = $total_gross - $total_net; // Steuerbetrag
-
-            $descriptionText = FormatHelper::stripHtmlButKeepSpaces($orderedProduct->invoice_text ?: $orderedProduct->description);
-
-            $itemDescription = Str::limit(
-                $descriptionText,
-                $this->descriptionLength,
-                '...'
-            );
-
-            $invoiceData = [
-                'company_id' => $company->id, // Eine existierende company_id, um eine Firma zu verknüpfen
-                'contract_id' => $contract->id, // vertrags id
-                'issue_date' => now()->format('Y-m-d'),
-                'mollie_payment_id' => null,
-                'due_date' => \Carbon\Carbon::now()->addWeekdays(10)->format('Y-m-d'),
-                'payment_date' => null,
-                'total_net' => $total_net,
-                'total_gross' => $total_gross, // Mit Mehrwertsteuer
-                'tax' => $tax, // Mit Mehrwertsteuer
-                'tax_rate' => $tax_rate, // Mehrwertsteuer
-                'status' => 'sent',
-                'data' => [
-                    // Position 1
-                    'items' => [
-                        [
-                            'id' => '1', // Positionsnummer
-                            'description' => $itemDescription, // Beschreibung
-                            'quantity' => 1, // Menge
-                            'line_total_amount' => $total_net, // Gesamtbetrag für diese Position
-                        ],
-                        /*   [
-                               'id' => '2', // Positionsnummer
-                               'description' => 'description',
-                               'quantity' => 1,
-                               'line_amount' => '199.00',
-                           ],*/
-                    ],
-
-                ]
-            ];
-
-            echo "<pre>";
-            print_r($invoiceData);
-            echo "</pre>";
-die();
-            $invoiceService = new InvoiceService();
-
-            $invoiceService->createInvoice($invoiceData);
-
-            $invoiceService->sendInvoiceEmail();
         }
 
+        // === AGENCY (kaskadiert nach Coupon) ======================================
+        $agency_discount_gross = 0.00;
+        $agency_label = null;
+        $agencyPct = 0.0;
+
+        // 1) Wenn eingeloggter User selbst eine Agentur ist -> dessen Rabatt nehmen
+        $actingCompany = auth()->check() ? (auth()->user()->companies[0] ?? null) : null;
+        if ($actingCompany && (int)($actingCompany->is_agency ?? 0) === 1 && (float)($actingCompany->agency_discount_percent ?? 0) > 0)
+        {
+            $agencyPct = (float)$actingCompany->agency_discount_percent;
+        }
+
+        if ($agencyPct > 0)
+        {
+            // Brutto nach Coupon:
+            $gross_after_coupon = round($base_gross - $coupon_discount_gross, 2);
+
+            // Agentur-Rabatt auf diesen (kaskadiert)
+            $agency_discount_gross = (float)round($gross_after_coupon * ($agencyPct / 100), 2);
+            if ($agency_discount_gross > 0)
+            {
+                $agency_label = 'Agentur-Rabatt ' . rtrim(rtrim(number_format($agencyPct, 2, ',', ''), '0'), ',') . '%';
+            }
+        }
+        // === FINALE SUMMEN =========================================================
+        $final_gross = round($base_gross - $coupon_discount_gross - $agency_discount_gross, 2);
+        if ($final_gross <= 0.00)
+        {
+            return;
+        }
+
+        $divisor = 1 + ($tax_rate / 100);
+
+        $base_net = round($base_gross / $divisor, 2);
+        $base_tax = round($base_gross - $base_net, 2);
+
+        // Coupon (falls vorhanden)
+        $disc_coupon_net = round($coupon_discount_gross / $divisor, 2);
+        $disc_coupon_tax = round($coupon_discount_gross - $disc_coupon_net, 2);
+
+        // Agentur (falls vorhanden)
+        $disc_agency_net = round($agency_discount_gross / $divisor, 2);
+        $disc_agency_tax = round($agency_discount_gross - $disc_agency_net, 2);
+
+        $total_net = round($base_net - $disc_coupon_net - $disc_agency_net, 2);
+        $tax = round($base_tax - $disc_coupon_tax - $disc_agency_tax, 2);
+        $total_gross = round($final_gross, 2);
+
+        // 6) Positionen (nur Anzeige; PDF rechnet NICHT)
+        $descriptionText = \App\Helpers\FormatHelper::stripHtmlButKeepSpaces($orderedProduct->invoice_text ?: $orderedProduct->description);
+        $itemDescription = \Illuminate\Support\Str::limit($descriptionText, $this->descriptionLength, '...');
+
+        $items = [
+            [
+                'id' => '1',
+                'description' => $itemDescription,
+                'quantity' => 1,
+                'line_total_amount' => $base_net, // netto
+            ],
+        ];
+
+        $pos = 2;
+        if ($coupon_discount_gross > 0.00)
+        {
+            $items[] = [
+                'id' => (string)$pos++,
+                'description' => $coupon_label ?? 'Gutschein',
+                'quantity' => 1,
+                'line_total_amount' => -$disc_coupon_net, // netto negativ
+            ];
+        }
+        if ($agency_discount_gross > 0.00)
+        {
+            $items[] = [
+                'id' => (string)$pos++,
+                'description' => $agency_label ?? 'Agentur-Rabatt',
+                'quantity' => 1,
+                'line_total_amount' => -$disc_agency_net, // netto negativ
+            ];
+        }
+        // Invoice daten
+        $invoiceData = [
+            'company_id' => $company->id,
+            'contract_id' => $contract?->id,
+            'issue_date' => now()->format('Y-m-d'),
+            'mollie_payment_id' => null,
+            'due_date' => \Carbon\Carbon::now()->addWeekdays(10)->format('Y-m-d'),
+            'payment_date' => null,
+            'total_net' => $total_net,
+            'total_gross' => $total_gross,
+            'tax' => $tax,
+            'tax_rate' => $tax_rate,
+            'status' => 'sent',
+            'data' => ['items' => $items],
+        ];
+
+
+        // Contract-Snapshot updaten, damit Recurrings identische Netto-Positionen bekommen
+        if ($contract) {
+            $data = json_decode($contract->data ?? '[]', true);
+            $data['pricing_snapshot'] = [
+                'items'     => $items,           // netto-Positionsliste (wie fürs PDF)
+                'total_net' => $total_net,       // optional, kann man auch bei Recurring neu summieren
+                'meta'      => [
+                    'coupon_code'     => $couponCode ?? null,      // wenn bekannt
+                    'agency_percent'  => $agencyPct ?? null,       // wenn angewendet
+                    'captured_at'     => now()->toDateTimeString()
+                ],
+            ];
+            $contract->data = json_encode($data);
+            $contract->save();
+        }
+
+        $svc = new \App\Services\InvoiceService();
+        $svc->createInvoice($invoiceData);
+        $svc->sendInvoiceEmail();
     }
 
     /**
@@ -395,13 +484,15 @@ die();
         $interval = $request->input('interval');
 
         // Sicherheitsprüfung
-        if (! $interval || ! in_array($interval, ['monthly', 'annual', 'one_time'])) {
+        if (!$interval || !in_array($interval, ['monthly', 'annual', 'one_time']))
+        {
             abort(400, 'Ungültiges Intervall.');
         }
 
         // Preis für dieses Intervall holen
         $priceModel = $product->prices()->where('interval', $interval)->first();
-        if (! $priceModel) {
+        if (!$priceModel)
+        {
             abort(404, 'Kein Preis für dieses Intervall gefunden.');
         }
 
@@ -431,63 +522,67 @@ die();
     public function getProductDetails(Request $request)
     {
         // 1) Ziehe nur noch product_selection (z.B. "3:annual")
-        $selection  = $request->input('product_selection');
+        $selection = $request->input('product_selection');
         $couponCode = $request->input('coupon_code', '');
 
-        if (! $selection || ! str_contains($selection, ':')) {
+        if (!$selection || !str_contains($selection, ':'))
+        {
             return response()->json(['error' => 'Ungültige Produktauswahl.'], 400);
         }
         [$productId, $interval] = explode(':', $selection, 2);
 
         // 2) Lade Produkt und den passenden Preis
         $product = Product::find($productId);
-        if (! $product) {
+        if (!$product)
+        {
             return response()->json(['error' => 'Produkt nicht gefunden.'], 404);
         }
         $priceModel = $product->prices()->where('interval', $interval)->first();
-        if (! $priceModel) {
+        if (!$priceModel)
+        {
             return response()->json(['error' => 'Kein Preis für dieses Intervall gefunden.'], 404);
         }
 
         // 3) Basis-Antwort aufbauen
         $basePriceCents = $priceModel->price;
-        $formattedBase  = number_format($basePriceCents / 100, 2, ',', '.');
+        $formattedBase = number_format($basePriceCents / 100, 2, ',', '.');
 
         $productDetails = [
-            'name'            => $product->name,
-            'description'     => $product->description,
-            'price_cents'     => $basePriceCents,        // <— Integer Cent-Wert
-            'formattedPrice'  => $formattedBase,         // <— String für Anzeige
-            'interval'        => $interval,
+            'name' => $product->name,
+            'description' => $product->description,
+            'price_cents' => $basePriceCents,        // <— Integer Cent-Wert
+            'formattedPrice' => $formattedBase,         // <— String für Anzeige
+            'interval' => $interval,
             'trial_period_days' => $product->trial_period_days,
-            'laufzeit'        => $product->lz,
+            'laufzeit' => $product->lz,
         ];
 
         // 4) Rabattcode
-        if ($couponCode && $coupon = Coupon::where('code', $couponCode)->first()) {
+        if ($couponCode && $coupon = Coupon::where('code', $couponCode)->first())
+        {
             $type = $coupon->promotion->discount_type === 'fixed'
                 ? $coupon->promotion->formatted_discount . ' €'
                 : $coupon->promotion->formatted_discount . ' %';
 
-            $cpCtrl   = new CouponController;
+            $cpCtrl = new CouponController;
 
-            $subtotal = $cpCtrl->calculateTotalPrice($coupon->promotion, $priceModel,  false) ?? 0;
+            $subtotal = $cpCtrl->calculateTotalPrice($coupon->promotion, $priceModel, false) ?? 0;
             $formattedSubtotal = number_format($subtotal, 2, ',', '.');
 
 
             $productDetails = [
-                'name'                  => $product->name,
-                'description'           => $product->description
+                'name' => $product->name,
+                'description' => $product->description
                     . "<br>Aktionscode: <b>{$coupon->code}</b> angewendet.<br>"
                     . $coupon->promotion->description
                     . "<br><span style=\"display:inline-block;text-align:right;\">"
                     . "<b>{$formattedBase} €</b><br><b>&minus; {$type}</b>"
                     . "</span>",
-                'formattedPrice'        => $formattedSubtotal, // <— formatiert für Anzeige
-                'interval'              => $interval,
-                'trial_period_days'     => $product->trial_period_days,
-                'has_discount'          => true,
-                'discountedPriceCents'  => $subtotal * 100,          // <— evtl. extra Feld
+                'formattedPrice' => $formattedSubtotal, // <— formatiert für Anzeige
+                'interval' => $interval,
+                'trial_period_days' => $product->trial_period_days,
+                'has_discount' => true,
+                'discountedPriceCents' => $subtotal * 100,          // <— evtl. extra Feld
             ];
         }
 

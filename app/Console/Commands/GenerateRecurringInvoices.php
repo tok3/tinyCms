@@ -65,41 +65,51 @@ class GenerateRecurringInvoices extends Command
                 $this->info("➤ Rechnung wird erstellt für Vertrag #{$contract->id}");
 
                 $company = $contract->contractable;
+                $taxRate = (float) config('accounting.tax_rate', 19);
 
-                $priceNet = ($contract->price ?? 0) / 100;
-                $taxRate = config('accounting.tax_rate', 19);
-                $tax = round($priceNet * $taxRate / 100, 2);
-                $totalGross = round($priceNet + $tax, 2);
+                // Snapshot lesen (wenn vorhanden)
+                $cdata = is_array($contract->data) ? $contract->data : (json_decode($contract->data, true) ?: []);
+                $items = $cdata['pricing_items'] ?? null;
 
-                $invoiceService = new InvoiceService();
+                // Fallback: eine Position aus contract->price (NETTO-Cent)
+                if (!$items || !is_array($items) || count($items) === 0) {
+                    $priceNet = round(($contract->price ?? 0) / 100, 2); // NETTO €
+                    $items = [[
+                        'id'                => '1',
+                        'description'       => $contract->invoice_text ?? $contract->product_name,
+                        'quantity'          => 1,
+                        'line_total_amount' => $priceNet, // NETTO
+                    ]];
+                }
 
-                $invoiceService->createInvoice([
-                    'company_id'       => $company->id,
-                    'contract_id'      => $contract->id,
-                    'issue_date'       => $nextIssueDate->format('Y-m-d'),
-                    'mollie_payment_id'=> null,
-                    'due_date'         => $nextIssueDate->copy()->addWeekdays(10)->format('Y-m-d'),
-                    'payment_date'     => null,
-                    'total_net'        => $priceNet,
-                    'total_gross'      => $totalGross,
-                    'tax'              => $tax,
-                    'tax_rate'         => $taxRate,
-                    'status'           => 'sent',
-                    'data'             => [
-                        'items' => [
-                            [
-                                'id'                => '1',
-                                'description'       => $contract->invoice_text ?? $contract->product_name,
-                                'quantity'          => 1,
-                                'line_total_amount' => $priceNet,
-                            ],
-                        ],
-                    ],
+                // Netto-Summe aus Items
+                $totalNet = 0.0;
+                foreach ($items as $it) {
+                    $totalNet += (float) ($it['line_total_amount'] ?? 0);
+                }
+                $totalNet   = round($totalNet, 2);
+                $tax        = round($totalNet * $taxRate / 100, 2);
+                $totalGross = round($totalNet + $tax, 2);
+
+                // Rechnung erzeugen
+                $svc = new \App\Services\InvoiceService();
+                $svc->createInvoice([
+                    'company_id'        => $company->id,
+                    'contract_id'       => $contract->id,
+                    'issue_date'        => $nextIssueDate->format('Y-m-d'),
+                    'mollie_payment_id' => null,
+                    'due_date'          => $nextIssueDate->copy()->addWeekdays(10)->format('Y-m-d'),
+                    'payment_date'      => null,
+                    'total_net'         => $totalNet,
+                    'total_gross'       => $totalGross,
+                    'tax'               => $tax,
+                    'tax_rate'          => $taxRate,
+                    'status'            => 'sent',
+                    'data'              => ['items' => $items], // genau wie im Contract-Snapshot
                 ]);
 
-                $this->info("✔ Rechnung erfolgreich erstellt.");
-
-                $invoiceService->sendInvoiceEmail();
+                $this->info("✔ Rechnung erstellt.");
+                $svc->sendInvoiceEmail();
             } else {
                 $this->info("➤ Keine neue Rechnung erforderlich.");
             }
