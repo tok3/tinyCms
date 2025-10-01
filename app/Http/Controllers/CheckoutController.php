@@ -219,6 +219,13 @@ class CheckoutController extends MolliePaymentController
             $price = $cpCtrl->calculateTotalPrice($coupon->promotion, $orderedProduct, false) * 100 ?? null;
         }
 
+        $actingCompany = auth()->check() ? (auth()->user()->companies->first() ?? null) : null;
+        if ($actingCompany && (int)($actingCompany->is_agency ?? 0) === 1 && (float)($actingCompany->agency_discount_percent ?? 0) > 0) {
+            $agencyPct = (float) $actingCompany->agency_discount_percent;
+            $price = (int) round($price * (1 - ($agencyPct / 100)));
+            if ($price < 1) { $price = 1; } // Mollie darf keinen 0-Betrag bekommen
+        }
+
         if ($orderedProduct->trial_period_days > 0)
         {
             $price = 0.00;
@@ -231,6 +238,7 @@ class CheckoutController extends MolliePaymentController
             "company" => $request->input('company')['name'],
             "coupon_code" => $request->input('coupon_code') ?? '0',
             "company_id" => $request->input('company_id') ?? '0',
+            "acting_company_id" => auth()->check() ? optional(auth()->user()->companies->first())->id : null,
         ];
 
         if ($couponCode)

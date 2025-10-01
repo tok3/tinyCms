@@ -98,7 +98,8 @@ class MolliePaymentController extends Controller
         {
             $contract = Contract::where('subscription_id', $payment->subscriptionId)->first();
 
-            if ($contract) {
+            if ($contract)
+            {
                 $product = (object)[
                     'id' => $contract->product_id,
                     'name' => $contract->product_name,
@@ -113,7 +114,9 @@ class MolliePaymentController extends Controller
                 $company = $contract->contractable;
                 $interval = $contract->interval ?? $interval;
                 $this->contractID = $contract->id;
-            } else {
+            }
+            else
+            {
                 \Log::warning('Kein Contract für subscriptionId: ' . $payment->subscriptionId);
             }
         }
@@ -146,6 +149,10 @@ class MolliePaymentController extends Controller
                 ? Company::find($metadata->company_id)
                 : $this->initCompanyAccount($customerId);
         }
+
+        $actingCompany = !empty($metadata->acting_company_id)
+            ? Company::find($metadata->acting_company_id)
+            : $company;
 
         if ($payment->sequenceType === 'first')
         {
@@ -206,7 +213,20 @@ class MolliePaymentController extends Controller
                     $additionalData['bemerkung'] = 'Product über Promocode erworben';
                 }
 
+                // Snapshot (mit Agentur-Rabatt) bauen
+                if (!($product instanceof \App\Models\Product)) {
+                    $product = \App\Models\Product::find($product->id ?? null);
+                }
+                $couponCodeMeta = $metadata->coupon_code ?? null;
+
+                $pricingSnapshot = $product
+                    ? $this->buildPricingSnapshot($product, $interval, $couponCodeMeta, $actingCompany)
+                    : ['items' => [], 'total_net' => 0.0, 'meta' => ['captured_at' => now()->toDateTimeString()]];
+
+                $additionalData['pricing_snapshot'] = $pricingSnapshot;
+
                 $this->createContract($company, $product, $subscription, $startDate, $additionalData, $interval);
+
             }
         }
 
@@ -394,54 +414,216 @@ class MolliePaymentController extends Controller
 
             $customer = MollieCustomer::where('mollie_customer_id', $payment->customer_id)->first();
 
+            $taxRate = (float)config('accounting.tax_rate', 19);
 
-            $total_gross = $payment->amount_value; // Bruttobetrag
-            $tax_rate = config('accounting.tax_rate'); // 19% Steuersatz
+            // Versuche Contract (für snapshot)
+            $contract = null;
+            if ($this->contractID)
+            {
+                $contract = \App\Models\Contract::find($this->contractID);
+            }
+            else if (!empty($payment->subscription_id))
+            {
+                $contract = \App\Models\Contract::where('subscription_id', $payment->subscription_id)->first();
+                if ($contract)
+                {
+                    $this->contractID = $contract->id;
+                }
+            }
 
-            // Berechnungen
-            $total_net = round($total_gross / (1 + ($tax_rate / 100)), 2); // Nettobetrag
-            $tax = $total_gross - $total_net; // Steuerbetrag
+            // Items aus snapshot, falls vorhanden
+            $items = null;
+            if ($contract && is_array($contract->data) && isset($contract->data['pricing_snapshot']['items']))
+            {
+                $items = $contract->data['pricing_snapshot']['items'];
+            }
+            elseif ($contract && is_string($contract->data))
+            {
+                $decoded = json_decode($contract->data, true);
+                if (isset($decoded['pricing_snapshot']['items']))
+                {
+                    $items = $decoded['pricing_snapshot']['items'];
+                }
+            }
 
+            // Fallback: eine Position aus Payment
+            if (!$items || !is_array($items) || count($items) === 0)
+            {
+                $gross = (float)$payment->amount_value;
+                $net = round($gross / (1 + $taxRate / 100), 2);
+                $items = [[
+                    'id' => '1',
+                    'description' => $payment->description,
+                    'quantity' => 1,
+                    'line_total_amount' => $net, // NETTO
+                ]];
+            }
+
+            // Summen aus Items (NETTO) berechnen
+            $totalNet = 0.0;
+            foreach ($items as $it)
+            {
+                $totalNet += (float)($it['line_total_amount'] ?? 0);
+            }
+            $totalNet = round($totalNet, 2);
+            $tax = round($totalNet * $taxRate / 100, 2);
+            $totalGross = round($totalNet + $tax, 2);
+
+            // Optional: an tatsächliche Payment-Summe anpassen (Cent-Differenzen)
+            $paidGross = round((float)$payment->amount_value, 2);
+            $delta = round($paidGross - $totalGross, 2);
+            if (abs($delta) >= 0.01)
+            {
+                // korrigiere eine Item-Zeile minimal (netto-seitig)
+                $divisor = 1 + ($taxRate / 100);
+
+                // NEU: Zielzeile sauber bestimmen (aktuell: letzte Zeile mit amount)
+                $targetIdx = null;
+                for ($i = count($items) - 1; $i >= 0; $i--) {
+                    if (isset($items[$i]['line_total_amount'])) {
+                        $targetIdx = $i;
+
+                        break;
+                    }
+                }
+
+                if ($targetIdx !== null) {
+                    $items[$targetIdx]['line_total_amount'] = round(
+                        $items[$targetIdx]['line_total_amount'] + round($delta / $divisor, 2),
+                        2
+                    );
+                }
+
+                // Summen neu ziehen
+                $totalNet = 0.0;
+                foreach ($items as $it) {
+                    $totalNet += (float)($it['line_total_amount'] ?? 0);
+                }
+                $totalNet   = round($totalNet, 2);
+                $tax        = round($totalNet * $taxRate / 100, 2);
+                $totalGross = round($totalNet + $tax, 2);
+            }
 
             $invoiceData = [
-                'company_id' => $customer->model_id, // Eine existierende company_id, um eine Firma zu verknüpfen
-                'contract_id' => $this->contractID, // vertrags id
+                'company_id' => $customer->model_id,
+                'contract_id' => $this->contractID,
                 'issue_date' => now()->format('Y-m-d'),
                 'mollie_payment_id' => $payment->payment_id,
                 'due_date' => $payment->paid_at,
                 'payment_date' => $payment->paid_at,
-                'total_net' => $total_net,
-                'total_gross' => $total_gross, // Mit Mehrwertsteuer
-                'tax' => $tax, // Mit Mehrwertsteuer
-                'tax_rate' => $tax_rate, // 19% Mehrwertsteuer
-                'status' => 'paid', // 19% Mehrwertsteuer
-                'data' => [
-                    // Position 1
-                    'items' => [
-                        [
-                            'id' => '1', // Positionsnummer
-                            'description' => $payment->description, // Beschreibung
-                            'quantity' => 1, // Menge
-                            'line_total_amount' => $total_net, // Gesamtbetrag für diese Position
-                        ],
-                        /*   [
-                               'id' => '2', // Positionsnummer
-                               'description' => 'description',
-                               'quantity' => 1,
-                               'line_amount' => '199.00',
-                           ],*/
-                    ],
-
-                ]
+                'total_net' => $totalNet,
+                'total_gross' => $totalGross,
+                'tax' => $tax,
+                'tax_rate' => $taxRate,
+                'status' => 'paid',
+                'data' => ['items' => $items],
             ];
 
             $invoiceService = new InvoiceService();
-
             $invoiceService->createInvoice($invoiceData);
-
             $invoiceService->sendInvoiceEmail();
         }
 
+    }
+
+    private function buildPricingSnapshot(\App\Models\Product $product, string $interval, ?string $couponCode, ?\App\Models\Company $actingCompany): array
+    {
+        $taxRate = (float)config('accounting.tax_rate', 19);
+        $divisor = 1 + ($taxRate / 100);
+
+        $priceModel = $product->prices()->where('interval', $interval)->first();
+        if (!$priceModel)
+        {
+            return ['items' => [], 'total_net' => 0.0, 'meta' => ['captured_at' => now()->toDateTimeString()]];
+        }
+
+        $baseGross = round(((int)$priceModel->price) / 100, 2); // z.B. 100.00 €
+        $baseNet = round($baseGross / $divisor, 2);
+
+        $descRaw = \App\Helpers\FormatHelper::stripHtmlButKeepSpaces($product->invoice_text ?: $product->description);
+        $desc = \Illuminate\Support\Str::limit($descRaw, 80, '...');
+
+        $items = [[
+            'id' => '1',
+            'description' => $desc,
+            'quantity' => 1,
+            'line_total_amount' => $baseNet, // NETTO
+        ]];
+
+        // Coupon
+        $couponDiscountGross = 0.00;
+        $couponLabel = null;
+        if (!empty($couponCode) && ($coupon = \App\Models\Coupon::where('code', $couponCode)->first()))
+        {
+            $cp = new \App\Http\Controllers\CouponController;
+
+            $netAfter = (float)$cp->calculateTotalPrice($coupon->promotion, $priceModel, false);
+            $grossAfterFromNet = round($netAfter * $divisor, 2);
+            $grossAfterDirect = round((float)$cp->calculateTotalPrice($coupon->promotion, $priceModel, true), 2);
+
+            $candidates = array_filter([$grossAfterFromNet, $grossAfterDirect], fn($v) => $v > 0 && $v < $baseGross);
+            $grossAfter = !empty($candidates) ? min($candidates) : $baseGross;
+
+            $couponDiscountGross = max(0, round($baseGross - $grossAfter, 2));
+            if ($couponDiscountGross > 0)
+            {
+                $couponLabel = 'Aktionscode ' . $coupon->code;
+            }
+        }
+
+        // Agency-Rabatt (nur wenn Käufer-Firma Agentur ist)
+        $agencyPct = 0.0;
+        if ($actingCompany && (int)($actingCompany->is_agency ?? 0) === 1 && (float)($actingCompany->agency_discount_percent ?? 0) > 0)
+        {
+            $agencyPct = (float)$actingCompany->agency_discount_percent;
+        }
+
+        $agencyDiscountGross = 0.00;
+        if ($agencyPct > 0)
+        {
+            $grossAfterCoupon = round($baseGross - $couponDiscountGross, 2);
+            $agencyDiscountGross = round($grossAfterCoupon * ($agencyPct / 100), 2);
+        }
+
+        // Rabattzeilen (NETTO)
+        $pos = 2;
+        if ($couponDiscountGross > 0.00)
+        {
+            $discNet = round($couponDiscountGross / $divisor, 2);
+            $items[] = [
+                'id' => (string)$pos++,
+                'description' => $couponLabel ?? 'Gutschein',
+                'quantity' => 1,
+                'line_total_amount' => -$discNet,
+            ];
+        }
+        if ($agencyDiscountGross > 0.00)
+        {
+            $discNet = round($agencyDiscountGross / $divisor, 2);
+            $items[] = [
+                'id' => (string)$pos++,
+                'description' => 'Agentur-Rabatt ' . rtrim(rtrim(number_format($agencyPct, 2, ',', ''), '0'), ',') . '%',
+                'quantity' => 1,
+                'line_total_amount' => -$discNet,
+            ];
+        }
+
+        $totalNet = 0.0;
+        foreach ($items as $it)
+        {
+            $totalNet += (float)($it['line_total_amount'] ?? 0);
+        }
+        $totalNet = round($totalNet, 2);
+
+        return [
+            'items' => $items,
+            'total_net' => $totalNet,
+            'meta' => [
+                'coupon_code' => $couponCode ?: null,
+                'agency_percent' => $agencyPct,
+                'captured_at' => now()->toDateTimeString(),
+            ],
+        ];
     }
 
     /**
