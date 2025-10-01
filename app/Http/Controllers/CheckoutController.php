@@ -165,8 +165,8 @@ class CheckoutController extends MolliePaymentController
             }
             else
             {
-                //  $company = $this->initCompanyAccount($customerID);
-                $company = Company::first();
+                  $company = $this->initCompanyAccount($customerID);
+
             }
 
             //$company = Company::where('id', 264)->first();
@@ -192,6 +192,7 @@ class CheckoutController extends MolliePaymentController
 
             if ($orderedProduct->trial_period_days == 0)
             {
+
                 $this->prepareInvoicePurchaseByInvoice($orderedProduct, $company, $contract, $couponCode ?: null, $interval);
 
             }
@@ -291,6 +292,7 @@ class CheckoutController extends MolliePaymentController
 
     public function prepareInvoicePurchaseByInvoice($orderedProduct, $company, $contract = null, ?string $couponCode = null, ?string $interval = null)
     {
+
         $tax_rate = (float)config('accounting.tax_rate', 19);
         $divisor = 1 + ($tax_rate / 100);
         $interval = $interval ?? ($orderedProduct->interval ?? 'annual');
@@ -429,7 +431,7 @@ class CheckoutController extends MolliePaymentController
 
         // Contract-Snapshot updaten, damit Recurrings identische Netto-Positionen bekommen
         if ($contract) {
-            $data = json_decode($contract->data ?? '[]', true);
+            $data = $contract->data ?? [];
             $data['pricing_snapshot'] = [
                 'items'     => $items,           // netto-Positionsliste (wie fürs PDF)
                 'total_net' => $total_net,       // optional, kann man auch bei Recurring neu summieren
@@ -439,7 +441,7 @@ class CheckoutController extends MolliePaymentController
                     'captured_at'     => now()->toDateTimeString()
                 ],
             ];
-            $contract->data = json_encode($data);
+            $contract->data = $data;
             $contract->save();
         }
 

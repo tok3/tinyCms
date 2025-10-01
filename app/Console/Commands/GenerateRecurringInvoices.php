@@ -67,31 +67,43 @@ class GenerateRecurringInvoices extends Command
                 $company = $contract->contractable;
                 $taxRate = (float) config('accounting.tax_rate', 19);
 
-                // Snapshot lesen (wenn vorhanden)
-                $cdata = is_array($contract->data) ? $contract->data : (json_decode($contract->data, true) ?: []);
-                $items = $cdata['pricing_items'] ?? null;
+// Contract->data sicher lesen (Array-Cast + Fallback für ältere, JSON-enkodierte Datensätze)
+                $raw = $contract->getAttribute('data');
+                $cdata = is_array($raw) ? $raw : (is_string($raw) ? json_decode($raw, true) ?? [] : []);
 
-                // Fallback: eine Position aus contract->price (NETTO-Cent)
-                if (!$items || !is_array($items) || count($items) === 0) {
+// 1) Items aus Pricing-Snapshot (falls vorhanden)
+                $snapshot = $cdata['pricing_snapshot'] ?? null;
+                $items = (is_array($snapshot) && !empty($snapshot['items']) && is_array($snapshot['items']))
+                    ? $snapshot['items']
+                    : null;
+
+// 2) Fallback: eine Position aus contract->price (NETTO-Cent)
+                if (!$items) {
                     $priceNet = round(($contract->price ?? 0) / 100, 2); // NETTO €
+                    $desc = $contract->invoice_text ?? ($contract->product_name ?? 'Leistung');
                     $items = [[
                         'id'                => '1',
-                        'description'       => $contract->invoice_text ?? $contract->product_name,
+                        'description'       => $desc,
                         'quantity'          => 1,
                         'line_total_amount' => $priceNet, // NETTO
                     ]];
                 }
 
-                // Netto-Summe aus Items
-                $totalNet = 0.0;
-                foreach ($items as $it) {
-                    $totalNet += (float) ($it['line_total_amount'] ?? 0);
+// 3) Netto-Summe aus Items (oder Snapshot-Wert nutzen, wenn vorhanden)
+                if (isset($snapshot['total_net']) && is_numeric($snapshot['total_net'])) {
+                    $totalNet = round((float) $snapshot['total_net'], 2);
+                } else {
+                    $totalNet = 0.0;
+                    foreach ($items as $it) {
+                        $totalNet += (float) ($it['line_total_amount'] ?? 0);
+                    }
+                    $totalNet = round($totalNet, 2);
                 }
-                $totalNet   = round($totalNet, 2);
+
                 $tax        = round($totalNet * $taxRate / 100, 2);
                 $totalGross = round($totalNet + $tax, 2);
 
-                // Rechnung erzeugen
+// 4) Rechnung erzeugen – PDF nimmt die Items 1:1 aus 'data.items'
                 $svc = new \App\Services\InvoiceService();
                 $svc->createInvoice([
                     'company_id'        => $company->id,
@@ -105,7 +117,7 @@ class GenerateRecurringInvoices extends Command
                     'tax'               => $tax,
                     'tax_rate'          => $taxRate,
                     'status'            => 'sent',
-                    'data'              => ['items' => $items], // genau wie im Contract-Snapshot
+                    'data'              => ['items' => $items],
                 ]);
 
                 $this->info("✔ Rechnung erstellt.");

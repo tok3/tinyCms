@@ -245,7 +245,7 @@ class MolliePaymentController extends Controller
             'subscription_id' => $subscriptionId,
             'subscription_start_date' => $startDate,
             'duration' => $product->lz ?? 24,
-            'data' => json_encode($additionalData),
+            'data' => $additionalData,
             'order_date' => now(),
             'start_date' => now()->addDays($product->trial_period_days),
             'end_date' => now()->addDays($product->trial_period_days)->addMonths($product->lz ?? 24),
