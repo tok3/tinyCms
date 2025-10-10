@@ -7,7 +7,7 @@ use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
-
+use App\Helpers\CompanyHelper;
 class AgencyCreateCustomerWidget extends Widget
 {
     protected static string $view = 'filament.dashboard.widgets.agency-create-customer';
@@ -16,6 +16,10 @@ class AgencyCreateCustomerWidget extends Widget
     public string $name = '';
     public ?string $email = null;
 
+    public function getColumnSpan(): int|string|array
+    {
+        return 'full';
+    }
     public static function canView(): bool
     {
 
@@ -36,23 +40,31 @@ class AgencyCreateCustomerWidget extends Widget
         abort_unless($agency && $agency->is_agency, 403);
 
         $customer = \App\Models\Company::create([
-            'name'               => $this->name,
-            'email'              => $this->email ?: null,
-            'agency_company_id'  => $agency->id,   // ← Zuordnung zur Agentur
-            'billing_via_agency' => true,          // ← später im InvoiceService verwenden
+            'name'                   => $this->name,
+            'email'                  => $this->email ?: null,
+            'agency_company_id'      => $agency->id,   // Zuordnung zur Agentur
+            'billing_via_agency'     => true,          // für InvoiceService
+            'billing_email_override' => true,          // für InvoiceService
         ]);
 
-        // User ↔ Company verknüpfen (ohne Pivot-Attribute)
-        if (method_exists(\Auth::user(), 'companies')) {
-            \Auth::user()->companies()->syncWithoutDetaching([$customer->id]);
+        // User ↔ Company verknüpfen (nur wenn eingeloggt)
+        if ($user = \Auth::user()) {
+            $user->companies()->syncWithoutDetaching([$customer->id]);
         }
 
+        // Optionale Notification (erscheint kurz vorm Redirect)
         \Filament\Notifications\Notification::make()
             ->title("„{$customer->name}“ wurde angelegt")
-            ->body('Die Firma wurde der Agentur zugeordnet und erscheint im Tenant-Dropdown.')
+            ->body("Sie befinden sich nun im Account von „{$customer->name}“")
             ->success()
             ->send();
 
+        CompanyHelper::setCurrentCompany($customer);
+
+         // Livewire v3 SPA-Redirect
+        $this->redirect($customer->id.'/upgrade-page', navigate: true);
+
+        // Felder aufräumen (optional, wird nach Redirect eh neu geladen)
         $this->reset(['name', 'email']);
     }
 }

@@ -301,7 +301,7 @@ class CompanyResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return auth()->user()->is_admin ? 'Firmen/Kunden' : 'Meine Daten';
+        return auth()->user()->is_admin ? 'Firmen/Kunden' : 'Firmen Daten';
     }
 
     public static function getPages(): array

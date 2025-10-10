@@ -31,6 +31,8 @@ class Company extends Model
         'is_agency',
         'agency_discount_percent',
         'agency_company_id',
+        'billing_via_agency',
+        'billing_email_overwrite',
     ];
 
     protected $casts = [

@@ -29,6 +29,12 @@
         <div class="col-sm-6 mb-4">
             @php($company = \App\Helpers\CompanyHelper::currentCompany())
 
+            <?php
+echo \App\Helpers\CompanyHelper::currentCompanyId();
+            echo $company;
+
+
+            ?>
             @if ($company && $company->contracts()->doesntExist())
 
                 <input type="hidden" name="firstContract" value="1">

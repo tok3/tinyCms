@@ -32,12 +32,25 @@ class InvoiceService
     {
         $existingInvoice = null;
 
+
         if (array_key_exists('mollie_payment_id', $data) && $data['mollie_payment_id'] !== null) {
             $existingInvoice = Invoice::where('mollie_payment_id', $data['mollie_payment_id'])->first();
 
             if ($existingInvoice) {
                 return $existingInvoice;
             }
+        }
+
+        // Tenant holen (ursprüngliche Firma aus $data['company_id'])
+        $tenant = \App\Models\Company::find($data['company_id'] ?? null);
+
+        if ($tenant && (int)($tenant->billing_via_agency ?? 0) === 1 && !empty($tenant->agency_company_id)) {
+            // Rechnung soll über die Agency laufen
+            $data['company_id'] = (int) $tenant->agency_company_id;
+
+            // Merke im Invoice-Data, für wen die Rechnung ist (für PDF-Hinweis)
+            $data['data']['meta']['billed_for_company_name'] = $tenant->name;
+            $data['data']['meta']['billed_for_company_id']   = $tenant->id;
         }
 
         $invoice = new Invoice();
@@ -47,6 +60,25 @@ class InvoiceService
         $invoice->type = $this->invoiceNumberPrefix;
         $invoice->mollie_payment_id = $data['mollie_payment_id'] ?? null;
         $invoice->contract_id = $data['contract_id'] ?? null;
+
+        // Falls Contract vorhanden: Company ggf. auf Agency umbiegen
+        if (!empty($data['contract_id'])) {
+            $contract = \App\Models\Contract::find($data['contract_id']);
+            if ($contract) {
+                // Mandanten-Firma (der eigentliche Kunde am Vertrag)
+                $tenantCompany = $contract->contractable; // polymorph zu Company
+                if ($tenantCompany instanceof \App\Models\Company
+                    && (int)($tenantCompany->billing_by_agency ?? 0) === 1
+                    && !empty($tenantCompany->agency_company_id)
+                ) {
+                    // Rechnung an die Agency adressieren
+                    $data['company_id'] = (int)$tenantCompany->agency_company_id;
+                }
+            }
+        }
+
+
+        $invoice->company_id = $data['company_id'];
 
         // Fix: Verwende das mitgegebene issue_date, wenn vorhanden
         $invoice->issue_date = isset($data['issue_date']) ? Carbon::parse($data['issue_date']) : Carbon::now();
@@ -60,7 +92,7 @@ class InvoiceService
         $invoice->currency = $data['currency'] ?? 'EUR';
         $invoice->status = $data['status'];
 
-        // Fix: KEIN json_encode mehr → wir haben Casts auf array im Model
+
         $invoice->data = $data['data'];
 
         // XRechnung erzeugen
@@ -100,11 +132,18 @@ class InvoiceService
         $invoice = Invoice::with('company')->findOrFail($id);
 
         $additionalData = [];
+
         if($invoice['mollie_payment_id'] != "")
         {
         $additionalData['hint'] = 'Die Rechnung ist bereits Bezahlt über unseren Zahlungsdienstleister Mollie Transaktions-ID <strong>' . $invoice['mollie_payment_id'] . '</strong>';
         }
 
+        // Hinweis, wenn über Agency fakturiert wird
+        $billedFor = $invoice->data['meta']['billed_for_company_name'] ?? null;
+        if ($billedFor) {
+            $note = 'Rechnung für Kunde/Projekt: <strong>' . e($billedFor) . '</strong>';
+            $additionalData['agency_hint'] = $note;
+        }
 
         // PDF mit Blade-Template generieren
         $pdf = Pdf::loadView('accounting.invoice-pdf', compact('invoice', 'additionalData'))
@@ -378,6 +417,17 @@ class InvoiceService
         $invoice = Invoice::where('id', $invoiceId)->first();
         $receiver = $customReceiver ?? $invoice->company->email;
 
+        $tenantId = $invoice->data['meta']['billed_for_company_id'] ?? null;
+        if ($tenantId) {
+            $tenant = \App\Models\Company::find($tenantId);
+            if ($tenant && (int)($tenant->billing_email_override ?? 0) === 1 && !empty($tenant->agency_company_id)) {
+                $agency = \App\Models\Company::find($tenant->agency_company_id);
+                if ($agency && !empty($agency->email)) {
+                    $receiver = $agency->email;
+                }
+            }
+        }
+
         storage_path('app/invoices/');
         // Pfad zur gespeicherten PDF-Rechnung
         $pdfPath = storage_path('app/invoices/' . $invoice->invoice_number . '.pdf');
@@ -409,7 +459,7 @@ class InvoiceService
                 'status' => 'ok',
             ]);
 
-            return 'Rechnung wurde an '.$invoice->company->email.' versendet!';
+            return 'Rechnung wurde an '.$receiver.' versendet!';
 
         } catch (\Throwable $e) {
             // Logge Fehlerfall

@@ -26,7 +26,7 @@ use Filament\Pages\Dashboard;
 use Filament\MinimalTheme;
 use Filament\PluginServiceProvider;
 use Filament\Navigation\NavigationGroup;
-
+use App\Helpers\CompanyHelper;
 
 class DashboardPanelProvider extends PanelProvider
 {
@@ -41,15 +41,14 @@ class DashboardPanelProvider extends PanelProvider
 
 
 
-
         $widgets = [
             Widgets\AccountWidget::class,
             \App\Filament\Dashboard\Widgets\CalendarAppointmentWidget::class,
+            \App\Filament\Dashboard\Widgets\AgencyCreateCustomerWidget::class,
             \App\Filament\Dashboard\Widgets\FixsternInfoWidget::class,
             \App\Filament\Dashboard\Widgets\FixsternIntegrationWidget::class,
             \App\Filament\Dashboard\Widgets\ImageTagsIntegrationWidget::class,
             \App\Filament\Dashboard\Widgets\FirmamentInfoWidget::class,
-            \App\Filament\Dashboard\Widgets\AgencyCreateCustomerWidget::class,
 
         ];
 
@@ -96,12 +95,11 @@ class DashboardPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->navigationItems([
-
                 NavigationItem::make('Termin Vereinbaren')
                     ->url('https://calendar.google.com/calendar/appointments/schedules/AcZssZ002z7FSLxfqDLL47QcSvPz_XZbGC-2uwnyJso0MjsOmuNK9FDuwO_HG3uJKMpsWoLqfOBefBw9?gv=true', shouldOpenInNewTab: true)
                     ->icon('heroicon-o-calendar')
                     ->sort(99)
-                    ->visible(fn () => auth()->check()), // oder eigene Policy/Permission
+                    ->visible(fn () => auth()->check()  ), // oder eigene Policy/Permission
                 /*    NavigationItem::make('Firmendaten')
                         ->url('/'.$panel->getId().'/'.$tenant_id.'/companies/'.$tenant_id.'/edit', shouldOpenInNewTab: false)
                         ->icon('heroicon-o-newspaper')

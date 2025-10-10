@@ -19,6 +19,7 @@ use GuzzleHttp\Client;
 use App\Models\TemporaryUserData;
 use Illuminate\Support\Str;
 use App\Helpers\FormatHelper;
+use App\Helpers\CompanyHelper;
 
 /**
  *
@@ -72,8 +73,16 @@ class CheckoutController extends MolliePaymentController
 
         $user = \Auth::user();
 
-        if ($user && $user->companies->isNotEmpty() && $user->companies[0]->mollieCustomer)
+
+
+        if ($user && $user->companies->isNotEmpty() && $user->companies[0]->mollieCustomer )
         {
+
+            if($request->input('company'))
+            {
+                Company::where('id', $request->input('company_id'))->update($request->input('company'));
+
+            }
             // User hat bereits eine Company und damit eine Mollie Customer ID
             $molieCostomer = $user->companies[0]->mollieCustomer;
             $customerID = $molieCostomer->mollie_customer_id;
@@ -83,6 +92,7 @@ class CheckoutController extends MolliePaymentController
         }
         else
         {
+
 
 
             $name = $request->input('user')['vorname'] . ' ' . $request->input('user')['name'];
@@ -99,7 +109,7 @@ class CheckoutController extends MolliePaymentController
 
             if ($request->boolean('firstContract'))
             {
-                // wenn user einen reinen trial account hatte und die erste bestellung über das upgrade form macht
+                 // wenn user einen reinen trial account hatte und die erste bestellung über das upgrade form macht
 
                 // --- Company Update ---
                 $companyData = $request->input('company', []);
@@ -158,10 +168,13 @@ class CheckoutController extends MolliePaymentController
         if (($orderedProduct->payment_type == 'one_time' && $orderedProduct->price <= 0) || $request->input('pay_by_invoice') == 1)
         {
 
-            if (auth()->check())
-            {
-                // Eingeloggt = upgrade
-                $company = auth()->user()->companies[0];
+            if (auth()->check()) {
+
+                $company = \App\Helpers\CompanyHelper::currentCompany() ?? auth()->user()->companies->first();
+
+                if (!$company) {
+                    abort(400, 'Kein Mandant gewählt.');
+                }
             }
             else
             {
@@ -455,6 +468,7 @@ class CheckoutController extends MolliePaymentController
 
         $svc = new \App\Services\InvoiceService();
         $svc->createInvoice($invoiceData);
+
         $svc->sendInvoiceEmail();
     }
 

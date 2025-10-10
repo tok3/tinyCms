@@ -21,7 +21,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ViewField;
 use Filament\Forms\Components\Placeholder;
 use App\Forms\Components\InfoBox;
-
+use App\Helpers\CompanyHelper;
 class InvoiceResource extends Resource
 {
     protected static ?string $model = Invoice::class;
@@ -31,10 +31,12 @@ class InvoiceResource extends Resource
     // Navigation Label ändern
     public static function getNavigationLabel(): string
     {
+
         return 'Rechnungen'; // Name des Navigationseintrags
     }
     public static function getPluralModelLabel(): string
     {
+
         return 'Rechnungen';
     }
     // Navigation Group ändern
@@ -43,6 +45,17 @@ class InvoiceResource extends Resource
 //        return 'Finanzen'; // Name der Gruppe, in der der Eintrag erscheint
 //    }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        $company = CompanyHelper::currentCompany();
+
+        // Wenn die Firma über eine Agentur gemanaged wird → nicht in der Sidebar zeigen
+        if ($company && $company->billing_via_agency) {
+            return false;
+        }
+
+        return true;
+    }
 
     public static function canCreate(): bool
     {

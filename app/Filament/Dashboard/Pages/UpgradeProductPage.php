@@ -2,6 +2,7 @@
 
 namespace App\Filament\Dashboard\Pages;
 
+use App\Models\Company;
 use Filament\Pages\Page;
 use App\Models\Product;
 use App\Helpers\CompanyHelper;
@@ -16,6 +17,17 @@ class UpgradeProductPage extends Page
     // Optional: Navigationslabel auf null, wenn die Seite nicht in der Sidebar erscheinen soll
     protected static ?string $navigationLabel = null;
 
+    public static function getNavigationLabel(): string
+    {
+        if(CompanyHelper::currentCompany()->contracts()->count() == 0)
+        {
+            $company = \App\Models\Company::find(626);
+            CompanyHelper::setCurrentCompany($company);
+
+            return 'Produkte buchen'.CompanyHelper::currentCompany()->id;
+        }
+        return 'Produkt Update';
+    }
     // Öffentliche Variable, damit sie in der View verfügbar ist
     public $products;
 
@@ -60,6 +72,7 @@ class UpgradeProductPage extends Page
 
     public function getTitle(): string
     {
+
         return __('Produkte und Erweiterungen');
     }
 

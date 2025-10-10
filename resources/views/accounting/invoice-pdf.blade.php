@@ -160,6 +160,19 @@
         .panel-body h4 {
             font-weight: 600;
         }
+
+        .callout-info {
+            border-color: #002E63;
+
+        }
+
+        .callout-info h4 {
+            color: #002E63;
+        }
+
+        .panel-info h4 {
+            font-weight: 600;
+        }
     </style>
 
 </head>
@@ -241,6 +254,20 @@
                     <h4>Hinweis</h4>
 
                     <p>{!!  nl2br($additionalData['hint'])!!}</p>
+                </div>
+            </div>
+        </div>
+
+    @endif
+
+    @if(isset($additionalData['agency_hint']))
+
+        <div class="row m-t">
+            <div class="col-md-6">
+                <div class="callout callout-info">
+                    <h4>Hinweis</h4>
+
+                    <p>{!!  nl2br($additionalData['agency_hint'])!!}</p>
                 </div>
             </div>
         </div>
@@ -334,6 +361,12 @@
                 </div>
             </div>
 
+        @endif
+
+        @if(!empty($additionalData['proxy_note']))
+            <p style="margin: 6px 0; font-style: italic;">
+                {{ $additionalData['proxy_note'] }}
+            </p>
         @endif
 
         @if($invoice['mollie_payment_id'] == "" && $invoice['type'] !== 'KR')
