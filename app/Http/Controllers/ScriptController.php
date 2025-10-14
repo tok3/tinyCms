@@ -70,7 +70,7 @@ class ScriptController extends Controller
             $specialUlid = '01JE6A5H2NQZCT4P9N3FEZG2CX';
 
 
-            if ($companyFeatures->count() > 1) {
+            if ($companyFeatures->count() >= 1) {
                 //if ($companyFeatures->contains(fn($feature) => $feature->feature_id == 4)) {
                 if($company->hasFeature('image-alt-tags') == 1) {
                     $tool = 'img.min';
