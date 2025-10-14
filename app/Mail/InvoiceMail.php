@@ -33,8 +33,6 @@ class InvoiceMail extends Mailable  implements ShouldQueue
     public function build()
     {
 
-
-
         // Versende die E-Mail mit der angehängten PDF
         return $this->subject('Ihre Rechnung ' . $this->invoiceData->invoice_number)
             ->view('emails.invoice') // Die E-Mail-Ansicht
