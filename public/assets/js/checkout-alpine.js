@@ -319,9 +319,12 @@ window.checkoutAlpine = function () {
         validEmail(email) {
             const blacklist = [
                 '10minutemail.com',
+                '10minemail.com',
+                '@wegwerfemail.com',
                 'mailinator.com',
                 'guerrillamail.com',
                 'trashmail.com',
+                'Fakemailgenerator.com',
                 'tempmail.com',
                 'byom.de',
                 'fakeinbox.com',

@@ -79,6 +79,11 @@ Route::get('/dashboard/logout', function () {
 
 // ---
 
+// DEBUG: Preis-/Rabatt-Simulation (keine Seiteneffekte)
+Route::get('/debug/pricing', [\App\Http\Controllers\CheckoutController::class, 'debugPricing'])
+    ->name('debug.pricing');
+
+
 // routes/web.php (temporary test route)
 Route::get('/incluCert', [InkluCertController::class, 'showInkluCertForm'])->name('inklucert.form');
 Route::post('/incluCert', [InkluCertController::class, 'checkInkluCert'])->name('inklucert.check');

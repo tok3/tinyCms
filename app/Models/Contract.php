@@ -16,6 +16,7 @@ class Contract extends Model
         'order_date' => 'date',
         'subscription_start_date' => 'date',
         'data' => 'array',
+        'discount_percent' => 'float',
     ];
 
     protected $fillable = [
@@ -35,6 +36,8 @@ class Contract extends Model
         'start_date',
         'duration',
         'end_date',
+        'discount_percent',
+        'discount_label',
     ];
 
 
@@ -174,4 +177,9 @@ class Contract extends Model
             get: fn () => number_format($this->price * (1 + config('accounting.tax_rate') / 100), 2, ',', '.') . ' €',
         );
     }
+
+    public function scopeActive($q){ return $q->whereNull('end_date')->orWhere('end_date','>',now()); }
+
+    public function scopeForProduct($q,$productId){ return $q->where('product_id',$productId); }
+
 }

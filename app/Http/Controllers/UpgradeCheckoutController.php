@@ -14,6 +14,7 @@ class UpgradeCheckoutController extends Controller
 {
     public function show(Product $product)
     {
+
         $user = auth()->user();
         $company = $user->companies()->first();
 

@@ -20,23 +20,17 @@
             <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 
 
-
                 @foreach ($products as $product)
                     <div class="p-4 border border-gray-200 rounded-lg bg-white shadow">
                         <h3 class="text-xl font-bold text-gray-800">{{ $product->name }}</h3>
                         <p class="mt-2 text-gray-600">{!! $product->description !!}</p>
+                        @php
+                            $company = \App\Helpers\CompanyHelper::currentCompany();
+                        @endphp
 
-                        @if(
-       auth()->check() &&
-       auth()->user()->companies->isNotEmpty() &&
-       auth()->user()->companies->first()->contracts()
-           ->where('product_id', $product->id)
-           ->where('end_date', '>', now())
-           ->exists()
-   )
-                            <span class="inline-block mt-4 py-2 px-4 bg-green-600 text-white rounded">
-        Gebucht
-    </span>
+
+                        @if ($company && $company->contracts()->forProduct($product->id)->active()->exists())
+                            <span class="inline-block mt-4 py-2 px-4 bg-green-600 text-white rounded">Gebucht</span>
                         @else
 
                             <div class="mt-4">

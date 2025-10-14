@@ -28,8 +28,17 @@ class Company extends Model
         'logo_image',
         'logo_orig_filename',
         'kd_nr',
+        'is_agency',
+        'agency_discount_percent',
+        'agency_company_id',
+        'billing_via_agency',
+        'billing_email_overwrite',
     ];
 
+    protected $casts = [
+        'is_agency' => 'bool',
+        'agency_discount_percent' => 'float',
+    ];
     protected static function boot()
     {
         parent::boot();
@@ -69,6 +78,17 @@ class Company extends Model
         }
     }
 
+
+
+    public function clients() // inverse: von Agentur zu ihren Kunden
+    {
+        return $this->hasMany(self::class, 'agency_company_id');
+    }
+
+    public function isManagedByAgency(): bool
+    {
+        return ! is_null($this->agency_company_id);
+    }
     protected static function booted()
     {
         static::created(function (Company $company) {
@@ -112,6 +132,20 @@ class Company extends Model
         return $this->hasMany(CompanyScanLog::class);
     }
 
+    public function agency() // falls es eine Kundenfirma ist
+    {
+        return $this->belongsTo(self::class, 'agency_company_id');
+    }
+
+    public function isAgency(): bool
+    {
+        return (bool) $this->is_agency;
+    }
+
+    public function effectiveDiscountPercent(): float
+    {
+        return (float) ($this->agency_discount_percent ?? 0);
+    }
     /**
      * @return int
      *

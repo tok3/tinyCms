@@ -132,6 +132,7 @@
                 //updateProductDetails({{session('product_id')}});
 
 
+                $('#compName').val  ("{{ $cachedUser['name'] ?? '' }}");
                 $('#customer-name').text("{{ $cachedUser['name'] ?? '' }}");
                 $('#company-name').text("{{ $cachedUser['company']['name'] ?? '' }}");
                 $('#customer-address').text("{{ $cachedUser['company']['str'] ?? '' }}");

@@ -61,6 +61,8 @@ Route::post('/molliesubscription', CreateSubscriptionController::class)->name('c
 
 //Route::post('/webhooks/mollie', [WebhookController::class, 'handleWebhook'])->name('ng-webhook');
 
+// rg test
+
 // molllie test
 
 Route::get('/mollie/index', [MollieTestController::class, 'index']);
@@ -79,4 +81,6 @@ Route::get('/test-payment-webhook', function () {
     return app(App\Http\Controllers\MolliePaymentController::class)
         ->handlePaymentNotification($request);
 });
+
+
 // ende mollie test
