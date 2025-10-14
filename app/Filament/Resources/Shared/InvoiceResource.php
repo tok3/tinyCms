@@ -22,6 +22,7 @@ use Filament\Forms\Components\ViewField;
 use Filament\Forms\Components\Placeholder;
 use App\Forms\Components\InfoBox;
 use App\Helpers\CompanyHelper;
+use Filament\Tables\Columns\TextColumn;
 class InvoiceResource extends Resource
 {
     protected static ?string $model = Invoice::class;
@@ -356,6 +357,15 @@ class InvoiceResource extends Resource
                     ->label('Rg-Nr')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('billed_for_company_name')
+                    ->label('Rechnung für')
+                    ->state(fn ($record) => data_get($record->data, 'meta.billed_for_company_name') ?: '-')
+                    ->searchable(query: function ($query, string $search) {
+                        return $query->where('data->meta->billed_for_company_name', 'like', "%{$search}%");
+                    })
+                    ->visible(fn () => CompanyHelper::currentCompany()?->is_agency)
+                    ->sortable(false)
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('company.name')
                     ->label('Firma')
                     ->searchable()

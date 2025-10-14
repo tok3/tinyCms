@@ -15,6 +15,11 @@ use Filament\Resources\Pages\EditRecord;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use App\Models\Company;
+use Illuminate\Support\HtmlString;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\View as ViewField;
+use App\Filament\Resources\Shared\CompanyResource;
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
@@ -32,6 +37,13 @@ class UserResource extends Resource
                     ->required()
                     ->label('Email')
                     ->email(),
+                Forms\Components\Section::make('Zugeordnete Firmen')
+                    ->schema([
+                        ViewField::make('user-companies')
+                            ->view('filament.components.user-companies')
+                            ->columnSpanFull()
+                            ->visibleOn('edit'),
+                    ]),
                 ]);
     }
 
@@ -39,28 +51,31 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('kd_nr')
                     ->label('KD-Nr')
-                    ->getStateUsing(fn(User $user) =>
-                    $user->companies
-                        ->pluck('kd_nr')
-                        ->implode(', ')
-                    ),
-                Tables\Columns\TextColumn::make('id') // Real existierendes Feld
-                ->label('Companies')
-                    ->getStateUsing(function (User $record) {
-                        return $record->companies->pluck('name')->implode(', ');
+                    ->getStateUsing(function (User $user) {
+                        $c = $user->companies->firstWhere('is_agency', 1) ?? $user->companies->first();
+                        return $c?->kd_nr ?? '—';
                     })
-                    ->sortable(function (Builder $query) {
-                        $direction = request()->get('sortDirection', 'asc');
-
-                        return $query
-                            ->leftJoin('company_user', 'users.id', '=', 'company_user.user_id')
-                            ->leftJoin('companies', 'companies.id', '=', 'company_user.company_id')
-                            ->orderBy('companies.name', $direction)
-                            ->select('users.*');
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->whereHas('companies', function (Builder $q) use ($search) {
+                            $q->where('companies.kd_nr', 'like', "%{$search}%");
+                        });
+                    }),
+                Tables\Columns\TextColumn::make('company_name')
+                    ->label('Firma')
+                    ->getStateUsing(function (User $user) {
+                        $c = $user->companies->firstWhere('is_agency', 1) ?? $user->companies->first();
+                        return $c?->name ?? '—';
                     })
-                    ->searchable(),
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->whereHas('companies', function (Builder $q) use ($search) {
+                            $q->where('companies.name', 'like', "%{$search}%");
+                        });
+                    }),
                 Tables\Columns\TextColumn::make('name')
                     ->label('Name')
                   ->searchable(),

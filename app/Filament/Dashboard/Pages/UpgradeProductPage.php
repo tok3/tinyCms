@@ -19,54 +19,57 @@ class UpgradeProductPage extends Page
 
     public static function getNavigationLabel(): string
     {
-        if(CompanyHelper::currentCompany()->contracts()->count() == 0)
+        if (CompanyHelper::currentCompany()->contracts()->count() == 0)
         {
-            $company = \App\Models\Company::find(626);
-            CompanyHelper::setCurrentCompany($company);
 
-            return 'Produkte buchen'.CompanyHelper::currentCompany()->id;
+            return 'Produkte buchen';
         }
+
         return 'Produkt Update';
     }
+
     // Öffentliche Variable, damit sie in der View verfügbar ist
     public $products;
 
     public function mount(): void
     {
-     //   if (\Auth::check() && !session()->has('cached_user')) {
-            $user = \Auth::user();
-            $company = $user->companies->first(); // oder [0], je nachdem
+        //   if (\Auth::check() && !session()->has('cached_user')) {
+        $user = \Auth::user();
+        //$company = $user->companies->first(); // oder [0], je nachdem
 
         $company = CompanyHelper::currentCompany();
 
-            session()->put('cached_user', [
-                'name' => $user->name,
-                'email' => $user->email,
-                'company' => [
-                    'id' => $company?->id,
-                    'name' => $company?->name,
-                    'str' => $company?->str,
-                    'plz' => $company?->plz,
-                    'ort' => $company?->ort,
-                    'email' => $company?->email,
-                ],
-            ]);
-       // }
+        session()->put('cached_user', [
+            'name' => $user->name,
+            'email' => $user->email,
+            'company' => [
+                'id' => $company?->id,
+                'name' => $company?->name,
+                'str' => $company?->str,
+                'plz' => $company?->plz,
+                'ort' => $company?->ort,
+                'email' => $company?->email,
+            ],
+            'tenant' => $company,
+        ]);
+        // }
 
 
-
-        if ($company && ! $company->contracts()->exists()) {
+        if ($company && !$company->contracts()->exists())
+        {
             // Trial: alle regulären Pakete anzeigen (aktiv + sichtbar)
             $this->products = Product::query()
                 ->where('active', 1)   // passe ggf. Spaltennamen an: is_active
                 ->where('visible', 1)  // ggf. is_visible
                 ->orderBy('sequence')      // falls vorhanden
                 ->get();
-        } else {
+        }
+        else
+        {
             // Bisheriges Verhalten (Upgrade-Produkte + Visibility-Check)
             $this->products = Product::where('upgrade', 1)
                 ->get()
-                ->filter(fn ($product) => $product->isVisibleForCompany($company));
+                ->filter(fn($product) => $product->isVisibleForCompany($company));
         }
     }
 

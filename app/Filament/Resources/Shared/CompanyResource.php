@@ -22,6 +22,9 @@ use Filament\Forms\Components\Tabs;
 use Filament\Notifications\Notification;
 use Filament\Facades\Filament;
 use App\Filament\Resources\Admin\ContractResource;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\View as ViewField;
+
 class CompanyResource extends Resource
 {
     protected static ?string $model = Company::class;
@@ -36,12 +39,47 @@ class CompanyResource extends Resource
     {
         return $form
             ->schema([
+
                 Forms\Components\Tabs::make('Company Information')
+
                     ->tabs([
                         Forms\Components\Tabs\Tab::make('Firmendetails')
                             ->schema([
-                                Forms\Components\Section::make('Firmendetails')
+                                Forms\Components\Section::make(function ($record) {
+                                    $title = 'Firmendetails';
+                                    $basePath = asset(config('filament.icons.path', 'assets/icons'));
+
+                                    if ($record) {
+                                        if ($record->is_agency) {
+                                            // Agency-Icon (blau)
+                                            $icon = sprintf(
+                                                '<img src="%s/tenancy.svg" class="w-4 h-4 inline-block ml-2" style="color:#3b82f6;" alt="Agency">',
+                                                $basePath
+                                            );
+                                        } elseif (! empty($record->agency_company_id)) {
+                                            // Tenant-Icon (grün)
+                                            $icon = sprintf(
+                                                '<img src="%s/tenant.svg" class="w-4 h-4 inline-block ml-2" style="color:#10b981;" alt="Tenant">',
+                                                $basePath
+                                            );
+                                        } else {
+                                            // Standard → Heroicon
+                                            $icon = '<x-heroicon-o-building-office-2 class="w-4 h-4 inline-block ml-2 text-gray-400" />';
+                                        }
+
+                                        $title .= $icon;
+                                    }
+
+                                    return new HtmlString($title);
+                                })
                                     ->schema([
+                                        ViewField::make('agencyBadge')
+                                            ->view('filament.components.company-agency-banner')
+                                            ->columns(2)
+                                            ->visible(fn ($record) =>
+                                                (auth()->user()?->is_admin ?? false)
+                                                && ! empty($record?->agency_company_id)
+                                            ),
                                         FileUpload::make('logo_image')
                                             ->label('Firmenlogo')
                                             ->disk('public')
@@ -138,6 +176,16 @@ class CompanyResource extends Resource
                                             ->default(20)
                                             ->visible(fn (callable $get) => (bool) $get('is_agency'))
                                             ->required(fn (callable $get) => (bool) $get('is_agency')),
+
+                                        Section::make('Mandanten dieser Agentur')
+                                            ->visible(fn ($record) => (bool) ($record?->is_agency))   // nur zeigen, wenn Agentur
+                                            ->schema([
+                                                ViewField::make('agency-tenants')
+                                                    ->view('filament.components.agency-tenants')      // Blade unten
+                                                    ->columnSpanFull(),
+                                            ]),
+
+
                                     ])
                                     ->columns(2),
 

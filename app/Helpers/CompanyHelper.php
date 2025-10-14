@@ -21,8 +21,10 @@ class CompanyHelper
     public static function currentCompany(): ?Company
     {
         // 1) Tenant aus Filament (höchste Prio, wenn im Panel)
+
         try {
             if (app()->bound('filament')) {
+
                 $tenant = Filament::getTenant();
                 if ($tenant instanceof Company) {
                     self::setCurrentCompany($tenant);

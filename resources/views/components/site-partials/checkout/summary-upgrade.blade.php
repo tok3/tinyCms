@@ -27,14 +27,11 @@
 
     <div class="row">
         <div class="col-sm-6 mb-4">
-            @php($company = \App\Helpers\CompanyHelper::currentCompany())
-
-            <?php
-echo \App\Helpers\CompanyHelper::currentCompanyId();
-            echo $company;
 
 
-            ?>
+            @php($company = session()->get('cached_user')['tenant'])
+
+
             @if ($company && $company->contracts()->doesntExist())
 
                 <input type="hidden" name="firstContract" value="1">
@@ -49,7 +46,7 @@ echo \App\Helpers\CompanyHelper::currentCompanyId();
 
                             <div class="text-danger mb-1" x-text="errors.vorname"></div>
                             <div class="input-icon-group mb-3">
-                                    <span class="input-icon"><i class="bx bx-user"></i></span>
+                                <span class="input-icon"><i class="bx bx-user"></i></span>
                                 <input id="vorname" class="form-control" id="customer-name" name="user[vorname]" type="text" placeholder="Vorname" x-model="form.vorname">
                             </div>
                         </div>
@@ -67,7 +64,7 @@ echo \App\Helpers\CompanyHelper::currentCompanyId();
                     <div class="row">
 
                         <div class="col-md-12">
-                            <small>Firmenangaben</small>
+                            <small> {{ $company->billing_via_agency ? 'Firmenname / Projektname / Domain' : 'Firmenangaben' }}</small>
                             <div class="text-danger mb-1" x-text="errors.company"></div>
                             <div class="input-icon-group mb-3">
                                 <span class="input-icon"><i class="bx bx-map"></i></span>
@@ -75,48 +72,51 @@ echo \App\Helpers\CompanyHelper::currentCompanyId();
                             </div>
                         </div>
 
-                        <!-- Firmen-Email -->
-                        <div class="col-md-12">
-                            <div class="text-danger mb-1" x-text="errors.company_email"></div>
-                            <div class="input-icon-group mb-3">
-                                <span class="input-icon"><i class="bx bx-envelope"></i></span>
-                                <input id="compEmail" class="form-control" name="company[email]" type="email" placeholder="Firma Email / Rechnungsemail" x-model="form.company_email">
+                        @if($company->billing_via_agency == 0)
+                            <!-- Firmen-Email -->
+                            <div class="col-md-12">
+                                <div class="text-danger mb-1" x-text="errors.company_email"></div>
+                                <div class="input-icon-group mb-3">
+                                    <span class="input-icon"><i class="bx bx-envelope"></i></span>
+                                    <input id="compEmail" class="form-control" name="company[email]" type="email" placeholder="Firma Email / Rechnungsemail" x-model="form.company_email">
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Straße -->
-                        <div class="col-md-12">
-                            <div class="text-danger mb-1" x-text="errors.street"></div>
-                            <div class="input-icon-group mb-3">
-                                <span class="input-icon"><i class="bx bx-map"></i></span>
-                                <input id="str" class="form-control" required="required" name="company[str]" type="text" placeholder="Straße / Haus-Nr." x-model="form.street">
+                            <!-- Straße -->
+                            <div class="col-md-12">
+                                <div class="text-danger mb-1" x-text="errors.street"></div>
+                                <div class="input-icon-group mb-3">
+                                    <span class="input-icon"><i class="bx bx-map"></i></span>
+                                    <input id="str" class="form-control" required="required" name="company[str]" type="text" placeholder="Straße / Haus-Nr." x-model="form.street">
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- PLZ & Ort -->
-                        <div class="col-md-4">
-                            <div class="text-danger mb-1" x-text="errors.plz"></div>
-                            <div class="input-icon-group mb-3">
-                                <span class="input-icon"><i class="bx bx-map-pin"></i></span>
-                                <input id="plz" class="form-control" name="company[plz]" type="text" placeholder="PLZ / Postcode" x-model="form.plz">
+                            <!-- PLZ & Ort -->
+                            <div class="col-md-4">
+                                <div class="text-danger mb-1" x-text="errors.plz"></div>
+                                <div class="input-icon-group mb-3">
+                                    <span class="input-icon"><i class="bx bx-map-pin"></i></span>
+                                    <input id="plz" class="form-control" name="company[plz]" type="text" placeholder="PLZ / Postcode" x-model="form.plz">
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="col-md-8">
-                            <div class="text-danger mb-1" x-text="errors.ort"></div>
-                            <div class="input-icon-group mb-3">
-                                <span class="input-icon"><i class="bx bx-buildings"></i></span>
-                                <input id="ort" class="form-control" name="company[ort]" type="text" placeholder="Ort" x-model="form.ort">
+                            <div class="col-md-8">
+                                <div class="text-danger mb-1" x-text="errors.ort"></div>
+                                <div class="input-icon-group mb-3">
+                                    <span class="input-icon"><i class="bx bx-buildings"></i></span>
+                                    <input id="ort" class="form-control" name="company[ort]" type="text" placeholder="Ort" x-model="form.ort">
+                                </div>
                             </div>
-                        </div>
                     </div>
+                    @endif
                 </fieldset>
 
             @else
                 <input type="hidden" id="compName" name="company[name]" value="">
                 <input type="hidden" name="user[email]" value="{{\Auth::user()->email}}">
-                <div class="h6 d mb-2">Rechnungsempfänger:</div>
-                <div id="customer-name"></div>
+                <div class="h6 d mb-2"> {{ $company->billing_via_agency ? '' : 'Rechnungsempfänger' }}</div>
+                <div id="customer-name"></div><br>
+                {!!   $company->billing_via_agency ? '<strong>Kunde / Projektname / Domain</strong>' : '' !!}
                 <div id="company-name"></div>
                 <div id="customer-address"></div>
                 <div id="customer-plz-ort"></div>
@@ -172,23 +172,42 @@ echo \App\Helpers\CompanyHelper::currentCompanyId();
     <hr>
     <div class="row">
         <fieldset class="mb-4" id="by-invoice">
-            <legend>Abonnement Zahlungsweise</legend>
-            <div id="pay_by_invoice_error"></div>
-            <div class="form-group">
 
-                <input type="radio" name="pay_by_invoice" value="0" id="payment_creditcard">
 
-                <label for="payment_creditcard">&nbsp;<i class="bi bi-credit-card"></i>&nbsp;<i class="bi bi-paypal"></i>&nbsp;<i class="bi bi-wallet2"></i>&nbsp;<i
-                        class="bi bi-credit-card-2-front"></i> Standard</label>
-                &nbsp;&nbsp;&nbsp; <input type="radio" name="pay_by_invoice" value="1" id="payment_sepa">
-                <label for="payment_sepa"><i class="bi bi-receipt"></i> Kauf auf Rechnung </label>
-            </div>
+            @if($company && $company->billing_via_agency)
+                {{-- Automatische Abrechnung über Agentur --}}
+                <input type="hidden" name="pay_by_invoice" value="1">
+                <div class="alert alert-info mt-2 p-2 small col-md-8">
+                    <i class="bi bi-info-circle"></i>
+                    Die Abrechnung erfolgt über Ihre Agentur
+                    <strong>{{ optional($company->agency)->name }}</strong>.<br> Die Preise die Sie hier sehen sind die Endpreise für Ihren Kunde, der Agenturrabatt von <strong>{{ optional($company->agency)->agency_discount_percent }}%</strong> wird auf der Rechnung abgezogen </p>
+                </div>
+            @else
+                {{-- Normale Zahlungsoptionen --}}
+                <legend>Abonnement Zahlungsweise</legend>
+                <div id="pay_by_invoice_error"></div>
+                <div class="form-group">
+                    <input type="radio" name="pay_by_invoice" value="0" id="payment_creditcard">
+                    <label for="payment_creditcard">
+                        &nbsp;<i class="bi bi-credit-card"></i>
+                        &nbsp;<i class="bi bi-paypal"></i>
+                        &nbsp;<i class="bi bi-wallet2"></i>
+                        &nbsp;<i class="bi bi-credit-card-2-front"></i>
+                        Standard
+                    </label>
 
-            <div class="form-group" id="iban_container" style="display: none; margin-top: 15px;">
-                <label for="iban">IBAN</label>
-                <input type="text" class="form-control" name="iban" id="iban" placeholder="Ihre IBAN">
-                <span class="text-danger" id="iban-error"></span>
-            </div>
+                    &nbsp;&nbsp;&nbsp;
+
+                    <input type="radio" name="pay_by_invoice" value="1" id="payment_sepa">
+                    <label for="payment_sepa"><i class="bi bi-receipt"></i> Kauf auf Rechnung </label>
+                </div>
+
+                <div class="form-group" id="iban_container" style="display: none; margin-top: 15px;">
+                    <label for="iban">IBAN</label>
+                    <input type="text" class="form-control" name="iban" id="iban" placeholder="Ihre IBAN">
+                    <span class="text-danger" id="iban-error"></span>
+                </div>
+            @endif
         </fieldset>
         <div id="priv" novalidate="novalidate">
             <div class="col-md-12">

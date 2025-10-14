@@ -55,6 +55,7 @@ class CheckoutController extends MolliePaymentController
     private function firstPayment(Request $request)
     {
 
+
         $selection = $request->input('product_selection');       // z.B. "3:annual"
         if (!$selection || !str_contains($selection, ':'))
         {
@@ -74,11 +75,10 @@ class CheckoutController extends MolliePaymentController
         $user = \Auth::user();
 
 
-
-        if ($user && $user->companies->isNotEmpty() && $user->companies[0]->mollieCustomer )
+        if ($user && $user->companies->isNotEmpty() && $user->companies[0]->mollieCustomer)
         {
 
-            if($request->input('company'))
+            if ($request->input('company'))
             {
                 Company::where('id', $request->input('company_id'))->update($request->input('company'));
 
@@ -92,7 +92,6 @@ class CheckoutController extends MolliePaymentController
         }
         else
         {
-
 
 
             $name = $request->input('user')['vorname'] . ' ' . $request->input('user')['name'];
@@ -109,7 +108,7 @@ class CheckoutController extends MolliePaymentController
 
             if ($request->boolean('firstContract'))
             {
-                 // wenn user einen reinen trial account hatte und die erste bestellung über das upgrade form macht
+                // wenn user einen reinen trial account hatte und die erste bestellung über das upgrade form macht
 
                 // --- Company Update ---
                 $companyData = $request->input('company', []);
@@ -168,17 +167,26 @@ class CheckoutController extends MolliePaymentController
         if (($orderedProduct->payment_type == 'one_time' && $orderedProduct->price <= 0) || $request->input('pay_by_invoice') == 1)
         {
 
-            if (auth()->check()) {
+
+            if (auth()->check())
+            {
+
+                if (isset(session()->get('cached_user')['tenant']))
+                {
+                    \App\Helpers\CompanyHelper::setCurrentCompany(session()->get('cached_user')['tenant']);
+                }
 
                 $company = \App\Helpers\CompanyHelper::currentCompany() ?? auth()->user()->companies->first();
 
-                if (!$company) {
+
+                if (!$company)
+                {
                     abort(400, 'Kein Mandant gewählt.');
                 }
             }
             else
             {
-                  $company = $this->initCompanyAccount($customerID);
+                $company = $this->initCompanyAccount($customerID);
 
             }
 
@@ -233,10 +241,14 @@ class CheckoutController extends MolliePaymentController
         }
 
         $actingCompany = auth()->check() ? (auth()->user()->companies->first() ?? null) : null;
-        if ($actingCompany && (int)($actingCompany->is_agency ?? 0) === 1 && (float)($actingCompany->agency_discount_percent ?? 0) > 0) {
-            $agencyPct = (float) $actingCompany->agency_discount_percent;
-            $price = (int) round($price * (1 - ($agencyPct / 100)));
-            if ($price < 1) { $price = 1; } // Mollie darf keinen 0-Betrag bekommen
+        if ($actingCompany && (int)($actingCompany->is_agency ?? 0) === 1 && (float)($actingCompany->agency_discount_percent ?? 0) > 0)
+        {
+            $agencyPct = (float)$actingCompany->agency_discount_percent;
+            $price = (int)round($price * (1 - ($agencyPct / 100)));
+            if ($price < 1)
+            {
+                $price = 1;
+            } // Mollie darf keinen 0-Betrag bekommen
         }
 
         if ($orderedProduct->trial_period_days > 0)
@@ -451,15 +463,16 @@ class CheckoutController extends MolliePaymentController
 
 
         // Contract-Snapshot updaten, damit Recurrings identische Netto-Positionen bekommen
-        if ($contract) {
+        if ($contract)
+        {
             $data = $contract->data ?? [];
             $data['pricing_snapshot'] = [
-                'items'     => $items,           // netto-Positionsliste (wie fürs PDF)
+                'items' => $items,           // netto-Positionsliste (wie fürs PDF)
                 'total_net' => $total_net,       // optional, kann man auch bei Recurring neu summieren
-                'meta'      => [
-                    'coupon_code'     => $couponCode ?? null,      // wenn bekannt
-                    'agency_percent'  => $agencyPct ?? null,       // wenn angewendet
-                    'captured_at'     => now()->toDateTimeString()
+                'meta' => [
+                    'coupon_code' => $couponCode ?? null,      // wenn bekannt
+                    'agency_percent' => $agencyPct ?? null,       // wenn angewendet
+                    'captured_at' => now()->toDateTimeString()
                 ],
             ];
             $contract->data = $data;
