@@ -335,6 +335,15 @@ class InvoiceService
             ->setDocumentBuyerCommunication('EM', $company->email);
 
 
+        // Leitweg-ID (BT-10) nur setzen, wenn vorhanden
+        if (!empty($company->leitweg_id)) {
+            // Option A (neutral, empfohlen):
+            $document->setDocumentBuyerReference($company->leitweg_id);
+
+            // Option B (Alias, identisches Ergebnis):
+            // $document->setDocumentRoutingId($company->leitweg_id);
+        }
+
         if (!empty($invoiceData['mollie_payment_id'])) {
             $document->addDocumentPaymentMean("59", "Mollie Payment ID: " . $invoiceData['mollie_payment_id']);
         } else {

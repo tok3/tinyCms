@@ -28,6 +28,7 @@ class Company extends Model
         'logo_image',
         'logo_orig_filename',
         'kd_nr',
+        'leitweg_id',
         'is_agency',
         'agency_discount_percent',
         'agency_company_id',

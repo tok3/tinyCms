@@ -47,11 +47,19 @@
                         </div>
 
                         <!-- Firmen-Email -->
-                        <div class="col-md-12">
+                        <div class="col-md-7">
                             <div class="text-danger mb-1" x-text="errors.company_email"></div>
                             <div class="input-icon-group mb-3">
                                 <span class="input-icon"><i class="bx bx-envelope"></i></span>
                                 <input id="compEmail" class="form-control" name="company[email]" type="email" placeholder="Firma Email / Rechnungsemail" x-model="form.company_email">
+                            </div>
+                        </div>
+                    <!-- leitweg id -->
+                        <div class="col-md-5">
+                            <div class="text-danger mb-1"></div>
+                            <div class="input-icon-group mb-3">
+                                <span class="input-icon"><i class="bi bi-file-binary"></i></span>
+                                <input  class="form-control" name="company[leitweg_id]" type="text" placeholder="Leitweg-ID (optional)" x-model="form.company_leitwegID">
                             </div>
                         </div>
 
