@@ -27,6 +27,7 @@ return [
             'country' => 'DE',
         ],
         'contact' => [
+            'phone' => '+4960211307128',
             'email' => 'info@aktion-barrierefrei.org',
         ],
         'bank' => [

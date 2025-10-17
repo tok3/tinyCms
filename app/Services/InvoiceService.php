@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Invoice;
 use App\Models\Company;
 use App\Models\InvoicesSent;
-
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use App\Models\InvoiceCounter;
@@ -13,7 +12,6 @@ use horstoeko\zugferd\ZugferdDocumentBuilder;
 use horstoeko\zugferd\ZugferdProfiles;
 use horstoeko\zugferd\ZugferdDocumentPdfBuilder;
 use horstoeko\zugferd\ZugferdDocumentPdfMerger;
-
 use TCPDF;
 use App\Mail\InvoiceMail;
 use Illuminate\Support\Facades\Mail;
@@ -97,6 +95,8 @@ class InvoiceService
 
         // XRechnung erzeugen
         $data['xrechnung_data'] = $this->generateXRechnungData($invoice);
+echo $data['xrechnung_data'];
+        die();
         $invoice->xrechnung_data = $data['xrechnung_data'];
 
         $invoice->save();
@@ -299,7 +299,158 @@ class InvoiceService
      * @param object $invoiceData
      * @return string
      */
+
     private function generateXRechnungData(object $invoiceData): string
+    {
+        $companyDetails = config('accounting.company_details');
+        $company = Company::find($invoiceData['company_id']);
+        $issueDate = Carbon::parse($invoiceData['issue_date'])->toDateTime();
+        $dueDate = Carbon::parse($invoiceData['due_date'])->toDateTime();
+        $data = $invoiceData['data'];
+        $iban = $companyDetails['bank']['iban'];
+        $bic = $companyDetails['bank']['bic'];
+
+        // Validierung der Käufer-Adresse
+        if (empty($company->str) || empty($company->plz) || empty($company->ort) || !is_numeric($company->plz) || !preg_match('/^[A-Za-zäöüÄÖÜß\s-]{2,50}$/', $company->ort)) {
+            throw new \Exception("Ungültige Käufer-Adresse für Rechnung {$invoiceData['invoice_number']}: str={$company->str}, plz={$company->plz}, ort={$company->ort}");
+        }
+
+        // Validierung der Käufer-E-Mail
+        $buyerEmail = $company->email ?? 'unknown@example.com'; // Fallback-E-Mail
+        if (empty($company->email)) {
+            \Log::warning("Keine E-Mail für Käufer {$company->id} (Rechnung {$invoiceData['invoice_number']}) angegeben, Fallback verwendet: $buyerEmail");
+        } elseif (!filter_var($buyerEmail, FILTER_VALIDATE_EMAIL)) {
+            throw new \Exception("Ungültige Käufer-E-Mail für Rechnung {$invoiceData['invoice_number']}: $buyerEmail");
+        }
+
+        // Bereinige Telefonnummer ins internationale Format
+        $phone = preg_replace('/[^0-9+]/', '', $companyDetails['contact']['phone']);
+        if (!preg_match('/^\+\d{8,15}$/', $phone)) {
+            throw new \Exception("Ungültige Telefonnummer für Verkäufer: {$companyDetails['contact']['phone']}");
+        }
+
+        // XRechnungs-Typ: 380 = Rechnung, 381 = Gutschrift (Korrekturrechnung)
+        $typeCode = $invoiceData['total_gross'] < 0 ? "381" : "380";
+
+        $document = ZugferdDocumentBuilder::CreateNew(ZugferdProfiles::PROFILE_XRECHNUNG);
+
+        $document
+            ->setDocumentInformation($invoiceData['invoice_number'], $typeCode, $issueDate, config('accounting.currency'))
+            ->setDocumentBusinessProcess($companyDetails['business_process'])
+            ->setDocumentSupplyChainEvent($issueDate)
+            ->setDocumentSeller($companyDetails['name'])
+            ->addDocumentSellerGlobalId($companyDetails['global_id']['id'], $companyDetails['global_id']['scheme'])
+            ->addDocumentSellerTaxRegistration("VA", $companyDetails['tax_registration']['vat_id'])
+            ->addDocumentSellerTaxRegistration("FC", $companyDetails['tax_registration']['tax_number'])
+            ->setDocumentSellerAddress(
+                $companyDetails['address']['street'],
+                "",
+                "",
+                $companyDetails['address']['postal_code'],
+                $companyDetails['address']['city'],
+                $companyDetails['address']['country']
+            )
+            ->setDocumentSellerContact(
+                'Kontaktperson',
+                null,
+                $phone,
+                null,
+                $companyDetails['contact']['email']
+            )
+            ->setDocumentBuyer(trim($company->name . ' ' . $company->name2), $company->id)
+            ->setDocumentBuyerAddress($company->str, "", "", $company->plz, $company->ort, "DE")
+            ->setDocumentBuyerCommunication('EM', $buyerEmail);
+
+        // BuyerReference: Leitweg-ID oder Fallback auf contract_id
+        $buyerReference = !empty($company->leitweg_id)
+            ? $company->leitweg_id
+            : str_pad($invoiceData['contract_id'] ?? $invoiceData['company_id'], 5, '0', STR_PAD_LEFT);
+        $document->setDocumentBuyerReference($buyerReference);
+
+        // Zahlungsfrist hinzufügen
+        $document->addDocumentPaymentTerm('Zahlung fällig bis ' . $dueDate->format('Y-m-d'), $dueDate);
+
+        // Zahlungsmittel
+        if (!empty($invoiceData['mollie_payment_id'])) {
+            $document->addDocumentPaymentMean("59", "Mollie Payment ID: " . $invoiceData['mollie_payment_id']);
+        } else {
+            $document->addDocumentPaymentMean("31", "Zahlung per Überweisung an IBAN $iban, BIC $bic");
+        }
+
+        // Referenz auf Ursprungsrechnung (bei Korrekturrechnung)
+        if ($typeCode === "381" && isset($invoiceData['ref_to_id'])) {
+            $original = Invoice::find($invoiceData['ref_to_id']);
+            if ($original) {
+                $document->addDocumentNote("Referenz auf Ursprungsrechnung: " . $original->invoice_number);
+                $document->addDocumentNote("Dies ist eine Korrekturrechnung – keine Zahlung erforderlich.");
+            }
+        }
+
+        // Positionen mit bereinigter Artikelbezeichnung
+        foreach ($data['items'] as $index => $item) {
+            // Bereinige HTML-Entities, unerlaubte Zeichen und Sonderzeichen
+            $description = htmlspecialchars_decode($item['description'], ENT_QUOTES | ENT_HTML5);
+            $description = preg_replace('/[<>&]/', '', $description); // Entferne <, >, &
+            $description = preg_replace('/\s+/', ' ', $description); // Entferne doppelte Leerzeichen
+            $description = preg_replace('/\+(\.\.\.)?$/', '', $description); // Entferne + oder +...
+            // Entferne doppelte Begriffe (z.B. "Einfache Sprache Einfache Sprache")
+            $description = preg_replace('/\b(\w+\s+\w+)\s+\1\b/', '$1', $description);
+            // Entferne doppelte Wörter durch / getrennt (z.B. "vorlesen/vorlesen")
+            $description = preg_replace('/\b(\w+)\/\1\b/', '$1', $description);
+            $description = trim($description);
+
+            $document->addNewPosition($index + 1)
+                ->setDocumentPositionProductDetails(
+                    $description ?: 'Dienstleistung', // Fallback, falls leer
+                    $typeCode === "381" ? "Korrekturposition" : "",
+                    "",
+                    null,
+                    "0160",
+                    null
+                )
+                ->setDocumentPositionNetPrice($item['line_total_amount'])
+                ->setDocumentPositionQuantity($item['quantity'], "H87")
+                ->addDocumentPositionTax('S', 'VAT', $invoiceData['tax_rate'])
+                ->setDocumentPositionLineSummation($item['line_total_amount']);
+        }
+
+        // Summen
+        $document
+            ->addDocumentTax("S", "VAT", $invoiceData['total_net'], $invoiceData['tax'], $invoiceData['tax_rate'])
+            ->setDocumentSummation(
+                $invoiceData['total_gross'],
+                $invoiceData['total_gross'],
+                $invoiceData['total_net'],
+                0.0,
+                0.0,
+                $invoiceData['total_net'],
+                $invoiceData['tax'],
+                null,
+                0.0
+            );
+
+        // XML generieren
+        $xmlContent = $document->getContent();
+
+        // XRechnung-Version erzwingen (temporär, da v1.0.116)
+        $xmlContent = str_replace('urn:xoev-de:kosit:standard:xrechnung_1.2', 'urn:xoev-de:kosit:standard:xrechnung_2.3', $xmlContent);
+
+        // Redundante URIUniversalCommunication entfernen (verkäuferbezogen)
+        $xmlContent = preg_replace('/<ram:SellerTradeParty>.*?<ram:URIUniversalCommunication>.*?<\/ram:URIUniversalCommunication>.*?(?=<ram:PostalTradeAddress>)/s', '<ram:SellerTradeParty>${1}', $xmlContent);
+
+        // Validierung mit Schematron
+        /*
+        use LSS\XMLParser;
+        $parser = new XMLParser();
+        if (!$parser->validate($xmlContent, 'xrechnung-schematron.sch')) {
+            \Log::error("Ungültiges XRechnung-XML: " . print_r($parser->getErrors(), true));
+            throw new \Exception("XML-Validierung fehlgeschlagen");
+        }
+        */
+
+        return $xmlContent;
+    }
+   /* private function generateXRechnungData(object $invoiceData): string
     {
         $companyDetails = config('accounting.company_details');
         $company = Company::find($invoiceData['company_id']);
@@ -396,7 +547,7 @@ class InvoiceService
             ->addDocumentPaymentTerm("", null, null);
 
         return $document;
-    }
+    }*/
 
     /**
      * Storniere eine Rechnung (setzt den Status auf 'canceled').
