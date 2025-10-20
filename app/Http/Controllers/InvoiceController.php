@@ -157,4 +157,18 @@ class InvoiceController extends Controller
 
         return redirect()->route('invoices.index')->with('success', 'Rechnung wurde erfolgreich gelöscht.');
     }
+
+    // App\Http\Controllers\InvoiceController.php
+    public function downloadXRechnung(int $id, \App\Services\InvoiceService $service)
+    {
+        $invoice = \App\Models\Invoice::findOrFail($id);
+        $xml = (new \ReflectionMethod($service, 'generateXRechnungData'))
+            ->invoke($service, $invoice);
+
+        return response($xml, 200, [
+            'Content-Type'        => 'application/xml; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="xrechnung-'.$invoice->invoice_number.'.xml"',
+        ]);
+    }
+
 }

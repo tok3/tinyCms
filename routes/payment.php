@@ -82,5 +82,6 @@ Route::get('/test-payment-webhook', function () {
         ->handlePaymentNotification($request);
 });
 
-
+Route::get('/invoices/{id}/xrechnung', [InvoiceController::class, 'downloadXRechnung'])
+    ->name('invoices.xrechnung.download');
 // ende mollie test

@@ -97,6 +97,8 @@ class InvoiceService
 
         // XRechnung erzeugen
         $data['xrechnung_data'] = $this->generateXRechnungData($invoice);
+
+
         $invoice->xrechnung_data = $data['xrechnung_data'];
 
         $invoice->save();
@@ -301,101 +303,201 @@ class InvoiceService
      */
     private function generateXRechnungData(object $invoiceData): string
     {
-        $companyDetails = config('accounting.company_details');
-        $company = Company::find($invoiceData['company_id']);
-        $issueDate = Carbon::parse($invoiceData['issue_date'])->toDateTime();
-        $data = $invoiceData['data'];
-        $iban = config('accounting.company_details.bank.iban');
-        $bic = config('accounting.company_details.bank.bic');
+        $cfg      = config('accounting');
+        $seller   = $cfg['company_details'] ?? [];
+        $currency = $cfg['currency'] ?? 'EUR';
 
-        // XRechnungs-Typ: 380 = Rechnung, 381 = Gutschrift (Korrekturrechnung)
-        $typeCode = $invoiceData['total_gross'] < 0 ? "381" : "380";
+        $ibanRaw  = (string)($seller['bank']['iban'] ?? '');
+        $iban     = strtoupper(preg_replace('/\s+/', '', $ibanRaw));
+        $bic      = (string)($seller['bank']['bic'] ?? '');
 
-        $document = ZugferdDocumentBuilder::CreateNew(ZugferdProfiles::PROFILE_XRECHNUNG);
+        // Zugriffe für Array/Eloquent-Objekt
+        $get = fn($k,$d=null)=> is_array($invoiceData)?($invoiceData[$k]??$d):($invoiceData->$k??$d);
 
-        $document
-            ->setDocumentInformation($invoiceData['invoice_number'], $typeCode, $issueDate, config('accounting.currency'))
-            ->setDocumentBusinessProcess($companyDetails['business_process'])
-            ->setDocumentSupplyChainEvent(new \DateTime())
-            ->setDocumentSeller($companyDetails['name'])
-            ->addDocumentSellerGlobalId($companyDetails['global_id']['id'], $companyDetails['global_id']['scheme'])
-            ->addDocumentSellerTaxRegistration("VA", $companyDetails['tax_registration']['vat_id'])
-            ->addDocumentSellerTaxRegistration("FC", $companyDetails['tax_registration']['tax_number'])
-            ->setDocumentSellerAddress(
-                $companyDetails['address']['street'],
-                "",
-                "",
-                $companyDetails['address']['postal_code'],
-                $companyDetails['address']['city'],
-                $companyDetails['address']['country']
-            )
-            ->setDocumentSellerCommunication('EM', $companyDetails['contact']['email'])
-            ->setDocumentBuyer(trim($company->name . ' ' . $company->name2), $company->id)
-            ->setDocumentBuyerAddress($company->str, "", "", $company->plz, $company->ort, "DE")
-            ->setDocumentBuyerCommunication('EM', $company->email);
+        $company    = Company::find($get('company_id'));
+        $issueDate  = Carbon::parse($get('issue_date'))->startOfDay()->toDateTime();
+        $dueDate    = $get('due_date') ? Carbon::parse($get('due_date'))->startOfDay()->toDateTime() : null;
 
+        // Items robust holen
+        $data       = $get('data', []);
+        $items      = is_array($data) ? ($data['items'] ?? []) : ((array)$data->items ?? []);
+        $taxRate    = (float)$get('tax_rate', (float)($cfg['tax_rate'] ?? 19));
 
-        // Leitweg-ID (BT-10) nur setzen, wenn vorhanden
-        if (!empty($company->leitweg_id)) {
-            // Option A (neutral, empfohlen):
-            $document->setDocumentBuyerReference($company->leitweg_id);
+        // --- Profil & Typ ---
+        $profile = defined(\horstoeko\zugferd\ZugferdProfiles::class.'::PROFILE_XRECHNUNG_3')
+            ? \horstoeko\zugferd\ZugferdProfiles::PROFILE_XRECHNUNG_3
+            : \horstoeko\zugferd\ZugferdProfiles::PROFILE_XRECHNUNG;
 
-            // Option B (Alias, identisches Ergebnis):
-            // $document->setDocumentRoutingId($company->leitweg_id);
+        $isCredit   = ((float)$get('total_gross', 0)) < 0;
+        $invType    = class_exists(\horstoeko\zugferd\codelists\ZugferdInvoiceType::class)
+            ? ($isCredit ? \horstoeko\zugferd\codelists\ZugferdInvoiceType::CREDIT_NOTE
+                : \horstoeko\zugferd\codelists\ZugferdInvoiceType::INVOICE)
+            : ($isCredit ? "381" : "380");
+
+        $doc = \horstoeko\zugferd\ZugferdDocumentBuilder::CreateNew($profile);
+        $doc->setDocumentInformation((string)$get('invoice_number'), $invType, $issueDate, $currency);
+
+        if (!empty($seller['business_process']) && method_exists($doc,'setDocumentBusinessProcess')) {
+            $doc->setDocumentBusinessProcess($seller['business_process']);
         }
 
-        if (!empty($invoiceData['mollie_payment_id'])) {
-            $document->addDocumentPaymentMean("59", "Mollie Payment ID: " . $invoiceData['mollie_payment_id']);
+        // --- SELLER (inkl. BT-29/31/32 + BG-6) ---
+        $sellerName = (string)($seller['name'] ?? 'Unbekannter Verkäufer');
+        $doc->setDocumentSeller($sellerName, null);
+        $doc->setDocumentSellerAddress(
+            (string)($seller['address']['street'] ?? ''), "", "",
+            (string)($seller['address']['postal_code'] ?? ''),
+            (string)($seller['address']['city'] ?? ''),
+            (string)($seller['address']['country'] ?? 'DE')
+        );
+
+        // BT-29: Seller identifier (z.B. DUNS 0060)
+        if (!empty($seller['global_id']['id']) && !empty($seller['global_id']['scheme'])) {
+            $doc->addDocumentSellerGlobalId($seller['global_id']['id'], $seller['global_id']['scheme']);
+        }
+
+        // BT-31 / BT-32 — unbedingt setzen (BR-S-02 / BR-DE-16)
+        $vatId  = (string)($seller['tax_registration']['vat_id'] ?? '');
+        $taxNo  = (string)($seller['tax_registration']['tax_number'] ?? '');
+
+        // Die horstoeko-API bietet mehrere Varianten je Version – wir setzen beides:
+        if (method_exists($doc, 'addDocumentSellerVATRegistrationNumber') && !empty($vatId)) {
+            $doc->addDocumentSellerVATRegistrationNumber($vatId);          // BT-31
+        }
+        if (method_exists($doc, 'addDocumentSellerTaxNumber') && !empty($taxNo)) {
+            $doc->addDocumentSellerTaxNumber($taxNo);                      // BT-32
+        }
+        // Zusätzlich klassisch über TaxRegistration (ältere Versionen):
+        if (!empty($vatId)) { $doc->addDocumentSellerTaxRegistration("VA", $vatId); }
+        if (!empty($taxNo)) { $doc->addDocumentSellerTaxRegistration("FC", $taxNo); }
+
+        // Kommunikation + BG-6 Seller Contact (BR-DE-2)
+        $sellerEmail = (string)($seller['contact']['email'] ?? 'info@example.org');
+        $doc->setDocumentSellerCommunication('EM', $sellerEmail);
+        if (method_exists($doc, 'setDocumentSellerContact')) {
+            $doc->setDocumentSellerContact(
+                'Rechnungsstelle',      // Name
+                null,                   // Dept
+                (string)($seller['contact']['phone'] ?? '000'), // Phone
+                null,                   // Fax
+                $sellerEmail            // Email
+            );
+        }
+
+        // --- BUYER ---
+        $buyerName = trim(($company->name ?? '').' '.($company->name2 ?? ''));
+        $doc->setDocumentBuyer($buyerName !== '' ? $buyerName : 'Kunde', (string)($company->id ?? ''));
+        $doc->setDocumentBuyerAddress(
+            (string)($company->str ?? ''), "", "",
+            (string)($company->plz ?? ''), (string)($company->ort ?? ''), 'DE'
+        );
+        $doc->setDocumentBuyerCommunication('EM', (string)($company->email ?? 'kundenrechnung@example.com'));
+
+        // BT-10 Leitweg-ID
+        $leitweg = (string)($company->leitweg_id ?? '');
+        if ($leitweg !== '') {
+            $doc->setDocumentBuyerReference($leitweg);
+        }
+        // BT-49 elektronische Adresse Buyer (0204 bei Leitweg, sonst EM)
+        if (method_exists($doc, 'setDocumentBuyerElectronicAddress')) {
+            $doc->setDocumentBuyerElectronicAddress(
+                $leitweg !== '' ? $leitweg : (string)($company->email ?? 'kundenrechnung@example.com'),
+                $leitweg !== '' ? '0204' : 'EM'
+            );
+        }
+
+        // --- PAYMENT (BG-16/BG-17) ---
+        $mollieId = (string)($get('mollie_payment_id') ?? '');
+        if ($mollieId !== '') {
+            $doc->addDocumentPaymentMean("59", "Mollie Payment ID: ".$mollieId);
         } else {
-            $iban = config('accounting.company_details.bank.iban');
-            $bic = config('accounting.company_details.bank.bic');
-
-            $document->addDocumentPaymentMean("31", "Zahlung per Überweisung an IBAN $iban, BIC $bic");
+            if (method_exists($doc,'addDocumentPaymentMeanToBankAccount')) {
+                $doc->addDocumentPaymentMeanToBankAccount('42', $iban ?: null, $bic ?: null, null, $sellerName);
+            } else {
+                $doc->addDocumentPaymentMean("31", "Zahlung per Überweisung an IBAN {$iban}".($bic ? ", BIC {$bic}" : ""));
+            }
+        }
+        if ($dueDate) {
+            $doc->addDocumentPaymentTerm('Zahlbar bis '.$dueDate->format('d.m.Y'), $dueDate, null);
         }
 
-        // Referenz auf Ursprungsrechnung (bei Korrekturrechnung)
-        if ($typeCode === "381" && isset($invoiceData['ref_to_id'])) {
-            $original = Invoice::find($invoiceData['ref_to_id']);
-            if ($original) {
-                $document->addDocumentNote("Referenz auf Ursprungsrechnung: " . $original->invoice_number);
-                $document->addDocumentNote("Dies ist eine Korrekturrechnung – keine Zahlung erforderlich.");
+        // --- Gutschrift-Referenz (BT-25)
+        if ($isCredit && $get('ref_to_id')) {
+            $orig = Invoice::find($get('ref_to_id'));
+            if ($orig) {
+                $origDate = $orig->issue_date ? Carbon::parse($orig->issue_date)->startOfDay()->toDateTime() : null;
+                if (method_exists($doc, 'addDocumentReference')) {
+                    $doc->addDocumentReference($orig->invoice_number, $origDate);
+                }
+                $doc->addDocumentNote("Dies ist eine Korrekturrechnung zu {$orig->invoice_number} – keine Zahlung erforderlich.");
             }
         }
 
-        // Positionen
-        foreach ($data['items'] as $index => $item) {
-            $document->addNewPosition($index + 1)
-                ->setDocumentPositionProductDetails(
-                    $item['description'],
-                    $typeCode === "381" ? "Korrekturposition" : "",
-                    "", // keine weitere Beschreibung
-                    null,
-                    "0160", // Produktklassifizierungscode
-                    null
-                )
-                ->setDocumentPositionNetPrice($item['line_total_amount'])
-                ->setDocumentPositionQuantity($item['quantity'], "H87")
-                ->addDocumentPositionTax('S', 'VAT', $invoiceData['tax_rate'])
-                ->setDocumentPositionLineSummation($item['line_total_amount']);
+        // ========== POSITIONEN sauber berechnen (schließt BR-CO-10 / BR-S-08) ==========
+        $sumLineNet = 0.0;
+
+        foreach ((array)$items as $i => $item) {
+            $desc       = (string)($item['description'] ?? 'Leistung');
+            $qtyRaw     = (float)($item['quantity'] ?? 1);
+            $qty        = $qtyRaw == 0.0 ? 1.0 : $qtyRaw;
+
+            // Nettogesamt der Zeile aus deinen Daten (kann negativ sein bei Rabatt)
+            $lineNetIn  = (float)($item['line_total_amount'] ?? 0.0);
+
+            // Einheitspreis immer positiv (BR-27), Vorzeichen über die Menge steuern
+            $unitNet    = round(abs($lineNetIn) / abs($qty), 4);
+
+            // Wenn der Zeilenbetrag negativ ist => negative Menge
+            $effQty     = $lineNetIn < 0 ? -abs($qty) : abs($qty);
+
+            // Zeilensumme mit korrektem Vorzeichen
+            $lineNet    = round($effQty * $unitNet, 2);
+
+            $doc->addNewPosition((string)($i + 1))
+                ->setDocumentPositionProductDetails($desc, ($lineNetIn < 0 ? 'Rabatt' : ''), null, null, '0160', null)
+                ->setDocumentPositionNetPrice($unitNet)
+                ->setDocumentPositionQuantity($effQty, 'H87')
+                ->addDocumentPositionTax('S', 'VAT', $taxRate)
+                ->setDocumentPositionLineSummation($lineNet);
+
+            $sumLineNet = round($sumLineNet + $lineNet, 2);
+        }
+        $sumLineNet    = round($sumLineNet, 2);
+        $taxFromLines  = round($sumLineNet * ($taxRate / 100), 2);
+        $grossFromCalc = round($sumLineNet + $taxFromLines, 2);
+
+        // (Optional) DB-Werte nur zum Logging verwenden
+        $dbNet   = round((float)$get('total_net', 0), 2);
+        $dbTax   = round((float)$get('tax', 0), 2);
+        $dbGross = round((float)$get('total_gross', 0), 2);
+
+        if ($dbNet !== 0.0 || $dbTax !== 0.0 || $dbGross !== 0.0) {
+            if (abs($dbNet - $sumLineNet) > 0.01 || abs($dbTax - $taxFromLines) > 0.01 || abs($dbGross - $grossFromCalc) > 0.01) {
+                \Log::warning('XRechnung: DB-Totals != berechnete Totals', [
+                    'db'   => compact('dbNet','dbTax','dbGross'),
+                    'calc' => ['net'=>$sumLineNet,'tax'=>$taxFromLines,'gross'=>$grossFromCalc],
+                ]);
+            }
         }
 
-        // Summen
-        $document
-            ->addDocumentTax("S", "VAT", $invoiceData['total_net'], $invoiceData['tax'], $invoiceData['tax_rate'])
-            ->setDocumentSummation(
-                $invoiceData['total_gross'],
-                $invoiceData['total_gross'],
-                $invoiceData['total_net'],
-                0.0,
-                0.0,
-                $invoiceData['total_net'],
-                $invoiceData['tax'],
-                null,
-                0.0
-            )
-            ->addDocumentPaymentTerm("", null, null);
+        // VAT breakdown (ein Steuersatz)
+        $doc->addDocumentTax('S', 'VAT', $sumLineNet, $taxFromLines, $taxRate);
 
-        return $document;
+        // Header-Summation **zwingend konsistent**:
+        $doc->setDocumentSummation(
+            $grossFromCalc,  // BT-112 = with VAT
+            $grossFromCalc,  // DuePayable
+            $sumLineNet,     // BT-106 = Sum line net
+            0.0,             // Allowances at doc level
+            0.0,             // Charges at doc level
+            $sumLineNet,     // Tax basis total (BT-109)
+            $taxFromLines,   // BT-110
+            null,
+            0.0
+        );
+
+        // --- XML zurückgeben ---
+        return method_exists($doc, 'getContent') ? $doc->getContent() : (string)$doc;
     }
 
     /**
