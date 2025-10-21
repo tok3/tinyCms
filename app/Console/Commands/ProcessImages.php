@@ -37,7 +37,16 @@ class ProcessImages extends Command
         foreach ($images as $image) {
             try {
                 // Download the image
-                $response = Http::timeout(10)->get($image->url);
+                //$response = Http::timeout(10)->get($image->url);
+
+               $response = Http::withHeaders([
+    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+])->timeout(10)->get($image->url);
+    if (!$response->successful()) {
+    throw new \RuntimeException("HTTP {$response->status()}: ".$response->body());
+}
+
+
                 if ($response->failed()) {
                     $now = now()->toDateTimeString();
                     DB::table('imagetags')
