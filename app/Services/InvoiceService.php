@@ -101,6 +101,7 @@ class InvoiceService
 
         $invoice->xrechnung_data = $data['xrechnung_data'];
 
+
         $invoice->save();
 
         // PDF generieren (TMP)
@@ -329,10 +330,27 @@ class InvoiceService
             : \horstoeko\zugferd\ZugferdProfiles::PROFILE_XRECHNUNG;
 
         $isCredit   = ((float)$get('total_gross', 0)) < 0;
-        $invType    = class_exists(\horstoeko\zugferd\codelists\ZugferdInvoiceType::class)
-            ? ($isCredit ? \horstoeko\zugferd\codelists\ZugferdInvoiceType::CREDIT_NOTE
-                : \horstoeko\zugferd\codelists\ZugferdInvoiceType::INVOICE)
-            : ($isCredit ? "381" : "380");
+
+        $invType = $isCredit ? '381' : '380';
+
+        if (class_exists(\horstoeko\zugferd\codelists\ZugferdInvoiceType::class)) {
+            // nur, wenn Konstanten wirklich existieren:
+            if ($isCredit) {
+                if (defined('\horstoeko\zugferd\codelists\ZugferdInvoiceType::CREDIT_NOTE')) {
+                    $invType = \horstoeko\zugferd\codelists\ZugferdInvoiceType::CREDIT_NOTE;
+                } elseif (defined('\horstoeko\zugferd\codelists\ZugferdInvoiceType::CREDITNOTE')) {
+                    // manche Versionen ohne Unterstrich
+                    $invType = \horstoeko\zugferd\codelists\ZugferdInvoiceType::CREDITNOTE;
+                } elseif (defined('\horstoeko\zugferd\codelists\ZugferdInvoiceType::CREDITMEMO')) {
+                    // sehr alte Variante
+                    $invType = \horstoeko\zugferd\codelists\ZugferdInvoiceType::CREDITMEMO;
+                }
+            } else {
+                if (defined('\horstoeko\zugferd\codelists\ZugferdInvoiceType::INVOICE')) {
+                    $invType = \horstoeko\zugferd\codelists\ZugferdInvoiceType::INVOICE;
+                }
+            }
+        }
 
         $doc = \horstoeko\zugferd\ZugferdDocumentBuilder::CreateNew($profile);
         $doc->setDocumentInformation((string)$get('invoice_number'), $invType, $issueDate, $currency);
@@ -431,6 +449,46 @@ class InvoiceService
                 }
                 $doc->addDocumentNote("Dies ist eine Korrekturrechnung zu {$orig->invoice_number} – keine Zahlung erforderlich.");
             }
+        }
+
+        // ---- Leistungszeitraum / Leistungsdatum (kurz & robust) ----
+        $issue = Carbon::parse($get('issue_date') ?? now());
+
+        // Variante A: Abo → payment_date .. subscription->next_payment_date
+        $subNext = null;
+        try {
+            $subNext = $invoiceData->payment?->subscription?->next_payment_date ?? null;
+        } catch (\Throwable $e) { /* ignore */ }
+
+        if ($subNext) {
+            $serviceStart = $invoiceData->payment_date ? Carbon::parse($invoiceData->payment_date) : $issue;
+            $serviceEnd   = Carbon::parse($subNext);
+        } else {
+            // Variante B: aus Vertragsintervall
+            $interval = null;
+            try { $interval = $invoiceData->contract->interval ?? null; } catch (\Throwable $e) {}
+            $interval = $interval ?: 'monthly';
+
+            $serviceStart = $issue->copy();
+            $serviceEnd = match ($interval) {
+                'daily'  => $serviceStart->copy()->addDay(),
+                'weekly' => $serviceStart->copy()->addWeek(),
+                'annual' => $serviceStart->copy()->addYear(),
+                default  => $serviceStart->copy()->addMonth(),
+            };
+        }
+
+        // In die XRechnung schreiben (je nach API-Verfügbarkeit)
+        if (method_exists($doc, 'setDocumentDeliveryPeriod')) {
+            $doc->setDocumentDeliveryPeriod($serviceStart->toDateTime(), $serviceEnd->toDateTime());
+        } elseif (method_exists($doc, 'setDocumentDeliveryDate')) {
+            // Fallback: nur Startdatum als Leistungsdatum
+            $doc->setDocumentDeliveryDate($serviceStart->toDateTime());
+        } else {
+            // Minimal-Fallback: Hinweis (valide, aber nicht maschinenlesbar)
+            $doc->addDocumentNote(
+                'Leistungszeitraum: '.$serviceStart->format('d.m.Y').' bis '.$serviceEnd->format('d.m.Y')
+            );
         }
 
         // ========== POSITIONEN sauber berechnen (schließt BR-CO-10 / BR-S-08) ==========
@@ -587,6 +645,114 @@ class InvoiceService
             return 'Fehler beim Versand der Rechnung: ' . $e->getMessage();
         }
 
+    }
+
+    /**
+     * Sende eine reine XRechnung (XML) per E-Mail.
+     * Nutzt vorhandene XML-Daten aus invoice->xrechnung_data oder generiert sie on-the-fly.
+     *
+     * @param int|false $invoiceId
+     * @param string|null $customReceiver
+     * @return string|false
+     */
+    public function sendInvoiceEmailAsXRechnung($invoiceId = false, ?string $customReceiver = null)
+    {
+        if ($invoiceId == false && $this->invoiceId > 0) {
+            $invoiceId = $this->invoiceId;
+        }
+        if ($invoiceId == false && empty($this->invoiceId)) {
+            return false;
+        }
+
+        /** @var \App\Models\Invoice $invoice */
+        $invoice = Invoice::where('id', $invoiceId)->first();
+        if (!$invoice) {
+            return false;
+        }
+
+        // Empfänger ermitteln (analog zu sendInvoiceEmail)
+        $receiver = $customReceiver ?? ($invoice->company->email ?? null);
+
+        $tenantId = $invoice->data['meta']['billed_for_company_id'] ?? null;
+        if ($tenantId) {
+            $tenant = \App\Models\Company::find($tenantId);
+            if ($tenant && (int)($tenant->billing_email_override ?? 0) === 1 && !empty($tenant->agency_company_id)) {
+                $agency = \App\Models\Company::find($tenant->agency_company_id);
+                if ($agency && !empty($agency->email)) {
+                    $receiver = $agency->email;
+                }
+            }
+        }
+
+        if (empty($receiver)) {
+            return 'Kein Empfänger gefunden.';
+        }
+
+        // XML ermitteln/erzeugen
+        $xml = $invoice->xrechnung_data;
+        if (empty($xml)) {
+            $xml = $this->generateXRechnungData($invoice);
+            $invoice->xrechnung_data = $xml;
+            $invoice->save();
+        }
+
+        // Datei ablegen (damit auch Download/Archiv möglich ist)
+        $xmlFileName = 'xrechnung-' . $invoice->invoice_number . '.xml';
+        $xmlDiskPath = storage_path('app/invoices/' . $xmlFileName);
+        try {
+            if (!is_dir(dirname($xmlDiskPath))) {
+                @mkdir(dirname($xmlDiskPath), 0775, true);
+            }
+            file_put_contents($xmlDiskPath, $xml);
+        } catch (\Throwable $e) {
+            // selbst wenn Speichern fehlschlägt, versuchen wir den Versand mit attachData
+        }
+
+        try {
+            // Schlichtes Mail mit XML-Anhang (separat vom bestehenden Mailable für PDF)
+            \Illuminate\Support\Facades\Mail::raw(
+                'Anbei Ihre XRechnung (XML) zur Rechnung ' . $invoice->invoice_number . '.',
+                function (\Illuminate\Mail\Message $message) use ($receiver, $invoice, $xml, $xmlFileName, $xmlDiskPath) {
+                    $message->to($receiver)
+                        ->subject('XRechnung ' . $invoice->invoice_number);
+
+                    // Bevorzugt von Datei anhängen, sonst Fallback auf attachData
+                    if (is_file($xmlDiskPath)) {
+                        $message->attach($xmlDiskPath, [
+                            'as'   => $xmlFileName,
+                            'mime' => 'application/xml',
+                        ]);
+                    } else {
+                        $message->attachData($xml, $xmlFileName, [
+                            'mime' => 'application/xml',
+                        ]);
+                    }
+                }
+            );
+
+            // Versand protokollieren
+            InvoicesSent::create([
+                'invoice_id'     => $invoice->id,
+                'company_id'     => $invoice->company_id,
+                'invoice_number' => $invoice->invoice_number,
+                'receiver'       => $receiver,
+                'status'         => 'ok',
+            ]);
+
+            return 'XRechnung (XML) wurde an ' . $receiver . ' versendet!';
+        } catch (\Throwable $e) {
+            InvoicesSent::create([
+                'invoice_id'     => $invoice->id,
+                'company_id'     => $invoice->company_id,
+                'invoice_number' => $invoice->invoice_number,
+                'receiver'       => $receiver,
+                'status'         => 'failed',
+            ]);
+
+            report($e);
+
+            return 'Fehler beim Versand der XRechnung: ' . $e->getMessage();
+        }
     }
 
 

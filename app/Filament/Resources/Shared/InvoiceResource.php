@@ -23,6 +23,7 @@ use Filament\Forms\Components\Placeholder;
 use App\Forms\Components\InfoBox;
 use App\Helpers\CompanyHelper;
 use Filament\Tables\Columns\TextColumn;
+
 class InvoiceResource extends Resource
 {
     protected static ?string $model = Invoice::class;
@@ -35,6 +36,7 @@ class InvoiceResource extends Resource
 
         return 'Rechnungen'; // Name des Navigationseintrags
     }
+
     public static function getPluralModelLabel(): string
     {
 
@@ -51,7 +53,8 @@ class InvoiceResource extends Resource
         $company = CompanyHelper::currentCompany();
 
         // Wenn die Firma über eine Agentur gemanaged wird → nicht in der Sidebar zeigen
-        if ($company && $company->billing_via_agency) {
+        if ($company && $company->billing_via_agency)
+        {
             return false;
         }
 
@@ -67,7 +70,6 @@ class InvoiceResource extends Resource
     {
 
 
-
         //return $form->schema([]); // leer lassen
 
         return $form
@@ -75,7 +77,8 @@ class InvoiceResource extends Resource
                 InfoBox::make()
                     ->type('info')
                     ->content(function ($record) {
-                        if (!$record) {
+                        if (!$record)
+                        {
                             return null;
                         }
 
@@ -97,7 +100,8 @@ class InvoiceResource extends Resource
                         return null; // Keine Infobox anzeigen, wenn nichts zutrifft
                     })
                     ->visible(function ($record) {
-                        if (!$record) {
+                        if (!$record)
+                        {
                             return null;
                         }
 
@@ -190,10 +194,13 @@ class InvoiceResource extends Resource
                                 // hier entscheiden wir, welche Option ausgewählt wird
                                 $date = \Carbon\Carbon::parse($state);
 
-                                if ($date->isPast()) {
+                                if ($date->isPast())
+                                {
                                     // wenn Datum in der Vergangenheit → Option "abgelaufen"
                                     $set('status', 'done');
-                                } else {
+                                }
+                                else
+                                {
                                     // sonst → Option "pending"
                                     $set('status', 'done');
                                 }
@@ -216,13 +223,15 @@ class InvoiceResource extends Resource
                 InfoBox::make()
                     ->type('primary')
                     ->content(function ($record) {
-                        if (!$record) {
+                        if (!$record)
+                        {
                             return null;
                         }
 
                         $logs = $record->sendLogs()->orderByDesc('created_at')->get();
 
-                        if ($logs->isEmpty()) {
+                        if ($logs->isEmpty())
+                        {
                             return 'Keine Versandprotokolle vorhanden.';
                         }
 
@@ -262,13 +271,31 @@ class InvoiceResource extends Resource
                                         ->email()
                                         ->required()
                                         ->default(fn($record) => $record?->company?->email),
+                                    \Filament\Forms\Components\Radio::make('send_format')
+                                        ->label('Format')
+                                        ->options([
+                                            'zugferd' => 'ZUGFeRD-Hybrid (PDF)',
+                                            'xrechnung' => 'XRechnung (XML)',
+                                        ])
+                                        ->default('zugferd')
+                                        ->inline()
+                                        ->required(),
                                 ])
                                 ->action(function (array $data, $record): void {
                                     $receiver = $data['receiver'];
+                                    $format = $data['send_format'] ?? 'zugferd'; // selected format from the modal
                                     $invoice = $record;
                                     $service = new InvoiceService();
 
-                                   $service->sendInvoiceEmail($invoice->id, $receiver);
+                                    if ($format === 'xrechnung')
+                                    {
+                                        $service->sendInvoiceEmailAsXRechnung($invoice->id, $receiver);
+                                    }
+                                    else
+                                    {
+                                        $service->sendInvoiceEmail($invoice->id, $receiver); // ZUGFeRD-Hybrid (PDF)
+                                    }
+
                                 }),
                         ]),
                     ])
@@ -359,11 +386,11 @@ class InvoiceResource extends Resource
                     ->sortable(),
                 TextColumn::make('billed_for_company_name')
                     ->label('Rechnung für')
-                    ->state(fn ($record) => data_get($record->data, 'meta.billed_for_company_name') ?: '-')
+                    ->state(fn($record) => data_get($record->data, 'meta.billed_for_company_name') ?: '-')
                     ->searchable(query: function ($query, string $search) {
                         return $query->where('data->meta->billed_for_company_name', 'like', "%{$search}%");
                     })
-                    ->visible(fn () => CompanyHelper::currentCompany()?->is_agency)
+                    ->visible(fn() => CompanyHelper::currentCompany()?->is_agency)
                     ->sortable(false)
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('company.name')
@@ -444,23 +471,23 @@ class InvoiceResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-        //
-    ])
-        ->actions([
-            Tables\Actions\EditAction::make()->visible(fn() => auth()->user()->is_admin == 1),
-            Action::make('Ansehen')
-                ->label('PDF anzeigen')
-                ->icon('heroicon-o-document-text')
-                ->url(fn(Invoice $record) => route('invoices.pdf', $record->invoice_number))
-                ->openUrlInNewTab(), // Öffnet das PDF in einem neuen Tab
+                //
+            ])
+            ->actions([
+                Tables\Actions\EditAction::make()->visible(fn() => auth()->user()->is_admin == 1),
+                Action::make('Ansehen')
+                    ->label('PDF anzeigen')
+                    ->icon('heroicon-o-document-text')
+                    ->url(fn(Invoice $record) => route('invoices.pdf', $record->invoice_number))
+                    ->openUrlInNewTab(), // Öffnet das PDF in einem neuen Tab
 
-        ])
-        ->bulkActions([
-            Tables\Actions\BulkActionGroup::make([
-                Tables\Actions\DeleteBulkAction::make(),
-            ]),
-        ])
-        ->recordUrl(fn($record) => auth()->user()->is_admin ? static::getUrl('edit', ['record' => $record]) : null);
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ])
+            ->recordUrl(fn($record) => auth()->user()->is_admin ? static::getUrl('edit', ['record' => $record]) : null);
     }
 
     public static function getRelations(): array

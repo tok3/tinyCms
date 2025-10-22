@@ -159,6 +159,7 @@ class InvoiceController extends Controller
     }
 
     // App\Http\Controllers\InvoiceController.php
+    // E.g. http://localhost:8004/invoices/443/xrechnung
     public function downloadXRechnung(int $id, \App\Services\InvoiceService $service)
     {
         $invoice = \App\Models\Invoice::findOrFail($id);
