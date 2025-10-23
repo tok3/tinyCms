@@ -38,6 +38,7 @@ class Contract extends Model
         'end_date',
         'discount_percent',
         'discount_label',
+        'sepa_mandate_id',
     ];
 
 
