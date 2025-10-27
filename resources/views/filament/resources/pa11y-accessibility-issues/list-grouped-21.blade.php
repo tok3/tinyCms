@@ -3,12 +3,22 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
     <script>
+        function collapseAllDetails() {
+            document.querySelectorAll('.issue-group details[open]').forEach((el) => {
+                el.removeAttribute('open');
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('code').forEach((block) => {
                 hljs.highlightElement(block);
             });
-
+            collapseAllDetails();
         });
+
+        // Ensure closed state after Livewire renders / navigations (Filament)
+        document.addEventListener('livewire:load', collapseAllDetails);
+        document.addEventListener('livewire:navigated', collapseAllDetails);
     </script>
     <style>
         CODE {
@@ -134,12 +144,12 @@
 
                     </details>
 
-                    @if (!empty($issue->accessibilityRule->actRuleLinks))
+                    @php $firstRule = $issues->first()->accessibilityRule ?? null; @endphp
+                    @if (!empty($firstRule?->actRuleLinks))
                         <p class="text-sm text-gray-600 dark:text-gray-300 mt-2"><strong>Info:</strong></p>
-                        @foreach($issue->accessibilityRule->actRuleLinks as $link)
+                        @foreach($firstRule->actRuleLinks as $link)
                             <a href="{{ $link }}" class="text-blue-500 dark:text-blue-300 underline" target="_blank">{{ $link }}</a><br>
                         @endforeach
-
                     @endif
 
 
