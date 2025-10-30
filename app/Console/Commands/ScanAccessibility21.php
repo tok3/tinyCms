@@ -50,9 +50,20 @@ class ScanAccessibility21 extends Command
 
     private function scanWithAxe($url, $includeWarnings)
     {
+        /*
         $processArgs = [
             'pa11y',
             $url->url,
+            '--runner',
+            'axe',
+            '--reporter',
+            'json',
+        ];
+        */
+
+        $processArgs = [
+            'pa11y',
+            "'".$url->url."'",
             '--runner',
             'axe',
             '--reporter',
