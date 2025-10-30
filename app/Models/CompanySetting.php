@@ -14,6 +14,8 @@ class CompanySetting extends Model
         'contrast_errors',
         'max_urls',
         'auto_add_urls',
+        'valid_domains',
+        'exclude_query_string_urls',
         'full_scan_interval',
         'widget_features',
     ];

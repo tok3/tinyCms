@@ -32,35 +32,45 @@ class VerifyCustomerAccess
             return response('Unauthorized', 403);
         }
 
-
+        
         // HTTP-Referer aus dem Request
         $httpReferrer = $request->header('referer');
 
+        if ($httpReferrer) {
+            // Settings holen
+            $settings = $customer->settings; // relationship('settings', CompanySetting::class)
+            $validDomains = $this->explodeValidDomains($settings->valid_domains ?? null);
+            $excludeQuery = (bool)($settings->exclude_query_string_urls ?? true);
 
-        if ($httpReferrer)
-        {
-            $referrer = Referrer::where('referrer', $httpReferrer)
-                ->where('ulid', $company_id)
-                ->first();
-            if (!$referrer)
-            {
-                // Referrer nicht vorhanden, also neu erstellen
-                Referrer::create([
-                    'referrer' => $httpReferrer,
-                    'ulid' => $company_id,
-                    'count' => 1,
-                ]);
+            // Root-Domain des Referrers bestimmen
+            $refRoot = $this->parseRootDomain($httpReferrer);
+            if ($refRoot) {
+                // Wenn valid_domains gesetzt sind → Whitelist erzwingen
+                $isAllowed = empty($validDomains) || in_array($refRoot, $validDomains, true);
 
-                $this->createPa11yUrlAndScan($customer, $httpReferrer);
+                if ($isAllowed) {
+                    // URL für Speicherung normalisieren (Query ggf. entfernen)
+                    $refForDb = $this->normalizeUrl($httpReferrer, $excludeQuery);
+                    if ($refForDb) {
+                        $referrer = Referrer::where('referrer', $refForDb)
+                            ->where('ulid', $company_id)
+                            ->first();
 
+                        if (!$referrer) {
+                            Referrer::create([
+                                'referrer' => $refForDb,
+                                'ulid'     => $company_id,
+                                'count'    => 1,
+                            ]);
+
+                            $this->createPa11yUrlAndScan($customer, $refForDb);
+                        } else {
+                            $referrer->increment('count');
+                        }
+                    }
+                }
+                // else: nicht erlaubte Domain – nichts speichern/scannen
             }
-            else
-            {
-                // Referrer existiert, also nur count aktualisieren
-                $referrer->increment('count');
-            }
-
-
         }
 
         return $next($request);
@@ -73,13 +83,7 @@ class VerifyCustomerAccess
      * @param string $httpReferrer
      * @return void
      */
-    /**
-     * Erstelle einen neuen Pa11yUrl-Eintrag und starte den Scan.
-     *
-     * @param int $companyId
-     * @param string $referrer
-     * @return void
-     */
+
     private function createPa11yUrlAndScan($company, string $referrer): void
     {
 
@@ -110,6 +114,70 @@ class VerifyCustomerAccess
             $command = "php " . base_path('artisan') . " scan:accessibility-21 {$url->id} > /dev/null 2>&1 &";
             shell_exec($command);
         }
+    }
+
+    private function parseRootDomain(?string $input): ?string
+    {
+        if (empty($input)) return null;
+
+        // Scheme sicherstellen, damit parse_url stabil ist
+        if (!preg_match('~^https?://~i', $input)) {
+            $input = 'https://' . ltrim($input);
+        }
+
+        $parts = parse_url($input);
+        if (!isset($parts['host'])) return null;
+
+        // IDN → ASCII (falls intl vorhanden), lowercase
+        $host = mb_strtolower($parts['host']);
+        if (function_exists('idn_to_ascii')) {
+            $ascii = idn_to_ascii($host, IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46);
+            if ($ascii) $host = $ascii;
+        }
+
+        // "www." weg
+        $host = preg_replace('~^www\.~i', '', $host);
+
+        // sehr einfache Root-Domain (letzte 2 Labels). Achtung: co.uk & Co. → später ggf. Domain-Parser nutzen.
+        $labels = explode('.', $host);
+        if (count($labels) >= 2) {
+            $root = implode('.', array_slice($labels, -2));
+        } else {
+            $root = $host;
+        }
+
+        return $root;
+    }
+
+    private function normalizeUrl(string $url, bool $excludeQuery): ?string
+    {
+        if (!preg_match('~^https?://~i', $url)) {
+            $url = 'https://' . ltrim($url);
+        }
+        $parts = parse_url($url);
+        if (!isset($parts['host'])) return null;
+
+        $scheme = 'https';
+        $host   = mb_strtolower($parts['host']);
+        $path   = $parts['path'] ?? '/';
+
+        // Query ggf. verwerfen
+        $query  = ($excludeQuery ? '' : (isset($parts['query']) ? '?' . $parts['query'] : ''));
+        // Fragmente ignorieren
+        return $scheme . '://' . $host . $path . $query;
+    }
+
+    private function explodeValidDomains(?string $raw): array
+    {
+        if (!$raw) return [];
+        // Komma ODER Zeilenumbrüche
+        $items = preg_split('/[\s,]+/', $raw, -1, PREG_SPLIT_NO_EMPTY);
+        $roots = [];
+        foreach ($items as $i) {
+            $root = $this->parseRootDomain($i);
+            if ($root) $roots[$root] = true; // unique via key
+        }
+        return array_keys($roots);
     }
 
 }
