@@ -20,6 +20,25 @@ class Pa11yUrl extends Model
         Pa11yUrl::observe(Pa11yUrlObserver::class);
 
     }
+
+    protected static function booted()
+    {
+        static::deleting(function ($pa11yUrl) {
+            // Company laden
+            $company = $pa11yUrl->company;
+            if (! $company) {
+                return;
+            }
+
+            // ULID des Unternehmens (entspricht in Referrer der 'ulid'-Spalte)
+            $ulid = $company->ulid;
+
+            // Entsprechende Referrer löschen
+            \App\Models\Referrer::where('ulid', $ulid)
+                ->where('referrer', $pa11yUrl->url)
+                ->delete();
+        });
+    }
     public function accessibilityIssues()
     {
         return $this->hasMany(Pa11yAccessibilityIssue::class, 'url_id', 'id');

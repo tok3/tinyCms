@@ -8,6 +8,8 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Models\Referrer;
 use App\Models\Pa11yUrl;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class VerifyCustomerAccess
 {
@@ -37,38 +39,43 @@ class VerifyCustomerAccess
 
         if ($httpReferrer) {
             // Settings holen
-            $settings = $customer->settings; // relationship('settings', CompanySetting::class)
-            $validDomains = $this->explodeValidDomains($settings->valid_domains ?? null);
-            $excludeQuery = (bool)($settings->exclude_query_string_urls ?? true);
+            $settings     = $customer->settings; // relationship('settings', CompanySetting::class)
+            $validDomains = $this->explodeValidDomains($settings->valid_domains ?? null); // -> array normalisierter Root-Domains
+            $excludeQuery = (bool) ($settings->exclude_query_string_urls ?? true);
 
-            // Root-Domain des Referrers bestimmen
+            // Root-Domain des Referrers bestimmen (z. B. example.com)
             $refRoot = $this->parseRootDomain($httpReferrer);
+
             if ($refRoot) {
                 // Wenn valid_domains gesetzt sind → Whitelist erzwingen
                 $isAllowed = empty($validDomains) || in_array($refRoot, $validDomains, true);
 
                 if ($isAllowed) {
-                    // URL für Speicherung normalisieren (Query ggf. entfernen)
+                    // URL für DB normalisieren (https, Host lower, path, Query je nach Setting; #fragment wird verworfen)
                     $refForDb = $this->normalizeUrl($httpReferrer, $excludeQuery);
+
                     if ($refForDb) {
-                        $referrer = Referrer::where('referrer', $refForDb)
-                            ->where('ulid', $company_id)
-                            ->first();
+                        // Lock pro (ulid, url) → verhindert Race-Conditions
+                        $lockKey = 'ref:'.$company_id.':'.sha1($refForDb);
+                        Cache::lock($lockKey, 5)->block(5, function () use ($company_id, $refForDb, $customer) {
 
-                        if (!$referrer) {
-                            Referrer::create([
-                                'referrer' => $refForDb,
-                                'ulid'     => $company_id,
-                                'count'    => 1,
-                            ]);
+                            // Idempotent speichern
+                            $ref = Referrer::firstOrCreate(
+                                ['ulid' => $company_id, 'referrer' => $refForDb],
+                                ['count' => 0]
+                            );
 
-                            $this->createPa11yUrlAndScan($customer, $refForDb);
-                        } else {
-                            $referrer->increment('count');
-                        }
+                            if ($ref->wasRecentlyCreated) {
+                                // Erstanlage → Scan anstoßen
+                                $this->createPa11yUrlAndScan($customer, $refForDb);
+                            } else {
+                                // Bereits vorhanden → nur Count erhöhen
+                                $ref->increment('count');
+                            }
+                        });
                     }
                 }
-                // else: nicht erlaubte Domain – nichts speichern/scannen
+                // else: Domain nicht auf Whitelist → nichts speichern/scannen
             }
         }
 
