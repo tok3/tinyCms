@@ -292,7 +292,25 @@ class CompanyResource extends Resource
                                         Forms\Components\Toggle::make('auto_add_urls')
                                             ->label('URLs automatisch hinzufügen')
                                             ->default(true),
+
+                                        Forms\Components\Section::make('Domain-Filter')
+                                            ->description('Steuert, welche Referrer/Seiten automatisch gespeichert werden.')
+                                            ->schema([
+                                                Forms\Components\Textarea::make('valid_domains')
+                                                    ->label('Erlaubte Domains (Whitelist)')
+                                                    ->rows(4)
+                                                    ->placeholder("example.com, projekt.de\nwww.kunde.at, https://sub.example.org")
+                                                    ->helperText('Mehrere Domains durch Komma oder Zeilenumbruch. Protokolle/Subdomains werden ignoriert; intern wird auf die registrierbare Domain (z. B. example.com) normalisiert.')
+                                                    ->columnSpanFull(),
+
+                                                Forms\Components\Toggle::make('exclude_query_string_urls')
+                                                    ->label('URLs mit Query-Strings ignorieren (?param=...)')
+                                                    ->default(true)
+                                                    ->helperText('Wenn aktiviert, werden Referrer mit Query-Strings nicht gespeichert.'),
+                                            ]),
+
                                     ]),
+
                             ]),
 
                         Forms\Components\Tabs\Tab::make('Upgrade Möglichkeiten (intern)')
