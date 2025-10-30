@@ -34,6 +34,7 @@ class VerifyCustomerAccess
             return response('Unauthorized', 403);
         }
 
+
         // HTTP-Referer aus dem Request
         $httpReferrer = $request->header('referer');
 
