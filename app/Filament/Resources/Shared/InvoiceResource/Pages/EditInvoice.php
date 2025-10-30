@@ -24,7 +24,6 @@ class EditInvoice extends EditRecord
     {
         return 'Rechnung';
     }
-
     public static function canAccess(array $parameters = []): bool
     {
         return auth()->check() && auth()->user()->is_admin;
