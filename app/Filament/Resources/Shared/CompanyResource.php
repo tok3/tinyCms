@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Filament\Resources\Shared;
 
 use App\Filament\Resources\CompanyResource\Pages;
@@ -41,7 +42,6 @@ class CompanyResource extends Resource
             ->schema([
 
                 Forms\Components\Tabs::make('Company Information')
-
                     ->tabs([
                         Forms\Components\Tabs\Tab::make('Firmendetails')
                             ->schema([
@@ -49,20 +49,26 @@ class CompanyResource extends Resource
                                     $title = 'Firmendetails';
                                     $basePath = asset(config('filament.icons.path', 'assets/icons'));
 
-                                    if ($record) {
-                                        if ($record->is_agency) {
+                                    if ($record)
+                                    {
+                                        if ($record->is_agency)
+                                        {
                                             // Agency-Icon (blau)
                                             $icon = sprintf(
                                                 '<img src="%s/tenancy.svg" class="w-4 h-4 inline-block ml-2" style="color:#3b82f6;" alt="Agency">',
                                                 $basePath
                                             );
-                                        } elseif (! empty($record->agency_company_id)) {
+                                        }
+                                        elseif (!empty($record->agency_company_id))
+                                        {
                                             // Tenant-Icon (grün)
                                             $icon = sprintf(
                                                 '<img src="%s/tenant.svg" class="w-4 h-4 inline-block ml-2" style="color:#10b981;" alt="Tenant">',
                                                 $basePath
                                             );
-                                        } else {
+                                        }
+                                        else
+                                        {
                                             // Standard → Heroicon
                                             $icon = '<x-heroicon-o-building-office-2 class="w-4 h-4 inline-block ml-2 text-gray-400" />';
                                         }
@@ -76,9 +82,8 @@ class CompanyResource extends Resource
                                         ViewField::make('agencyBadge')
                                             ->view('filament.components.company-agency-banner')
                                             ->columns(2)
-                                            ->visible(fn ($record) =>
-                                                (auth()->user()?->is_admin ?? false)
-                                                && ! empty($record?->agency_company_id)
+                                            ->visible(fn($record) => (auth()->user()?->is_admin ?? false)
+                                                && !empty($record?->agency_company_id)
                                             ),
                                         FileUpload::make('logo_image')
                                             ->label('Firmenlogo')
@@ -142,7 +147,7 @@ class CompanyResource extends Resource
                                                     ->maxLength(255)
                                                     ->placeholder('E-Mail-Adresse eingeben')
                                                     ->columnSpan(2),
-                                            Forms\Components\TextInput::make('leitweg_id')
+                                                Forms\Components\TextInput::make('leitweg_id')
                                                     ->label('Leitweg ID (X-Rechnung)')
                                                     ->maxLength(255)
                                                     ->placeholder('Leitweg ID (X-Rechnung)')
@@ -165,9 +170,8 @@ class CompanyResource extends Resource
                                             ->label('SEPA-Mandate')
                                             ->relationship('sepaMandates') // bindet direkt an die HasMany-Relation
                                             ->addActionLabel('Mandat hinzufügen')
-                                            ->itemLabel(fn (array $state) =>
-                                            ($state['mandate_reference'] ?? null)
-                                                ? 'Mandat '.$state['mandate_reference'] .' | ' . $state['iban']
+                                            ->itemLabel(fn(array $state) => ($state['mandate_reference'] ?? null)
+                                                ? 'Mandat ' . $state['mandate_reference'] . ' | ' . $state['iban']
                                                 : 'Neues Mandat'
                                             )
                                             ->schema([
@@ -204,7 +208,7 @@ class CompanyResource extends Resource
                                             ->reorderable(true),
                                     ])
                                     ->collapsed()
-                                    ->visible(fn () => auth()->user()?->is_admin),
+                                    ->visible(fn() => auth()->user()?->is_admin),
                             ]),
 
                         Forms\Components\Tabs\Tab::make('Einstellungen')
@@ -212,7 +216,7 @@ class CompanyResource extends Resource
 
                                 // === NEU: Affiliate Settings ===
                                 Forms\Components\Fieldset::make('Affiliate Settings')
-                                    ->visible(fn () => auth()->user()?->is_admin ?? false) // nur für Admins
+                                    ->visible(fn() => auth()->user()?->is_admin ?? false) // nur für Admins
                                     ->schema([
                                         Forms\Components\Toggle::make('is_agency')
                                             ->label('Ist Agentur / Affiliate')
@@ -228,11 +232,11 @@ class CompanyResource extends Resource
                                             ->step('0.01')
                                             ->suffix('%')
                                             ->default(20)
-                                            ->visible(fn (callable $get) => (bool) $get('is_agency'))
-                                            ->required(fn (callable $get) => (bool) $get('is_agency')),
+                                            ->visible(fn(callable $get) => (bool)$get('is_agency'))
+                                            ->required(fn(callable $get) => (bool)$get('is_agency')),
 
                                         Section::make('Mandanten dieser Agentur')
-                                            ->visible(fn ($record) => (bool) ($record?->is_agency))   // nur zeigen, wenn Agentur
+                                            ->visible(fn($record) => (bool)($record?->is_agency))   // nur zeigen, wenn Agentur
                                             ->schema([
                                                 ViewField::make('agency-tenants')
                                                     ->view('filament.components.agency-tenants')      // Blade unten
@@ -258,10 +262,12 @@ class CompanyResource extends Resource
                                                     ->reactive()
                                                     ->columnSpan(1)
                                                     ->afterStateUpdated(function ($state, callable $set, callable $get, $livewire) {
-                                                        if ($state === 'daily') {
+                                                        if ($state === 'daily')
+                                                        {
                                                             $company = $livewire->record;
                                                             $hasFeature = $company->features()->where('slug', 'scan-daily')->exists();
-                                                            if (! $hasFeature) {
+                                                            if (!$hasFeature)
+                                                            {
                                                                 Notification::make()
                                                                     ->title('Upgrade erforderlich')
                                                                     ->body('„Täglicher Scan“ ist nicht im gebuchten Paket enthalten. Bitte buchen Sie ein Upgrade.')
@@ -287,12 +293,21 @@ class CompanyResource extends Resource
                                             ->label('Kontrastfehler scannen')
                                             ->default(false)
                                             ->reactive()
-                                            ->hidden(fn (callable $get) => $get('default_standard') === '2.0'),
+                                            ->hidden(fn(callable $get) => $get('default_standard') === '2.0'),
 
-                                        Forms\Components\Toggle::make('auto_add_urls')
-                                            ->label('URLs automatisch hinzufügen')
-                                            ->default(true),
+                                        Forms\Components\Section::make('')
+                                            ->description('')
+                                            ->schema([
+                                                Forms\Components\Toggle::make('auto_add_urls')
+                                                    ->label('URLs automatisch hinzufügen')
+                                                    ->default(true)
+                                                    ->helperText('URLs bei Aufruf automatisch zum SiteScan hinzufügen.'),
 
+                                                Forms\Components\Toggle::make('exclude_query_string_urls')
+                                                    ->label('URLs mit Query-Strings ignorieren (?param=...)')
+                                                    ->default(true)
+                                                    ->helperText('Wenn aktiviert, werden Referrer mit Query-Strings nicht gespeichert.'),
+                                            ]),
                                         Forms\Components\Section::make('Domain-Filter')
                                             ->description('Steuert, welche Referrer/Seiten automatisch gespeichert werden.')
                                             ->schema([
@@ -303,10 +318,7 @@ class CompanyResource extends Resource
                                                     ->helperText('Mehrere Domains durch Komma oder Zeilenumbruch. Protokolle/Subdomains werden ignoriert; intern wird auf die registrierbare Domain (z. B. example.com) normalisiert.')
                                                     ->columnSpanFull(),
 
-                                                Forms\Components\Toggle::make('exclude_query_string_urls')
-                                                    ->label('URLs mit Query-Strings ignorieren (?param=...)')
-                                                    ->default(true)
-                                                    ->helperText('Wenn aktiviert, werden Referrer mit Query-Strings nicht gespeichert.'),
+
                                             ]),
 
                                     ]),
@@ -318,20 +330,23 @@ class CompanyResource extends Resource
                                 InfoBox::make()
                                     ->label('Für diese Firma sichtbare Upgrade-Produkte')
                                     ->content(function ($record) {
-                                        if (!auth()->user()?->is_admin) {
+                                        if (!auth()->user()?->is_admin)
+                                        {
                                             return null;
                                         }
 
                                         $products = Product::where('upgrade', 1)
                                             ->get()
-                                            ->filter(fn ($product) => $product->isVisibleForCompany($record));
+                                            ->filter(fn($product) => $product->isVisibleForCompany($record));
 
-                                        if ($products->isEmpty()) {
+                                        if ($products->isEmpty())
+                                        {
                                             return new HtmlString('<em>Keine Upgrade-Produkte für diese Firma sichtbar.</em>');
                                         }
 
                                         $rows = $products->map(function ($product) {
                                             $editUrl = ProductResource::getUrl('edit', ['record' => $product]);
+
                                             return "<tr>
                                                 <td class='border px-2 py-1 text-sm'>{$product->name}</td>
                                                 <td class='border px-2 py-1 text-sm'>{$product->feature_tags}</td>
@@ -357,7 +372,7 @@ class CompanyResource extends Resource
                                     }),
 
                             ])
-                            ->visible(fn () => auth()->user()?->is_admin),
+                            ->visible(fn() => auth()->user()?->is_admin),
 
                     ])
                     ->persistTabInQueryString(),
@@ -374,22 +389,26 @@ class CompanyResource extends Resource
                 Tables\Columns\IconColumn::make('is_agency')
                     ->label('')
                     ->icon(function ($record) {
-                        if ($record->is_agency) {
+                        if ($record->is_agency)
+                        {
                             return 'icon-tenancy'; // agentur
                         }
 
-                        if (! empty($record->agency_company_id)) {
+                        if (!empty($record->agency_company_id))
+                        {
                             return 'icon-tenant'; // tenant
                         }
 
                         return null; // nichts anzeigen
                     })
                     ->color(function ($record) {
-                        if ($record->is_agency) {
+                        if ($record->is_agency)
+                        {
                             return 'primary';
                         }
 
-                        if (! empty($record->agency_company_id)) {
+                        if (!empty($record->agency_company_id))
+                        {
                             return 'success';
                         }
 
