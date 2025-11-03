@@ -72,9 +72,9 @@ class ScriptController extends Controller
 
             if ($companyFeatures->count() >= 1) {
                 //if ($companyFeatures->contains(fn($feature) => $feature->feature_id == 4)) {
-                if($company->hasFeature('image-alt-tags') == 1) {
-                    $tool = 'img.min';
-                } elseif ($ulid === $specialUlid) {
+                if($company->hasFeature('image-alt-tags-all') == 1) {
+                    $tool = 'imgAlltags.min';
+                } elseif($company->hasFeature('image-alt-tags') == 1) {
                     $tool = 'img.min';
                 } else {
                     return response('Feature not available', 404);
