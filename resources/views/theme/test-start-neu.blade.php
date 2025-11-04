@@ -657,6 +657,74 @@ margin-bottom:  0.8rem;
 </style>
 
 
+
+    <section  style="background: linear-gradient(135deg, #0055ff 0%, #0033cc 100%); padding: 30px 0; color: white;">
+        <div class="container pt-12 pb-9 pb-lg-12 position-relative z-2">
+            <div class="row pb-7 pt-lg-9 align-items-center">
+                <div class="col-12 col-lg-7 mb-5 mb-lg-0">
+                    <h1 class="h2">Barrieren abbauen</h1>
+                    <h2 class="h2 display-4 mb-4"><span style="font-size: 53.354px;">Optimieren Sie </span><span style="font-size: 53.354px;">Ihren Webauftritt noch heute</span><span style="font-size: 53.354px;">:<br />Ihr Start zur digitalen Barrierefreiheit.</span></h2>
+                    <p class="lead mb-0"></p>
+                    <h2>Assistenzsoftware für Ihren Weg zum barrierefreien Webauftritt nach WCAG, BITV und EN301549</h2>
+                    <p></p>
+                </div>
+                <!--/.col-->
+                <div class="col-lg-4 ms-auto"><img src="https://aktion-barrierefrei.org/storage/storage/oeQ6YoUpDVQQvgv1WsfVUzwtYpNH85XOC9Ipx6ql.png" alt="Screenshot Widged" width="1210" height="1586" class="img-fluid" /></div>
+            </div>
+            <!--/.row--></div>
+        <!--Vector divider shape--><svg class="w-100 position-absolute start-0 bottom-0 flip-y" style="color: var(--bs-body-bg);" height="48" fill="currentColor" preserveaspectratio="none" viewbox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg"><path d="M0 0v46.29c47.79 22.2 103.59 32.17 158 28 70.36-5.37 136.33-33.31 206.8-37.5 73.84-4.36 147.54
+     16.88 218.2 35.26 69.27 18 138.3 24.88 209.4
+     13.08 36.15-6 69.85-17.84 104.45-29.34C989.49 25 1113-14.29 1200 52.47V0z" opacity=".25"></path> <path d="M0 0v15.81c13 21.11 27.64 41.05 47.69 56.24C99.41 111.27 165 111 224.58 91.58c31.15-10.15
+      60.09-26.07 89.67-39.8 40.92-19 84.73-46 130.83-49.67 36.26-2.85 70.9 9.42 98.6 31.56 31.77 25.39
+      62.32 62 103.63 73 40.44 10.79 81.35-6.69 119.13-24.28s75.16-39 116.92-43.05c59.73-5.85
+      113.28 22.88 168.9 38.84 30.2 8.66 59 6.17 87.09-7.5 22.43-10.89 48-26.93 60.65-49.24V0z" opacity=".5"></path> <path d="M0 0v5.63C149.93 59 314.09 71.32 475.83 42.57c43-7.64 84.23-20.12 127.61-26.46 59-8.63
+    112.48 12.24 165.56 35.4C827.93 77.22 886 95.24 951.2 90c86.53-7 172.46-45.71 248.8-84.81V0z"></path></svg></section>
+
+
+    <section  style="background: linear-gradient(135deg, #0055ff 0%, #0033cc 100%); padding: 30px 0; color: white;">
+        <div class="_container _px-lg-12">
+
+            <!-- Heading -->
+            <div class="text-center mb-5">
+                <h5 style="font-weight: 600; font-size: 1.1rem; opacity: 0.9;">
+                      <div class="position-relative _d-table mb-5 z-1">
+                        <h2 class="_display-3 _me-lg-n15 mb-4 position-relative">Funktioniert mit <strong>jedem</strong> CMS – sofort einsatzbereit
+                            <br>
+
+                            <!--Typed section heading-->
+                            <span class="text-white"
+                                  data-typed='{"strings": ["WordPress", "Drupal", "Typo3", "Shopware","Magento","WIX", "Squareplace"]}'></span>
+
+                        </h2>
+
+                        <!--text-->
+                        <p class="lead mb-0 _me-lg-n14">Create a stunning website for your startup.
+                        </p>
+                    </div>
+
+                </h5>
+            </div>
+
+            <!-- CMS Logos Grid -->
+            <div class="d-flex flex-wrap justify-content-center align-items-center gap-4 gap-lg-5 mt-4">
+
+                <img src="/assets/img/cms/WordPress-logotype-standard-white.png"     alt="WordPress"     class="cms-logo"  style="height:60px"/>
+                <img src="/assets/img/cms/drupal-white.webp"        alt="Drupal"        class="cms-logo" />
+                <img src="/assets/img/cms/typo3-white.webp"         alt="TYPO3"         class="cms-logo" />
+                <img src="/assets/img/cms/shopware-white-300x66.webp" alt="Shopware"    class="cms-logo" style="height:30px"/>
+                <img src="/assets/img/cms/magento-white.webp"       alt="Magento"       class="cms-logo" />
+                <img src="/assets/img/cms/wix-white.webp"           alt="WIX"           class="cms-logo" />
+                <img src="/assets/img/cms/squarespace-white.webp"   alt="Squarespace"   class="cms-logo" />
+                <img src="/assets/img/cms/jimdo-white.webp"         alt="Jimdo"         class="cms-logo" />
+                <img src="/assets/img/cms/gambio-white.webp"        alt="Gambio"        class="cms-logo" />
+                <img src="/assets/img/cms/oxid-white.webp"          alt="OXID"          class="cms-logo" />
+                <img src="/assets/img/cms/joomla-logo.png"        alt="Joomla"        class="cms-logo" style="height:30px" />
+
+            </div>
+        </div>
+    </section>
+
+
     <section class="position-relative bg-gradient-light mt-10">
         <div class="container py-9 py-lg-11 position-relative">
             <div class="row mb-5 mb-lg-9 justify-content-between align-items-end">
