@@ -46,6 +46,11 @@ class VerifyCustomerAccess
 
             // Root-Domain des Referrers bestimmen (z. B. example.com)
             $refRoot = $this->parseRootDomain($httpReferrer);
+            if($customer->id == 503){
+                \Log::info($refRoot);
+                \Log::info($httpReferrer);
+                \Log::info($validDomains);
+            }
 
             if ($refRoot) {
                 // Wenn valid_domains gesetzt sind → Whitelist erzwingen
