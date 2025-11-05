@@ -18,6 +18,7 @@ body {
     flex-direction: column;
 }
 
+.no-hyphen, .no-hyphen * { hyphens: none !important; -webkit-hyphens: none !important; -ms-hyphens: none !important; -moz-hyphens: none !important; word-break: normal !important; overflow-wrap: normal !important; line-break: auto !important; }
 main {
     flex-grow: 1;
 }
