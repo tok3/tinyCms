@@ -73,6 +73,19 @@
 
                     Datenschutzinformationen
                 </x-filament::link>
+                <x-filament::link
+                    color="gray"
+                    href="{{url('assets/downloads/info-auftragsdatenverarbeitung.pdf')}}"
+                    icon-alias="panels::widgets.filament-info.open-github-button"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                >
+                    <x-slot name="icon">
+                        <x-pdf-icon class="w-6 h-6 mr-2"/>
+                    </x-slot>
+
+                    Auftragsverarbeitungsvertrag
+                </x-filament::link>
             </div>
         </div>
     </x-filament::section>
