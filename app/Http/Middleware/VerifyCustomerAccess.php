@@ -38,6 +38,18 @@ class VerifyCustomerAccess
         // HTTP-Referer aus dem Request
         $httpReferrer = $request->header('referer');
 
+        \Log::build(['driver' => 'single', 'path' => storage_path('logs/referers.log')])
+            ->info('Incoming request', [
+                'company_id' => $company_id,
+                'referer'    => $request->header('referer'),
+                'origin'     => $request->header('origin'),
+                'host'       => $request->header('host'),
+                'user_agent' => $request->header('user-agent'),
+                'ip'         => $request->ip(),
+                'uri'        => $request->getRequestUri(),
+                'server'     => $request->server->all(),
+            ]);
+
         if ($httpReferrer) {
             // Settings holen
             $settings     = $customer->settings; // relationship('settings', CompanySetting::class)

@@ -61,7 +61,7 @@
 <code class="language-html" id="code-block-text-aktion-bf">
 <span style="color: #569CD6">&lt;link</span> <span style="color: #4EC9B0">rel=</span><span style="color: #CE9178">"stylesheet"</span> <span style="color: #4EC9B0">href=</span><span
         style="color: #CE9178">"{!! url('/service/fixstern.css') !!}"</span><span style="color: #569CD6">&gt;</span><br>
-<span style="color: #569CD6">&lt;script</span> <span style="color: #4EC9B0">src=</span><span style="color: #CE9178">"{!! url($fixsternLink) !!}"</span><span
+<span style="color: #569CD6">&lt;script</span> <span style="color: #4EC9B0">src=</span><span style="color: #CE9178">"{!! url($fixsternLink) !!}"</span> <span style="color: #4EC9B0">charset=</span><span style="color: #CE9178">"utf-8"</span><span
         style="color: #569CD6">&gt;&lt;/script&gt;</span>
 </code>
 </pre>

@@ -146,7 +146,7 @@
         <span class="attribute">href=</span><span class="value">"{{ url('service/fixstern.css') }}"</span>
         <span class="highlight">&gt;</span>
         <span class="highlight">&lt;script</span>
-        <span class="attribute">src=</span><span style="white-space: nowrap;" class="value">"{{ url('service/' . $company->ulid . '/fixstern.js') }}"</span>
+        <span class="attribute">src=</span><span style="white-space: nowrap;" class="value">"{{ url('service/' . $company->ulid . '/fixstern.js') }}"</span> <span class="attribute">charset=</span><span style="white-space: nowrap;" class="value">"utf-8"</span>
         <span class="highlight">&gt;&lt;/script&gt;</span>
     </pre>
 </div>
