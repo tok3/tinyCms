@@ -8,7 +8,7 @@
         <button
             type="button"
             @click="showInfo = true"
-            class="text-gray-500 hover:text-primary-600 transition"
+            class="text-blue-600 hover:text-primary-600 transition"
             title="Mehr Informationen"
         >
             <x-heroicon-o-information-circle class="w-5 h-5" />
@@ -31,6 +31,25 @@
             @error('name')
             <p class="text-danger-600 text-sm mt-1">{{ $message }}</p>
             @enderror
+
+            <x-filament::link
+                class="mt-2"
+                style=""
+                color="gray"
+                href="{{url('assets/downloads/agenturservice.pdf')}}"
+                icon-alias="panels::widgets.filament-info.open-github-button"
+                rel="noopener noreferrer"
+                target="_blank"
+            >
+                Agenturservice Info / Anleitung
+                <x-slot name="icon">
+                    <x-pdf-icon class="w-6 h-6 mr-2"/>
+                </x-slot>
+
+
+            </x-filament::link>
+
+
         </div>
 
         <div class="flex justify-end">

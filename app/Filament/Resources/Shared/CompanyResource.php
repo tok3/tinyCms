@@ -94,7 +94,13 @@ class CompanyResource extends Resource
                                             ->storeFileNamesIn('logo_orig_filename'),
 
                                         Forms\Components\TextInput::make('name')
-                                            ->label('Firmenname')
+                                            ->label(function ($record) {
+                                                if ($record && $record->billing_via_agency) {
+                                                    return new HtmlString('<strong>Kunde / Projektname / Domain</strong>');
+                                                }
+
+                                                return 'Firmenname';
+                                            })
                                             ->maxLength(255)
                                             ->required()
                                             ->placeholder('Firmennamen eingeben'),
@@ -108,7 +114,9 @@ class CompanyResource extends Resource
                                         Forms\Components\TextInput::make('str')
                                             ->label('Straße')
                                             ->maxLength(255)
-                                            ->placeholder('Straße eingeben'),
+                                            ->placeholder('Straße eingeben')
+                                            // ausblenden, wenn über Agentur abgerechnet wird
+                                            ->hidden(fn ($get) => $get('billing_via_agency')),
 
                                         Forms\Components\Grid::make(6)
                                             ->schema([
@@ -122,7 +130,8 @@ class CompanyResource extends Resource
                                                     ->maxLength(255)
                                                     ->placeholder('Ort eingeben')
                                                     ->columnSpan(4),
-                                            ]),
+                                            ])
+                                            ->hidden(fn ($get) => $get('billing_via_agency')),
 
                                         Forms\Components\Grid::make(4)
                                             ->schema([
@@ -137,7 +146,8 @@ class CompanyResource extends Resource
                                                     ->tel()
                                                     ->placeholder('Mobilnummer eingeben')
                                                     ->columnSpan(2),
-                                            ]),
+                                            ])
+                                            ->hidden(fn ($get) => $get('billing_via_agency')),
 
                                         Forms\Components\Grid::make(4)
                                             ->schema([
@@ -147,6 +157,7 @@ class CompanyResource extends Resource
                                                     ->maxLength(255)
                                                     ->placeholder('E-Mail-Adresse eingeben')
                                                     ->columnSpan(2),
+
                                                 Forms\Components\TextInput::make('leitweg_id')
                                                     ->label('Leitweg ID (X-Rechnung)')
                                                     ->maxLength(255)
@@ -159,7 +170,34 @@ class CompanyResource extends Resource
                                                     ->maxLength(255)
                                                     ->placeholder('Webseiten-URL eingeben')
                                                     ->columnSpan(2),
-                                            ]),
+                                            ])
+                                            ->hidden(fn ($get) => $get('billing_via_agency')),
+
+// Stattdessen: Hinweis bei Abrechnung über Agentur
+                                        Forms\Components\Placeholder::make('agency_billing_info')
+                                            ->label('')
+                                            ->content(function ($record) {
+                                                if (! $record?->agency_company_id) {
+                                                    return new HtmlString(
+                                                        'Die Abrechnung erfolgt über eine Agentur. '
+                                                        .'Bitte eine Agentur in <strong>agency_company_id</strong> hinterlegen.'
+                                                    );
+                                                }
+
+                                                // falls du eine Relation hast, lieber $record->agencyCompany verwenden
+                                                $agency = Company::find($record->agency_company_id);
+
+                                                if (! $agency) {
+                                                    return 'Die Abrechnung erfolgt über eine Agentur (Agentur nicht gefunden).';
+                                                }
+
+                                                return new HtmlString(
+                                                    '<span style="font-size:12pt"><p style="color:red;font-weight:bold;">Hinweis</p>Die Abrechnung erfolgt über die Agentur '
+                                                    .'<strong>'.$agency->name.'</strong>.</span>'
+                                                );
+                                            })
+                                            ->visible(fn ($get) => $get('billing_via_agency'))
+                                            ->columnSpanFull(),
 
 
                                     ]),
