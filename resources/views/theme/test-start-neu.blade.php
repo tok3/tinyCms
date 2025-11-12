@@ -1,9 +1,6 @@
 <x-assan-layout layout-type="{{$layoutType}}">
 
 
-
-
-
     <style>
 
         /* styles.css */
@@ -71,7 +68,7 @@
             gap: 0.5rem;
             flex-wrap: wrap;
             margin-top: 0.5rem;
-            margin-left: auto;    /* schiebt ihn ganz nach rechts */
+            margin-left: auto; /* schiebt ihn ganz nach rechts */
         }
 
         .tag {
@@ -96,49 +93,56 @@
             background-color: #e0f2fe;
             color: #0369a1;
         }
+
         /* styles.css */
         /* Basisklasse für alle Provider-Icons */
         .product-card__provider--icon {
             display: inline-block;
-            width: 3.25rem;            /* fixe Breite */
-            height: 2.25rem;           /* fixe Höhe */
+            width: 3.25rem; /* fixe Breite */
+            height: 2.25rem; /* fixe Höhe */
             background-repeat: no-repeat;
             background-position: center;
             background-size: contain;
             line-height: 0;
             vertical-align: middle;
         }
+
         .product-card__provider--icon + .product-card__provider--icon {
             margin-left: 3px;
         }
+
         /* Modifier-Klassen nur für das jeweilige Icon */
         .product-card__provider--icon.feature {
             background-image: url("{{ URL::asset('assets/img/produkte/feature-white.png') }}");
         }
+
         .product-card__provider--icon.audio {
             background-image: url("{{ URL::asset('assets/img/produkte/audio-white.png') }}");
 
         }
+
         .product-card__provider--icon.standalone {
             background-image: url("{{ URL::asset('assets/img/produkte/standalone.svg') }}");
         }
+
         .product-card__provider--icon.addon {
             background-image: url("{{ URL::asset('assets/img/produkte/addON.svg') }}");
         }
+
         /* Wrapper um alle Icons */
         .product-card__provider-icons {
             display: flex;
-            gap: 3px;        /* Abstand zwischen den Icons */
+            gap: 3px; /* Abstand zwischen den Icons */
             margin-left: auto; /* ganz nach rechts ausrichten */
         }
 
         /* floatendes Bild innerhalb des Fließtexts */
         .product-card__image--float {
-            float: left;               /* Bild nach links floaten */
-            width: 250px;              /* fixe Breite, Höhe passt sich an */
+            float: left; /* Bild nach links floaten */
+            width: 250px; /* fixe Breite, Höhe passt sich an */
             height: auto;
-            margin: 0 1rem 1rem 0;     /* rechts und unten Abstand für den Umfluss */
-            border-radius: 0.3rem;     /* optional, wie gehabt */
+            margin: 0 1rem 1rem 0; /* rechts und unten Abstand für den Umfluss */
+            border-radius: 0.3rem; /* optional, wie gehabt */
         }
 
         /* Footer-Container wie Header */
@@ -146,8 +150,8 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            flex-wrap: wrap;        /* damit es auf engen Viewports umbrechen kann */
-            width: 100%;            /* volle Breite der Card */
+            flex-wrap: wrap; /* damit es auf engen Viewports umbrechen kann */
+            width: 100%; /* volle Breite der Card */
             margin-top: 1rem;
             padding-top: 1rem;
             border-top: 1px solid #e5e7eb; /* optional Abgrenzung */
@@ -157,13 +161,15 @@
         .product-card__footer-info {
             display: flex;
             flex-direction: column;
-            max-width: 60%;         /* auf großen Viewports Beschränkung, damit Actions rechts Platz haben */
+            max-width: 60%; /* auf großen Viewports Beschränkung, damit Actions rechts Platz haben */
         }
+
         .product-card__footer-title {
             margin: 0 0 0.5rem;
             font-size: 1.25rem;
             font-weight: 600;
         }
+
         .product-card__footer-text {
             margin: 0;
             color: #6b7280;
@@ -175,8 +181,9 @@
         .product-card__footer-actions {
             display: flex;
             gap: 0.5rem;
-            margin-left: auto;       /* schiebt die Actions ganz nach rechts */
+            margin-left: auto; /* schiebt die Actions ganz nach rechts */
         }
+
         .product-card__footer-actions .btn {
             white-space: nowrap;
         }
@@ -185,43 +192,49 @@
         @media (max-width: 768px) {
             .product-card__footer {
                 flex-direction: column;
-                align-items: stretch;  /* zieht beide Bereiche über die volle Breite */
+                align-items: stretch; /* zieht beide Bereiche über die volle Breite */
             }
+
             .product-card__footer-info {
                 max-width: 100%;
                 margin-bottom: 1rem;
             }
+
             .product-card__footer-actions {
                 margin-left: 0;
                 justify-content: flex-start;
                 width: 100%;
             }
+
             /* Optional: Buttons untereinander auf sehr kleinen Viewports */
             @media (max-width: 480px) {
                 .product-card__footer-actions {
                     flex-direction: column;
                     gap: 0.75rem;
                 }
+
                 .product-card__footer-actions .btn {
                     width: 100%;
                 }
             }
         }
+
         .product-card__footer {
             display: flex;
             justify-content: space-between;
-            align-items: center;   /* statt flex-start */
+            align-items: center; /* statt flex-start */
             flex-wrap: wrap;
             width: 100%;
             margin-top: 1rem;
             padding-top: 1rem;
             border-top: 1px solid #e5e7eb;
         }
+
         @media (max-width: 768px) {
             .product-card__footer-actions {
-                margin-left: 0;         /* hebt das vorherige auto wieder auf */
-                width: 100%;            /* bleibt volle Breite */
-                justify-content: center;/* schiebt die Buttons mittig */
+                margin-left: 0; /* hebt das vorherige auto wieder auf */
+                width: 100%; /* bleibt volle Breite */
+                justify-content: center; /* schiebt die Buttons mittig */
             }
 
             /* very small viewports: Buttons untereinander */
@@ -230,6 +243,7 @@
                     flex-direction: column;
                     gap: 0.75rem;
                 }
+
                 .product-card__footer-actions .btn {
                     width: 100%;
                 }
@@ -241,13 +255,13 @@
         .gb-card {
             position: relative;
             /* DEFAULT-FARBEN als CSS-Variablen */
-            --card-bg:       #76bbd0;
-            --footer-top:    #e07044;
+            --card-bg: #76bbd0;
+            --footer-top: #e07044;
             --footer-bottom: #f0ab61;
             background-color: var(--card-bg);
             border-radius: 8px;
             padding: 2.0rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             color: #fff;
             overflow: hidden;
             max-width: 100%;
@@ -286,22 +300,24 @@
             flex: 1;
             display: block;
         }
+
         /* Farben lesen aus den Variablen */
         .gb-card__block--top {
             background-color: var(--footer-top);
         }
+
         .gb-card__block--bottom {
             background-color: var(--footer-bottom);
         }
 
         .gb-card--legal {
-            background-color: #f5f5f5;  /* hellgrau */
-            color: #111;                /* fast schwarz */
+            background-color: #f5f5f5; /* hellgrau */
+            color: #111; /* fast schwarz */
             padding: 1rem 1.25rem;
             margin: 1rem 0;
             border-radius: 6px;
             font-size: 0.95rem;
-            box-shadow: none;          /* keine auffällige Karte */
+            box-shadow: none; /* keine auffällige Karte */
             position: relative;
         }
 
@@ -312,7 +328,7 @@
             color: #111;
         }
 
-        .gb-card--legal .gb-card-variant2__text p{
+        .gb-card--legal .gb-card-variant2__text p {
             font-family: 'IBM Plex Sans', sans-serif;
             font-size: 0.92rem;
             color: #111;
@@ -323,371 +339,855 @@
         .gb-card--legal .gb-card__sidebar {
             display: none; /* optional: Sidebar-Elemente bei Legal-Card entfernen */
         }
+
         /* === Sechs Varianten === */
 
         /* 1) Primary */
         .gb-card--primary {
-            --card-bg:       #0d6efd;
-            --footer-top:    #0747a6;
+            --card-bg: #0d6efd;
+            --footer-top: #0747a6;
             --footer-bottom: #3d7bfa;
         }
+
         /* 2) Secondary */
         .gb-card--secondary {
-            --card-bg:       #6c757d;
-            --footer-top:    #495057;
+            --card-bg: #6c757d;
+            --footer-top: #495057;
             --footer-bottom: #adb5bd;
         }
 
         .gb-card--light {
-            color:#111111;
-            --card-bg:       #f5f5f5;
-            --footer-top:    #adb5bd;
+            color: #111111;
+            --card-bg: #f5f5f5;
+            --footer-top: #adb5bd;
             --footer-bottom: #ced4da;
         }
 
 
         /* 3) Success */
         .gb-card--success {
-            --card-bg:       #198754;
-            --footer-top:    #117a39;
+            --card-bg: #198754;
+            --footer-top: #117a39;
             --footer-bottom: #45ba6b;
         }
+
         /* 4) Danger */
         .gb-card--danger {
-            --card-bg:       #dc3545;
-            --footer-top:    #a71d2a;
+            --card-bg: #dc3545;
+            --footer-top: #a71d2a;
             --footer-bottom: #ed6473;
         }
+
         /* 5) Warning */
         .gb-card--warning {
-            --card-bg:       #ffc107;
-            --footer-top:    #e0a800;
+            --card-bg: #ffc107;
+            --footer-top: #e0a800;
             --footer-bottom: #ffcd39;
         }
+
         /* 6) Info */
         .gb-card--info {
-            --card-bg:       #0dcaf0;
-            --footer-top:    #0aa3b5;
+            --card-bg: #0dcaf0;
+            --footer-top: #0aa3b5;
             --footer-bottom: #3eefec;
         }
     </style>
-<style>
-    /* === Basis-Styles Variant 2 === */
-    .gb-card-variant2 {
-        display: flex;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        /*max-width: 800px;*/
-        margin: 2rem auto;
-        container-type: inline-size;
-        container-name: card;
-    }
-
-    /* Linke Spalte mit Verlauf und Grafik */
-    .gb-card-variant2__left {
-        --c1: var(--left-color-1, #f7029f);
-        --c2: var(--left-color-2, #1121c2);
-        flex: 0 0 35%;
-        background: linear-gradient(
-            to bottom right,
-            var(--c1) 0%,
-            var(--c2) 100%
-        );
-        display: flex;
-        flex-direction: column;    /* stapelt Icons untereinander */
-        align-items: center;       /* horizontal zentriert */
-        justify-content: flex-start; /* oben beginnen */
-        gap: 1rem;                 /* Abstand zwischen den Icons */
-        padding: 1.5rem 0;         /* vertikales Padding */
-        max-width: 250px;
-        position: relative;
-    }
-
-
-    .icon-bottom-right {
-        position: absolute;
-        right: 1rem;
-        bottom: 1rem;
-    }
-    .gb-card-variant2__icon {
-        max-width: 80%;
-        height: auto;
-        display: block;
-    }
-    .fadeout-pink {
-        background: linear-gradient(to bottom right, #f7029f, #f7029f);
-        -webkit-mask-image: linear-gradient(to bottom, #ce00cd 0px, #ce00cd 300px, transparent 100%);
-        mask-image: linear-gradient(to bottom, #ce00cd 0px, #ce00cd 300px, transparent 100%);
-    }
-    /* Rechte Spalte mit Text */
-    .gb-card-variant2__right {
-        flex: 1;
-        background: #fff;
-        padding: 2rem;
-        padding-bottom: 1.5rem;
-        color: #333;
-        display: flex;
-        flex-direction: column;
-    }
-    .gb-card-variant2__text-left {
-        flex: 1;
-        background: transparent;
-        padding: 2rem;
-        color: #ffffff;
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* === Header: Titel + Icons === */
-    .gb-card-variant2__header {
-        display: flex;
-        flex-direction: column;
-        height: 100%; /* Wichtig, wenn du Höhe steuern willst */
-        position: relative;
-    }
-
-    .gb-card-variant2__title {
-        font-family: 'Montserrat', sans-serif;
-        font-size: 1.9rem;
-        margin: 0 0 0.8rem;
-        color: #222;
-
-    }
-    /* Platzhalter zwischen Title und Icons */
-    .gb-card-variant2__title {
-    }
-    /* Icons absolut oben rechts, strecken den Header nicht */
-    .gb-card-variant2__header-icons {
-        position: absolute;
-        top: 0;
-        right: 0;
-        display: flex;
-        gap: 0.5rem;
-margin-bottom:  0.8rem;
-    }
-
-    .gb-card-variant2__icon-small {
-        width: auto;
-        height: 20px;
-        display: block;
-    }
-
-    /* Subtitle & Text */
-    .gb-card-variant2__subtitle {
-        font-family: 'Open Sans', sans-serif;
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: #555;
-        margin: 0 0 1rem;
-    }
-
-    .gb-card-variant2__text {
-        font-family: 'Open Sans', sans-serif;
-        font-size: 1rem;
-        line-height: 1.5;
-        margin: 0;
-        color: #444;
-    }
-
-    /* === Demo-Variante: nur Farben konfigurieren === */
-    .gb-card-variant2--pink {
-        --left-color-1: #f7029f; /* Pink oben */
-        --left-color-2: #ce00cd; /* Violett unten */
-    }
-
-    .gb-card-variant2--tint-blue {
-        --left-color-1: #5c1bb0; /* Pink oben */
-        --left-color-2: #310e5f; /* Violett unten */
-    }
-
-    .gb-card-variant2--trust-blue {
-        --left-color-1: #043363; /* Pink oben */
-        --left-color-2: #0b5985; /* Violett unten */
-    }
-
-    .gb-card-variant2--deep-violet {
-        --left-color-1: #5c1bb0; /* Pink oben */
-        --left-color-2: #6b26ba; /* Violett unten */
-    }
-
-        .gb-card-variant2--blackberry {
-        --left-color-1: #5c1bb0; /* Pink oben */
-        --left-color-2: #851484; /* Violett unten */
-    }
-
-
-    .gb-card-variant2__footer {
-        border-top: 1px lightgray solid;
-        padding-top:1rem;
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 1rem;
-        gap: 0.5rem; /* falls mehrere Buttons folgen */
-
-    }
-
-
-    /* Container Query – wenn die Card mind. 856px breit ist */
-    @container card (min-width: 857px) {
-        .gb-card-variant2__footer {
-            flex-direction: row;
-            justify-content: flex-end;
-            align-items: center;
-        }
-
-        .gb-card-variant2__footer .gradient-button-wrapper {
-            width: 180px;
-        }
-    }
-    @media (max-width: 768px) {
+    <style>
+        /* === Basis-Styles Variant 2 === */
         .gb-card-variant2 {
+            display: flex;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            /*max-width: 800px;*/
+            margin: 2rem auto;
+            container-type: inline-size;
+            container-name: card;
+        }
+
+        /* Linke Spalte mit Verlauf und Grafik */
+        .gb-card-variant2__left {
+            --c1: var(--left-color-1, #f7029f);
+            --c2: var(--left-color-2, #1121c2);
+            flex: 0 0 35%;
+            background: linear-gradient(
+                to bottom right,
+                var(--c1) 0%,
+                var(--c2) 100%
+            );
+            display: flex;
+            flex-direction: column; /* stapelt Icons untereinander */
+            align-items: center; /* horizontal zentriert */
+            justify-content: flex-start; /* oben beginnen */
+            gap: 1rem; /* Abstand zwischen den Icons */
+            padding: 1.5rem 0; /* vertikales Padding */
+            max-width: 250px;
+            position: relative;
+        }
+
+
+        .icon-bottom-right {
+            position: absolute;
+            right: 1rem;
+            bottom: 1rem;
+        }
+
+        .gb-card-variant2__icon {
+            max-width: 80%;
+            height: auto;
+            display: block;
+        }
+
+        .fadeout-pink {
+            background: linear-gradient(to bottom right, #f7029f, #f7029f);
+            -webkit-mask-image: linear-gradient(to bottom, #ce00cd 0px, #ce00cd 300px, transparent 100%);
+            mask-image: linear-gradient(to bottom, #ce00cd 0px, #ce00cd 300px, transparent 100%);
+        }
+
+        /* Rechte Spalte mit Text */
+        .gb-card-variant2__right {
+            flex: 1;
+            background: #fff;
+            padding: 2rem;
+            padding-bottom: 1.5rem;
+            color: #333;
+            display: flex;
             flex-direction: column;
         }
 
-        .gb-card-variant2__header-icons {
+        .gb-card-variant2__text-left {
+            flex: 1;
+            background: transparent;
+            padding: 2rem;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* === Header: Titel + Icons === */
+        .gb-card-variant2__header {
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* Wichtig, wenn du Höhe steuern willst */
             position: relative;
-            margin-top: 0.8em !important;
+        }
+
+        .gb-card-variant2__title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.9rem;
+            margin: 0 0 0.8rem;
+            color: #222;
+
+        }
+
+        /* Platzhalter zwischen Title und Icons */
+        .gb-card-variant2__title {
+        }
+
+        /* Icons absolut oben rechts, strecken den Header nicht */
+        .gb-card-variant2__header-icons {
+            position: absolute;
+            top: 0;
             right: 0;
             display: flex;
             gap: 0.5rem;
             margin-bottom: 0.8rem;
-
-        }
-        .gb-card-variant2__left {
-            flex: none;
-            width: 100%;
-            max-width: 100%;
-            padding: 1rem;
-            flex-direction: row;
-            justify-content: center;
-            gap: 1rem;
         }
 
-        .gb-card-variant2__right {
-            padding: 1.5rem;
-            align-items: center;
-            text-align: center;
+        .gb-card-variant2__icon-small {
+            width: auto;
+            height: 20px;
+            display: block;
         }
 
-        .gb-card-variant2__header-icons {
-            position: static;
-            justify-content: center;
-            margin-top: 0.5rem;
+        /* Subtitle & Text */
+        .gb-card-variant2__subtitle {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #555;
+            margin: 0 0 1rem;
         }
+
+        .gb-card-variant2__text {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin: 0;
+            color: #444;
+        }
+
+        /* === Demo-Variante: nur Farben konfigurieren === */
+        .gb-card-variant2--pink {
+            --left-color-1: #f7029f; /* Pink oben */
+            --left-color-2: #ce00cd; /* Violett unten */
+        }
+
+        .gb-card-variant2--tint-blue {
+            --left-color-1: #5c1bb0; /* Pink oben */
+            --left-color-2: #310e5f; /* Violett unten */
+        }
+
+        .gb-card-variant2--trust-blue {
+            --left-color-1: #043363; /* Pink oben */
+            --left-color-2: #0b5985; /* Violett unten */
+        }
+
+        .gb-card-variant2--deep-violet {
+            --left-color-1: #5c1bb0; /* Pink oben */
+            --left-color-2: #6b26ba; /* Violett unten */
+        }
+
+        .gb-card-variant2--blackberry {
+            --left-color-1: #5c1bb0; /* Pink oben */
+            --left-color-2: #851484; /* Violett unten */
+        }
+
 
         .gb-card-variant2__footer {
-            flex-direction: column;
-            align-items: stretch;
-            width:100% !important;
+            border-top: 1px lightgray solid;
+            padding-top: 1rem;
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 1rem;
+            gap: 0.5rem; /* falls mehrere Buttons folgen */
+
         }
 
-        .gb-card-variant2__footer a {
-            width:100% !important;
 
+        /* Container Query – wenn die Card mind. 856px breit ist */
+        @container card (min-width: 857px) {
+            .gb-card-variant2__footer {
+                flex-direction: row;
+                justify-content: flex-end;
+                align-items: center;
+            }
+
+            .gb-card-variant2__footer .gradient-button-wrapper {
+                width: 180px;
+            }
         }
 
-        .gb-card-variant2__footer .btn span {
-            width:100% !important;
+        @media (max-width: 768px) {
+            .gb-card-variant2 {
+                flex-direction: column;
+            }
+
+            .gb-card-variant2__header-icons {
+                position: relative;
+                margin-top: 0.8em !important;
+                right: 0;
+                display: flex;
+                gap: 0.5rem;
+                margin-bottom: 0.8rem;
+
+            }
+
+            .gb-card-variant2__left {
+                flex: none;
+                width: 100%;
+                max-width: 100%;
+                padding: 1rem;
+                flex-direction: row;
+                justify-content: center;
+                gap: 1rem;
+            }
+
+            .gb-card-variant2__right {
+                padding: 1.5rem;
+                align-items: center;
+                text-align: center;
+            }
+
+            .gb-card-variant2__header-icons {
+                position: static;
+                justify-content: center;
+                margin-top: 0.5rem;
+            }
+
+            .gb-card-variant2__footer {
+                flex-direction: column;
+                align-items: stretch;
+                width: 100% !important;
+            }
+
+            .gb-card-variant2__footer a {
+                width: 100% !important;
+
+            }
+
+            .gb-card-variant2__footer .btn span {
+                width: 100% !important;
+                white-space: nowrap;
+            }
+        }
+
+        .gradient-button-wrapper {
+            padding: 2px; /* für Rahmen-Effekt */
+            border-radius: 8px;
+            background: linear-gradient(135deg, #d3089a, #6f42c1); /* Beispiel: Indigo */
+            width: 100%;
+        }
+
+        .gradient-button-wrapper .btn {
+            background-color: #fff;
+            border: none;
+            width: 100%;
+            display: block;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
             white-space: nowrap;
+            transition: background 0.3s ease;
         }
-    }
 
-    .gradient-button-wrapper {
-        padding: 2px; /* für Rahmen-Effekt */
-        border-radius: 8px;
-        background: linear-gradient(135deg, #d3089a, #6f42c1); /* Beispiel: Indigo */
-        width: 100%;
-    }
+        .gradient-button-wrapper .btn:hover {
+            background-color: #f8f9fa;
+        }
 
-    .gradient-button-wrapper .btn {
-        background-color: #fff;
-        border: none;
-        width: 100%;
-        display: block;
-        border-radius: 6px;
-        padding: 0.5rem 1rem;
-        font-weight: 500;
-        white-space: nowrap;
-        transition: background 0.3s ease;
-    }
+        /*.bg-gradient-primary {
+            background: linear-gradient(135deg, #1abc9c, #3498db);
+        }*/
 
-    .gradient-button-wrapper .btn:hover {
-        background-color: #f8f9fa;
-    }
-    /*.bg-gradient-primary {
-        background: linear-gradient(135deg, #1abc9c, #3498db);
-    }*/
+        .bg-gradient-success {
+            background: linear-gradient(135deg, #28a745, #218838);
+        }
 
-    .bg-gradient-success {
-        background: linear-gradient(135deg, #28a745, #218838);
-    }
+        .bg-gradient-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
 
-    .bg-gradient-danger {
-        background: linear-gradient(135deg, #e74c3c, #c0392b);
-    }
+        .bg-gradient-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
 
-    .bg-gradient-warning {
-        background: linear-gradient(135deg, #f39c12, #e67e22);
-    }
+        .bg-gradient-purple {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
 
-    .bg-gradient-purple {
-        background: linear-gradient(135deg, #9b59b6, #8e44ad);
-    }
+        .bg-gradient-indigo {
+            background: linear-gradient(135deg, #6610f2, #6f42c1);
+        }
 
-    .bg-gradient-indigo {
-        background: linear-gradient(135deg, #6610f2, #6f42c1);
-    }
+        .bg-gradient-teal {
+            background: linear-gradient(135deg, #20c997, #17a2b8);
+        }
 
-    .bg-gradient-teal {
-        background: linear-gradient(135deg, #20c997, #17a2b8);
-    }
+        .bg-gradient-night {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+        }
 
-    .bg-gradient-night {
-        background: linear-gradient(135deg, #2c3e50, #34495e);
-    }
+        .bg-gradient-sunset {
+            background: linear-gradient(135deg, #fd746c, #ff9068);
+        }
 
-    .bg-gradient-sunset {
-        background: linear-gradient(135deg, #fd746c, #ff9068);
-    }
-
-    .bg-gradient-iceblue {
-        background: linear-gradient(135deg, #00c6ff, #0072ff);
-    }
-</style>
+        .bg-gradient-iceblue {
+            background: linear-gradient(135deg, #00c6ff, #0072ff);
+        }
 
 
+    </style>
+    <section style=" padding: 30px 0; color: white; height:120px;">
 
-    <section  style="background: linear-gradient(135deg, #0055ff 0%, #0033cc 100%); padding: 30px 0; color: white;">
-        <div class="container pt-12 pb-9 pb-lg-12 position-relative z-2">
-            <div class="row pb-7 pt-lg-9 align-items-center">
+    </section>
+
+    <section class="position-relative bg-gradient-iceblue text-white no-hyphen">
+        <div class="container pt-10 pb-3 pb-lg-5 position-relative z-2">
+            <div class="row pb-0 pt-lg-5 align-items-center">
                 <div class="col-12 col-lg-7 mb-5 mb-lg-0">
-                    <h1 class="h2">Barrieren abbauen</h1>
-                    <h2 class="h2 display-4 mb-4"><span style="font-size: 53.354px;">Optimieren Sie </span><span style="font-size: 53.354px;">Ihren Webauftritt noch heute</span><span style="font-size: 53.354px;">:<br />Ihr Start zur digitalen Barrierefreiheit.</span></h2>
-                    <p class="lead mb-0"></p>
-                    <h2>Assistenzsoftware für Ihren Weg zum barrierefreien Webauftritt nach WCAG, BITV und EN301549</h2>
-                    <p></p>
+                    <h2 class="h2 display-4 mb-4"><span style="font-size: 53.354px;">Unser Fixstern - Ihre Barrierefreiheit im Web.</span></h2>
+                    <p class="mb-6 lead text-white aos-init aos-animate" data-aos="fade-up">
+                        Fixstern macht Ihre Webseite sofort zugänglicher. Intelligente Funktionen passen sich automatisch den Bedürfnissen der Nutzerinnen und Nutzer an – für ein Erlebnis ohne Hürden.
+                    </p>
+                    <div class="d-flex mb-2"></div>
+                    <div class="d-flex">
+                        <div></div>
+                    </div>
                 </div>
-                <!--/.col-->
-                <div class="col-lg-4 ms-auto"><img src="https://aktion-barrierefrei.org/storage/storage/oeQ6YoUpDVQQvgv1WsfVUzwtYpNH85XOC9Ipx6ql.png" alt="Screenshot Widged" width="1210" height="1586" class="img-fluid" /></div>
+                <div class="col-lg-4 ms-auto"><img src="http://localhost:8004/storage/storage/S6X5W7kMWmsZF4P7EUx13nREh518daSObUsI02Nc.png" alt="Screenshot Widged" width="1210" height="1586"
+                                                   class="img-fluid"></div>
             </div>
-            <!--/.row--></div>
-        <!--Vector divider shape--><svg class="w-100 position-absolute start-0 bottom-0 flip-y" style="color: var(--bs-body-bg);" height="48" fill="currentColor" preserveaspectratio="none" viewbox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg"><path d="M0 0v46.29c47.79 22.2 103.59 32.17 158 28 70.36-5.37 136.33-33.31 206.8-37.5 73.84-4.36 147.54
-     16.88 218.2 35.26 69.27 18 138.3 24.88 209.4
-     13.08 36.15-6 69.85-17.84 104.45-29.34C989.49 25 1113-14.29 1200 52.47V0z" opacity=".25"></path> <path d="M0 0v15.81c13 21.11 27.64 41.05 47.69 56.24C99.41 111.27 165 111 224.58 91.58c31.15-10.15
-      60.09-26.07 89.67-39.8 40.92-19 84.73-46 130.83-49.67 36.26-2.85 70.9 9.42 98.6 31.56 31.77 25.39
-      62.32 62 103.63 73 40.44 10.79 81.35-6.69 119.13-24.28s75.16-39 116.92-43.05c59.73-5.85
-      113.28 22.88 168.9 38.84 30.2 8.66 59 6.17 87.09-7.5 22.43-10.89 48-26.93 60.65-49.24V0z" opacity=".5"></path> <path d="M0 0v5.63C149.93 59 314.09 71.32 475.83 42.57c43-7.64 84.23-20.12 127.61-26.46 59-8.63
-    112.48 12.24 165.56 35.4C827.93 77.22 886 95.24 951.2 90c86.53-7 172.46-45.71 248.8-84.81V0z"></path></svg></section>
+            <!--/.col--> <!--/.row--></div>
+    </section>
+    <!-- sect 2-->
+    <section class="position-relative overflow-hidden ">
+        <div class="container py-9 py-lg-11 position-relative z-1">
+            <div class="row align-items-center justify-content-between">
+                <div class="order-last col-lg-6">
+                    <div class="mb-3" data-aos="fade-up">
+                        <h6 class="mb-0 text-uppercase">Digitale Barrierefreiheit einfach gemacht</h6>
+                    </div>
+                    <h2 class="mb-5 display-5 position-relative z-1" data-aos="fade-right">
+                        Fixstern – das Barrierefreiheits-Plugin für jede Webseite
+                    </h2>
+
+                    <div class="position-relative z-1">
+                        <div class="d-flex mb-3" data-aos="fade-up" data-aos-delay="150">
+                            <div class="me-3">
+                                <i class="bx bx-check lh-1 width-3x height-3x flex-center rounded-circle bg-body-tertiary text-info fs-4"></i>
+                            </div>
+                            <div>
+                                <h5>Barrierefreiheit auf Knopfdruck</h5>
+                                <p class="mb-0 text-body-secondary">
+                                    Fixstern ergänzt jede Webseite um ein intelligentes Bedien-Panel, das sofort mehr Zugänglichkeit schafft – ganz ohne Codeänderung.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex mb-3" data-aos="fade-up" data-aos-delay="200">
+                            <div class="me-3">
+                                <i class="bx bx-check lh-1 width-3x height-3x flex-center rounded-circle bg-body-tertiary text-info fs-4"></i>
+                            </div>
+                            <div>
+                                <h5>Individuelle Anpassung</h5>
+                                <p class="mb-0 text-body-secondary">
+                                    Besucherinnen und Besucher passen Darstellung, Kontrast, Schriftgröße oder Animationen nach ihren Bedürfnissen an.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex mb-3" data-aos="fade-up" data-aos-delay="250">
+                            <div class="me-3">
+                                <i class="bx bx-check lh-1 width-3x height-3x flex-center rounded-circle bg-body-tertiary text-info fs-4"></i>
+                            </div>
+                            <div>
+                                <h5>Ein Menü – alle Funktionen</h5>
+                                <p class="mb-0 text-body-secondary">
+                                    Ein Klick auf das Fixstern-Icon öffnet ein übersichtliches Menü mit allen wichtigen Accessibility-Optionen in einem modernen Design.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex mb-3" data-aos="fade-up" data-aos-delay="300">
+                            <div class="me-3">
+                                <i class="bx bx-check lh-1 width-3x height-3x flex-center rounded-circle bg-body-tertiary text-info fs-4"></i>
+                            </div>
+                            <div>
+                                <h5>In Minuten integriert</h5>
+                                <p class="mb-0 text-body-secondary">
+                                    Fixstern ist CMS-unabhängig, in Minuten eingebunden und sofort aktiv – Ihre Marke profitiert unmittelbar von besserer Nutzbarkeit.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 col-xl-5 col-md-10 me-lg-auto order-1 mb-7 mb-lg-0">
+                    <div class="position-relative" data-aos="fade-left" data-aos-delay="150">
+                        <img src="/assets/img/produkte/fixstern1.png" alt="Fixstern Accessibility Plugin Vorschau" class="img-fluid position-relative">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- zweite sektion plugin page --->
+
+    <section class="position-relative overflow-hidden bg-body-tertiary">
+        <div class="container pb-9 py-lg-11">
+            <div class="row align-items-center">
+                <div class="mb-6 mb-lg-0 col-md-5 pe-md-7 pe-5 pb-5 order-lg-last ms-lg-auto pt-3 position-relative">
+                    <img src="/assets/img/produkte/fixstern3.png" class="img-fluid position-relative mt-3" alt="Fixstern Barrierefreiheits-Plugin im Einsatz">
+                </div>
+
+                <div class="col-md-6 order-md-1 me-md-auto">
+                    <div class="d-flex align-items-center mb-3" data-aos="fade-up">
+                        <h6 class="mb-0 text-body-secondary text-uppercase">Barrierefreiheit auf Knopfdruck</h6>
+                    </div>
+
+                    <h3 class="display-5 mb-5" data-aos="fade-up">
+                        Barrieren abbauen – mit einem Klick oder ganz automatisch.
+                    </h3>
+
+                    <p class="mb-6 lead text-body-secondary" data-aos="fade-up">
+                        Fixstern macht Ihre Webseite sofort zugänglicher. Intelligente Funktionen passen sich automatisch den Bedürfnissen der Nutzerinnen und Nutzer an – für ein Erlebnis ohne Hürden.
+                    </p>
+
+                    <div class="row">
+                        <div class="col-12 col-sm-6 mb-4 mb-sm-0">
+                            <ul class="list-unstyled mb-0">
+                                <li class="d-flex mb-5" data-aos="fade-up" data-aos-delay="100">
+                                    <div class="me-3 flex-shrink-0 width-2x height-2x bg-gradient-iceblue text-white rounded-circle flex-center">
+                                        <i class="bx bx-check lh-1 fs-5"></i>
+                                    </div>
+                                    <p class="mb-0">
+                                        <strong>Kontrast erhöhen</strong>
+                                        Jede Einstellung ist nur einen Klick entfernt – besser lesbar, sofort wirksam.
+                                    </p>
+                                </li>
+
+                                <li class="d-flex mb-0" data-aos="fade-up" data-aos-delay="150">
+                                    <div class="me-3 flex-shrink-0 width-2x height-2x bg-gradient-iceblue text-white rounded-circle flex-center">
+                                        <i class="bx bx-check lh-1 fs-5"></i>
+                                    </div>
+                                    <p class="mb-0">
+                                        <strong>Animationen reduzieren</strong>
+                                        Bei aktivierter Systemoption erkennt Fixstern automatisch sensible Nutzer­einstellungen und deaktiviert störende Effekte – ganz ohne Klick.
+                                    </p>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <ul class="list-unstyled mb-0">
+                                <li class="d-flex mb-5" data-aos="fade-up" data-aos-delay="200">
+                                    <div class="me-3 flex-shrink-0 width-2x height-2x bg-gradient-iceblue text-white rounded-circle flex-center">
+                                        <i class="bx bx-check lh-1 fs-5"></i>
+                                    </div>
+                                    <p class="mb-0">
+                                        <strong>Mehrere Funktionen gleichzeitig</strong>
+                                        Die Seite „sofort barrierefrei“ machen oder mehrere Optionen auf einmal aktivieren? Ein Klick genügt.
+                                    </p>
+                                </li>
+
+                                <li class="d-flex mb-0" data-aos="fade-up" data-aos-delay="250">
+                                    <div class="me-3 flex-shrink-0 width-2x height-2x bg-gradient-iceblue text-white rounded-circle flex-center">
+                                        <i class="bx bx-check lh-1 fs-5"></i>
+                                    </div>
+                                    <p class="mb-0">
+                                        <strong>Smartes Verhalten</strong>
+                                        Fixstern erkennt Systemeinstellungen wie „Dark Mode“ oder „hoher Kontrast“ und passt sich automatisch an – für echtes Accessibility-Erlebnis.
+                                    </p>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!--  -->
+    <section class="position-relative overflow-hidden">
+        <div class="container py-9 py-lg-11 position-relative z-1">
+            <div class="row align-items-center justify-content-between">
+
+                <div class="order-last col-lg-6">
+                    <div class="mb-3" data-aos="fade-up">
+                        <h6 class="mb-0 text-uppercase">Transparente Kontrolle. Echte Verbesserung.</h6>
+                    </div>
+                    <h2 class="mb-5 display-5 position-relative z-1" data-aos="fade-right">
+                        Firmament – das Monitoring-Tool für digitale Barrierefreiheit
+                    </h2>
+
+                    <div class="position-relative z-1">
+                        <div class="d-flex mb-3" data-aos="fade-up" data-aos-delay="150">
+                            <div class="me-3">
+                                <i class="bx bx-check lh-1 width-3x height-3x flex-center rounded-circle bg-body-tertiary text-info fs-4"></i>
+                            </div>
+                            <div>
+                                <h5>Automatische Scans, volle Kontrolle</h5>
+                                <p class="mb-0 text-body-secondary">
+                                    Firmament überprüft alle Seiten regelmäßig auf Barrierefreiheitsfehler – automatisch, zuverlässig und gesetzeskonform. So bleibt der Status Ihrer Webseite jederzeit
+                                    im Blick.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex mb-3" data-aos="fade-up" data-aos-delay="200">
+                            <div class="me-3">
+                                <i class="bx bx-check lh-1 width-3x height-3x flex-center rounded-circle bg-body-tertiary text-info fs-4"></i>
+                            </div>
+                            <div>
+                                <h5>Nahtlose Dokumentation</h5>
+                                <p class="mb-0 text-body-secondary">
+                                    Alle Ergebnisse werden automatisch archiviert – inklusive Fortschrittsverlauf, Erklärungen zu Fehlern und detaillierten Angaben zu deren Position im DOM.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex mb-3" data-aos="fade-up" data-aos-delay="250">
+                            <div class="me-3">
+                                <i class="bx bx-check lh-1 width-3x height-3x flex-center rounded-circle bg-body-tertiary text-info fs-4"></i>
+                            </div>
+                            <div>
+                                <h5>Nachweis leicht gemacht</h5>
+                                <p class="mb-0 text-body-secondary">
+                                    Mit wenigen Klicks erfüllen Sie Ihre Nachweispflicht: Berichte, Statistiken und Verlaufsdaten werden automatisch generiert – jederzeit abrufbar und revisionssicher.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex mb-3" data-aos="fade-up" data-aos-delay="300">
+                            <div class="me-3">
+                                <i class="bx bx-check lh-1 width-3x height-3x flex-center rounded-circle bg-body-tertiary text-info fs-4"></i>
+                            </div>
+                            <div>
+                                <h5>Inklusive PDF-Zertifikat</h5>
+                                <p class="mb-0 text-body-secondary">
+                                    Mit unserem Zusatzprodukt <strong>IncluCert</strong> erhalten Sie automatisch ein offizielles PDF-Zertifikat über den aktuellen Status der Barrierefreiheit –
+                                    perfekt für Audits, Behörden und Förderprogramme.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex mb-3" data-aos="fade-up" data-aos-delay="350">
+                            <div class="me-3">
+                                <i class="bx bx-check lh-1 width-3x height-3x flex-center rounded-circle bg-body-tertiary text-info fs-4"></i>
+                            </div>
+                            <div>
+                                <h5>Standalone oder kombiniert nutzbar</h5>
+                                <p class="mb-0 text-body-secondary">
+                                    Die Monitoring-Tools können eigenständig betrieben oder nahtlos mit Fixstern kombiniert werden – für ein vollständiges Ökosystem digitaler Barrierefreiheit.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 col-xl-5 col-md-10 me-lg-auto order-1 mb-7 mb-lg-0 p-0 ">
+                    <div class="position-relative" data-aos="fade-left" data-aos-delay="150">
+                        <img src="/assets/img/produkte/site-scan.png" alt="Firmament Monitoring Vorschau" class="img-fluid position-relative" style="width:1100px !important;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
 
-    <section  style="background: linear-gradient(135deg, #0055ff 0%, #0033cc 100%); padding: 30px 0; color: white;">
+    <!-- PRICING PLANS -->
+    <section class="py-8 bg-light">
+        <div class="container">
+            <div class="row justify-content-center mb-6">
+                <div class="col-lg-8 text-center">
+                    <h2 class="display-5 fw-bold mb-3">Wählen Sie Ihren Tarif</h2>
+                    <p class="lead text-muted">
+                        Skalierbar, rechtssicher und sofort einsatzbereit – für jedes Budget.
+                    </p>
+                    <!-- Toggle-Switch -->
+                    <div class="d-flex justify-content-center align-items-center mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="priceToggle" role="switch" aria-checked="false" aria-label="Wechseln zwischen monatlicher und jährlicher Abrechnung">
+                            <label class="form-check-label ms-2" for="priceToggle">Jährlich abrechnen <span class="text-success small">(sparen Sie 20%)</span></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Starter -->
+                <div class="col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body p-5 text-center">
+                            <div class="mb-4">
+                                <img src="/assets/css/svgs/fixstern-logo.svg" style="width:60%";>
+                            </div>
+                            <h3 class="h4 fw-bold">Starter</h3>
+                            <p class="text-muted small mb-4">
+                                Ideal für kleine Websites und erste Schritte in die Barrierefreiheit.
+                            </p>
+                            <div class="d-flex justify-content-center align-items-baseline mb-4">
+                                <span class="h1 fw-bold text-dark price-amount" id="starter-price">0</span>
+                                <span class="h3 text-muted ms-1">€</span>
+                                <span class="text-muted ms-2 small price-period" id="starter-period">/ Monat</span>
+                            </div>
+                            <a href="/starter-monthly" class="btn btn-outline-primary w-100 price-link" id="starter-link">Kostenlos starten</a>
+                        </div>
+                        <hr class="m-0">
+                        <div class="card-body p-5">
+                            <h4 class="h5 fw-bold mb-3">Enthaltene Funktionen:</h4>
+                            <ul class="list-unstyled text-start small">
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    Assist Widget (Basis)
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    1 Website
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    siteScan (wöchentlich)
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    E-Mail-Support
+                                </li>
+                                <li class="text-muted">
+                                    <i class="bi bi-x-circle-fill text-muted me-2"></i>
+                                    Leichte Sprache
+                                </li>
+                                <li class="text-muted">
+                                    <i class="bi bi-x-circle-fill text-muted me-2"></i>
+                                    AltStar & incluCert
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Individual (Empfohlen) -->
+                <div class="col-lg-4">
+                    <div class="card h-100 border-0 shadow-lg position-relative overflow-hidden" style="z-index: 1;">
+                        <div class="position-absolute top-0 end-0 bg-primary text-white px-3 py-1 small rounded-start" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                            EMPFOHLEN
+                        </div>
+                        <div class="card-body p-5 text-center">
+                            <div class="mb-4">
+                                <img src="/assets/css/svgs/fixstern-logo.svg" style="width:60%";>
+                            </div>
+                            <h3 class="h4 fw-bold">Individual</h3>
+                            <p class="text-muted small mb-4">
+                                Für Unternehmen, Agenturen und Behörden mit höheren Ansprüchen.
+                            </p>
+                            <div class="d-flex justify-content-center align-items-baseline mb-4">
+                                <span class="h1 fw-bold text-dark price-amount" id="individual-price">49</span>
+                                <span class="h3 text-muted ms-1">€</span>
+                                <span class="text-muted ms-2 small price-period" id="individual-period">/ Monat</span>
+                            </div>
+                            <a href="/individual-monthly" class="btn btn-primary w-100 price-link" id="individual-link">Jetzt starten</a>
+                        </div>
+                        <hr class="m-0">
+                        <div class="card-body p-5">
+                            <h4 class="h5 fw-bold mb-3">Alles aus Starter, plus:</h4>
+                            <ul class="list-unstyled text-start small">
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    <strong>Alle Tools</strong>: Leichte Sprache, AltStar, incluCert
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    Bis zu <strong>10 Websites</strong>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    Täglicher siteScan + PDF-Report
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    Priorisierter Support (24h)
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    White-Label & Agentur-Modus
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    DSGVO-konformes Hosting in DE
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enterprise -->
+                <div class="col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body p-5 text-center">
+                            <div class="mb-4">
+                                <img src="http://localhost:8004/assets/img/produkte/custom-fix.png" style="width:60%; margin-top:2em;" alt="direct fix">
+                            </div>
+                            <h3 class="h4 fw-bold">Enterprise</h3>
+                            <p class="text-muted small mb-4">
+                                Für große Organisationen mit individuellen Anforderungen.
+                            </p>
+                            <div class="d-flex justify-content-center align-items-baseline mb-4">
+                                <span class="h1 fw-bold text-dark price-amount" id="enterprise-price">auf Anfrage</span>
+                                <span class="text-muted ms-2 small price-period d-none" id="enterprise-period"></span> <!-- Period versteckt, da "auf Anfrage" -->
+                            </div>
+                            <a href="/enterprise-monthly" class="btn btn-outline-primary w-100 price-link" id="enterprise-link">Kontaktieren</a>
+                        </div>
+                        <hr class="m-0">
+                        <div class="card-body p-5">
+                            <h4 class="h5 fw-bold mb-3">Alles aus Individual, plus:</h4>
+                            <ul class="list-unstyled text-start small">
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    <strong>Unbegrenzte Websites</strong>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    Eigener Account-Manager
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    API-Zugang & Webhooks
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    On-Premise Option
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    Schulungen & Workshops
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    SLA mit 99,9% Verfügbarkeit
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-6">
+                <div class="col text-center">
+                    <p class="small text-muted">
+                        Alle Preise verstehen sich <strong>netto</strong>. Jährliche Abrechnung spart bis zu <strong>20%</strong>.
+                        <a href="#" class="text-primary text-decoration-none">Jetzt Beratungsgespräch vereinbaren →</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- JS-Script (am Ende des <body> einfügen) -->
+    <script>
+        // JSON-Array mit Tarif-Daten (einfach erweiterbar)
+        const pricingData = [
+            {
+                id: 'starter',
+                monthly: {price: '0', period: '/ Monat', link: '/starter-monthly'},
+                yearly: {price: '0', period: '/ Jahr', link: '/starter-yearly'}
+            },
+            {
+                id: 'individual',
+                monthly: {price: '49', period: '/ Monat', link: '/individual-monthly'},
+                yearly: {price: '470', period: '/ Jahr', link: '/individual-yearly'} // 49*12=588, minus 20% ≈470
+            },
+            {
+                id: 'enterprise',
+                monthly: {price: 'auf Anfrage', period: '', link: '/enterprise-monthly'},
+                yearly: {price: 'auf Anfrage', period: '', link: '/enterprise-yearly'}
+            }
+        ];
+
+        // Toggle-Event
+        const toggle = document.getElementById('priceToggle');
+        toggle.addEventListener('change', (e) => {
+            const isYearly = e.target.checked;
+            pricingData.forEach((tarif) => {
+                const priceElem = document.getElementById(`${tarif.id}-price`);
+                const periodElem = document.getElementById(`${tarif.id}-period`);
+                const linkElem = document.getElementById(`${tarif.id}-link`);
+
+                const data = isYearly ? tarif.yearly : tarif.monthly;
+                priceElem.textContent = data.price;
+                periodElem.textContent = data.period;
+                linkElem.href = data.link;
+
+                // Für Enterprise: Period ausblenden, wenn leer
+                if (data.period === '') {
+                    periodElem.classList.add('d-none');
+                } else {
+                    periodElem.classList.remove('d-none');
+                }
+            });
+        });
+    </script>
+    <!-- Ende PRICING PLANS -->
+
+
+
+
+    <section style="background: linear-gradient(135deg, #0055ff 0%, #0033cc 100%); padding: 30px 0; color: white;">
         <div class="_container _px-lg-12">
 
             <!-- Heading -->
             <div class="text-center mb-5">
                 <h5 style="font-weight: 600; font-size: 1.1rem; opacity: 0.9;">
-                      <div class="position-relative _d-table mb-5 z-1">
+                    <div class="position-relative _d-table mb-5 z-1">
                         <h2 class="_display-3 _me-lg-n15 mb-4 position-relative">Funktioniert mit <strong>jedem</strong> CMS – sofort einsatzbereit
                             <br>
 
@@ -708,22 +1208,40 @@ margin-bottom:  0.8rem;
             <!-- CMS Logos Grid -->
             <div class="d-flex flex-wrap justify-content-center align-items-center gap-4 gap-lg-5 mt-4">
 
-                <img src="/assets/img/cms/WordPress-logotype-standard-white.png"     alt="WordPress"     class="cms-logo"  style="height:60px"/>
-                <img src="/assets/img/cms/drupal-white.webp"        alt="Drupal"        class="cms-logo" />
-                <img src="/assets/img/cms/typo3-white.webp"         alt="TYPO3"         class="cms-logo" />
-                <img src="/assets/img/cms/shopware-white-300x66.webp" alt="Shopware"    class="cms-logo" style="height:30px"/>
-                <img src="/assets/img/cms/magento-white.webp"       alt="Magento"       class="cms-logo" />
-                <img src="/assets/img/cms/wix-white.webp"           alt="WIX"           class="cms-logo" />
-                <img src="/assets/img/cms/squarespace-white.webp"   alt="Squarespace"   class="cms-logo" />
-                <img src="/assets/img/cms/jimdo-white.webp"         alt="Jimdo"         class="cms-logo" />
-                <img src="/assets/img/cms/gambio-white.webp"        alt="Gambio"        class="cms-logo" />
-                <img src="/assets/img/cms/oxid-white.webp"          alt="OXID"          class="cms-logo" />
-                <img src="/assets/img/cms/joomla-logo.png"        alt="Joomla"        class="cms-logo" style="height:30px" />
+                <img src="/assets/img/cms/WordPress-logotype-standard-white.png" alt="WordPress" class="cms-logo" style="height:60px"/>
+                <img src="/assets/img/cms/drupal-white.webp" alt="Drupal" class="cms-logo"/>
+                <img src="/assets/img/cms/typo3-white.webp" alt="TYPO3" class="cms-logo"/>
+                <img src="/assets/img/cms/shopware-white-300x66.webp" alt="Shopware" class="cms-logo" style="height:30px"/>
+                <img src="/assets/img/cms/magento-white.webp" alt="Magento" class="cms-logo"/>
+                <img src="/assets/img/cms/wix-white.webp" alt="WIX" class="cms-logo"/>
+                <img src="/assets/img/cms/squarespace-white.webp" alt="Squarespace" class="cms-logo"/>
+                <img src="/assets/img/cms/jimdo-white.webp" alt="Jimdo" class="cms-logo"/>
+                <img src="/assets/img/cms/gambio-white.webp" alt="Gambio" class="cms-logo"/>
+                <img src="/assets/img/cms/oxid-white.webp" alt="OXID" class="cms-logo"/>
+                <img src="/assets/img/cms/joomla-logo.png" alt="Joomla" class="cms-logo" style="height:30px"/>
 
             </div>
         </div>
     </section>
 
+    <section style="background: linear-gradient(135deg, #0055ff 0%, #0033cc 100%); padding: 30px 0; color: white;">
+        <div class="container pt-12 pb-9 pb-lg-12 position-relative z-2">
+            <div class="row pb-7 pt-lg-9 align-items-center">
+                <div class="col-12 col-lg-7 mb-5 mb-lg-0">
+                    <h1 class="h2">Barrieren abbauen</h1>
+                    <h2 class="h2 display-4 mb-4"><span style="font-size: 53.354px;">Optimieren Sie </span><span style="font-size: 53.354px;">Ihren Webauftritt noch heute</span><span
+                            style="font-size: 53.354px;">:<br/>Ihr Start zur digitalen Barrierefreiheit.</span></h2>
+                    <p class="lead mb-0"></p>
+                    <h2>Assistenzsoftware für Ihren Weg zum barrierefreien Webauftritt nach WCAG, BITV und EN301549</h2>
+                    <p></p>
+                </div>
+                <!--/.col-->
+                <div class="col-lg-4 ms-auto"><img src="https://aktion-barrierefrei.org/storage/storage/oeQ6YoUpDVQQvgv1WsfVUzwtYpNH85XOC9Ipx6ql.png" alt="Screenshot Widged" width="1210" height="1586"
+                                                   class="img-fluid"/></div>
+            </div>
+            <!--/.row--></div>
+
+    </section>
 
     <section class="position-relative bg-gradient-light mt-10">
         <div class="container py-9 py-lg-11 position-relative">
@@ -750,7 +1268,7 @@ margin-bottom:  0.8rem;
 
                     <div class="gb-card-variant2 gb-card-variant2--tint-blue ">
                         <div class="gb-card-variant2__left">
-                            <img src="{{ URL::asset('assets/img/produkte/web-fit-white.png') }}" class="gb-card-variant2__icon" />
+                            <img src="{{ URL::asset('assets/img/produkte/web-fit-white.png') }}" class="gb-card-variant2__icon"/>
                         </div>
                         <div class="gb-card-variant2__right">
 
@@ -759,9 +1277,9 @@ margin-bottom:  0.8rem;
                                 <div class="gb-card-variant2__header-icons">
                                     <!-- kleine Logos als <img> oder <span> mit background-image -->
 
-                                    <img src="{{ URL::asset('assets/img/produkte/service-black-frame.png') }}"  style="height:17px;"  alt="direct fix"   class="gb-card-variant2__icon-small">
-                                           <img src="{{ URL::asset('assets/img/produkte/custom-fix.png') }}"  style="height:27px;"  alt="direct fix"   class="gb-card-variant2__icon-small">
-                                     </div>
+                                    <img src="{{ URL::asset('assets/img/produkte/service-black-frame.png') }}" style="height:17px;" alt="direct fix" class="gb-card-variant2__icon-small">
+                                    <img src="{{ URL::asset('assets/img/produkte/custom-fix.png') }}" style="height:27px;" alt="direct fix" class="gb-card-variant2__icon-small">
+                                </div>
 
                                 <h2 class="gb-card-variant2__title">Auto Image Alt-Tags</h2>
 
@@ -769,7 +1287,9 @@ margin-bottom:  0.8rem;
 
                             <h3 class="gb-card-variant2__subtitle">KI generierte Bildbeschreibungen</h3>
                             <p class="gb-card-variant2__text">
-                                Unser Vorlese-Reader wird mit einem Klick auf den Widget-Button „Vorlesemodus“ aktiviert. Danach genügt es, den Mauszeiger über beliebigen Webseiten­text zu bewegen: Ein kleiner Spinner signalisiert den Start, und der Inhalt wird sofort vorgelesen. Zur Wahl stehen 11 natürlich klingende Stimmen; standardmäßig beginnt die Stimme „Anna“ zu sprechen, kann aber jederzeit über das Auswahlmenü gewechselt werden.
+                                Unser Vorlese-Reader wird mit einem Klick auf den Widget-Button „Vorlesemodus“ aktiviert. Danach genügt es, den Mauszeiger über beliebigen Webseiten­text zu bewegen:
+                                Ein kleiner Spinner signalisiert den Start, und der Inhalt wird sofort vorgelesen. Zur Wahl stehen 11 natürlich klingende Stimmen; standardmäßig beginnt die Stimme
+                                „Anna“ zu sprechen, kann aber jederzeit über das Auswahlmenü gewechselt werden.
                             </p>
                             <div class="gb-card gb-card--legal mt--10">
                                 <h2 class="gb-card__title">Rechtsgrundlage</h2>
@@ -802,7 +1322,7 @@ margin-bottom:  0.8rem;
                     </div>
                     <div class="gb-card-variant2">
                         <div class="gb-card-variant2__left">
-                            <img src="{{ URL::asset('assets/img/produkte/altstar.png') }}" class="gb-card-variant2__icon" />
+                            <img src="{{ URL::asset('assets/img/produkte/altstar.png') }}" class="gb-card-variant2__icon"/>
                         </div>
                         <div class="gb-card-variant2__right">
 
@@ -812,8 +1332,8 @@ margin-bottom:  0.8rem;
                                     <!-- kleine Logos als <img> oder <span> mit background-image -->
 
 
-                                           <img src="{{ URL::asset('assets/img/produkte/direct-fix-black.png') }}"  style="height:27px;"  alt="direct fix"   class="gb-card-variant2__icon-small">
-                                     </div>
+                                    <img src="{{ URL::asset('assets/img/produkte/direct-fix-black.png') }}" style="height:27px;" alt="direct fix" class="gb-card-variant2__icon-small">
+                                </div>
 
                                 <h2 class="gb-card-variant2__title">Auto Image Alt-Tags</h2>
 
@@ -821,7 +1341,9 @@ margin-bottom:  0.8rem;
 
                             <h3 class="gb-card-variant2__subtitle">KI generierte Bildbeschreibungen</h3>
                             <p class="gb-card-variant2__text">
-                                Unser Vorlese-Reader wird mit einem Klick auf den Widget-Button „Vorlesemodus“ aktiviert. Danach genügt es, den Mauszeiger über beliebigen Webseiten­text zu bewegen: Ein kleiner Spinner signalisiert den Start, und der Inhalt wird sofort vorgelesen. Zur Wahl stehen 11 natürlich klingende Stimmen; standardmäßig beginnt die Stimme „Anna“ zu sprechen, kann aber jederzeit über das Auswahlmenü gewechselt werden.
+                                Unser Vorlese-Reader wird mit einem Klick auf den Widget-Button „Vorlesemodus“ aktiviert. Danach genügt es, den Mauszeiger über beliebigen Webseiten­text zu bewegen:
+                                Ein kleiner Spinner signalisiert den Start, und der Inhalt wird sofort vorgelesen. Zur Wahl stehen 11 natürlich klingende Stimmen; standardmäßig beginnt die Stimme
+                                „Anna“ zu sprechen, kann aber jederzeit über das Auswahlmenü gewechselt werden.
                             </p>
                             <div class="gb-card gb-card--legal mt--10">
                                 <h2 class="gb-card__title">Rechtsgrundlage</h2>
@@ -857,13 +1379,15 @@ margin-bottom:  0.8rem;
                     <div class="gb-card-variant2 gb-card-variant2--pink ">
 
                         <div class="gb-card-variant2__left ">
-                            <img src="{{ URL::asset('assets/img/produkte/leichte-sprache-audio.png') }}" alt="Icon" class="gb-card-variant2__icon"> <img src="{{ URL::asset('assets/img/produkte/ai-white.png') }}" alt="Icon" style="width:37px;" class="gb-card-variant2__icon icon-bottom-right">
+                            <img src="{{ URL::asset('assets/img/produkte/leichte-sprache-audio.png') }}" alt="Icon" class="gb-card-variant2__icon"> <img
+                                src="{{ URL::asset('assets/img/produkte/ai-white.png') }}" alt="Icon" style="width:37px;" class="gb-card-variant2__icon icon-bottom-right">
                         </div>
                         <div class="gb-card-variant2__right">
                             <h2 class="gb-card-variant2__title">Leichte Sprache</h2>
                             <h3 class="gb-card-variant2__subtitle">Verständlichkeit für alle</h3>
                             <p class="gb-card-variant2__text">
-                                Die   Zusatzfunktion „Leichte Sprache“ erweitert Ihr digitales Angebot um eine essenzielle Komponente der Zugänglichkeit. Sie sorgt dafür, dass komplexe Inhalte in eine klare, einfache Sprache übersetzt werden – damit jeder, unabhängig von seinen sprachlichen Fähigkeiten, alle Informationen mühelos erfassen kann.
+                                Die Zusatzfunktion „Leichte Sprache“ erweitert Ihr digitales Angebot um eine essenzielle Komponente der Zugänglichkeit. Sie sorgt dafür, dass komplexe Inhalte in eine
+                                klare, einfache Sprache übersetzt werden – damit jeder, unabhängig von seinen sprachlichen Fähigkeiten, alle Informationen mühelos erfassen kann.
 
                             <div class="gb-card gb-card--legal mt--10">
                                 <h2 class="gb-card__title">Rechtsgrundlage</h2>
@@ -884,7 +1408,6 @@ margin-bottom:  0.8rem;
                     </div>
 
 
-
                     <div class="gb-card-variant2 gb-card-variant2--pink">
                         <div class="gb-card-variant2__left">
                             <img src="{{ URL::asset('assets/img/produkte/audio-assist.png') }}" alt="Icon" class="gb-card-variant2__icon">
@@ -895,27 +1418,32 @@ margin-bottom:  0.8rem;
                             <!-- Neuer Header-Bereich -->
                             <div class="gb-card-variant2__header">
                                 <div class="gb-card-variant2__header-icons">
-                                    <img src="{{ URL::asset('assets/img/produkte/widget-small-black.png') }}"   style="height:35px;" alt="Feature" class="gb-card-variant2__icon-small">
+                                    <img src="{{ URL::asset('assets/img/produkte/widget-small-black.png') }}" style="height:35px;" alt="Feature" class="gb-card-variant2__icon-small">
 
-                                    <img src="{{ URL::asset('assets/img/produkte/audio-black.png') }}"   alt="Feature" class="gb-card-variant2__icon-small">
-                                    <img src="{{ URL::asset('assets/img/produkte/feature-black.png') }}"   alt="Audio"   class="gb-card-variant2__icon-small">
+                                    <img src="{{ URL::asset('assets/img/produkte/audio-black.png') }}" alt="Feature" class="gb-card-variant2__icon-small">
+                                    <img src="{{ URL::asset('assets/img/produkte/feature-black.png') }}" alt="Audio" class="gb-card-variant2__icon-small">
                                 </div>
                                 <h2 class="gb-card-variant2__title">Vorlese Assistent</h2>
 
                             </div>
 
                             <h3 class="gb-card-variant2__subtitle">einfach hinhören</h3>
-                            <p class="gb-card-variant2__text">Nicht jeder Besucher kann eine Website problemlos bedienen – ob wegen Sehschwäche, motorischer Einschränkungen oder Reizempfindlichkeit. Genau hier setzt unser Barrierefrei-Widget an: Es ergänzt jede Seite um eine kompakte, jederzeit erreichbare Hilfe, die Inhalte besser zugänglich macht.</p>
+                            <p class="gb-card-variant2__text">Nicht jeder Besucher kann eine Website problemlos bedienen – ob wegen Sehschwäche, motorischer Einschränkungen oder Reizempfindlichkeit.
+                                Genau hier setzt unser Barrierefrei-Widget an: Es ergänzt jede Seite um eine kompakte, jederzeit erreichbare Hilfe, die Inhalte besser zugänglich macht.</p>
                             <p class="gb-card-variant2__text"></p>
-                            <p class="gb-card-variant2__text">Das Widget erscheint als kleine Schaltfläche am Seitenrand. Ein Klick genügt, und die Oberfläche bietet praktische Funktionen wie größere Schrift, erhöhte Kontraste oder reduzierte Animationen – alles sofort nutzbar, ohne Vorwissen.</p>
+                            <p class="gb-card-variant2__text">Das Widget erscheint als kleine Schaltfläche am Seitenrand. Ein Klick genügt, und die Oberfläche bietet praktische Funktionen wie größere
+                                Schrift, erhöhte Kontraste oder reduzierte Animationen – alles sofort nutzbar, ohne Vorwissen.</p>
                             <p class="gb-card-variant2__text"></p>
-                            <p class="gb-card-variant2__text">Besonders hilfreich sind die voreingestellten Profile für Epilepsie, ADHS oder kognitive Einschränkungen. Damit passt sich die Seite automatisch an die jeweiligen Bedürfnisse an. Wer möchte, kann auch einzelne Einstellungen manuell vornehmen.</p>
+                            <p class="gb-card-variant2__text">Besonders hilfreich sind die voreingestellten Profile für Epilepsie, ADHS oder kognitive Einschränkungen. Damit passt sich die Seite
+                                automatisch an die jeweiligen Bedürfnisse an. Wer möchte, kann auch einzelne Einstellungen manuell vornehmen.</p>
                             <p class="gb-card-variant2__text"></p>
-                            <p class="gb-card-variant2__text">Einmal gewählt, bleiben die Anpassungen gespeichert. Beim nächsten Besuch wird die Seite direkt im bevorzugten Modus geladen – ganz ohne Anmeldung oder Cookie-Banner.</p>
+                            <p class="gb-card-variant2__text">Einmal gewählt, bleiben die Anpassungen gespeichert. Beim nächsten Besuch wird die Seite direkt im bevorzugten Modus geladen – ganz ohne
+                                Anmeldung oder Cookie-Banner.</p>
                             <p class="gb-card-variant2__text"></p>
                             <p class="gb-card-variant2__text">Die Integration ist simpel: Ein kurzer Codeschnipsel genügt. Kein Umbau, keine Wartung, keine Abhängigkeit von CMS oder Layout.</p>
                             <p class="gb-card-variant2__text"></p>
-                            <p class="gb-card-variant2__text">Ob für ältere Nutzer, Menschen mit vorübergehenden Einschränkungen oder als Service für alle, die digitale Barrieren abbauen möchten – unser Widget ist der einfachste Weg zu mehr Zugänglichkeit im Web.</p>
+                            <p class="gb-card-variant2__text">Ob für ältere Nutzer, Menschen mit vorübergehenden Einschränkungen oder als Service für alle, die digitale Barrieren abbauen möchten –
+                                unser Widget ist der einfachste Weg zu mehr Zugänglichkeit im Web.</p>
 
                             <div class="gb-card-variant2__footer">
 
@@ -964,7 +1492,7 @@ margin-bottom:  0.8rem;
                             <p class="product-card__description">
                                 Einfache Integration in eine oder hunderte Websites – 100 % DSGVO-konform, BITV-ready und WCAG 2.1-kompatibel.
                                 Einmal eingebunden, für jeden Nutzer sofort nutzbar. Für einen. Für alle.
-                            <div class="alert alert alert-light mb-0"  style="font-size: 0.875rem; color: #2c292c;" role="alert">
+                            <div class="alert alert alert-light mb-0" style="font-size: 0.875rem; color: #2c292c;" role="alert">
 
                                 <p class="mb-4">
                                     Rechtsgrundlage: BITV 2.0, § 3 Abs. 1 i. V. m. Anlage 2, WCAG 2.1 – Success Criteria 1.4.x
@@ -1002,13 +1530,13 @@ margin-bottom:  0.8rem;
 
                     <div class="gb-card">
 
-                            <img
-                                src="{{ URL::asset('assets/img/produkte/leichte-sprache-audio.png') }}"
-                                alt="Widget Bild"
-                                class="product-card__image product-card__image--float"
-                            />
+                        <img
+                            src="{{ URL::asset('assets/img/produkte/leichte-sprache-audio.png') }}"
+                            alt="Widget Bild"
+                            class="product-card__image product-card__image--float"
+                        />
                         <div class="product-card__header">
-                            <h2  style="font-family:karla" class="">Barrierefrei Widget</h2>
+                            <h2 style="font-family:karla" class="">Barrierefrei Widget</h2>
                             <div class="product-card__provider-icons">
                                 <span class="product-card__provider product-card__provider--icon feature"></span>
                                 <span class="product-card__provider product-card__provider--icon audio"></span>
@@ -1019,7 +1547,8 @@ margin-bottom:  0.8rem;
                         <div class="gb-card__body">
                             <p>
 
-                                Rechtsgrundlage: BITV 2.0, § 3 Abs. 1 i. V. m. Anlage 2, WCAG 2.1 – Success Criteria 1.4.x Deckt die Anforderung ab, dass Inhalte wahrnehmbar und vergrößerbar sind (Kontrast ≥ 4,5 : 1, Text-Zoom bis 200 %).
+                                Rechtsgrundlage: BITV 2.0, § 3 Abs. 1 i. V. m. Anlage 2, WCAG 2.1 – Success Criteria 1.4.x Deckt die Anforderung ab, dass Inhalte wahrnehmbar und vergrößerbar sind
+                                (Kontrast ≥ 4,5 : 1, Text-Zoom bis 200 %).
                             </p>
                         </div>
                         <div class="gb-card__sidebar">
@@ -1027,7 +1556,6 @@ margin-bottom:  0.8rem;
                             <span class="gb-card__block gb-card__block--bottom"></span>
                         </div>
                     </div>
-
 
 
                     <div class="gb-card gb-card--primary">
@@ -1066,7 +1594,8 @@ margin-bottom:  0.8rem;
                     <div class="gb-card gb-card--success">
                         <h2 class="gb-card__title">Rechtsgrundlage</h2>
                         <div class="gb-card__body">
-                            <p>Rechtsgrundlage: BITV 2.0, § 3 Abs. 1 i. V. m. Anlage 2, WCAG 2.1 – Success Criteria 1.4.x Deckt die Anforderung ab, dass Inhalte wahrnehmbar und vergrößerbar sind (Kontrast ≥ 4,5 : 1, Text-Zoom bis 200 %).</p>
+                            <p>Rechtsgrundlage: BITV 2.0, § 3 Abs. 1 i. V. m. Anlage 2, WCAG 2.1 – Success Criteria 1.4.x Deckt die Anforderung ab, dass Inhalte wahrnehmbar und vergrößerbar sind
+                                (Kontrast ≥ 4,5 : 1, Text-Zoom bis 200 %).</p>
                         </div>
                         <div class="gb-card__sidebar">
                             <span class="gb-card__block gb-card__block--top"></span>
@@ -1077,7 +1606,8 @@ margin-bottom:  0.8rem;
                     <div class="gb-card gb-card--danger">
                         <h2 class="gb-card__title">Rechtsgrundlage</h2>
                         <div class="gb-card__body">
-                            <p>Rechtsgrundlage: BITV 2.0, § 3 Abs. 1 i. V. m. Anlage 2, WCAG 2.1 – Success Criteria 1.4.x Deckt die Anforderung ab, dass Inhalte wahrnehmbar und vergrößerbar sind (Kontrast ≥ 4,5 : 1, Text-Zoom bis 200 %).</p>
+                            <p>Rechtsgrundlage: BITV 2.0, § 3 Abs. 1 i. V. m. Anlage 2, WCAG 2.1 – Success Criteria 1.4.x Deckt die Anforderung ab, dass Inhalte wahrnehmbar und vergrößerbar sind
+                                (Kontrast ≥ 4,5 : 1, Text-Zoom bis 200 %).</p>
                         </div>
                         <div class="gb-card__sidebar">
                             <span class="gb-card__block gb-card__block--top"></span>
@@ -1088,14 +1618,14 @@ margin-bottom:  0.8rem;
                     <div class="gb-card gb-card--warning">
                         <h2 class="gb-card__title">Rechtsgrundlage</h2>
                         <div class="gb-card__body">
-                            <p>Rechtsgrundlage: BITV 2.0, § 3 Abs. 1 i. V. m. Anlage 2, WCAG 2.1 – Success Criteria 1.4.x Deckt die Anforderung ab, dass Inhalte wahrnehmbar und vergrößerbar sind (Kontrast ≥ 4,5 : 1, Text-Zoom bis 200 %).</p>
+                            <p>Rechtsgrundlage: BITV 2.0, § 3 Abs. 1 i. V. m. Anlage 2, WCAG 2.1 – Success Criteria 1.4.x Deckt die Anforderung ab, dass Inhalte wahrnehmbar und vergrößerbar sind
+                                (Kontrast ≥ 4,5 : 1, Text-Zoom bis 200 %).</p>
                         </div>
                         <div class="gb-card__sidebar">
                             <span class="gb-card__block gb-card__block--top"></span>
                             <span class="gb-card__block gb-card__block--bottom"></span>
                         </div>
                     </div>
-
 
 
                     2
@@ -1124,11 +1654,13 @@ margin-bottom:  0.8rem;
                                     alt="Widget Bild"
                                     class="product-card__image product-card__image--float"
                                 />
-                                Mit dem Widget signalisieren Sie nicht nur Sensibilität gegenüber Menschen mit Behinderung, sondern stärken auch Ihre Reichweite und Ihr Markenimage. Barrierefreie Angebote senken die Absprungrate, verbessern die Nutzerzufriedenheit und erfüllen zugleich aktuelle rechtliche Anforderungen (u. a. BITV 2.0, EU-Richtlinie 2016/2102).
-                                <p>
+                                Mit dem Widget signalisieren Sie nicht nur Sensibilität gegenüber Menschen mit Behinderung, sondern stärken auch Ihre Reichweite und Ihr Markenimage. Barrierefreie
+                                Angebote senken die Absprungrate, verbessern die Nutzerzufriedenheit und erfüllen zugleich aktuelle rechtliche Anforderungen (u. a. BITV 2.0, EU-Richtlinie 2016/2102).
+                            <p>
                                 Widget für digitale Barrierefreiheit – das steckt dahinter:
 
-                                Unser Widget ist ein kleines, schnell eingebundenes Tool, das Ihre Website binnen weniger Minuten deutlich inklusiver macht. Es legt sich als schmale Leiste bzw. Schaltfläche über jede Seite und bietet dort zielgenaue Unterstützung für Nutzer*innen mit ganz unterschiedlichen Bedürfnissen.
+                                Unser Widget ist ein kleines, schnell eingebundenes Tool, das Ihre Website binnen weniger Minuten deutlich inklusiver macht. Es legt sich als schmale Leiste bzw.
+                                Schaltfläche über jede Seite und bietet dort zielgenaue Unterstützung für Nutzer*innen mit ganz unterschiedlichen Bedürfnissen.
                             </p>
 
 
@@ -1138,7 +1670,8 @@ margin-bottom:  0.8rem;
                             <div class="gb-card gb-card--secondary mt--20">
                                 <h2 class="gb-card__title">Rechtsgrundlage</h2>
                                 <div class="gb-card__body">
-                                    <p>Rechtsgrundlage: BITV 2.0, § 3 Abs. 1 i. V. m. Anlage 2, WCAG 2.1 – Success Criteria 1.4.x Deckt die Anforderung ab, dass Inhalte wahrnehmbar und vergrößerbar sind (Kontrast ≥ 4,5 : 1, Text-Zoom bis 200 %).</p>
+                                    <p>Rechtsgrundlage: BITV 2.0, § 3 Abs. 1 i. V. m. Anlage 2, WCAG 2.1 – Success Criteria 1.4.x Deckt die Anforderung ab, dass Inhalte wahrnehmbar und vergrößerbar
+                                        sind (Kontrast ≥ 4,5 : 1, Text-Zoom bis 200 %).</p>
                                 </div>
                                 <div class="gb-card__sidebar">
                                     <span class="gb-card__block gb-card__block--top"></span>
@@ -1174,76 +1707,76 @@ margin-bottom:  0.8rem;
                     </div>
 
 
-{{--
+                    {{--
 
 
-                    <!-- nz card alt -->
-                    <div class="product-card">
-                        <!-- Bild -->
+                                        <!-- nz card alt -->
+                                        <div class="product-card">
+                                            <!-- Bild -->
 
-                        <!-- Textinhalt -->
-                        <div class="product-card__content">
-                            <!-- Titel + Anbieter -->
-                            <div class="product-card__header">
-                                <h2 class="">Barrierefrei Widget</h2>
-                                <div class="product-card__provider-icons">
-                                    <span class="product-card__provider product-card__provider--icon feature"></span>
-                                    <span class="product-card__provider product-card__provider--icon audio"></span>
+                                            <!-- Textinhalt -->
+                                            <div class="product-card__content">
+                                                <!-- Titel + Anbieter -->
+                                                <div class="product-card__header">
+                                                    <h2 class="">Barrierefrei Widget</h2>
+                                                    <div class="product-card__provider-icons">
+                                                        <span class="product-card__provider product-card__provider--icon feature"></span>
+                                                        <span class="product-card__provider product-card__provider--icon audio"></span>
 
-                                </div>
+                                                    </div>
 
-                            </div>
+                                                </div>
 
-                            <!-- Kurzbeschreibung -->
-                            <p class="product-card__description">
-                                <img
-                                    src="{{ URL::asset('assets/img/produkte/widget.jpg') }}"
-                                    alt="Widget Bild"
-                                    class="product-card__image product-card__image--float"
-                                />
-                                Einfache Integration in eine oder hunderte Websites – 100 % DSGVO-konform, BITV-ready und WCAG 2.1-kompatibel. Einmal eingebunden, für jeden Nutzer sofort nutzbar. Für einen. Für alle.
+                                                <!-- Kurzbeschreibung -->
+                                                <p class="product-card__description">
+                                                    <img
+                                                        src="{{ URL::asset('assets/img/produkte/widget.jpg') }}"
+                                                        alt="Widget Bild"
+                                                        class="product-card__image product-card__image--float"
+                                                    />
+                                                    Einfache Integration in eine oder hunderte Websites – 100 % DSGVO-konform, BITV-ready und WCAG 2.1-kompatibel. Einmal eingebunden, für jeden Nutzer sofort nutzbar. Für einen. Für alle.
 
-                            <div class="product-card__tags">
-                                <span class="tag tag--dsgvo">DSGVO-konform</span>
-                                <span class="tag tag--bitv">BITV ready</span>
-                                <span class="tag tag--wcag">WCAG 2.1</span>
-                            </div>
+                                                <div class="product-card__tags">
+                                                    <span class="tag tag--dsgvo">DSGVO-konform</span>
+                                                    <span class="tag tag--bitv">BITV ready</span>
+                                                    <span class="tag tag--wcag">WCAG 2.1</span>
+                                                </div>
 
-                            </p>
+                                                </p>
 
-                            <!-- Tags -->
+                                                <!-- Tags -->
 
-                            <div class="alert alert alert-light mb-3"  style="font-size: 0.875rem; color: #2c292c;" role="alert">
+                                                <div class="alert alert alert-light mb-3"  style="font-size: 0.875rem; color: #2c292c;" role="alert">
 
-                                <p class="mb-4">
-                                    Rechtsgrundlage: BITV 2.0, § 3 Abs. 1 i. V. m. Anlage 2, WCAG 2.1 – Success Criteria 1.4.x
-                                    Deckt die Anforderung ab, dass Inhalte wahrnehmbar und vergrößerbar sind (Kontrast ≥ 4,5 : 1, Text-Zoom bis 200 %).
-                                </p>
+                                                    <p class="mb-4">
+                                                        Rechtsgrundlage: BITV 2.0, § 3 Abs. 1 i. V. m. Anlage 2, WCAG 2.1 – Success Criteria 1.4.x
+                                                        Deckt die Anforderung ab, dass Inhalte wahrnehmbar und vergrößerbar sind (Kontrast ≥ 4,5 : 1, Text-Zoom bis 200 %).
+                                                    </p>
 
-                            </div>
-
-
-
+                                                </div>
 
 
 
-                            <div class="d-md-flex justify-content-center align-items-center">
-                                <div class="mb-4 mb-md-0 me-md-5 me-lg-6 me-xl-7">
-                                    <!--Title-->
-                                    <h2 class="mb-3">Die AfD hasst Barrierefreiheit</h2>
-                                    <!--text-->
-                                    <p class="text-body-secondary mb-0">Sei kein Nazi, sorge für Inklusion </p>
-                                </div>
-                                <!--Action-->
-                                <a class="btn btn-outline-primary btn-hover-arrow" href="#!">
-                                    <span>jetzt kaufen ...</span></a>
-                            </div>
 
-                        </div>
-                    </div>
---}}
 
-<!-- -->
+
+                                                <div class="d-md-flex justify-content-center align-items-center">
+                                                    <div class="mb-4 mb-md-0 me-md-5 me-lg-6 me-xl-7">
+                                                        <!--Title-->
+                                                        <h2 class="mb-3">Die AfD hasst Barrierefreiheit</h2>
+                                                        <!--text-->
+                                                        <p class="text-body-secondary mb-0">Sei kein Nazi, sorge für Inklusion </p>
+                                                    </div>
+                                                    <!--Action-->
+                                                    <a class="btn btn-outline-primary btn-hover-arrow" href="#!">
+                                                        <span>jetzt kaufen ...</span></a>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                    --}}
+
+                    <!-- -->
                     <div class="product-card mb-3"
                          style="display: flex; align-items: flex-start; gap: 1rem; padding: 1.25rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; background: white; max-width: 1000px; font-family: sans-serif;">
                         <!-- Bild -->
@@ -1272,7 +1805,6 @@ margin-bottom:  0.8rem;
                             </div>
                         </div>
                     </div>
-
 
 
                     <div class="product-card mb-3 "
@@ -1333,9 +1865,6 @@ margin-bottom:  0.8rem;
                             </div>
                         </div>
                     </div>
-
-
-
 
 
                 </div>
