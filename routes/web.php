@@ -83,6 +83,16 @@ Route::get('/dashboard/logout', function () {
 Route::get('/debug/pricing', [\App\Http\Controllers\CheckoutController::class, 'debugPricing'])
     ->name('debug.pricing');
 
+use App\Http\Controllers\AccessibilityDeclarationController;
+
+//Route::get('/accessibilityDeclaration/{slug}', [AccessibilityDeclarationController::class, 'showAccessibilityDeclaration'])->name('accessibilityDeclaration.slug');
+Route::get('/showAccessibilityDeclaration/{slug}/{domain?}', [AccessibilityDeclarationController::class, 'showAccessibilityDeclaration']);
+Route::get('/showAccessibilityDeclarationEz/{slug}/{domain?}', [AccessibilityDeclarationController::class, 'showAccessibilityDeclarationEz']);
+Route::post('/getAccessibilityDeclaration/', [AccessibilityDeclarationController::class, 'getAccessibilityDeclaration'])->name('accessibilityDeclaration.get');
+//Route::post('/accessibilityDeclaration', [AccessibilityDeclarationController::class, 'checkAccessibilityDeclaration'])->name('accessibilitydeclaration.check');
+
+
+
 
 // routes/web.php (temporary test route)
 Route::get('/incluCert', [InkluCertController::class, 'showInkluCertForm'])->name('inklucert.form');
@@ -90,6 +100,11 @@ Route::post('/incluCert', [InkluCertController::class, 'checkInkluCert'])->name(
 
 use App\Http\Controllers\PublishStatsController;
 //Route::get('/export/csv/{id}', [PublishStatsController::class, 'exportCsv'])->name('export.csv');
+Route::middleware(['auth', 'tenantcompany'])->group(function () {
+    Route::get('/export/all-issues-grouped/{id}', [PublishStatsController::class, 'exportAllIssuesGrouped'])->name('all_issues_grouped_export.csv');
+});
+
+
 Route::middleware(['auth', 'tenantcompany'])->group(function () {
     Route::get('/export/all-issues-csv/{id}', [PublishStatsController::class, 'exportAllIssuesCsv'])->name('all_issues_export.csv');
 });

@@ -34,6 +34,7 @@ class Company extends Model
         'agency_company_id',
         'billing_via_agency',
         'billing_email_overwrite',
+        'type',
     ];
 
     protected $casts = [

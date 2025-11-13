@@ -22,9 +22,6 @@ use Filament\Forms\Components\Tabs;
 use Filament\Notifications\Notification;
 use Filament\Facades\Filament;
 use App\Filament\Resources\Admin\ContractResource;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\View as ViewField;
-
 class CompanyResource extends Resource
 {
     protected static ?string $model = Company::class;
@@ -39,47 +36,12 @@ class CompanyResource extends Resource
     {
         return $form
             ->schema([
-
                 Forms\Components\Tabs::make('Company Information')
-
                     ->tabs([
                         Forms\Components\Tabs\Tab::make('Firmendetails')
                             ->schema([
-                                Forms\Components\Section::make(function ($record) {
-                                    $title = 'Firmendetails';
-                                    $basePath = asset(config('filament.icons.path', 'assets/icons'));
-
-                                    if ($record) {
-                                        if ($record->is_agency) {
-                                            // Agency-Icon (blau)
-                                            $icon = sprintf(
-                                                '<img src="%s/tenancy.svg" class="w-4 h-4 inline-block ml-2" style="color:#3b82f6;" alt="Agency">',
-                                                $basePath
-                                            );
-                                        } elseif (! empty($record->agency_company_id)) {
-                                            // Tenant-Icon (grün)
-                                            $icon = sprintf(
-                                                '<img src="%s/tenant.svg" class="w-4 h-4 inline-block ml-2" style="color:#10b981;" alt="Tenant">',
-                                                $basePath
-                                            );
-                                        } else {
-                                            // Standard → Heroicon
-                                            $icon = '<x-heroicon-o-building-office-2 class="w-4 h-4 inline-block ml-2 text-gray-400" />';
-                                        }
-
-                                        $title .= $icon;
-                                    }
-
-                                    return new HtmlString($title);
-                                })
+                                Forms\Components\Section::make('Firmendetails')
                                     ->schema([
-                                        ViewField::make('agencyBadge')
-                                            ->view('filament.components.company-agency-banner')
-                                            ->columns(2)
-                                            ->visible(fn ($record) =>
-                                                (auth()->user()?->is_admin ?? false)
-                                                && ! empty($record?->agency_company_id)
-                                            ),
                                         FileUpload::make('logo_image')
                                             ->label('Firmenlogo')
                                             ->disk('public')
@@ -87,6 +49,15 @@ class CompanyResource extends Resource
                                             ->acceptedFileTypes(['image/*'])
                                             ->image()
                                             ->storeFileNamesIn('logo_orig_filename'),
+
+                                        Forms\Components\Select::make('type')
+                                            ->options([
+                                                '0' => 'Unternehmen',
+                                                '1' => 'Gemeinde/Behörde',
+                                                '2' => 'Verein',
+                                            ])
+                                            ->required()
+                                            ->label('Firmentyp'),
 
                                         Forms\Components\TextInput::make('name')
                                             ->label('Firmenname')
@@ -137,15 +108,10 @@ class CompanyResource extends Resource
                                         Forms\Components\Grid::make(4)
                                             ->schema([
                                                 Forms\Components\TextInput::make('email')
-                                                    ->label('Email (Rechnung)')
+                                                    ->label('Email')
                                                     ->email()
                                                     ->maxLength(255)
                                                     ->placeholder('E-Mail-Adresse eingeben')
-                                                    ->columnSpan(2),
-                                            Forms\Components\TextInput::make('leitweg_id')
-                                                    ->label('Leitweg ID (X-Rechnung)')
-                                                    ->maxLength(255)
-                                                    ->placeholder('Leitweg ID (X-Rechnung)')
                                                     ->columnSpan(2),
 
                                                 Forms\Components\TextInput::make('web')
@@ -155,94 +121,11 @@ class CompanyResource extends Resource
                                                     ->placeholder('Webseiten-URL eingeben')
                                                     ->columnSpan(2),
                                             ]),
-
-
                                     ]),
-                                Forms\Components\Section::make('SEPA-Lastschrift')
-                                    ->description('Mandate für diese Firma verwalten (für Rechnungshinweise).')
-                                    ->schema([
-                                        Forms\Components\Repeater::make('sepaMandates')
-                                            ->label('SEPA-Mandate')
-                                            ->relationship('sepaMandates') // bindet direkt an die HasMany-Relation
-                                            ->addActionLabel('Mandat hinzufügen')
-                                            ->itemLabel(fn (array $state) =>
-                                            ($state['mandate_reference'] ?? null)
-                                                ? 'Mandat '.$state['mandate_reference'] .' | ' . $state['iban']
-                                                : 'Neues Mandat'
-                                            )
-                                            ->schema([
-                                                Forms\Components\Toggle::make('is_active')->label('Aktiv')->inline(false)->default(true),
-                                                Forms\Components\DatePicker::make('signature_date')->label('Datum der Unterschrift'),
-                                                Forms\Components\TextInput::make('account_holder')
-                                                    ->label('Kontoinhaber')
-                                                    ->required()
-                                                    ->maxLength(150),
-                                                Forms\Components\TextInput::make('bank_name')
-                                                    ->label('Bank')
-                                                    ->maxLength(100),
-                                                Forms\Components\TextInput::make('iban')
-                                                    ->label('IBAN')
-                                                    ->required()
-                                                    ->maxLength(34)
-                                                    ->rule('min:15') // einfache Basiskontrolle
-                                                    ->helperText('Ohne Leerzeichen eingeben.'),
-
-                                                Forms\Components\TextInput::make('bic')
-                                                    ->label('BIC')
-                                                    ->maxLength(11)
-                                                    ->helperText('Optional.'),
-
-                                                Forms\Components\Toggle::make('is_default')
-                                                    ->label('Als Standard verwenden')
-                                                    ->inline(false),
-                                            ])
-                                            ->columns(2)           // IBAN/BIC nebeneinander
-                                            ->grid(1)              // zwei Spalten im Repeater
-                                            ->minItems(0)
-                                            ->collapsible()
-                                            ->collapsed()
-                                            ->reorderable(true),
-                                    ])
-                                    ->collapsed()
-                                    ->visible(fn () => auth()->user()?->is_admin),
                             ]),
 
                         Forms\Components\Tabs\Tab::make('Einstellungen')
                             ->schema([
-
-                                // === NEU: Affiliate Settings ===
-                                Forms\Components\Fieldset::make('Affiliate Settings')
-                                    ->visible(fn () => auth()->user()?->is_admin ?? false) // nur für Admins
-                                    ->schema([
-                                        Forms\Components\Toggle::make('is_agency')
-                                            ->label('Ist Agentur / Affiliate')
-                                            ->reactive()
-                                            ->default(false),
-
-                                        Forms\Components\TextInput::make('agency_discount_percent')
-                                            ->label('Rabatt %')
-                                            ->numeric()
-                                            ->inputMode('decimal')
-                                            ->minValue(0)
-                                            ->maxValue(100)
-                                            ->step('0.01')
-                                            ->suffix('%')
-                                            ->default(20)
-                                            ->visible(fn (callable $get) => (bool) $get('is_agency'))
-                                            ->required(fn (callable $get) => (bool) $get('is_agency')),
-
-                                        Section::make('Mandanten dieser Agentur')
-                                            ->visible(fn ($record) => (bool) ($record?->is_agency))   // nur zeigen, wenn Agentur
-                                            ->schema([
-                                                ViewField::make('agency-tenants')
-                                                    ->view('filament.components.agency-tenants')      // Blade unten
-                                                    ->columnSpanFull(),
-                                            ]),
-
-
-                                    ])
-                                    ->columns(2),
-
                                 Forms\Components\Fieldset::make('Site Observer')
                                     ->relationship('settings', CompanySetting::class)
                                     ->schema([
@@ -353,33 +236,6 @@ class CompanyResource extends Resource
                 Tables\Columns\TextColumn::make('id')->label('ID')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('kd_nr')->label('Kd-Nr')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('name')->label('Name')->searchable()->sortable(),
-                Tables\Columns\IconColumn::make('is_agency')
-                    ->label('')
-                    ->icon(function ($record) {
-                        if ($record->is_agency) {
-                            return 'icon-tenancy'; // agentur
-                        }
-
-                        if (! empty($record->agency_company_id)) {
-                            return 'icon-tenant'; // tenant
-                        }
-
-                        return null; // nichts anzeigen
-                    })
-                    ->color(function ($record) {
-                        if ($record->is_agency) {
-                            return 'primary';
-                        }
-
-                        if (! empty($record->agency_company_id)) {
-                            return 'success';
-                        }
-
-                        return 'default';
-                    })
-                    ->falseIcon('heroicon-o-building-office-2')
-                    ->size('sm')
-                    ->grow(false),          // schmal halten
                 Tables\Columns\TextColumn::make('plz')->label('plz')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('ort')->label('Ort')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('created_at')->dateTime('d.m.Y H:i')->label('Erstellt')->sortable(),
@@ -403,7 +259,7 @@ class CompanyResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return auth()->user()->is_admin ? 'Firmen/Kunden' : 'Firmen Daten';
+        return auth()->user()->is_admin ? 'Firmen/Kunden' : 'Meine Daten';
     }
 
     public static function getPages(): array

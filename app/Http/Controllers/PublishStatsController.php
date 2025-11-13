@@ -560,4 +560,41 @@ class PublishStatsController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
+
+
+    public function exportAllIssuesGrouped($id): array
+    {
+        //always include contrast errors
+        //$showContrastErrors = CompanySetting::where('company_id', $id)->first();
+        $records = [];
+
+
+
+        $urls = Pa11yUrl::where('company_id', '=', $id)->get();
+        foreach($urls as $url){
+            $issues = Pa11yAccessibilityIssue::where('url_id' , '=', $url->id)->where('type', 'warning')->groupBy('code')->get();
+            foreach($issues as $issue){
+                $records[] = [
+                    //'url' => $url->url,
+                    'issue' => $issue->issue,
+                    'desc' => json_decode($issue->runnerExtras)->description,
+                    //'selector' => $issue->selector,
+                    'code' => $issue->code,
+                    'type' => $issue->type,
+                    'typeCode' => $issue->typeCode,
+
+                    //'context' => $issue->context,
+                    //'standard' => $issue->standard,
+                    //'wcag_level' => $issue->wcag_level,
+                ];
+            }
+        }
+
+        $uniqueArray = collect($records)->unique()->values()->all();
+
+        return $uniqueArray;
+        //var_dump($uniqueArray); die();
+
+    }
+
 }
