@@ -79,6 +79,12 @@ Route::get('/dashboard/logout', function () {
 
 // ---
 
+
+use App\Http\Controllers\CrawlController;
+//Route::post('/crawl/start', [CrawlController::class, 'startCrawl'])->name('crawl.start');
+Route::post('/start-crawl', [CrawlController::class, 'startCrawl'])->name('start.crawl');
+
+
 // DEBUG: Preis-/Rabatt-Simulation (keine Seiteneffekte)
 Route::get('/debug/pricing', [\App\Http\Controllers\CheckoutController::class, 'debugPricing'])
     ->name('debug.pricing');
