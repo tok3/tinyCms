@@ -24,6 +24,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('app:cleanup')->daily()->at('9:30');
         $schedule->command('app:image-description')->everyThreeMinutes();
         $schedule->command('app:processImages')->everyThreeMinutes();
+        $schedule->command('crawl:process')->everyThreeMinutes();
         $schedule->command('sepa:mail-due')->dailyAt('06:00')->timezone('Europe/Berlin');
     }
 

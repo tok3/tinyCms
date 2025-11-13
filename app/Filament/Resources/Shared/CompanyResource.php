@@ -25,6 +25,9 @@ use Filament\Facades\Filament;
 use App\Filament\Resources\Admin\ContractResource;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\View as ViewField;
+use Filament\Actions\Action;
+use App\Http\Controllers\CrawlController;
+use Illuminate\Http\Request;
 
 class CompanyResource extends Resource
 {
@@ -336,6 +339,21 @@ class CompanyResource extends Resource
                                         Forms\Components\Section::make('')
                                             ->description('')
                                             ->schema([
+
+Forms\Components\Toggle::make('start_crawl')
+    ->label('Domain crawlen')
+    ->inline(false)
+    ->live()
+    ->afterStateUpdated(function ($state, $set, $get, $livewire) {
+        if ($state) {
+            // reset toggle so it can be triggered again
+            $set('start_crawl', false);
+            $set('auto_add_urls', false);
+            $set('exclude_query_string_urls', false);
+            // open the already-registered action’s modal
+            $livewire->mountAction('crawlSites');
+        }
+    }),
                                                 Forms\Components\Toggle::make('auto_add_urls')
                                                     ->label('URLs automatisch hinzufügen')
                                                     ->default(true)
@@ -489,4 +507,56 @@ class CompanyResource extends Resource
             'edit' => Shared\CompanyResource\Pages\EditCompany::route('/{record}/edit'),
         ];
     }
+
+protected static function startCrawling(array $data, ?int $companyId): void
+    {
+        if (!$companyId) {
+            Notification::make()
+                ->title('Crawl Fehler')
+                ->body('Fehler: Kein Unternehmen ausgewählt.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        // Generate unique crawl ID
+        $crawlId = 'crawl_' . $companyId . '_' . now()->timestamp;
+
+        // Direct controller call
+        $controller = new CrawlController();
+        $request = new Request([
+            'id' => $companyId,
+            'domain' => $data['domain'],
+            //'id' => $crawlId,
+            // 'maxPages' => $data['maxPages'] ?? 10, // Uncomment if maxPages enabled
+        ]);
+
+        try {
+            $response = $controller->startCrawl($request);
+
+            if ($response['status'] === 'ok') {
+                Notification::make()
+                    ->title('Crawler gestartet')
+                    ->body('Crawling initiiert für ' . $data['domain'] . '. Der Vorgang kann einige Minuten dauern. Bitte laden Sie dann diese Seite erneut.')
+                    ->success()
+                    ->send();
+            } else {
+                \Log::error('Fehler beim Crawlen: ' . $response['data'] . ' Company: ' . $companyId . ' Domain: ' . $data['domain']);
+                Notification::make()
+                    ->title('Crawl Fehler')
+                    ->body('Fehler: ' . $response['data'])
+                    ->danger()
+                    ->send();
+            }
+        } catch (\Exception $e) {
+            \Log::error('Exception beim Crawlen: ' . $e->getMessage() . ' Company: ' . $companyId . ' Domain: ' . $data['domain']);
+            Notification::make()
+                ->title('Crawl Fehler')
+                ->body('Fehler: ' . $e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+
 }
