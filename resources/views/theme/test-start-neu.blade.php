@@ -856,7 +856,69 @@
             </div>
         </div>
     </section>
-  <!-- sprachen sektion plugin page --->
+
+
+
+  <!-- sectioin button gestalten  --->
+
+    <!-- section firmamemnt -->
+    <section class="position-relative overflow-hidden">
+        <div class="container py-9 py-lg-11 position-relative z-1">
+            <div class="row align-items-center justify-content-between">
+
+                <div class="order-last col-lg-6">
+                    <div class="mb-3" data-aos="fade-up">
+                        <h6 class="mb-0 text-uppercase">Die volle Kontrolle über Ihr Design behalten</h6>
+                    </div>
+                    <h2 class="mb-5 display-5 position-relative z-1" data-aos="fade-right">
+                        Ihr Style ist uns heilig
+                    </h2>
+
+                    <div class="position-relative z-1">
+                        <div class="d-flex mb-3" data-aos="fade-up" data-aos-delay="150">
+                            <div class="me-3">
+                                <i class="bx bx-check lh-1 width-3x height-3x flex-center rounded-circle bg-body-tertiary text-info fs-4"></i>
+                            </div>
+                            <div>
+                                <h5>Frei platzierbarer Fixstern-Button</h5>
+                                <p class="mb-0 text-body-secondary">
+                                    Der Fixstern-Button lässt sich frei auf Ihrer Website positionieren – oben, unten, rechts, links
+                                    oder schwebend am Rand. Abstände und Platzierung können Sie ganz einfach an Ihre Struktur anpassen.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex mb-3" data-aos="fade-up" data-aos-delay="300">
+                            <div class="me-3">
+                                <i class="bx bx-check lh-1 width-3x height-3x flex-center rounded-circle bg-body-tertiary text-info fs-4"></i>
+                            </div>
+                            <div>
+                                <h5>Eigenes Button-Design & nahtlose Integration</h5>
+                                <p class="mb-0 text-body-secondary">
+                                    Sie können jedes beliebige Element als Auslöser verwenden – ein <code>&lt;div&gt;</code>,
+                                    <code>&lt;span&gt;</code>, ein Link oder ein eigener Button mit eigenem Icon.
+                                    Fixstern fügt sich ohne jeden Stilbruch in Ihr bestehendes Design ein und wirkt sich nicht
+                                    auf Ihr Layout aus – ein einziges Tag reicht für die volle Integration.
+                                </p>
+                            </div>
+                        </div>
+
+
+
+                    </div>
+                </div>
+
+                <div class="col-lg-6 col-xl-5 col-md-10 me-lg-auto order-1 mb-7 mb-lg-0 p-0 ">
+                    <div class="position-relative" data-aos="fade-left" data-aos-delay="150">
+                        <img src="/assets/img/produkte/custom-buttons.png" alt="Firmament Monitoring Vorschau" class="img-fluid position-relative" style="width:1100px !important;">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- sprachen sektion plugin page --->
 
     <section class="position-relative overflow-hidden bg-body-tertiary">
         <div class="container pb-9 py-lg-11">
@@ -933,7 +995,9 @@
         </div>
     </section>
 
-    <!--  -->
+    <!-- ende sprachen  -->
+
+    <!-- section firmamemnt -->
     <section class="position-relative overflow-hidden">
         <div class="container py-9 py-lg-11 position-relative z-1">
             <div class="row align-items-center justify-content-between">
