@@ -1084,7 +1084,6 @@
         </div>
     </section>
 
-
     <!-- PRICING PLANS -->
     <section class="py-8 bg-light">
         <div class="container">
