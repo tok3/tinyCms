@@ -220,12 +220,16 @@ class ProductResource extends Resource
                     ])
                     ->columns(4),
                 \Filament\Forms\Components\Placeholder::make('direct_booking_links')
-                    ->label('Direktbuchungs-Links')
+                    ->label('Replacement-Tags')
                     ->visible(fn (callable $get, $livewire) =>
-                        $get('active') && ! $get('visible') && ! $get('upgrade') && filled($livewire->record?->prices)
+                        $get('active')
+                        && ! $get('visible')
+                        && ! $get('upgrade')
+                        && filled($livewire->record?->prices)
                     )
                     ->content(function (callable $get, $state, $livewire) {
                         $record = $livewire->record;
+
                         if (! $record || ! $record->exists) {
                             return null;
                         }
@@ -237,35 +241,47 @@ class ProductResource extends Resource
                             ? $record->prices->pluck('interval')->unique()->values()
                             : collect();
 
-                        // Bevorzugte Reihenfolge der Anzeige
+                        // Anzeige-Reihenfolge
                         $ordered = collect(['monthly', 'annual', 'one_time'])
                             ->filter(fn ($i) => $availableIntervals->contains($i))
                             ->values();
 
                         if ($ordered->isEmpty()) {
-                            return new \Illuminate\Support\HtmlString('<div class="text-sm text-gray-500">Keine Preise/Intervalle gefunden.</div>');
+                            return new \Illuminate\Support\HtmlString(
+                                '<div class="text-sm text-gray-500">Keine Preise/Intervalle gefunden.</div>'
+                            );
                         }
 
-                        // Für jedes Intervall zwei Token ausgeben: LINK und PRICE
+                        // Tokens je Intervall: LINK + PRICE
                         $tokensHtml = $ordered->map(function ($interval) use ($productId) {
-                            $intervalUpper = strtoupper($interval);
-                            $linkToken  = "##P{$productId}_{$intervalUpper}_LINK##";
-                            $priceToken = "##P{$productId}_{$intervalUpper}_PRICE##";
-                            return '<div class="mb-1"><code>' . $linkToken . '</code> &nbsp; <code>' . $priceToken . '</code></div>';
+                            $upper     = strtoupper($interval);
+                            $linkToken = "##P{$productId}_{$upper}_LINK##";
+                            $priceToken = "##P{$productId}_{$upper}_PRICE##";
+
+                            return
+                                '<div class="mb-1">' .
+                                '<code>' . $linkToken . '</code>' .
+                                '&nbsp;' .
+                                '<code>' . $priceToken . '</code>' .
+                                '</div>';
                         })->implode('');
 
-                        // Zusätzliche Tokens: Beschreibung & Testzeitraum
-                        $extraTokens = [
-                            "<div class=\"mb-1\"><code>##P{$productId}_DESCRIPTION##</code></div>",
-                            "<div class=\"mb-1\"><code>##P{$productId}_TRIAL_DAYS##</code></div>",
-                        ];
-                        $tokensHtml .= implode('', $extraTokens);
+                        // Allgemeine Tokens: NAME, DESCRIPTION, TRIAL_DAYS
+                        $tokensHtml .=
+                            '<div class="mb-1"><code>##P' . $productId . '_NAME##</code></div>' .
+                            '<div class="mb-1"><code>##P' . $productId . '_DESCRIPTION##</code></div>' .
+                            '<div class="mb-1"><code>##P' . $productId . '_TRIAL_DAYS##</code></div>';
 
-                        // Für jedes Intervall auch den echten Direktbuchungs-Link ausgeben
+                        // Echte Direktlinks pro Intervall
                         $linksHtml = $ordered->map(function ($interval) use ($productId) {
-                            $intervalUpper = strtoupper($interval);
-                            $url = url('/preise') . "?interval={$interval}&product={$productId}#step-2";
-                            return '<div class="mb-1"><a href="' . $url . '" target="_blank" class="underline text-primary-600">Direktbuchung (' . $interval . ')</a></div>';
+                            $url = url('/preise') . '?interval=' . $interval . '&product=' . $productId . '#step-2';
+
+                            return
+                                '<div class="mb-1">' .
+                                '<a href="' . $url . '" target="_blank" class="underline text-primary-600">' .
+                                'Direktbuchung (' . $interval . ')' .
+                                '</a>' .
+                                '</div>';
                         })->implode('');
 
                         return new \Illuminate\Support\HtmlString(

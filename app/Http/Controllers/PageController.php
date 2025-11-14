@@ -176,7 +176,7 @@ class PageController extends Controller
     /**
      * Ersetzt Produkt-Platzhalter (Tokens) im HTML-Inhalt.
      * Unterstützt case-insensitive Tokens wie ##P123_MONTHLY_LINK##, ##p123_annual_price##,
-     * sowie deutsche Aliase (monatlich/jährlich/jaehrlich/einmalig).
+     * sowie deutsche Aliase (monatlich/jährlich/jaehrlich/einmalig) und NAME/Description/Trial-Tags.
      */
     private function replaceProductPlaceholders(string $html): string
     {
@@ -194,7 +194,7 @@ class PageController extends Controller
 
         // Regexe für beide Token-Gruppen
         $patternMain  = '/##P(\d+)_([A-ZÄÖÜa-zäöü_]+)_(LINK|PRICE)##/u';
-        $patternExtra = '/##P(\d+)_(DESCRIPTION|TRIAL_DAYS)##/i';
+        $patternExtra = '/##P(\d+)_(NAME|DESCRIPTION|TRIAL_DAYS)##/i';
 
         // Alle Vorkommen suchen
         preg_match_all($patternMain,  $html, $mainMatches,  PREG_SET_ORDER);
@@ -245,7 +245,7 @@ class PageController extends Controller
             }
         }
 
-        // 2) DESCRIPTION / TRIAL_DAYS Tokens verarbeiten (case-insensitive)
+        // 2) NAME / DESCRIPTION / TRIAL_DAYS Tokens verarbeiten (case-insensitive)
         foreach ($extraMatches as $mm) {
             [$token2, $idRaw2, $type2] = $mm;
             $pid = (int) $idRaw2;
@@ -255,7 +255,9 @@ class PageController extends Controller
             }
             $t = strtoupper($type2);
 
-            if ($t === 'DESCRIPTION') {
+            if ($t === 'NAME') {
+                $replacements[$token2] = trim($prod->name ?? '');
+            } elseif ($t === 'DESCRIPTION') {
                 // Beschreibung als Plaintext ohne HTML (bei Bedarf erlaubte Tags whitelisten)
                 $replacements[$token2] = trim(strip_tags($prod->description ?? ''));
             } elseif ($t === 'TRIAL_DAYS') {
