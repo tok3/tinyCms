@@ -856,6 +856,82 @@
             </div>
         </div>
     </section>
+  <!-- sprachen sektion plugin page --->
+
+    <section class="position-relative overflow-hidden bg-body-tertiary">
+        <div class="container pb-9 py-lg-11">
+            <div class="row align-items-center">
+                <div class="mb-6 mb-lg-0 col-md-5 pe-md-7 pe-5 pb-5 order-lg-last ms-lg-auto pt-3 position-relative">
+                    <img src="/assets/img/produkte/multi-lang.png" class="img-fluid position-relative mt-3" alt="Fixstern Barrierefreiheits-Plugin im Einsatz">
+                </div>
+
+                <div class="col-md-6 order-md-1 me-md-auto">
+                    <div class="d-flex align-items-center mb-3" data-aos="fade-up">
+                        <h6 class="mb-0 text-body-secondary text-uppercase">Ganz klar multilingual</h6>
+                    </div>
+
+                    <h3 class="display-5 mb-5" data-aos="fade-up">
+                        Immer die richtige Sprache – automatisch und ohne Klicks.
+                    </h3>
+
+                    <p class="mb-6 lead text-body-secondary" data-aos="fade-up">
+                        Fixstern passt sich sofort der Sprache Ihrer Webseite an. Ist die <code>lang</code>-Angabe im Dokument korrekt gesetzt, zeigt das Widget alle Inhalte automatisch in der passenden Sprache – ohne Umstellen, ohne Aufwand.
+                    </p>
+
+                    <div class="row">
+                        <div class="col-12 col-sm-6 mb-4 mb-sm-0">
+                            <ul class="list-unstyled mb-0">
+                                <li class="d-flex mb-5" data-aos="fade-up" data-aos-delay="100">
+                                    <div class="me-3 flex-shrink-0 width-2x height-2x bg-gradient-iceblue text-white rounded-circle flex-center">
+                                        <i class="bx bx-check lh-1 fs-5"></i>
+                                    </div>
+                                    <p class="mb-0">
+                                        <strong>Keine manuelle Sprachwahl</strong>
+                                        Fixstern folgt automatisch der Seitensprache. Nutzer müssen nichts einstellen.
+                                    </p>
+                                </li>
+
+                                <li class="d-flex mb-0" data-aos="fade-up" data-aos-delay="150">
+                                    <div class="me-3 flex-shrink-0 width-2x height-2x bg-gradient-iceblue text-white rounded-circle flex-center">
+                                        <i class="bx bx-check lh-1 fs-5"></i>
+                                    </div>
+                                    <p class="mb-0">
+                                        <strong>Dynamische Anpassung</strong>
+                                        Wenn Nutzer die Sprache wechseln, passt sich das Widget live an – ohne Reload.
+                                    </p>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <ul class="list-unstyled mb-0">
+                                <li class="d-flex mb-5" data-aos="fade-up" data-aos-delay="200">
+                                    <div class="me-3 flex-shrink-0 width-2x height-2x bg-gradient-iceblue text-white rounded-circle flex-center">
+                                        <i class="bx bx-check lh-1 fs-5"></i>
+                                    </div>
+                                    <p class="mb-0">
+                                        <strong>Unterstützt alle europäischen Sprachen</strong>
+                                        Egal ob Deutsch, Französisch, Italienisch, Polnisch oder Englisch.
+                                    </p>
+                                </li>
+
+                                <li class="d-flex mb-0" data-aos="fade-up" data-aos-delay="250">
+                                    <div class="me-3 flex-shrink-0 width-2x height-2x bg-gradient-iceblue text-white rounded-circle flex-center">
+                                        <i class="bx bx-check lh-1 fs-5"></i>
+                                    </div>
+                                    <p class="mb-0">
+                                        <strong>Perfekt integriert</strong>
+                                        Einfach korrektes <code>&lt;html lang=\"...\"&gt;</code> setzen – Fixstern macht den Rest.
+                                    </p>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!--  -->
     <section class="position-relative overflow-hidden">

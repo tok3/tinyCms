@@ -1,6 +1,6 @@
 @props(['navbarType'=>1, 'page'=>'', 'pageinclucert'=>''])
     <!doctype html>
-<html lang="de" data-bs-theme="light">
+<html lang="it" data-bs-theme="light">
 <head>
     <x-site-partials.metas page="{!! $page !!}"/>
     <meta name="msvalidate.01" content="75F1A0336CC5A08AAD490B571E15F456" />
