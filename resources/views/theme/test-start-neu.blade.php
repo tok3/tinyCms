@@ -1083,9 +1083,23 @@
             </div>
         </div>
     </section>
+<style>
 
+    /* Nur im Darkmode und nur in der Pricing-Section */
+    [data-bs-theme="dark"] .card .btn-outline-primary {
+        color: #fff;
+        border-color: #fff;
+    }
+
+    /* Optional: Hover-State im Darkmode */
+    [data-bs-theme="dark"] .card .btn-outline-primary:hover {
+        background-color: #fff;
+        color: #000;
+    }
+
+</style>
     <!-- PRICING PLANS -->
-    <section class="py-8 bg-light">
+    <section class="py-8">
         <div class="container">
             <div class="row justify-content-center mb-6">
                 <div class="col-lg-8 text-center">
@@ -1116,7 +1130,7 @@
                                 Ideal für kleine Websites und erste Schritte in die Barrierefreiheit.
                             </p>
                             <div class="d-flex justify-content-center align-items-baseline mb-4">
-                                <span class="h1 fw-bold text-dark price-amount" id="starter-price">0</span>
+                                <span class="h1 fw-bold price-amount" id="starter-price">0</span>
                                 <span class="h3 text-muted ms-1">€</span>
                                 <span class="text-muted ms-2 small price-period" id="starter-period">/ Monat</span>
                             </div>
@@ -1170,7 +1184,7 @@
                                 Für Unternehmen, Agenturen und Behörden mit höheren Ansprüchen.
                             </p>
                             <div class="d-flex justify-content-center align-items-baseline mb-4">
-                                <span class="h1 fw-bold text-dark price-amount" id="individual-price">49</span>
+                                <span class="h1 fw-bold  price-amount" id="individual-price">49</span>
                                 <span class="h3 text-muted ms-1">€</span>
                                 <span class="text-muted ms-2 small price-period" id="individual-period">/ Monat</span>
                             </div>
