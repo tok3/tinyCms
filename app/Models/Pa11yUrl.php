@@ -94,6 +94,11 @@ class Pa11yUrl extends Model
         return $stats;
     }
 
+        public function pa11yAccessibilityIssues()
+    {
+        return $this->hasMany(Pa11yAccessibilityIssue::class, 'url_id');
+    }
+
 
 
 }

@@ -43,7 +43,6 @@ class CompanyResource extends Resource
     {
         return $form
             ->schema([
-
                 Forms\Components\Tabs::make('Company Information')
                     ->tabs([
                         Forms\Components\Tabs\Tab::make('Firmendetails')
@@ -88,6 +87,7 @@ class CompanyResource extends Resource
                                             ->visible(fn($record) => (auth()->user()?->is_admin ?? false)
                                                 && !empty($record?->agency_company_id)
                                             ),
+
                                         FileUpload::make('logo_image')
                                             ->label('Firmenlogo')
                                             ->disk('public')
@@ -95,6 +95,15 @@ class CompanyResource extends Resource
                                             ->acceptedFileTypes(['image/*'])
                                             ->image()
                                             ->storeFileNamesIn('logo_orig_filename'),
+
+                                        Forms\Components\Select::make('type')
+                                            ->options([
+                                                '0' => 'Unternehmen',
+                                                '1' => 'Gemeinde/Behörde',
+                                                '2' => 'Verein',
+                                            ])
+                                            ->required()
+                                            ->label('Firmentyp'),
 
                                         Forms\Components\TextInput::make('name')
                                             ->label(function ($record) {
@@ -155,7 +164,7 @@ class CompanyResource extends Resource
                                         Forms\Components\Grid::make(4)
                                             ->schema([
                                                 Forms\Components\TextInput::make('email')
-                                                    ->label('Email (Rechnung)')
+                                                    ->label('Email')
                                                     ->email()
                                                     ->maxLength(255)
                                                     ->placeholder('E-Mail-Adresse eingeben')
@@ -250,6 +259,8 @@ class CompanyResource extends Resource
                                     ])
                                     ->collapsed()
                                     ->visible(fn() => auth()->user()?->is_admin),
+                                            ]),
+                                    ]),
                             ]),
 
                         Forms\Components\Tabs\Tab::make('Einstellungen')
@@ -496,7 +507,7 @@ Forms\Components\Toggle::make('start_crawl')
 
     public static function getNavigationLabel(): string
     {
-        return auth()->user()->is_admin ? 'Firmen/Kunden' : 'Firmen Daten';
+        return auth()->user()->is_admin ? 'Firmen/Kunden' : 'Meine Daten';
     }
 
     public static function getPages(): array

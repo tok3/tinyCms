@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie', 'public/assets/css/svgs/*',  'public/assets/fonts/opendyslexic/*', 'storeDownloadReferrer', 'eztext', 'storeTts', 'ezspeak', 'imageDescription'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'public/assets/css/svgs/*',  'public/assets/fonts/opendyslexic/*', 'storeDownloadReferrer', 'eztext', 'storeTts', 'ezspeak', 'imageDescription', 'getAccessibilityDeclaration'],
 
     'allowed_methods' => ['*'],
 
