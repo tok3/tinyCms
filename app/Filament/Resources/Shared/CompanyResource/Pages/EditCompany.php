@@ -40,10 +40,18 @@ class EditCompany extends EditRecord
      protected function getFormActions(): array
     {
         return [
+
+                // 2. Add the normal Save button
+            $this->getSaveFormAction(),
+
+            // 3. Add the normal Cancel button
+            $this->getCancelFormAction(),
+
             Actions\Action::make('crawlSites')
                 ->label('Domain crawlen')
                 ->icon('heroicon-o-squares-plus')
                 ->color('primary')
+
                 ->form([
                     \Filament\Forms\Components\TextInput::make('domain')
                         ->label('Domain')
@@ -58,7 +66,10 @@ class EditCompany extends EditRecord
                 })
                 ->modalHeading('Site Crawler starten')
                 ->modalDescription('Domainnamen eingeben.')
-                ->modalSubmitActionLabel('Crawler starten'),
+                ->modalSubmitActionLabel('Crawler starten')
+                ->extraAttributes([
+                'class' => 'opacity-0 pointer-events-none absolute -left-96' // completely invisible + out of flow
+            ])
         ];
     }
 

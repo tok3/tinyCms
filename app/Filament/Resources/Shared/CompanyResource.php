@@ -260,8 +260,7 @@ class CompanyResource extends Resource
                                     ->collapsed()
                                     ->visible(fn() => auth()->user()?->is_admin),
                                             ]),
-                                    ]),
-                            ]),
+
 
                         Forms\Components\Tabs\Tab::make('Einstellungen')
                             ->schema([
@@ -365,6 +364,7 @@ Forms\Components\Toggle::make('start_crawl')
             $livewire->mountAction('crawlSites');
         }
     }),
+
                                                 Forms\Components\Toggle::make('auto_add_urls')
                                                     ->label('URLs automatisch hinzufügen')
                                                     ->default(true)
