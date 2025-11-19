@@ -164,7 +164,7 @@ class CompanyResource extends Resource
                                         Forms\Components\Grid::make(4)
                                             ->schema([
                                                 Forms\Components\TextInput::make('email')
-                                                    ->label('Email')
+                                                    ->label('Email (Rechnung)')
                                                     ->email()
                                                     ->maxLength(255)
                                                     ->placeholder('E-Mail-Adresse eingeben')
