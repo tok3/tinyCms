@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 
 use App\Models\Page;
 use Facades\App\Domain\Render\RenderContent;
-use App\Models\Product;
 
 use App\Models\MenuItem;
 use Spatie\Menu\Laravel\Menu;
@@ -121,10 +120,7 @@ class PageController extends Controller
             $siteContent[] = $renderedView;
         }
 
-        $html = implode('', $siteContent);
-        $html = $this->replaceProductPlaceholders($html);
-
-        return $html;
+        return implode('', $siteContent);
 
     }
 
@@ -171,115 +167,5 @@ class PageController extends Controller
 
         // Redirect back to the previous page with a success message
         return redirect()->back()->with('success', 'Sitemap generated successfully!');
-    }
-
-    /**
-     * Ersetzt Produkt-Platzhalter (Tokens) im HTML-Inhalt.
-     * Unterstützt case-insensitive Tokens wie ##P123_MONTHLY_LINK##, ##p123_annual_price##,
-     * sowie deutsche Aliase (monatlich/jährlich/jaehrlich/einmalig) und NAME/Description/Trial-Tags.
-     */
-    private function replaceProductPlaceholders(string $html): string
-    {
-        // Mapping der Intervall-Aliase (case-insensitive Normalisierung)
-        $intervalMap = [
-            'monthly'   => 'monthly',
-            'monatlich' => 'monthly',
-            'annual'    => 'annual',
-            'yearly'    => 'annual',
-            'jährlich'  => 'annual',
-            'jaehrlich' => 'annual',
-            'one_time'  => 'one_time',
-            'einmalig'  => 'one_time',
-        ];
-
-        // Regexe für beide Token-Gruppen
-        $patternMain  = '/##P(\d+)_([A-ZÄÖÜa-zäöü_]+)_(LINK|PRICE)##/u';
-        $patternExtra = '/##P(\d+)_(NAME|DESCRIPTION|TRIAL_DAYS)##/i';
-
-        // Alle Vorkommen suchen
-        preg_match_all($patternMain,  $html, $mainMatches,  PREG_SET_ORDER);
-        preg_match_all($patternExtra, $html, $extraMatches, PREG_SET_ORDER);
-
-        // Wenn gar keine Tokens vorhanden sind → früh zurück
-        if (empty($mainMatches) && empty($extraMatches)) {
-            return $html;
-        }
-
-        // Produkt-IDs aus beiden Gruppen sammeln
-        $productIds = collect($mainMatches)->pluck(1)
-            ->merge(collect($extraMatches)->pluck(1))
-            ->unique()->map(fn ($v) => (int) $v)->values()->all();
-
-        // Relevante Produkte inkl. Preise laden
-        $products = Product::with('prices')->whereIn('id', $productIds)->get()->keyBy('id');
-
-        $replacements = [];
-
-        // 1) LINK/PRICE Tokens verarbeiten
-        foreach ($mainMatches as $m) {
-            [$token, $idRaw, $intervalRaw, $typeRaw] = $m;
-            $productId = (int) $idRaw;
-            $intervalKey = strtolower($intervalRaw);
-            $normalizedInterval = $intervalMap[$intervalKey] ?? null;
-            $type = strtolower($typeRaw); // link | price
-
-            if (!$normalizedInterval) {
-                continue; // unbekanntes Intervall → Token stehen lassen
-            }
-
-            $product = $products->get($productId);
-            if (!$product) {
-                continue; // Produkt nicht gefunden
-            }
-
-            if ($type === 'link') {
-                $replacements[$token] = $this->makeDirectBookingLink($productId, $normalizedInterval);
-                continue;
-            }
-
-            if ($type === 'price') {
-                $priceCents = optional($product->prices->firstWhere('interval', $normalizedInterval))->price;
-                $replacements[$token] = $priceCents !== null
-                    ? number_format($priceCents / 100, 2, ',', '.') . ' €'
-                    : '';
-            }
-        }
-
-        // 2) NAME / DESCRIPTION / TRIAL_DAYS Tokens verarbeiten (case-insensitive)
-        foreach ($extraMatches as $mm) {
-            [$token2, $idRaw2, $type2] = $mm;
-            $pid = (int) $idRaw2;
-            $prod = $products->get($pid);
-            if (! $prod) {
-                continue;
-            }
-            $t = strtoupper($type2);
-
-            if ($t === 'NAME') {
-                $replacements[$token2] = trim($prod->name ?? '');
-            } elseif ($t === 'DESCRIPTION') {
-                // Beschreibung als Plaintext ohne HTML (bei Bedarf erlaubte Tags whitelisten)
-                $replacements[$token2] = trim(strip_tags($prod->description ?? ''));
-            } elseif ($t === 'TRIAL_DAYS') {
-                $days = (int)($prod->trial_period_days ?? 0);
-                $replacements[$token2] = $days > 0 ? ($days . ' Tage') : '';
-            }
-        }
-
-        // Ersetzungen anwenden
-        if (!empty($replacements)) {
-            $html = strtr($html, $replacements);
-        }
-
-        return $html;
-    }
-
-    /**
-     * Baut den Direktbuchungs-Link identisch zur Filament-Resource-Logik.
-     */
-    private function makeDirectBookingLink(int $productId, string $interval): string
-    {
-        $baseUrl = url('/preise');
-        return $baseUrl . "?interval={$interval}&product={$productId}#step-2";
     }
 }

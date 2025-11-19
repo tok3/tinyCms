@@ -125,6 +125,7 @@ padding-bottom:15px;
                 </template>
             </div>
         </div>
+
         <!-- Das ganze Formular hier rein -->
         <form id="checkoutForm" class="_shadow-lg" action="{{ route('checkout.plan') }}" method="POST">
 

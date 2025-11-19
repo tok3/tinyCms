@@ -43,7 +43,7 @@ Die D-U-N-S Nummer wird von der Europäischen Kommission, den Vereinten Nationen
                     </div>
 
                     <x-site-partials.social-media-buttons/>
-                    <x-partials.color-mode/>
+                    {{--<x-partials.color-mode/>--}}
 
                 </div>
 

@@ -366,55 +366,5 @@
 
 
         </script>
-
-            <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                    document.querySelectorAll('[data-pricing-toggle]').forEach(function (toggle) {
-                        const section = toggle.closest('.pricing-section');
-                        if (!section) return;
-
-                        function applyPricing() {
-                            const isYearly = toggle.checked;
-                            const mode = isYearly ? 'yearly' : 'monthly';
-
-                            section.querySelectorAll('[data-pricing-id]').forEach(function (el) {
-                                const isAmount = el.classList.contains('price-amount');
-                                const isPeriod = el.classList.contains('price-period');
-                                const isLink   = el.classList.contains('price-link');
-
-                                if (isAmount) {
-                                    const value = el.dataset[mode + 'Price'];
-                                    if (typeof value !== 'undefined') {
-                                        el.textContent = value;
-                                    }
-                                }
-
-                                if (isPeriod) {
-                                    const value = el.dataset[mode + 'Period'] || '';
-                                    el.textContent = value;
-                                    if (value === '') {
-                                        el.classList.add('d-none');
-                                    } else {
-                                        el.classList.remove('d-none');
-                                    }
-                                }
-
-                                if (isLink) {
-                                    const value = el.dataset[mode + 'Link'];
-                                    if (typeof value !== 'undefined') {
-                                        el.href = value;
-                                    }
-                                }
-                            });
-                        }
-
-                        // Initial anwenden
-                        applyPricing();
-
-                        // Beim Umschalten erneut anwenden
-                        toggle.addEventListener('change', applyPricing);
-                    });
-                });
-            </script>
     @endpush
 </x-page-layout>

@@ -857,147 +857,7 @@
         </div>
     </section>
 
-
-
-  <!-- sectioin button gestalten  --->
-
-    <!-- section firmamemnt -->
-    <section class="position-relative overflow-hidden">
-        <div class="container py-9 py-lg-11 position-relative z-1">
-            <div class="row align-items-center justify-content-between">
-
-                <div class="order-last col-lg-6">
-                    <div class="mb-3" data-aos="fade-up">
-                        <h6 class="mb-0 text-uppercase">Die volle Kontrolle über Ihr Design behalten</h6>
-                    </div>
-                    <h2 class="mb-5 display-5 position-relative z-1" data-aos="fade-right">
-                        Ihr Style ist uns heilig
-                    </h2>
-
-                    <div class="position-relative z-1">
-                        <div class="d-flex mb-3" data-aos="fade-up" data-aos-delay="150">
-                            <div class="me-3">
-                                <i class="bx bx-check lh-1 width-3x height-3x flex-center rounded-circle bg-body-tertiary text-info fs-4"></i>
-                            </div>
-                            <div>
-                                <h5>Frei platzierbarer Fixstern-Button</h5>
-                                <p class="mb-0 text-body-secondary">
-                                    Der Fixstern-Button lässt sich frei auf Ihrer Website positionieren – oben, unten, rechts, links
-                                    oder schwebend am Rand. Abstände und Platzierung können Sie ganz einfach an Ihre Struktur anpassen.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="d-flex mb-3" data-aos="fade-up" data-aos-delay="300">
-                            <div class="me-3">
-                                <i class="bx bx-check lh-1 width-3x height-3x flex-center rounded-circle bg-body-tertiary text-info fs-4"></i>
-                            </div>
-                            <div>
-                                <h5>Eigenes Button-Design & nahtlose Integration</h5>
-                                <p class="mb-0 text-body-secondary">
-                                    Sie können jedes beliebige Element als Auslöser verwenden – ein <code>&lt;div&gt;</code>,
-                                    <code>&lt;span&gt;</code>, ein Link oder ein eigener Button mit eigenem Icon.
-                                    Fixstern fügt sich ohne jeden Stilbruch in Ihr bestehendes Design ein und wirkt sich nicht
-                                    auf Ihr Layout aus – ein einziges Tag reicht für die volle Integration.
-                                </p>
-                            </div>
-                        </div>
-
-
-
-                    </div>
-                </div>
-
-                <div class="col-lg-6 col-xl-5 col-md-10 me-lg-auto order-1 mb-7 mb-lg-0 p-0 ">
-                    <div class="position-relative" data-aos="fade-left" data-aos-delay="150">
-                        <img src="/assets/img/produkte/custom-buttons.png" alt="Firmament Monitoring Vorschau" class="img-fluid position-relative" style="width:1100px !important;">
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-    <!-- sprachen sektion plugin page --->
-
-    <section class="position-relative overflow-hidden bg-body-tertiary">
-        <div class="container pb-9 py-lg-11">
-            <div class="row align-items-center">
-                <div class="mb-6 mb-lg-0 col-md-5 pe-md-7 pe-5 pb-5 order-lg-last ms-lg-auto pt-3 position-relative">
-                    <img src="/assets/img/produkte/multi-lang.png" class="img-fluid position-relative mt-3" alt="Fixstern Barrierefreiheits-Plugin im Einsatz">
-                </div>
-
-                <div class="col-md-6 order-md-1 me-md-auto">
-                    <div class="d-flex align-items-center mb-3" data-aos="fade-up">
-                        <h6 class="mb-0 text-body-secondary text-uppercase">Ganz klar multilingual</h6>
-                    </div>
-
-                    <h3 class="display-5 mb-5" data-aos="fade-up">
-                        Immer die richtige Sprache – automatisch und ohne Klicks.
-                    </h3>
-
-                    <p class="mb-6 lead text-body-secondary" data-aos="fade-up">
-                        Fixstern passt sich sofort der Sprache Ihrer Webseite an. Ist die <code>lang</code>-Angabe im Dokument korrekt gesetzt, zeigt das Widget alle Inhalte automatisch in der passenden Sprache – ohne Umstellen, ohne Aufwand.
-                    </p>
-
-                    <div class="row">
-                        <div class="col-12 col-sm-6 mb-4 mb-sm-0">
-                            <ul class="list-unstyled mb-0">
-                                <li class="d-flex mb-5" data-aos="fade-up" data-aos-delay="100">
-                                    <div class="me-3 flex-shrink-0 width-2x height-2x bg-gradient-iceblue text-white rounded-circle flex-center">
-                                        <i class="bx bx-check lh-1 fs-5"></i>
-                                    </div>
-                                    <p class="mb-0">
-                                        <strong>Keine manuelle Sprachwahl</strong>
-                                        Fixstern folgt automatisch der Seitensprache. Nutzer müssen nichts einstellen.
-                                    </p>
-                                </li>
-
-                                <li class="d-flex mb-0" data-aos="fade-up" data-aos-delay="150">
-                                    <div class="me-3 flex-shrink-0 width-2x height-2x bg-gradient-iceblue text-white rounded-circle flex-center">
-                                        <i class="bx bx-check lh-1 fs-5"></i>
-                                    </div>
-                                    <p class="mb-0">
-                                        <strong>Dynamische Anpassung</strong>
-                                        Wenn Nutzer die Sprache wechseln, passt sich das Widget live an – ohne Reload.
-                                    </p>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div class="col-12 col-sm-6">
-                            <ul class="list-unstyled mb-0">
-                                <li class="d-flex mb-5" data-aos="fade-up" data-aos-delay="200">
-                                    <div class="me-3 flex-shrink-0 width-2x height-2x bg-gradient-iceblue text-white rounded-circle flex-center">
-                                        <i class="bx bx-check lh-1 fs-5"></i>
-                                    </div>
-                                    <p class="mb-0">
-                                        <strong>Unterstützt alle europäischen Sprachen</strong>
-                                        Egal ob Deutsch, Französisch, Italienisch, Polnisch oder Englisch.
-                                    </p>
-                                </li>
-
-                                <li class="d-flex mb-0" data-aos="fade-up" data-aos-delay="250">
-                                    <div class="me-3 flex-shrink-0 width-2x height-2x bg-gradient-iceblue text-white rounded-circle flex-center">
-                                        <i class="bx bx-check lh-1 fs-5"></i>
-                                    </div>
-                                    <p class="mb-0">
-                                        <strong>Perfekt integriert</strong>
-                                        Einfach korrektes <code>&lt;html lang=\"...\"&gt;</code> setzen – Fixstern macht den Rest.
-                                    </p>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ende sprachen  -->
-
-    <!-- section firmamemnt -->
+    <!--  -->
     <section class="position-relative overflow-hidden">
         <div class="container py-9 py-lg-11 position-relative z-1">
             <div class="row align-items-center justify-content-between">
@@ -1083,23 +943,10 @@
             </div>
         </div>
     </section>
-<style>
 
-    /* Nur im Darkmode und nur in der Pricing-Section */
-    [data-bs-theme="dark"] .card .btn-outline-primary {
-        color: #fff;
-        border-color: #fff;
-    }
 
-    /* Optional: Hover-State im Darkmode */
-    [data-bs-theme="dark"] .card .btn-outline-primary:hover {
-        background-color: #fff;
-        color: #000;
-    }
-
-</style>
     <!-- PRICING PLANS -->
-    <section class="py-8">
+    <section class="py-8 bg-light">
         <div class="container">
             <div class="row justify-content-center mb-6">
                 <div class="col-lg-8 text-center">
@@ -1130,7 +977,7 @@
                                 Ideal für kleine Websites und erste Schritte in die Barrierefreiheit.
                             </p>
                             <div class="d-flex justify-content-center align-items-baseline mb-4">
-                                <span class="h1 fw-bold price-amount" id="starter-price">0</span>
+                                <span class="h1 fw-bold text-dark price-amount" id="starter-price">0</span>
                                 <span class="h3 text-muted ms-1">€</span>
                                 <span class="text-muted ms-2 small price-period" id="starter-period">/ Monat</span>
                             </div>
@@ -1184,7 +1031,7 @@
                                 Für Unternehmen, Agenturen und Behörden mit höheren Ansprüchen.
                             </p>
                             <div class="d-flex justify-content-center align-items-baseline mb-4">
-                                <span class="h1 fw-bold  price-amount" id="individual-price">49</span>
+                                <span class="h1 fw-bold text-dark price-amount" id="individual-price">49</span>
                                 <span class="h3 text-muted ms-1">€</span>
                                 <span class="text-muted ms-2 small price-period" id="individual-period">/ Monat</span>
                             </div>
