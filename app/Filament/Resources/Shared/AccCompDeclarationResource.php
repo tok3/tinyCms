@@ -98,6 +98,7 @@ class AccCompDeclarationResource extends Resource
                 */
                 Forms\Components\Textarea::make('consistency')
                     ->rows(4)
+                    ->default('Unsere Produkte und Dienstleistungen sind für Menschen mit Behinderungen in der allgemein üblichen Weise, ohne besondere Erschwernis und grundsätzlich ohne fremde Hilfe auffindbar, zugänglich und nutzbar.')
                     ->label('Vereinbarkeit'),
                 Forms\Components\Textarea::make('consistency_ez')
                     ->rows(4)
@@ -105,6 +106,7 @@ class AccCompDeclarationResource extends Resource
                     ->visible(fn (Get $get): bool => filled($get('consistency_ez'))),
                 Forms\Components\Textarea::make('bfsg_full')
                     ->rows(4)
+                    ->default('Unsere Webseite ist mit dem BFSG und der BFSGV vereinbar; alle Anforderungen werden erfüllt.')
                     ->label('Text für volle Konformität'),
                 Forms\Components\Textarea::make('bfsg_full_ez')
                     ->rows(4)
@@ -112,6 +114,7 @@ class AccCompDeclarationResource extends Resource
                     ->visible(fn (Get $get): bool => filled($get('bfsg_full_ez'))),
                 Forms\Components\Textarea::make('bfsg_partial')
                     ->rows(4)
+                    ->default('Unsere Webseite ist in großen Teilen mit dem BFSG und der BFSGV vereinbar. Jedoch bestehen noch einige Barrieren auf unseren Seiten, an denen wir aktiv arbeiten und diese in Zukunft beseitigen wollen. Folgende Ausnahmen und Unvereinbarkeiten bestehen:')
                     ->label('Text für teilweise Konformität'),
                 Forms\Components\Textarea::make('bfsg_partial_ez')
                     ->rows(4)
@@ -120,6 +123,7 @@ class AccCompDeclarationResource extends Resource
 
                 Forms\Components\Textarea::make('non_conform_content')
                     ->rows(4)
+                    ->default('Die folgenden Inhalte sind nicht barrierefrei, da Sie eine unverhältnismäßige Belastung gemäß § 12a Absatz 6 BGG darstellen:')
                     ->label('Nicht konforme Inhalte'),
                 Forms\Components\Textarea::make('non_conform_content_ez')
                     ->rows(4)
