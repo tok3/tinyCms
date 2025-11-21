@@ -32,12 +32,13 @@ class AccDeclarationResource extends Resource
     {
     if (auth()->user()->is_admin == 1)
         {
+
             return true;
 
         }
         $tenant = Filament::getTenant();
         $company = Company::where('id', $tenant->id)->first();
-
+//\Log::info("type:". $company->type." hasFeature:".$company->hasFeature('barrierefreiheitserklaerung'));
         if($company->hasFeature('barrierefreiheitserklaerung') && ($company->type === 1 || $company->type === 2)){
             return true;
         }
@@ -54,9 +55,11 @@ class AccDeclarationResource extends Resource
             ->schema([
                 Forms\Components\Placeholder::make('accessibility_declaration_link')
                     ->label('Barrierefreiheitserklärung Link')
-                    ->content(function () {
-                        $tenant = Filament::getTenant();
-                        $company = Company::where('id', $tenant->id)->first();
+                    ->content(function ($record) {
+                        //$tenant = Filament::getTenant();
+
+                        //$company = Company::where('id', $tenant->id)->first();
+                        $company = Company::where('id', $record->company_id)->first();
                         if (!$company || !$company->slug) {
                             return 'Kein Unternehmen oder Slug verfügbar';
                         }
@@ -67,9 +70,10 @@ class AccDeclarationResource extends Resource
                     }),
                 Forms\Components\Placeholder::make('accessibility_declaration_link')
                     ->label('Barrierefreiheitserklärung Link (leichte Sprache')
-                    ->content(function () {
-                        $tenant = Filament::getTenant();
-                        $company = Company::where('id', $tenant->id)->first();
+                    ->content(function ($record) {
+                        //$tenant = Filament::getTenant();
+                        //$company = Company::where('id', $tenant->id)->first();
+                        $company = Company::where('id', $record->companyid)->first();
                         if (!$company || !$company->slug) {
                             return 'Kein Unternehmen oder Slug verfügbar';
                         }

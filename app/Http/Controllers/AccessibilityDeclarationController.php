@@ -110,7 +110,9 @@ class AccessibilityDeclarationController extends Controller
 
     public function showAccessibilityDeclaration(Request $request)
     {
+
         $company = Company::where('slug', $request->slug)->first();
+
         $domain = $request->domain; //TODO for later use when more than one domain per company
 
         if (!$company) {
@@ -122,8 +124,9 @@ class AccessibilityDeclarationController extends Controller
 
         if($company->type === 0){
             $data = $this->getCompanyData($company->id);
-
+            \Log::info($company->id." pub:".$data['published']);
             if($data['published'] === 0){
+
                 //$data = array('error' => 'Method not allowed');
                 abort(404);
             }
@@ -133,6 +136,7 @@ class AccessibilityDeclarationController extends Controller
             $data = $this->getBoardData($company->id);
             $data['declaration']['federal_state'] = \App\Enums\FederalState::from($data['declaration']['federal_state'])->label();
             if($data['published'] === 0){
+                \Log::error('not published amt');
                 abort(404);
             }
             return view('accessibility-declaration', $data);

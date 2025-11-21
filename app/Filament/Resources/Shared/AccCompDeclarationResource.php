@@ -22,8 +22,8 @@ use Filament\Forms\Set;
 class AccCompDeclarationResource extends Resource
 {
     protected static ?string $model = AccCompDeclaration::class;
-    protected static ?string $label = 'Barrierefreiheitserklärung';
-    protected static ?string $pluralLabel = 'Barrierefreiheitserklärung 2';
+    protected static ?string $label = 'Firmen-Barrierefreiheitserklärung';
+    protected static ?string $pluralLabel = 'Firmen-Barrierefreiheitserklärung';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
 
@@ -31,13 +31,15 @@ class AccCompDeclarationResource extends Resource
     {
     if (auth()->user()->is_admin == 1)
         {
+
             return true;
 
         }
         $tenant = Filament::getTenant();
-                $company = Company::where('id', $tenant->id)->first();
+        $company = Company::where('id', $tenant->id)->first();
 
         if($company->hasFeature('barrierefreiheitserklaerung') && $company->type === 0){
+            \Log::info("type:". $company->type." hasFeature:".$company->hasFeature('barrierefreiheitserklaerung'));
             return true;
         }
         return false;
@@ -49,9 +51,14 @@ class AccCompDeclarationResource extends Resource
             ->schema([
                                 Forms\Components\Placeholder::make('accessibility_declaration_link')
                     ->label('Barrierefreiheitserklärung Link')
-                    ->content(function () {
-                        $tenant = Filament::getTenant();
-                        $company = Company::where('id', $tenant->id)->first();
+                    ->content(function ($record) {
+                        /*if(empty(Filament::getTenant())){
+                            return '--';
+                        }
+                        */
+                        //$tenant = Filament::getTenant();
+                        //$company = Company::where('id', $tenant->id)->first();
+                        $company = Company::where('id', $record->company_id)->first();
                         if (!$company || !$company->slug) {
                             return 'Kein Unternehmen oder Slug verfügbar';
                         }
@@ -62,9 +69,13 @@ class AccCompDeclarationResource extends Resource
                     }),
                 Forms\Components\Placeholder::make('accessibility_declaration_link')
                     ->label('Barrierefreiheitserklärung Link (leichte Sprache')
-                    ->content(function () {
-                        $tenant = Filament::getTenant();
-                        $company = Company::where('id', $tenant->id)->first();
+                    ->content(function ($record) {
+                        /*if(empty(Filament::getTenant())){
+                            return '--';
+                        }*/
+                        //$tenant = Filament::getTenant();
+                        //$company = Company::where('id', $tenant->id)->first();
+                        $company = Company::where('id', $record->company_id)->first(); //Company::where('id', $tenant->id)->first();
                         if (!$company || !$company->slug) {
                             return 'Kein Unternehmen oder Slug verfügbar';
                         }
@@ -75,6 +86,7 @@ class AccCompDeclarationResource extends Resource
                     }),
                 Forms\Components\Toggle::make('published')
                     ->label('Veröffentlichen')
+                    ->inline(false)
                     ->default(true),
                 /*
                 Forms\Components\Select::make('status')
