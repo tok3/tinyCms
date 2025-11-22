@@ -26,6 +26,9 @@ return [
                 'exclude' => [
                     base_path('vendor'),
                     base_path('node_modules'),
+                    storage_path('framework/cache'),
+                    storage_path('framework/sessions'),
+                    storage_path('logs'),
                 ],
 
                 /*
