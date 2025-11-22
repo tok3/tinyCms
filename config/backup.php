@@ -29,6 +29,12 @@ return [
                     storage_path('framework/cache'),
                     storage_path('framework/sessions'),
                     storage_path('logs'),
+                    storage_path('app/backup'),
+                    storage_path('app/crawled_sites'),
+                    storage_path('app/inklucert-temp'),
+                    storage_path('app/images'),
+                    storage_path('backup-temp'),
+                    base_path('cache'),
                 ],
 
                 /*
