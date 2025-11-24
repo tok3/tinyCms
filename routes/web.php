@@ -163,6 +163,8 @@ Route::get('/public-check/progress', [PublicAccessibilityCheckController::class,
 // -----------------------------------------------
 
 Route::get('/documents/fixstern-integration/{ulid}', [PdfController::class, 'generateInstruction'])->name('download.instruction')->middleware(['auth']);
+
+Route::get('/documents/inclucert/{ulid}', [PdfController::class, 'generateCertificate'])->name('download.inclucert')->middleware(['auth']);
 // -----------------------------------------------
 // pa11y - wcag
 
