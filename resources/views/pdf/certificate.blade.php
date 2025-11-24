@@ -179,7 +179,7 @@
         <table class="header-table">
             <tr>
                 <td class="logo-left">
-                    <img src="{{ public_path('assets/img/logo/font-logo-camindu.png') }}" alt="Logo" style="height:40px;">
+                    <img src="{{ public_path('assets/img/incluCertPdfBadge.png') }}" alt="Logo" style="height:60px;">
                 </td>
                 <td class="logo-right">
                     camindu GmbH · Behringstr. 13 · 63814 Mainaschaff<br>
@@ -200,11 +200,16 @@
     <div class="company-block">
         <div>Dieses Zertifikat wird ausgestellt für</div>
         <div class="company-name">{{ $company->name }}</div>
+
         @if($company->website_url ?? false)
             <div class="company-meta">{{ $company->website_url }}</div>
         @endif
+
         <div class="company-meta">
-            Stand der Auswertung: {{ now()->format('d.m.Y') }}
+            Beobachtungszeitraum:
+            {{ $observationStart->format('d.m.Y') }}
+            –
+            {{ $observationEnd->format('d.m.Y') }}
         </div>
     </div>
 
@@ -214,6 +219,10 @@
         <div class="score-bar-container">
             <div class="score-bar-fill" style="width: {{ max(0, min(100, $score)) }}%;"></div>
         </div>
+        <div style="margin-top:8px; font-size:10pt;">
+            Tendenz seit Beginn: {{ $trendLabel }}
+            ({{ $trendDiff >= 0 ? '+' : '' }}{{ $trendDiff }} Punkte)
+        </div>
     </div>
 
     <table class="metrics-table">
@@ -222,16 +231,16 @@
             <th>Wert</th>
         </tr>
         <tr>
-            <td>Gesamtzahl der geprüften Seiten/Scans</td>
-            <td>{{ $totalScans }}</td>
+            <td>Aktuell offene Fehler</td>
+            <td>{{ $currentErrors }}</td>
         </tr>
         <tr>
-            <td>Behobene Barrierefreiheitsprobleme</td>
-            <td>{{ $issuesResolved }}</td>
+            <td>Behobene Fehler im Beobachtungszeitraum</td>
+            <td>{{ $resolvedErrors }}</td>
         </tr>
         <tr>
-            <td>Verbleibende offene Probleme</td>
-            <td>{{ $issuesOpen }}</td>
+            <td>Aktuell berücksichtigte Seiten/URLs</td>
+            <td>{{ $currentUrls }}</td>
         </tr>
     </table>
 

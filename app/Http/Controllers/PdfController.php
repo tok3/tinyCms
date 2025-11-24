@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Company;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Auth;
+use App\Services\AccessibilityScoreService;
 
 class PdfController extends Controller
 {
@@ -31,32 +32,34 @@ class PdfController extends Controller
     }
 
 
-    public function generateCertificate(string $ulid)
+    public function generateCertificate(string $ulid, AccessibilityScoreService $scoreService)
     {
         $company = Company::where('ulid', $ulid)->firstOrFail();
 
-        // Beispielwerte – später aus deiner DB/Statistiken holen
-        $score = 86;
-        $totalScans = 42;
-        $issuesResolved = 123;
-        $issuesOpen = 17;
+        $metrics = $scoreService->getCompanyMetrics($company);
 
-        // Falls du später ein Chart-Bild als Base64 einbindest:
-        $chartImage = null; // vorerst leer
+        if (!$metrics) {
+            abort(404, 'Für diese Company liegen noch keine Pa11y-Daten vor.');
+        }
 
-        $data = compact(
-            'company',
-            'score',
-            'totalScans',
-            'issuesResolved',
-            'issuesOpen',
-            'chartImage'
-        );
+        $data = [
+            'company'             => $company,
+            'score'               => $metrics['current_score'],
+            'observationStart'    => $metrics['observation_start'],
+            'observationEnd'      => $metrics['observation_end'],
+            'trendLabel'          => $metrics['trend_label'],
+            'trendDiff'           => $metrics['trend_diff'],
+            'currentErrors'       => $metrics['current_errors'],
+            'resolvedErrors'      => $metrics['resolved_errors'],
+            'currentUrls'         => $metrics['current_urls'],
+            // optional: 'daily' für Chart
+            'chartImage'          => null,
+        ];
 
-        $pdf = Pdf::loadView('pdf.certificate', $data)
-            ->setPaper('a4', 'portrait');
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.certificate', $data)
+            ->setPaper('a4', 'landscape');
 
-        return $pdf->stream("zertifikat_{$company->name}.pdf");
+        return $pdf->stream('zertifikat_'.$company->name.'.pdf');
     }
 
 
