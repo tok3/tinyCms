@@ -1,23 +1,3 @@
-{{--<div class="container">
-    <h1>Barrierefreiheitsprüfung</h1>
-    <form id="checkAccessibilityForm">
-        @csrf
-        <div class="mb-3">
-            <label for="urlInput" class="form-label">Webseiten-URL</label>
-            <input type="url" class="form-control" id="urlInput" name="url" value="https://aktion-barrierefrei.org" placeholder="https://example.com" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Prüfung starten</button>
-    </form>
-    <div id="logOutput" class="mt-4">
-        <h3>Protokoll:</h3>
-        <pre id="logs"></pre>
-    </div>
-    <div id="resultOutput" class="mt-4" style="display: none;">
-        <h3>Ergebnisse:</h3>
-        <pre id="results"></pre>
-    </div>
-</div>--}}
-
 <section class="position-relative p-4  @if(!empty($data['border-top'])) border-top @endif mt-4 @if(!empty($data['border-bottom'])) border-bottom @endif">
     <style>
         /*
@@ -285,4 +265,103 @@
         </div>
     </div>
 
+<script>
+  function isFunUrl(url) {
+      if (!url) return false;
+      var u = String(url).trim().toLowerCase();
+      // Hier alle Domains/URLs eintragen, bei denen der Slot-Modus aktiv sein soll
+      var patterns = [
+          'aktion-barrierefrei.org',
+          'www.aktion-barrierefrei.org'
+      ];
+      return patterns.some(function (p) {
+          return u.indexOf(p) !== -1;
+      });
+  }
+
+  function startSlotMachineDisplay(errorEl, warningEl, noticeEl) {
+      var symbols = ['STAR', 'COIN', 'BAR', 'SEVEN'];
+      var elements = [errorEl, warningEl, noticeEl];
+      var spins = 0;
+      var maxSpins = 25;
+      var interval = setInterval(function () {
+          spins++;
+          elements.forEach(function (el) {
+              if (!el) return;
+              var idx = Math.floor(Math.random() * symbols.length);
+              el.textContent = symbols[idx];
+          });
+          if (spins >= maxSpins) {
+              clearInterval(interval);
+          }
+      }, 80);
+  }
+
+  document.getElementById('checkAccessibilityForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      var url = document.getElementById('urlInput').value.trim();
+      if (!url) {
+          alert('Bitte geben Sie eine gültige URL ein.');
+          return;
+      }
+
+      var progressOutput = document.getElementById('progressOutput');
+      var progressBar = document.getElementById('progressBar');
+      var progressText = document.getElementById('progressText');
+      var summaryOutput = document.getElementById('summaryOutput');
+      var totalErrors = document.getElementById('totalErrors');
+      var totalWarnings = document.getElementById('totalWarnings');
+      var totalNotices = document.getElementById('totalNotices');
+      var errorOutput = document.getElementById('errorOutput');
+
+      summaryOutput.style.display = 'none';
+      errorOutput.style.display = 'none';
+      progressOutput.classList.remove('fade-out');
+      progressBar.style.width = '0%';
+      progressText.textContent = 'Prüfung läuft...';
+
+      // Beispielhafte Simulation eines Prüfprozesses
+      var progress = 0;
+      var interval = setInterval(function () {
+          progress += 10;
+          progressBar.style.width = progress + '%';
+          progressText.textContent = 'Prüfung läuft... ' + progress + '%';
+          if (progress >= 100) {
+              clearInterval(interval);
+              fadeOutProgressAndShowSummary();
+          }
+      }, 300);
+
+      function fadeOutProgressAndShowSummary() {
+          progressOutput.classList.add('fade-out');
+          setTimeout(function () {
+              progressOutput.style.display = 'none';
+              summaryOutput.style.display = 'block';
+              summaryOutput.classList.add('fade-in');
+
+              // Beispiel: Fehlerzahlen setzen
+              totalErrors.textContent = '5';
+              totalWarnings.textContent = '3';
+              totalNotices.textContent = '2';
+
+              if (isFunUrl(url)) {
+                  // Slot-Maschinen-Modus für definierte URLs
+                  startSlotMachineDisplay(totalErrors, totalWarnings, totalNotices);
+              } else {
+                  // Normale Zahl-Animation
+                  if (window.startErrorCountUp) {
+                      window.startErrorCountUp(parseInt(totalErrors.textContent || '0', 10));
+                  }
+                  if (window.startWarningCountUp) {
+                      window.startWarningCountUp(parseInt(totalWarnings.textContent || '0', 10));
+                  }
+                  if (window.startNoticeCountUp) {
+                      window.startNoticeCountUp(parseInt(totalNotices.textContent || '0', 10));
+                  }
+              }
+          }, 500);
+      }
+  });
+</script>
 </section>

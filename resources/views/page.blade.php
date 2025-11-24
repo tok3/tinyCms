@@ -137,6 +137,50 @@
         </script>
 
             <script>
+                // Fun-URL-Check: bei diesen Domains schalten wir in den Slot-Machine-Modus
+                function isFunUrl(url) {
+                    if (!url) return false;
+                    const u = String(url).trim().toLowerCase();
+
+                    // Hier die Domains/Patterns eintragen, bei denen der Slot-Modus aktiv sein soll
+                    const patterns = [
+                        'aktion-barrierefrei.org',
+                        'www.aktion-barrierefrei.org'
+                        // weitere Patterns möglich, z.B. 'mein-test.de'
+                    ];
+
+                    return patterns.some((p) => u.indexOf(p) !== -1);
+                }
+
+                // Slot-Machine: dreht einfach Text-Symbole in den drei "Zählern"
+                function startSlotMachineDisplay(errorEl, warningEl, noticeEl) {
+                    const symbols  = [
+                        '<i class="bi bi-stars"></i>',
+                        '<i class="bi bi-coin"></i>',
+                        '<i class="bi bi-gem"></i>',
+                        '<i class="bi bi-acorn"></i>',
+                        '<i class="bi bi-lightning-charge-fill"></i>'
+                    ];
+
+                    const elements = [errorEl, warningEl, noticeEl];
+                    let spins      = 0;
+                    const maxSpins = 25;
+
+                    const interval = setInterval(() => {
+                        spins++;
+
+                        elements.forEach((el) => {
+                            if (!el) return;
+                            const idx = Math.floor(Math.random() * symbols.length);
+                            el.innerHTML = symbols[idx]; // ← WICHTIG
+                        });
+
+                        if (spins >= maxSpins) {
+                            clearInterval(interval);
+                        }
+                    }, 80);
+                }
+
                 document.getElementById('checkAccessibilityForm').addEventListener('submit', async function (e) {
                     e.preventDefault();
 
@@ -200,9 +244,22 @@
                         summaryOutput.style.display = 'block';
                         summaryOutput.classList.add('fade-in');
 
-                        if (window.startErrorCountUp)   window.startErrorCountUp(parseInt(totalErrors.textContent || '0', 10));
-                        if (window.startWarningCountUp) window.startWarningCountUp(parseInt(totalWarnings.textContent || '0', 10));
-                        if (window.startNoticeCountUp)  window.startNoticeCountUp(parseInt(totalNotices.textContent || '0', 10));
+                        // Entscheidung: Slot-Maschine oder CountUp
+                        if (isFunUrl(url)) {
+                            // Slot-Maschinen-Modus für definierte URLs
+                            startSlotMachineDisplay(totalErrors, totalWarnings, totalNotices);
+                        } else {
+                            // Normale Zahlen-Animation via CountUp
+                            if (window.startErrorCountUp) {
+                                window.startErrorCountUp(parseInt(totalErrors.textContent || '0', 10));
+                            }
+                            if (window.startWarningCountUp) {
+                                window.startWarningCountUp(parseInt(totalWarnings.textContent || '0', 10));
+                            }
+                            if (window.startNoticeCountUp) {
+                                window.startNoticeCountUp(parseInt(totalNotices.textContent || '0', 10));
+                            }
+                        }
 
                         setTimeout(() => { progressOutput.style.display = 'none'; }, 500);
                     }
@@ -304,7 +361,7 @@
                                 // Restpuffer (falls Zeile ohne \n endete) verarbeiten
                                 const rest = buffer.trim();
                                 if (rest) {
-                                    try { handleLine(rest); } catch (e) { console.error(e); }
+                                    try { handleLine(rest); } catch (e2) { console.error(e2); }
                                 }
                                 break;
                             }
@@ -316,8 +373,8 @@
                             for (const l of lines) {
                                 try {
                                     handleLine(l);
-                                } catch (e) {
-                                    console.error('Fehler beim Parsen der Fortschrittsdaten:', e);
+                                } catch (e3) {
+                                    console.error('Fehler beim Parsen der Fortschrittsdaten:', e3);
                                 }
                             }
                         }
@@ -325,7 +382,7 @@
                         clearInterval(simulatedInterval);
                         progressText.textContent = 'Fehler beim Prüfen der URL.';
                         console.error('Fehler bei der Anfrage:', err);
-                        alert('Fehler bei der Anfrage: ' + (err?.message || err));
+                        alert('Fehler bei der Anfrage: ' + (err && err.message ? err.message : err));
                     }
                 });
             </script>
