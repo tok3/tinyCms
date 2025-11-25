@@ -5,7 +5,8 @@
     <title>Zertifikat</title>
     <style>
         @page {
-            margin: 40px;
+            margin: 0px;
+
         }
 
         body {
@@ -15,8 +16,8 @@
         }
 
         .page {
-            border: 2px solid #222;
-            padding: 30px 40px;
+            border-left: 20px solid #222;
+            padding: 30px 30px;
             position: relative;
             height: 100%;
         }
@@ -159,8 +160,10 @@
         }
 
         .chart-box {
-            margin-top: 20px;
+            margin-top: 0px;
             text-align: center;
+            border: 1px dashed #ccc;
+
         }
 
         .chart-placeholder {
@@ -205,8 +208,13 @@
             <div class="company-meta">{{ $company->website_url }}</div>
         @endif
 
+        <div class="subtitle">
+            Nachweis über den aktuellen Stand der digitalen Barrierefreiheit<br>
+            (Prüfstandard: {{ $standard ?? 'WCAG 2.1' }})
+        </div>
+
         <div class="company-meta">
-            Beobachtungszeitraum:
+            Beobachtungszeitraum (WCAG 2.1):
             {{ $observationStart->format('d.m.Y') }}
             –
             {{ $observationEnd->format('d.m.Y') }}
@@ -235,12 +243,16 @@
             <td>{{ $currentErrors }}</td>
         </tr>
         <tr>
-            <td>Behobene Fehler im Beobachtungszeitraum</td>
-            <td>{{ $resolvedErrors }}</td>
+            <td>Netto behobene Fehler seit Beginn</td>
+            <td>{{ $resolvedTotal }}</td>
         </tr>
         <tr>
-            <td>Aktuell berücksichtigte Seiten/URLs</td>
-            <td>{{ $currentUrls }}</td>
+            <td>Aktiv behobene Fehler im Beobachtungszeitraum</td>
+            <td>{{ $activityFixedTotal }}</td>
+        </tr>
+        <tr>
+            <td>Neu eingeführte Fehler im Beobachtungszeitraum</td>
+            <td>{{ $activityIntroducedTotal }}</td>
         </tr>
     </table>
 
