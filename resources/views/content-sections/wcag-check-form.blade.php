@@ -1,23 +1,3 @@
-{{--<div class="container">
-    <h1>Barrierefreiheitsprüfung</h1>
-    <form id="checkAccessibilityForm">
-        @csrf
-        <div class="mb-3">
-            <label for="urlInput" class="form-label">Webseiten-URL</label>
-            <input type="url" class="form-control" id="urlInput" name="url" value="https://aktion-barrierefrei.org" placeholder="https://example.com" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Prüfung starten</button>
-    </form>
-    <div id="logOutput" class="mt-4">
-        <h3>Protokoll:</h3>
-        <pre id="logs"></pre>
-    </div>
-    <div id="resultOutput" class="mt-4" style="display: none;">
-        <h3>Ergebnisse:</h3>
-        <pre id="results"></pre>
-    </div>
-</div>--}}
-
 <section class="position-relative p-4  @if(!empty($data['border-top'])) border-top @endif mt-4 @if(!empty($data['border-bottom'])) border-bottom @endif">
     <style>
         /*
@@ -78,7 +58,13 @@
                 text-shadow: 0 0 5px rgba(255, 87, 34, 0.8), 0 0 10px rgba(255, 87, 34, 0.6);
             }
         }
-
+        .metric-card {
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
 
     </style>
 
@@ -87,8 +73,7 @@
     <div class="container ">
 
 
-
-        <form id="checkAccessibilityForm">
+        <form id="checkAccessibilityForm" data-endpoint="{{ route('accessibility.check') }}">
             @csrf
             <div class="row align-items-center">
                 <div class="col-lg-6 col-xl-5 aos-init aos-animate" data-aos="fade-up" data-aos-delay="100"  _style="background-image: url('{{asset('assets/img/backgrounds/fluff.png') }}');">
@@ -126,6 +111,7 @@
                                 <input type="url" id="urlInput" name="url" required="required" placeholder="https://ihre-domain.de"  class="form-control" >
                             </div>
                             <div class="flex-shrink-0">
+
                                 <button type="submit" class="btn btn-primary">Prüfung starten</button>
                             </div>
                         </div>
@@ -152,12 +138,13 @@
                     <!-- Errors Card -->
                     <div class="container position-relative " data-aos="fade-right" data-aos-delay="200">
                         <div class="row align-items-center">
+
                             <div class="col-md-4  text-center mb-5">
                                 <div class="position-relative pb-2 rounded-4 overflow-hidden bg-body">
                                     <div class="position-absolute start-50 translate-middle-x bottom-0 bg-danger rounded-4 w-75 h-75"></div>
-                                    <div class="position-relative bg-body-tertiary p-4 rounded-4">
+                                    <div class="position-relative bg-body-tertiary p-4 rounded-4 metric-card">
                                         <h2 id="totalErrors" class="display-6">0</h2>
-                                        <h6 class="mb-0">Fehler</h6>
+                                        <h6 class="mb-0" id="labelErrors">Fehler</h6>
                                     </div>
                                 </div>
                             </div>
@@ -166,9 +153,9 @@
                             <div class="col-md-4 text-center mb-5">
                                 <div class="position-relative pb-2 rounded-4 overflow-hidden bg-body">
                                     <div class="position-absolute start-50 translate-middle-x bottom-0 bg-warning rounded-4 w-75 h-75"></div>
-                                    <div class="position-relative bg-body-tertiary p-4 rounded-4">
+                                    <div class="position-relative bg-body-tertiary p-4 rounded-4 metric-card">
                                         <h2 id="totalWarnings" class="display-6">0</h2>
-                                        <h6 class="mb-0">Warnungen</h6>
+                                        <h6 class="mb-0" id="labelWarnings">Warnungen</h6>
                                     </div>
                                 </div>
                             </div>
@@ -177,13 +164,17 @@
                             <div class="col-md-4 text-center mb-5">
                                 <div class="position-relative pb-2 rounded-4 overflow-hidden bg-body">
                                     <div class="position-absolute start-50 translate-middle-x bottom-0 bg-info rounded-4 w-75 h-75"></div>
-                                    <div class="position-relative bg-body-tertiary p-4 rounded-4">
+                                    <div class="position-relative bg-body-tertiary p-4 rounded-4 metric-card">
                                         <h2 id="totalNotices" class="display-6">0</h2>
-                                        <h6 class="mb-0">Empfehlungen</h6>
+                                        <h6 class="mb-0" id="labelNotices">Empfehlungen</h6>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Ergebnis der Slot-Machine (nur Fun-Mode) -->
+                        <div id="slotResultMessage" class="mt-2" style="display:none;"></div>
+
                     </div>
 
                 </div>
@@ -284,5 +275,6 @@
             <!-- ende cta -->
         </div>
     </div>
+
 
 </section>
