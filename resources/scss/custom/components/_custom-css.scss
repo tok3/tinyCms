@@ -343,10 +343,23 @@ mark-blue,
     visibility:hidden;
 }
 
+
 .scroll-anchor {
     display: block;
     height: 0;
     padding: 0;
     margin: 0;
     scroll-margin-top: 120px !important;
+}
+
+/* Nur im Darkmode und nur in der Pricing-Section */
+[data-bs-theme="dark"] .card .btn-outline-primary {
+    color: #fff;
+    border-color: #fff;
+}
+
+/* Optional: Hover-State im Darkmode */
+[data-bs-theme="dark"] .card .btn-outline-primary:hover {
+    background-color: #fff;
+    color: #000;
 }
