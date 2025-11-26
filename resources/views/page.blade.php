@@ -3,7 +3,7 @@
         <link rel="stylesheet" href="{{url('js/repeating-countdown-timer/css/style.css')}}">
         <style>
             /* Fixed Alert über der Navbar */
-            .page-alert{
+            .page-alert {
                 position: fixed;
                 left: 50%;
                 transform: translateX(-50%);
@@ -47,15 +47,15 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                const csrf      = document.querySelector('meta[name="csrf-token"]')?.content;
-                const urlInput  = document.getElementById('urlInput');
-                const summary   = document.getElementById('summaryOutput');
-                const trialBox  = document.getElementById('trialFormSection');
+                const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+                const urlInput = document.getElementById('urlInput');
+                const summary = document.getElementById('summaryOutput');
+                const trialBox = document.getElementById('trialFormSection');
                 const trialForm = document.getElementById('trialForm');
-                const trialUrl  = document.getElementById('trial_url');
-                const trialAlert= document.getElementById('trialAlert');
+                const trialUrl = document.getElementById('trial_url');
+                const trialAlert = document.getElementById('trialAlert');
                 const submitBtn = document.getElementById('trialSubmitBtn');
-                const textNodes  = document.querySelectorAll('[data-page-text]');
+                const textNodes = document.querySelectorAll('[data-page-text]');
                 if (!trialForm) return; // falls die Trial-Box auf anderen Seiten nicht existiert
 
                 // URL aus dem Check-Form übernehmen (initial + on input)
@@ -72,16 +72,19 @@
                 urlInput?.addEventListener('input', syncUrl);
 
                 // Trial-Form einblenden, sobald Summary sichtbar ist
-                const showTrial = () => { if (trialBox && trialBox.style.display === 'none') trialBox.style.display = 'block'; };
+                const showTrial = () => {
+                    if (trialBox && trialBox.style.display === 'none') trialBox.style.display = 'block';
+                };
                 if (summary && (getComputedStyle(summary).display !== 'none' || summary.classList.contains('fade-in'))) {
                     showTrial();
                 } else if (summary) {
                     const mo = new MutationObserver(() => {
                         if (summary.classList.contains('fade-in') || getComputedStyle(summary).display !== 'none') {
-                            showTrial(); mo.disconnect();
+                            showTrial();
+                            mo.disconnect();
                         }
                     });
-                    mo.observe(summary, { attributes: true, attributeFilter: ['class','style'] });
+                    mo.observe(summary, {attributes: true, attributeFilter: ['class', 'style']});
                 }
 
                 // AJAX Submit des Trial-Forms
@@ -99,7 +102,7 @@
                     try {
                         const resp = await fetch(trialForm.getAttribute('action'), {
                             method: 'POST',
-                            headers: { 'X-CSRF-TOKEN': csrf || '', 'Accept': 'application/json' },
+                            headers: {'X-CSRF-TOKEN': csrf || '', 'Accept': 'application/json'},
                             body: new FormData(trialForm),
                         });
 
@@ -136,264 +139,311 @@
             });
         </script>
 
-            <script>
-                // Fun-URL-Check: bei diesen Domains schalten wir in den Slot-Machine-Modus
-                function isFunUrl(url) {
-                    if (!url) return false;
-                    const u = String(url).trim().toLowerCase();
+        <script>
+            // Fun-URL-Check: bei diesen Domains schalten wir in den Slot-Machine-Modus
+            function isFunUrl(url) {
+                if (!url) return false;
+                const u = String(url).trim().toLowerCase();
 
-                    // Hier die Domains/Patterns eintragen, bei denen der Slot-Modus aktiv sein soll
-                    const patterns = [
-                        'aktion-barrierefrei.org',
-                        'www.aktion-barrierefrei.org'
-                        // weitere Patterns möglich, z.B. 'mein-test.de'
-                    ];
+                const patterns = [
+                    'aktion-barrierefrei.org',
+                    'www.aktion-barrierefrei.org'
+                ];
 
-                    return patterns.some((p) => u.indexOf(p) !== -1);
-                }
+                return patterns.some((p) => u.indexOf(p) !== -1);
+            }
 
-                // Slot-Machine: dreht einfach Text-Symbole in den drei "Zählern"
-                function startSlotMachineDisplay(errorEl, warningEl, noticeEl) {
-                    const symbols  = [
-                        '<i class="bi bi-stars"></i>',
-                        '<i class="bi bi-coin"></i>',
-                        '<i class="bi bi-gem"></i>',
-                        '<i class="bi bi-acorn"></i>',
-                        '<i class="bi bi-lightning-charge-fill"></i>'
-                    ];
+            function startSlotMachineDisplay(errorEl, warningEl, noticeEl) {
+                const symbols = [
+                    '<i class="bi bi-suit-club"></i>',
+                    '<i class="bi bi-suit-diamond"></i>',
+                    '<i class="bi bi-suit-spade"></i>',
+                    '<i class="bi bi-suit-heart"></i>',
+                    '<i class="bi bi-coin"></i>',
+                    '<i class="bi bi-gem"></i>',
+                    '<i class="bi bi-rocket-takeoff"></i>',
+                    '<i class="bi bi-piggy-bank"></i>',
+                    '<i class="bi bi-lightning-charge-fill"></i>'
+                ];
+                const elements = [errorEl, warningEl, noticeEl];
+                let spins = 0;
+                const maxSpins = 25;
 
-                    const elements = [errorEl, warningEl, noticeEl];
-                    let spins      = 0;
-                    const maxSpins = 25;
+                const interval = setInterval(() => {
+                    spins++;
 
-                    const interval = setInterval(() => {
-                        spins++;
+                    elements.forEach((el) => {
+                        if (!el) return;
+                        const idx = Math.floor(Math.random() * symbols.length);
+                        el.innerHTML = symbols[idx]; // WICHTIG: innerHTML, nicht textContent
+                    });
 
-                        elements.forEach((el) => {
-                            if (!el) return;
-                            const idx = Math.floor(Math.random() * symbols.length);
-                            el.innerHTML = symbols[idx]; // ← WICHTIG
-                        });
+                    if (spins >= maxSpins) {
+                        clearInterval(interval);
+                    }
+                }, 80);
+            }
 
-                        if (spins >= maxSpins) {
-                            clearInterval(interval);
-                        }
-                    }, 80);
-                }
+            document.getElementById('checkAccessibilityForm').addEventListener('submit', async function (e) {
+                e.preventDefault();
 
-                document.getElementById('checkAccessibilityForm').addEventListener('submit', async function (e) {
-                    e.preventDefault();
+                const url = document.getElementById('urlInput').value;
+                const progressOutput = document.getElementById('progressOutput');
+                const progressBar = document.getElementById('progressBar');
+                const progressText = document.getElementById('progressText');
+                const summaryOutput = document.getElementById('summaryOutput');
+                const totalErrors = document.getElementById('totalErrors');
+                const totalWarnings = document.getElementById('totalWarnings');
+                const totalNotices = document.getElementById('totalNotices');
+                const errorOutput = document.getElementById('errorOutput');
 
-                    const url             = document.getElementById('urlInput').value;
-                    const progressOutput  = document.getElementById('progressOutput');
-                    const progressBar     = document.getElementById('progressBar');
-                    const progressText    = document.getElementById('progressText');
-                    const summaryOutput   = document.getElementById('summaryOutput');
-                    const totalErrors     = document.getElementById('totalErrors');
-                    const totalWarnings   = document.getElementById('totalWarnings');
-                    const totalNotices    = document.getElementById('totalNotices');
-                    const errorOutput     = document.getElementById('errorOutput');
+                // UI zurücksetzen
+                progressOutput.style.display = 'block';
+                progressBar.style.width = '0%';
+                progressBar.textContent = '0%';
+                progressText.textContent = 'Starte...';
+                summaryOutput.style.display = 'none';
+                summaryOutput.classList.remove('fade-in');
+                progressOutput.classList.remove('fade-out');
+                if (errorOutput) errorOutput.style.display = 'none';
 
-                    // UI zurücksetzen
-                    progressOutput.style.display = 'block';
-                    progressBar.style.width = '0%';
-                    progressBar.textContent = '0%';
-                    progressText.textContent = 'Starte...';
-                    summaryOutput.style.display = 'none';
-                    summaryOutput.classList.remove('fade-in');
-                    progressOutput.classList.remove('fade-out');
-                    if (errorOutput) errorOutput.style.display = 'none';
+                let simulatedProgress = 0;
+                let summaryData = null;
+                let backendProgress = 0;
+                let resultsFetched = false;
+                let backendSyncAllowed = false;
+                let isPulsing = false;
+                let summaryHandled = false;
 
-                    let simulatedProgress   = 0;
-                    let backendProgress     = 0;
-                    let resultsFetched      = false;
-                    let backendSyncAllowed  = false;
-                    let isPulsing           = false;
+                // Simulierter Fortschritt
+                const simulatedInterval = setInterval(() => {
+                    if (simulatedProgress < 45 && !backendSyncAllowed) {
+                        simulatedProgress += 2;
+                    } else if (simulatedProgress < 75 && backendProgress < 75) {
+                        simulatedProgress += 1;
+                    } else if (simulatedProgress >= 75 && simulatedProgress < 100 && backendProgress < 100) {
+                        simulatedProgress += 2;
+                    } else if (backendProgress >= 100 && simulatedProgress < backendProgress) {
+                        progressBar.style.transition = 'width 1.5s ease-in-out';
+                        simulatedProgress = backendProgress;
+                    }
+                    progressBar.style.width = simulatedProgress + '%';
+                    progressBar.textContent = simulatedProgress + '%';
 
-                    // Simulierter Fortschritt
-                    const simulatedInterval = setInterval(() => {
-                        if (simulatedProgress < 45 && !backendSyncAllowed) {
-                            simulatedProgress += 2;
-                        } else if (simulatedProgress < 75 && backendProgress < 75) {
-                            simulatedProgress += 1;
-                        } else if (simulatedProgress >= 75 && simulatedProgress < 100 && backendProgress < 100) {
-                            simulatedProgress += 2;
-                        } else if (backendProgress >= 100 && simulatedProgress < backendProgress) {
-                            progressBar.style.transition = 'width 1.5s ease-in-out';
-                            simulatedProgress = backendProgress;
-                        }
-                        progressBar.style.width = simulatedProgress + '%';
-                        progressBar.textContent = simulatedProgress + '%';
+                    if (simulatedProgress >= 50 && simulatedProgress < 75 && !isPulsing) {
+                        isPulsing = true;
+                        progressText.classList.add('pulse-label');
+                    }
+                    if (simulatedProgress >= 75 && isPulsing) {
+                        isPulsing = false;
+                        progressText.classList.remove('pulse-label');
+                    }
+                    if (simulatedProgress >= 100) {
+                        clearInterval(simulatedInterval);
+                    }
+                }, 300);
 
-                        if (simulatedProgress >= 50 && simulatedProgress < 75 && !isPulsing) {
-                            isPulsing = true;
-                            progressText.classList.add('pulse-label');
-                        }
-                        if (simulatedProgress >= 75 && isPulsing) {
-                            isPulsing = false;
-                            progressText.classList.remove('pulse-label');
-                        }
-                        if (simulatedProgress >= 100) {
-                            clearInterval(simulatedInterval);
-                        }
-                    }, 300);
+                // Hilfsfunktion: Progress ausblenden & Summary zeigen
+                function fadeOutProgressAndShowSummary() {
+                    // wird nur noch im normalen Modus benutzt (nicht Fun)
+                    progressOutput.classList.add('fade-out');
+                    summaryOutput.style.display = 'block';
+                    summaryOutput.classList.add('fade-in');
 
-                    // Hilfsfunktion: Progress ausblenden & Summary zeigen
-                    function fadeOutProgressAndShowSummary() {
-                        progressOutput.classList.add('fade-out');
-                        summaryOutput.style.display = 'block';
-                        summaryOutput.classList.add('fade-in');
-
-                        // Entscheidung: Slot-Maschine oder CountUp
-                        if (isFunUrl(url)) {
-                            // Slot-Maschinen-Modus für definierte URLs
-                            startSlotMachineDisplay(totalErrors, totalWarnings, totalNotices);
-                        } else {
-                            // Normale Zahlen-Animation via CountUp
-                            if (window.startErrorCountUp) {
-                                window.startErrorCountUp(parseInt(totalErrors.textContent || '0', 10));
-                            }
-                            if (window.startWarningCountUp) {
-                                window.startWarningCountUp(parseInt(totalWarnings.textContent || '0', 10));
-                            }
-                            if (window.startNoticeCountUp) {
-                                window.startNoticeCountUp(parseInt(totalNotices.textContent || '0', 10));
-                            }
-                        }
-
-                        setTimeout(() => { progressOutput.style.display = 'none'; }, 500);
+                    // Zahlen aus summaryData ins DOM schreiben, falls noch nicht
+                    if (summaryData) {
+                        totalErrors.textContent   = summaryData.errors   ?? 0;
+                        totalWarnings.textContent = summaryData.warnings ?? 0;
+                        totalNotices.textContent  = summaryData.notices  ?? 0;
                     }
 
-                    // Nach 3 Sek. Backend-Sync erlauben (fühlt sich flüssiger an)
-                    setTimeout(() => { backendSyncAllowed = true; }, 3000);
+                    if (window.startErrorCountUp) {
+                        window.startErrorCountUp(parseInt(totalErrors.textContent || '0', 10));
+                    }
+                    if (window.startWarningCountUp) {
+                        window.startWarningCountUp(parseInt(totalWarnings.textContent || '0', 10));
+                    }
+                    if (window.startNoticeCountUp) {
+                        window.startNoticeCountUp(parseInt(totalNotices.textContent || '0', 10));
+                    }
 
-                    try {
-                        const resp = await fetch('{{ route('accessibility.check') }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            },
-                            credentials: 'same-origin', // Session-Cookie mit senden (hilft gegen 419 lokal)
-                            body: JSON.stringify({ url })
-                        });
+                    setTimeout(() => { progressOutput.style.display = 'none'; }, 500);
+                }
 
-                        const ct = (resp.headers.get('content-type') || '').toLowerCase();
-                        if (!resp.ok || (!ct.includes('application/x-ndjson') && !ct.includes('text/plain'))) {
-                            // Kein NDJSON: Volltext ziehen, Fehler anzeigen
-                            const text = await resp.text();
-                            console.error('Unexpected response:', resp.status, ct, text.slice(0, 1000));
+                // Nach 3 Sek. Backend-Sync erlauben (fühlt sich flüssiger an)
+                setTimeout(() => {
+                    backendSyncAllowed = true;
+                }, 3000);
+
+                try {
+                    const resp = await fetch('{{ route('accessibility.check') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        credentials: 'same-origin', // Session-Cookie mit senden (hilft gegen 419 lokal)
+                        body: JSON.stringify({url})
+                    });
+
+                    const ct = (resp.headers.get('content-type') || '').toLowerCase();
+                    if (!resp.ok || (!ct.includes('application/x-ndjson') && !ct.includes('text/plain'))) {
+                        // Kein NDJSON: Volltext ziehen, Fehler anzeigen
+                        const text = await resp.text();
+                        console.error('Unexpected response:', resp.status, ct, text.slice(0, 1000));
+                        clearInterval(simulatedInterval);
+                        progressBar.style.transition = 'width 1.5s ease-in-out';
+                        progressBar.style.width = '0%';
+                        progressBar.textContent = '0%';
+                        progressText.textContent = 'Scan-Fehler';
+                        if (errorOutput) errorOutput.style.display = 'block';
+                        summaryOutput.style.display = 'none';
+                        return;
+                    }
+
+                    if (!resp.body) {
+                        throw new Error('Leere Antwort vom Server.');
+                    }
+
+                    const reader = resp.body.getReader();
+                    const decoder = new TextDecoder('utf-8');
+                    let buffer = '';
+
+                    const handleLine = (raw) => {
+                        let line = (raw || '').trim();
+                        if (!line) return;                  // leere Zeile ignorieren
+                        if (line.startsWith('data:')) {
+                            line = line.slice(5).trim();    // SSE "data: {...}"
+                            if (!line) return;
+                        }
+                        if (line.startsWith('<')) {
+                            // HTML/Whoops/Debugbar – Stream ist "verschmutzt"
+                            throw new Error('HTML/Debug-Ausgabe im Stream erkannt.');
+                        }
+
+                        const data = JSON.parse(line);
+
+                        // Fehler-Event
+                        if (data.step && String(data.step).toLowerCase() === 'error') {
                             clearInterval(simulatedInterval);
                             progressBar.style.transition = 'width 1.5s ease-in-out';
                             progressBar.style.width = '0%';
                             progressBar.textContent = '0%';
-                            progressText.textContent = 'Scan-Fehler';
+                            progressText.textContent = data.message || 'Scan-Fehler';
                             if (errorOutput) errorOutput.style.display = 'block';
                             summaryOutput.style.display = 'none';
-                            return;
+                            throw new Error(data.message || 'Scan-Fehler'); // beendet das Lesen
                         }
 
-                        if (!resp.body) {
-                            throw new Error('Leere Antwort vom Server.');
+                        // Fortschritt
+                        if (typeof data.progress === 'number') {
+                            backendProgress = Math.max(0, Math.min(100, data.progress));
+                            if (backendSyncAllowed) {
+                                simulatedProgress = Math.max(simulatedProgress, backendProgress);
+                            }
                         }
 
-                        const reader  = resp.body.getReader();
-                        const decoder = new TextDecoder('utf-8');
-                        let buffer    = '';
-
-                        const handleLine = (raw) => {
-                            let line = (raw || '').trim();
-                            if (!line) return;                  // leere Zeile ignorieren
-                            if (line.startsWith('data:')) {
-                                line = line.slice(5).trim();    // SSE "data: {...}"
-                                if (!line) return;
+                        // Zusammenfassung
+                        if (data.summary) {
+                            // Falls schon einmal eine Summary verarbeitet wurde: nichts mehr tun
+                            if (summaryHandled) {
+                                return;
                             }
-                            if (line.startsWith('<')) {
-                                // HTML/Whoops/Debugbar – Stream ist "verschmutzt"
-                                throw new Error('HTML/Debug-Ausgabe im Stream erkannt.');
-                            }
+                            summaryHandled = true;
 
-                            const data = JSON.parse(line);
+                            summaryData = data.summary; // Merken
 
-                            // Fehler-Event
-                            if (data.step && String(data.step).toLowerCase() === 'error') {
-                                clearInterval(simulatedInterval);
-                                progressBar.style.transition = 'width 1.5s ease-in-out';
-                                progressBar.style.width = '0%';
-                                progressBar.textContent = '0%';
-                                progressText.textContent = data.message || 'Scan-Fehler';
-                                if (errorOutput) errorOutput.style.display = 'block';
-                                summaryOutput.style.display = 'none';
-                                throw new Error(data.message || 'Scan-Fehler'); // beendet das Lesen
-                            }
+                            resultsFetched = true;
+                            clearInterval(simulatedInterval);
+                            progressBar.style.transition = 'width 2.5s cubic-bezier(0.25, 1, 0.5, 1)';
+                            progressBar.style.width = '100%';
+                            progressBar.textContent = '100%';
 
-                            // Fortschritt
-                            if (typeof data.progress === 'number') {
-                                backendProgress = Math.max(0, Math.min(100, data.progress));
-                                if (backendSyncAllowed) {
-                                    simulatedProgress = Math.max(simulatedProgress, backendProgress);
-                                }
-                            }
-
-                            // Zusammenfassung
-                            if (data.summary) {
-                                totalErrors.textContent   = data.summary.errors   ?? 0;
-                                totalWarnings.textContent = data.summary.warnings ?? 0;
-                                totalNotices.textContent  = data.summary.notices  ?? 0;
-
-                                resultsFetched = true;
-                                clearInterval(simulatedInterval);
-                                progressBar.style.transition = 'width 2.5s cubic-bezier(0.25, 1, 0.5, 1)';
-                                progressBar.style.width = '100%';
-                                progressBar.textContent = '100%';
-
+                            // FUN-MODUS: alles direkt hier erledigen,
+                            // wir rufen fadeOutProgressAndShowSummary() NICHT auf.
+                            if (isFunUrl(url)) {
                                 setTimeout(() => {
                                     progressText.textContent = 'Scan abgeschlossen!';
-                                    fadeOutProgressAndShowSummary();
+                                    progressOutput.classList.add('fade-out');
+                                    summaryOutput.style.display = 'block';
+                                    summaryOutput.classList.add('fade-in');
+
+                                    // Labels leeren, falls IDs gesetzt sind
+                                    const labelErrors   = document.getElementById('labelErrors');
+                                    const labelWarnings = document.getElementById('labelWarnings');
+                                    const labelNotices  = document.getElementById('labelNotices');
+
+                                    if (labelErrors)   { labelErrors.innerHTML   = '&nbsp;'; }
+                                    if (labelWarnings) { labelWarnings.innerHTML = '&nbsp;'; }
+                                    if (labelNotices)  { labelNotices.innerHTML  = '&nbsp;'; }
+
+                                    // Slot-Machine nur auf den drei Zählern
+                                    startSlotMachineDisplay(totalErrors, totalWarnings, totalNotices);
+
+                                    setTimeout(() => {
+                                        progressOutput.style.display = 'none';
+                                    }, 500);
                                 }, 2500);
-                            }
-                        };
 
-                        // Stream lesen
-                        while (true) {
-                            const { value, done } = await reader.read();
-                            if (done) {
-                                // Restpuffer (falls Zeile ohne \n endete) verarbeiten
-                                const rest = buffer.trim();
-                                if (rest) {
-                                    try { handleLine(rest); } catch (e2) { console.error(e2); }
-                                }
-                                break;
+                                return; // ganz wichtig: NICHT weiter in den Normalfall laufen
                             }
 
-                            buffer += decoder.decode(value, { stream: true });
-                            const lines = buffer.split(/\r?\n/);
-                            buffer = lines.pop(); // unvollständige Zeile im Puffer lassen
+                            // NORMALER MODUS (nicht Fun): wie bisher
+                            totalErrors.textContent   = data.summary.errors   ?? 0;
+                            totalWarnings.textContent = data.summary.warnings ?? 0;
+                            totalNotices.textContent  = data.summary.notices  ?? 0;
 
-                            for (const l of lines) {
+                            setTimeout(() => {
+                                progressText.textContent = 'Scan abgeschlossen!';
+                                fadeOutProgressAndShowSummary();
+                            }, 2500);
+                        }
+                    };
+
+                    // Stream lesen
+                    while (true) {
+                        const {value, done} = await reader.read();
+                        if (done) {
+                            // Restpuffer (falls Zeile ohne \n endete) verarbeiten
+                            const rest = buffer.trim();
+                            if (rest) {
                                 try {
-                                    handleLine(l);
-                                } catch (e3) {
-                                    console.error('Fehler beim Parsen der Fortschrittsdaten:', e3);
+                                    handleLine(rest);
+                                } catch (e2) {
+                                    console.error(e2);
                                 }
+                            }
+                            break;
+                        }
+
+                        buffer += decoder.decode(value, {stream: true});
+                        const lines = buffer.split(/\r?\n/);
+                        buffer = lines.pop(); // unvollständige Zeile im Puffer lassen
+
+                        for (const l of lines) {
+                            try {
+                                handleLine(l);
+                            } catch (e3) {
+                                console.error('Fehler beim Parsen der Fortschrittsdaten:', e3);
                             }
                         }
-                    } catch (err) {
-                        clearInterval(simulatedInterval);
-                        progressText.textContent = 'Fehler beim Prüfen der URL.';
-                        console.error('Fehler bei der Anfrage:', err);
-                        alert('Fehler bei der Anfrage: ' + (err && err.message ? err.message : err));
                     }
-                });
-            </script>
+                } catch (err) {
+                    clearInterval(simulatedInterval);
+                    progressText.textContent = 'Fehler beim Prüfen der URL.';
+                    console.error('Fehler bei der Anfrage:', err);
+                    alert('Fehler bei der Anfrage: ' + (err && err.message ? err.message : err));
+                }
+            });
+        </script>
 
 
         <script type="module">
-            import { CountUp } from 'https://cdn.jsdelivr.net/npm/countup.js@2.0.7/dist/countUp.min.js';
+            import {CountUp} from 'https://cdn.jsdelivr.net/npm/countup.js@2.0.7/dist/countUp.min.js';
 
             // Errors CountUp
             window.startErrorCountUp = (errorCount) => {
-                const countUp = new CountUp('totalErrors', errorCount, { duration: 5 });
+                const countUp = new CountUp('totalErrors', errorCount, {duration: 5});
                 if (!countUp.error) {
                     countUp.start();
                 } else {
@@ -403,7 +453,7 @@
 
             // Warnings CountUp
             window.startWarningCountUp = (warningCount) => {
-                const countUp = new CountUp('totalWarnings', warningCount, { duration: 9 });
+                const countUp = new CountUp('totalWarnings', warningCount, {duration: 9});
                 if (!countUp.error) {
                     countUp.start();
                 } else {
@@ -413,7 +463,7 @@
 
             // Notices CountUp
             window.startNoticeCountUp = (noticeCount) => {
-                const countUp = new CountUp('totalNotices', noticeCount, { duration: 9 });
+                const countUp = new CountUp('totalNotices', noticeCount, {duration: 9});
                 if (!countUp.error) {
                     countUp.start();
                 } else {
