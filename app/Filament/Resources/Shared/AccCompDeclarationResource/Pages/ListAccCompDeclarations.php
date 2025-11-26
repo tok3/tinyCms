@@ -27,8 +27,8 @@ class ListAccCompDeclarations extends ListRecords
 
 
             // Optional: if user already has one, jump straight to edit
-            if ($record = \App\Models\AccDeclaration::where('company_id', $tenant->id)->first()) {
-                $this->redirect(\App\Filament\Resources\Shared\AccDeclarationResource::getUrl('edit', ['record' => $record]));
+            if ($record = \App\Models\AccCompDeclaration::where('company_id', $tenant->id)->first()) {
+                $this->redirect(\App\Filament\Resources\Shared\AccCompDeclarationResource::getUrl('edit', ['record' => $record]));
             }
         }
     }
