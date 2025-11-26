@@ -73,7 +73,7 @@
     <div class="container ">
 
 
-        <form id="checkAccessibilityForm">
+        <form id="checkAccessibilityForm" data-endpoint="{{ route('accessibility.check') }}">
             @csrf
             <div class="row align-items-center">
                 <div class="col-lg-6 col-xl-5 aos-init aos-animate" data-aos="fade-up" data-aos-delay="100"  _style="background-image: url('{{asset('assets/img/backgrounds/fluff.png') }}');">
@@ -144,7 +144,7 @@
                                     <div class="position-absolute start-50 translate-middle-x bottom-0 bg-danger rounded-4 w-75 h-75"></div>
                                     <div class="position-relative bg-body-tertiary p-4 rounded-4 metric-card">
                                         <h2 id="totalErrors" class="display-6">0</h2>
-                                        <h6 class="mb-0" id="labelErrors">&nbsp;</h6>
+                                        <h6 class="mb-0" id="labelErrors">Fehler</h6>
                                     </div>
                                 </div>
                             </div>
@@ -171,6 +171,10 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Ergebnis der Slot-Machine (nur Fun-Mode) -->
+                        <div id="slotResultMessage" class="mt-2" style="display:none;"></div>
+
                     </div>
 
                 </div>
@@ -272,103 +276,5 @@
         </div>
     </div>
 
-<script>
-  function isFunUrl(url) {
-      if (!url) return false;
-      var u = String(url).trim().toLowerCase();
-      // Hier alle Domains/URLs eintragen, bei denen der Slot-Modus aktiv sein soll
-      var patterns = [
-          'aktion-barrierefrei.org',
-          'www.aktion-barrierefrei.org'
-      ];
-      return patterns.some(function (p) {
-          return u.indexOf(p) !== -1;
-      });
-  }
 
-  function startSlotMachineDisplay(errorEl, warningEl, noticeEl) {
-      var symbols = ['STAR', 'COIN', 'BAR', 'SEVEN'];
-      var elements = [errorEl, warningEl, noticeEl];
-      var spins = 0;
-      var maxSpins = 25;
-      var interval = setInterval(function () {
-          spins++;
-          elements.forEach(function (el) {
-              if (!el) return;
-              var idx = Math.floor(Math.random() * symbols.length);
-              el.textContent = symbols[idx];
-          });
-          if (spins >= maxSpins) {
-              clearInterval(interval);
-          }
-      }, 80);
-  }
-
-  document.getElementById('checkAccessibilityForm').addEventListener('submit', async function (e) {
-      e.preventDefault();
-
-      var url = document.getElementById('urlInput').value.trim();
-      if (!url) {
-          alert('Bitte geben Sie eine gültige URL ein.');
-          return;
-      }
-
-      var progressOutput = document.getElementById('progressOutput');
-      var progressBar = document.getElementById('progressBar');
-      var progressText = document.getElementById('progressText');
-      var summaryOutput = document.getElementById('summaryOutput');
-      var totalErrors = document.getElementById('totalErrors');
-      var totalWarnings = document.getElementById('totalWarnings');
-      var totalNotices = document.getElementById('totalNotices');
-      var errorOutput = document.getElementById('errorOutput');
-
-      summaryOutput.style.display = 'none';
-      errorOutput.style.display = 'none';
-      progressOutput.classList.remove('fade-out');
-      progressBar.style.width = '0%';
-      progressText.textContent = 'Prüfung läuft...';
-
-      // Beispielhafte Simulation eines Prüfprozesses
-      var progress = 0;
-      var interval = setInterval(function () {
-          progress += 10;
-          progressBar.style.width = progress + '%';
-          progressText.textContent = 'Prüfung läuft... ' + progress + '%';
-          if (progress >= 100) {
-              clearInterval(interval);
-              fadeOutProgressAndShowSummary();
-          }
-      }, 300);
-
-      function fadeOutProgressAndShowSummary() {
-          progressOutput.classList.add('fade-out');
-          setTimeout(function () {
-              progressOutput.style.display = 'none';
-              summaryOutput.style.display = 'block';
-              summaryOutput.classList.add('fade-in');
-
-              // Beispiel: Fehlerzahlen setzen
-              totalErrors.textContent = '5';
-              totalWarnings.textContent = '3';
-              totalNotices.textContent = '2';
-
-              if (isFunUrl(url)) {
-                  // Slot-Maschinen-Modus für definierte URLs
-                  startSlotMachineDisplay(totalErrors, totalWarnings, totalNotices);
-              } else {
-                  // Normale Zahl-Animation
-                  if (window.startErrorCountUp) {
-                      window.startErrorCountUp(parseInt(totalErrors.textContent || '0', 10));
-                  }
-                  if (window.startWarningCountUp) {
-                      window.startWarningCountUp(parseInt(totalWarnings.textContent || '0', 10));
-                  }
-                  if (window.startNoticeCountUp) {
-                      window.startNoticeCountUp(parseInt(totalNotices.textContent || '0', 10));
-                  }
-              }
-          }, 500);
-      }
-  });
-</script>
 </section>
