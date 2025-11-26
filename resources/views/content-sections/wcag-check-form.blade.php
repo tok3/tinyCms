@@ -171,7 +171,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <!-- Ergebnis der Slot-Machine (nur Fun-Mode) -->
                         <div id="slotResultMessage" class="mt-2" style="display:none;"></div>
 
