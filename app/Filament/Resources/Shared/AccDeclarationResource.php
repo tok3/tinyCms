@@ -59,7 +59,14 @@ class AccDeclarationResource extends Resource
                         //$tenant = Filament::getTenant();
 
                         //$company = Company::where('id', $tenant->id)->first();
-                        $company = Company::where('id', $record->company_id)->first();
+                        $company = null;
+                        if(isset($record->company_id)){
+
+                            $company = Company::where('id', $record->company_id)->first();
+                        } else {
+                                $tenant = Filament::getTenant();
+                                $company = Company::where('id', $tenant->id)->first();
+                        }
                         if (!$company || !$company->slug) {
                             return 'Kein Unternehmen oder Slug verfügbar';
                         }
@@ -73,7 +80,16 @@ class AccDeclarationResource extends Resource
                     ->content(function ($record) {
                         //$tenant = Filament::getTenant();
                         //$company = Company::where('id', $tenant->id)->first();
-                        $company = Company::where('id', $record->companyid)->first();
+
+                        $company = null;
+                        if(isset($record->company_id)){
+
+                            $company = Company::where('id', $record->company_id)->first();
+                        } else {
+                                $tenant = Filament::getTenant();
+                                $company = Company::where('id', $tenant->id)->first();
+                        }
+
                         if (!$company || !$company->slug) {
                             return 'Kein Unternehmen oder Slug verfügbar';
                         }

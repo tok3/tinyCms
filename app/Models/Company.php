@@ -301,4 +301,12 @@ class Company extends Model
         return $this->hasMany(Eztext::class);
     }
 
+    public function accDeclarations(){
+        return $this->hasMany(AccDeclaration::class);
+    }
+
+    public function accCompDeclarations(){
+        return $this->hasMany(AccCompDeclaration::class);
+    }
+
 }
