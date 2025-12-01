@@ -64,7 +64,7 @@
 </main>
 <!--end:main content-->
 
-
+<div style="width: 100%; clear: both;">&nbsp;</div>
 <x-site-partials.footers.default-footer/>
 
 {{--
