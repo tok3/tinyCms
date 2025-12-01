@@ -164,8 +164,8 @@
 
 <style>
 main, .content-wrapper {  /* Target your main content container */
-    min-height: calc(100vh - 381px); /* Push footer down; replace [footer-height] with actual px (e.g., 80px) */
-    padding-bottom: 381px; /* Prevent content overlap with fixed footer */
+    min-height: calc(100vh - 586px); /* Push footer down; replace [footer-height] with actual px (e.g., 80px) */
+    padding-bottom: 586px; /* Prevent content overlap with fixed footer */
 }
 
 footer {
