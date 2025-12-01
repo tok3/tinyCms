@@ -280,6 +280,8 @@ class AccessibilityDeclarationController extends Controller
                 ->selectRaw('code, issue, runnerExtras, type, typeCode, COUNT(*) as issue_count')
                 ->get();
             foreach($issues as $issue){
+                if(isset($issue->runnerExtras) && $issue->runnerExtras != '[]'){
+
                 $records[] = [
                     //'url' => $url->url,
                     'issue' => $issue->issue,
@@ -294,6 +296,9 @@ class AccessibilityDeclarationController extends Controller
                     //'standard' => $issue->standard,
                     //'wcag_level' => $issue->wcag_level,
                 ];
+
+                }
+
             }
         }
 
