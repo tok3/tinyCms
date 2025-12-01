@@ -1,6 +1,6 @@
 @props(['navbarType'=>1, 'page'=>'', 'pageinclucert'=>''])
     <!doctype html>
-<html lang="de" data-bs-theme="light">
+<html lang="de" data-bs-theme="light" style="height: 100%;">
 <head>
     <x-site-partials.metas page="{!! $page !!}"/>
     <meta name="msvalidate.01" content="75F1A0336CC5A08AAD490B571E15F456" />
@@ -47,7 +47,7 @@
 
 </head>
 
-<body>
+<body style="overflow-y: auto; min-height: 100vh; margin: 0; padding: 0;">
 
 <x-partials.preloader/>
 <x-site-partials.headers.declaration-header navbarType="{{$navbarType}}"/>
@@ -163,7 +163,15 @@
 <script src="{!! url('service/01JE6A5H2NQZCT4P9N3FEZG2CX/fixstern.js?t='.time().'&pos=tr&valX=10px&valY=100px') !!}"></script>
 
 <style>
+main, .content-wrapper {  /* Target your main content container */
+    min-height: calc(100vh - [footer-height]px); /* Push footer down; replace [footer-height] with actual px (e.g., 80px) */
+    padding-bottom: [footer-height]px; /* Prevent content overlap with fixed footer */
+}
 
+footer {
+    position: relative; /* Change from 'fixed' to 'relative' for natural flow */
+    /* Or keep 'fixed' but ensure body scrolls */
+}
 
 </style>
 </body>
