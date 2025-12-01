@@ -52,11 +52,11 @@
 <x-partials.preloader/>
 <x-site-partials.headers.declaration-header navbarType="{{$navbarType}}"/>
 
-<main >
+<main style="width: 100%; clear: both;" >
     {{ $slot }}
 </main>
 <!--end:main content-->
-<div style="width: 100%; clear: both;">&nbsp;</div>
+<div style="clear: both; width: 100%;">&nbsp;</div>
 
 <x-site-partials.footers.default-footer/>
 
@@ -164,13 +164,14 @@
 
 <style>
 main, .content-wrapper {  /* Target your main content container */
-    min-height: calc(100vh - 586px); /* Push footer down; replace [footer-height] with actual px (e.g., 80px) */
+    /*min-height: calc(100vh - 586px);
     padding-bottom: 586px; /* Prevent content overlap with fixed footer */
 }
 
 footer {
     position: relative; /* Change from 'fixed' to 'relative' for natural flow */
     /* Or keep 'fixed' but ensure body scrolls */
+    width: 100%; clear: both;
 }
 
 </style>
