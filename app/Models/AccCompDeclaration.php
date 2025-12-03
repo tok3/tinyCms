@@ -36,6 +36,14 @@ class AccCompDeclaration extends Model
         'json_full',
         'json_eztext',
         'published',
+        'bfsg_full',
+        'consistency_ez',
+        'bfsg_full',
+        'bfsg_full_ez',
+        'bfsg_partial',
+        'bfsg_partial_ez',
+        'non_conform_content_ez',
+
 
     ];
 
