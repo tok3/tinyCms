@@ -67,7 +67,6 @@ class AccessibilityDeclarationController extends Controller
 
 
 
-
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="all_issues_export.csv"',
