@@ -13,7 +13,6 @@ use Illuminate\Support\Str;
 
 class AccessibilityDeclarationController extends Controller
 {
-
     /*
     TODO ausfuellen fuer csv/json download
     */
