@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Shared;
 use App\Filament\Resources\Shared\AccDeclarationResource\Pages;
 use App\Filament\Resources\Shared\AccDeclarationResource\RelationManagers;
 use App\Models\AccDeclaration;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -252,8 +253,15 @@ class AccDeclarationResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('company.name')
+                    ->label('Firma')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
+                    ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y'))
                     ->label('Erstellt am')
+                    ->searchable()
+                    ->sortable()
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
