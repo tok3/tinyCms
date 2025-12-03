@@ -695,19 +695,33 @@
         <div class="container pt-10 pb-3 pb-lg-5 position-relative z-2">
             <div class="row pb-0 pt-lg-5 align-items-center">
                 <div class="col-12 col-lg-7 mb-5 mb-lg-0">
-                    <h2 class="h2 display-4 mb-4"><span style="font-size: 53.354px;">Unser Fixstern - Ihre Barrierefreiheit im Web.</span></h2>
+
+                    <h2 class="h2 display-4 mb-4">
+                    <span style="font-size: 53.354px;">
+                        Überwachen. Verbessern. Nachweisen.
+                    </span>
+                    </h2>
+
                     <p class="mb-6 lead text-white aos-init aos-animate" data-aos="fade-up">
-                        Fixstern macht Ihre Webseite sofort zugänglicher. Intelligente Funktionen passen sich automatisch den Bedürfnissen der Nutzerinnen und Nutzer an – für ein Erlebnis ohne Hürden.
+                        Erfassen. Scannen. Nachweisen.
+                        Ihre URLs werden automatisch gesammelt, kontinuierlich auf WCAG-2.1-Fehler geprüft und vollständig dokumentiert.
+                        Jeder Fortschritt messbar, jede Verbesserung belegbar – inklusive Fortrschrittszertifikat für externe Nachweise.
                     </p>
+
                     <div class="d-flex mb-2"></div>
                     <div class="d-flex">
                         <div></div>
                     </div>
                 </div>
-                <div class="col-lg-4 ms-auto"><img src="http://localhost:8004/storage/storage/S6X5W7kMWmsZF4P7EUx13nREh518daSObUsI02Nc.png" alt="Screenshot Widged" width="1210" height="1586"
-                                                   class="img-fluid"></div>
+
+                <div class="col-lg-4 ms-auto">
+                    <img src="http://localhost:8004/assets/img/produkte/site-scan-top-2.png"
+                         alt="Screenshot Site-Scan"
+
+                         class="img-fluid">
+                </div>
             </div>
-            <!--/.col--> <!--/.row--></div>
+        </div>
     </section>
     <!-- sect 2-->
     <section class="position-relative overflow-hidden ">
@@ -715,33 +729,37 @@
             <div class="row align-items-center justify-content-between">
                 <div class="order-last col-lg-6">
                     <div class="mb-3" data-aos="fade-up">
-                        <h6 class="mb-0 text-uppercase">Digitale Barrierefreiheit einfach gemacht</h6>
+                        <h6 class="mb-0 text-uppercase">Barrierefreiheit transparent überwachen</h6>
                     </div>
                     <h2 class="mb-5 display-5 position-relative z-1" data-aos="fade-right">
-                        Fixstern – das Barrierefreiheits-Plugin für jede Webseite
+                        Firmament – Ihr Dashboard für WCAG-Monitoring & Fehleranalyse
                     </h2>
 
                     <div class="position-relative z-1">
-                        <div class="d-flex mb-3" data-aos="fade-up" data-aos-delay="150">
-                            <div class="me-3">
-                                <i class="bx bx-check lh-1 width-3x height-3x flex-center rounded-circle bg-body-tertiary text-info fs-4"></i>
-                            </div>
-                            <div>
-                                <h5>Barrierefreiheit auf Knopfdruck</h5>
-                                <p class="mb-0 text-body-secondary">
-                                    Fixstern ergänzt jede Webseite um ein intelligentes Bedien-Panel, das sofort mehr Zugänglichkeit schafft – ganz ohne Codeänderung.
-                                </p>
-                            </div>
-                        </div>
 
                         <div class="d-flex mb-3" data-aos="fade-up" data-aos-delay="200">
                             <div class="me-3">
                                 <i class="bx bx-check lh-1 width-3x height-3x flex-center rounded-circle bg-body-tertiary text-info fs-4"></i>
                             </div>
                             <div>
-                                <h5>Individuelle Anpassung</h5>
+                                <h5>Zentrale URL-Verwaltung</h5>
                                 <p class="mb-0 text-body-secondary">
-                                    Besucherinnen und Besucher passen Darstellung, Kontrast, Schriftgröße oder Animationen nach ihren Bedürfnissen an.
+                                    Alle Seiten Ihrer Domain werden übersichtlich im Firmament-Dashboard geführt – inklusive Status, Fehleranzahl und letztem Scan.
+                                    Neue URLs lassen sich in Sekunden hinzufügen, bestehende jederzeit bearbeiten oder neu prüfen. Eine klare, strukturierte Basis für Ihr Barrierefreiheits-Monitoring.
+                                </p>
+                            </div>
+                        </div>
+
+
+                        <div class="d-flex mb-3" data-aos="fade-up" data-aos-delay="200">
+                            <div class="me-3">
+                                <i class="bx bx-check lh-1 width-3x height-3x flex-center rounded-circle bg-body-tertiary text-info fs-4"></i>
+                            </div>
+                            <div>
+                                <h5>Automatische WCAG-Scans in festen Intervallen</h5>
+                                <p class="mb-0 text-body-secondary">
+                                    Jede URL wird regelmäßig in definierten Intervallen auf WCAG-2.1-Fehler geprüft.
+                                    Die Ergebnisse werden lückenlos gespeichert – so entsteht ein kontinuierlicher Prüfpfad, der Fortschritte, Rückschritte und Trends sichtbar macht.
                                 </p>
                             </div>
                         </div>
@@ -751,9 +769,10 @@
                                 <i class="bx bx-check lh-1 width-3x height-3x flex-center rounded-circle bg-body-tertiary text-info fs-4"></i>
                             </div>
                             <div>
-                                <h5>Ein Menü – alle Funktionen</h5>
+                                <h5>Tiefen-Analyse mit Diagrammen & Trendlinien</h5>
                                 <p class="mb-0 text-body-secondary">
-                                    Ein Klick auf das Fixstern-Icon öffnet ein übersichtliches Menü mit allen wichtigen Accessibility-Optionen in einem modernen Design.
+                                    Firmament visualisiert Fehlermuster über Zeit: Diagramme zeigen, wie sich Errors und Warnings entwickeln und welche Optimierungen wirken.
+                                    Jede Veränderung bleibt nachvollziehbar – perfekt für Teams, die Fortschritte messen und planen.
                                 </p>
                             </div>
                         </div>
@@ -763,56 +782,80 @@
                                 <i class="bx bx-check lh-1 width-3x height-3x flex-center rounded-circle bg-body-tertiary text-info fs-4"></i>
                             </div>
                             <div>
-                                <h5>In Minuten integriert</h5>
+                                <h5>Fehlerdetails mit Code-Kontext & Selectors</h5>
                                 <p class="mb-0 text-body-secondary">
-                                    Fixstern ist CMS-unabhängig, in Minuten eingebunden und sofort aktiv – Ihre Marke profitiert unmittelbar von besserer Nutzbarkeit.
+                                    Jeder Fehler wird präzise dokumentiert: inklusive CSS-Selector, betroffener Elemente, Impact-Bewertung und ausführlicher technischer Beschreibung.
+                                    Entwicklerinnen und Entwickler erhalten direkt verwertbare Infos für schnelle Korrekturen.
                                 </p>
                             </div>
                         </div>
+
+                        <div class="d-flex mb-3" data-aos="fade-up" data-aos-delay="350">
+                            <div class="me-3">
+                                <i class="bx bx-check lh-1 width-3x height-3x flex-center rounded-circle bg-body-tertiary text-info fs-4"></i>
+                            </div>
+                            <div>
+                                <h5>Lückenlose Historie & Compliance-Dokumentation</h5>
+                                <p class="mb-0 text-body-secondary">
+                                    Alle Scan-Ergebnisse werden chronologisch erfasst und dauerhaft archiviert.
+                                    So entsteht ein revisionssicherer Nachweis über den Zustand jeder einzelnen URL – ideal für interne Qualitätsprozesse, externe Audits und zukünftige gesetzliche Anforderungen.
+                                </p>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
                 <div class="col-lg-6 col-xl-5 col-md-10 me-lg-auto order-1 mb-7 mb-lg-0">
                     <div class="position-relative" data-aos="fade-left" data-aos-delay="150">
-                        <img src="/assets/img/produkte/fixstern1.png" alt="Fixstern Accessibility Plugin Vorschau" class="img-fluid position-relative">
+                        <img src="http://localhost:8004/assets/img/produkte/site-scan.png"
+                             alt="Firmament-Dashboard"  class="img-fluid position-relative">
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- zweite sektion plugin page --->
+    <!-- zweite sektion incluCert page --->
 
     <section class="position-relative overflow-hidden bg-body-tertiary">
         <div class="container pb-9 py-lg-11">
             <div class="row align-items-center">
+
                 <div class="mb-6 mb-lg-0 col-md-5 pe-md-7 pe-5 pb-5 order-lg-last ms-lg-auto pt-3 position-relative">
-                    <img src="/assets/img/produkte/fixstern3.png" class="img-fluid position-relative mt-3" alt="Fixstern Barrierefreiheits-Plugin im Einsatz">
+                    <img src="/assets/img/produkte/inclu-cert-check.png"
+                         class="img-fluid position-relative mt-3"
+                         alt="InkluCert – Nachweis der digitalen Barrierefreiheit">
                 </div>
 
                 <div class="col-md-6 order-md-1 me-md-auto">
+
                     <div class="d-flex align-items-center mb-3" data-aos="fade-up">
-                        <h6 class="mb-0 text-body-secondary text-uppercase">Barrierefreiheit auf Knopfdruck</h6>
+                        <h6 class="mb-0 text-body-secondary text-uppercase">
+                            Barrierefreiheit sichtbar machen
+                        </h6>
                     </div>
 
                     <h3 class="display-5 mb-5" data-aos="fade-up">
-                        Barrieren abbauen – mit einem Klick oder ganz automatisch.
+                        InkluCert – Ihr klarer Nachweis für echte Barrierefreiheit.
                     </h3>
 
                     <p class="mb-6 lead text-body-secondary" data-aos="fade-up">
-                        Fixstern macht Ihre Webseite sofort zugänglicher. Intelligente Funktionen passen sich automatisch den Bedürfnissen der Nutzerinnen und Nutzer an – für ein Erlebnis ohne Hürden.
+                        InkluCert dokumentiert alle Entwicklungen Ihrer Website: Scores, Fehlertrends und Fortschritte aus dem Firmament-Dashboard
+                        fließen zu einem aussagekräftigen Nachweis zusammen. Verständlich, transparent und perfekt aufbereitbar.
                     </p>
 
                     <div class="row">
                         <div class="col-12 col-sm-6 mb-4 mb-sm-0">
                             <ul class="list-unstyled mb-0">
+
                                 <li class="d-flex mb-5" data-aos="fade-up" data-aos-delay="100">
                                     <div class="me-3 flex-shrink-0 width-2x height-2x bg-gradient-iceblue text-white rounded-circle flex-center">
                                         <i class="bx bx-check lh-1 fs-5"></i>
                                     </div>
                                     <p class="mb-0">
-                                        <strong>Kontrast erhöhen</strong>
-                                        Jede Einstellung ist nur einen Klick entfernt – besser lesbar, sofort wirksam.
+                                        <strong>Lückenlose Historie</strong><br>
+                                        Alle Scan-Ergebnisse werden kontinuierlich gesammelt und übersichtlich dargestellt. So zeigen Sie klar, wie sich Ihre Website entwickelt und wo Optimierungen greifen.
                                     </p>
                                 </li>
 
@@ -821,22 +864,24 @@
                                         <i class="bx bx-check lh-1 fs-5"></i>
                                     </div>
                                     <p class="mb-0">
-                                        <strong>Animationen reduzieren</strong>
-                                        Bei aktivierter Systemoption erkennt Fixstern automatisch sensible Nutzer­einstellungen und deaktiviert störende Effekte – ganz ohne Klick.
+                                        <strong>Transparenter Accessibility-Score</strong><br>
+                                        Der InkluCert-Score zeigt sofort, wo Ihre Website steht. Die Score-Kurve macht Fortschritte sichtbar und zeigt klar, in welche Richtung sich Ihre Barrierefreiheit entwickelt.
                                     </p>
                                 </li>
+
                             </ul>
                         </div>
 
                         <div class="col-12 col-sm-6">
                             <ul class="list-unstyled mb-0">
+
                                 <li class="d-flex mb-5" data-aos="fade-up" data-aos-delay="200">
                                     <div class="me-3 flex-shrink-0 width-2x height-2x bg-gradient-iceblue text-white rounded-circle flex-center">
                                         <i class="bx bx-check lh-1 fs-5"></i>
                                     </div>
                                     <p class="mb-0">
-                                        <strong>Mehrere Funktionen gleichzeitig</strong>
-                                        Die Seite „sofort barrierefrei“ machen oder mehrere Optionen auf einmal aktivieren? Ein Klick genügt.
+                                        <strong>Klarer Fortschrittsnachweis</strong><br>
+                                        Jede Veränderung, jeder Trend und jede Verbesserung wird erfasst. InkluCert zeigt nachvollziehbar, was bereits geschafft ist und welche Bereiche weiter wachsen.
                                     </p>
                                 </li>
 
@@ -845,20 +890,185 @@
                                         <i class="bx bx-check lh-1 fs-5"></i>
                                     </div>
                                     <p class="mb-0">
-                                        <strong>Smartes Verhalten</strong>
-                                        Fixstern erkennt Systemeinstellungen wie „Dark Mode“ oder „hoher Kontrast“ und passt sich automatisch an – für echtes Accessibility-Erlebnis.
+                                        <strong>Vertrauen durch Transparenz</strong><br>
+                                        Sie beweisen, dass Barrierefreiheit kein Versprechen ist, sondern sichtbar umgesetzt wird. Eine starke Botschaft an Nutzer, Partner und Stakeholder.
                                     </p>
                                 </li>
+
                             </ul>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
     </section>
 
+    <section class="position-relative overflow-hidden bg-body-tertiary">
+        <div class="container pb-9 py-lg-11">
 
+            <!-- Hero-Bereich: Headline + Text + Bild -->
+            <div class="row align-items-center mb-6">
+                <div class="col-md-6 order-md-1 me-md-auto">
+                    <div class="d-flex align-items-center mb-3" data-aos="fade-up">
+                        <h6 class="mb-0 text-body-secondary text-uppercase">
+                            Barrierefreiheit sichtbar machen
+                        </h6>
+                    </div>
 
+                    <h3 class="display-5 mb-5" data-aos="fade-up">
+                        InkluCert – Ihr klarer Nachweis für echte Barrierefreiheit.
+                    </h3>
+
+                    <p class="mb-0 lead text-body-secondary" data-aos="fade-up">
+                        InkluCert dokumentiert alle Entwicklungen Ihrer Website: Scores, Fehlertrends und Fortschritte
+                        aus dem Firmament-Dashboard fließen zu einem aussagekräftigen Nachweis zusammen.
+                        Verständlich, transparent und perfekt aufbereitbar.
+                    </p>
+                </div>
+
+                <div class="mb-6 mb-lg-0 col-md-5 pe-md-7 pe-5 pb-5 order-lg-last ms-lg-auto pt-3 position-relative">
+                    <img src="/assets/img/produkte/inclu-cert-check.png"
+                         class="img-fluid position-relative mt-3"
+                         alt="InkluCert – Nachweis der digitalen Barrierefreiheit">
+                </div>
+            </div>
+
+            <!-- 4 Feature-Boxen unten in einer Reihe -->
+            <div class="row g-4">
+                <div class="col-12 col-sm-6 col-xl-3" data-aos="fade-up" data-aos-delay="50">
+                    <div class="h-100 p-4 bg-white rounded-4 shadow-sm">
+                        <p class="mb-0">
+                            <strong>Lückenlose Historie</strong><br>
+                            Alle Scan-Ergebnisse werden kontinuierlich gesammelt und übersichtlich dargestellt.
+                            So zeigen Sie klar, wie sich Ihre Website entwickelt und wo Optimierungen greifen.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-xl-3" data-aos="fade-up" data-aos-delay="100">
+                    <div class="h-100 p-4 bg-white rounded-4 shadow-sm">
+                        <p class="mb-0">
+                            <strong>Klarer Fortschrittsnachweis</strong><br>
+                            Jede Veränderung, jeder Trend und jede Verbesserung wird erfasst.
+                            InkluCert macht nachvollziehbar, was bereits geschafft ist und welche Bereiche weiter wachsen.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-xl-3" data-aos="fade-up" data-aos-delay="150">
+                    <div class="h-100 p-4 bg-white rounded-4 shadow-sm">
+                        <p class="mb-0">
+                            <strong>Transparenter Accessibility-Score</strong><br>
+                            Der InkluCert-Score zeigt sofort, wo Ihre Website steht.
+                            Die Score-Kurve macht Fortschritte sichtbar und zeigt klar, in welche Richtung sich Ihre Barrierefreiheit entwickelt.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-xl-3" data-aos="fade-up" data-aos-delay="200">
+                    <div class="h-100 p-4 bg-white rounded-4 shadow-sm">
+                        <p class="mb-0">
+                            <strong>Vertrauen durch Transparenz</strong><br>
+                            Sie beweisen, dass Barrierefreiheit kein Versprechen ist, sondern sichtbar umgesetzt wird –
+                            eine starke Botschaft an Nutzer, Partner und Stakeholder.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+    <section class="position-relative overflow-hidden bg-body-tertiary">
+        <div class="container pb-9 py-lg-11">
+            <div class="row align-items-center">
+
+                <!-- Bild rechts -->
+                <div class="mb-6 mb-lg-0 col-md-5 pe-md-7 pe-5 pb-5 order-lg-last ms-lg-auto pt-3 position-relative">
+                    <img src="/assets/img/produkte/inclu-cert-check.png"
+                         class="img-fluid position-relative mt-3"
+                         alt="InkluCert – Nachweis der digitalen Barrierefreiheit">
+                </div>
+
+                <!-- Text + 4 Boxen links -->
+                <div class="col-md-6 order-md-1 me-md-auto">
+
+                    <div class="d-flex align-items-center mb-3" data-aos="fade-up">
+                        <h6 class="mb-0 text-body-secondary text-uppercase">
+                            Barrierefreiheit sichtbar machen
+                        </h6>
+                    </div>
+
+                    <h3 class="display-5 mb-4" data-aos="fade-up">
+                        InkluCert – Ihr klarer Nachweis für echte Barrierefreiheit.
+                    </h3>
+
+                    <p class="mb-5 lead text-body-secondary" data-aos="fade-up">
+                        InkluCert dokumentiert alle Entwicklungen Ihrer Website: Scores, Fehlertrends und Fortschritte
+                        aus dem Firmament-Dashboard fließen zu einem aussagekräftigen Nachweis zusammen.
+                        Verständlich, transparent und perfekt aufbereitbar.
+                    </p>
+
+                    <!-- 4 Feature-Boxen in 2x2 links vom Bild -->
+                    <div class="row gy-4">
+                        <div class="col-12 col-sm-6" data-aos="fade-up" data-aos-delay="50">
+                            <div class="d-flex">
+                                <div class="me-3 flex-shrink-0 width-2x height-2x bg-gradient-iceblue text-white rounded-circle flex-center">
+                                    <i class="bx bx-check lh-1 fs-5"></i>
+                                </div>
+                                <p class="mb-0">
+                                    <strong>Lückenlose Historie</strong><br>
+                                    Alle Scan-Ergebnisse werden kontinuierlich gesammelt und übersichtlich dargestellt.
+                                    So zeigen Sie klar, wie sich Ihre Website entwickelt und wo Optimierungen greifen.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6" data-aos="fade-up" data-aos-delay="100">
+                            <div class="d-flex">
+                                <div class="me-3 flex-shrink-0 width-2x height-2x bg-gradient-iceblue text-white rounded-circle flex-center">
+                                    <i class="bx bx-check lh-1 fs-5"></i>
+                                </div>
+                                <p class="mb-0">
+                                    <strong>Klarer Fortschrittsnachweis</strong><br>
+                                    Jede Veränderung, jeder Trend und jede Verbesserung wird erfasst.
+                                    InkluCert macht nachvollziehbar, was bereits geschafft ist und welche Bereiche weiter wachsen.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6" data-aos="fade-up" data-aos-delay="150">
+                            <div class="d-flex">
+                                <div class="me-3 flex-shrink-0 width-2x height-2x bg-gradient-iceblue text-white rounded-circle flex-center">
+                                    <i class="bx bx-check lh-1 fs-5"></i>
+                                </div>
+                                <p class="mb-0">
+                                    <strong>Transparenter Accessibility-Score</strong><br>
+                                    Der InkluCert-Score zeigt sofort, wo Ihre Website steht.
+                                    Die Score-Kurve macht Fortschritte sichtbar und zeigt klar, in welche Richtung sich Ihre Barrierefreiheit entwickelt.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6" data-aos="fade-up" data-aos-delay="200">
+                            <div class="d-flex">
+                                <div class="me-3 flex-shrink-0 width-2x height-2x bg-gradient-iceblue text-white rounded-circle flex-center">
+                                    <i class="bx bx-check lh-1 fs-5"></i>
+                                </div>
+                                <p class="mb-0">
+                                    <strong>Vertrauen durch Transparenz</strong><br>
+                                    Sie beweisen, dass Barrierefreiheit kein Versprechen ist, sondern sichtbar umgesetzt wird –
+                                    eine starke Botschaft an Nutzer, Partner und Stakeholder.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </section>
   <!-- sectioin button gestalten  --->
 
     <!-- section firmamemnt -->

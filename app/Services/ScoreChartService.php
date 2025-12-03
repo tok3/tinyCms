@@ -98,7 +98,7 @@ class ScoreChartService
 
             $points[] = ['x' => $x, 'y' => $y];
         }
-
+        imagesetthickness($img, 6);
         // Linie zeichnen
         for ($i = 0; $i < count($points) - 1; $i++) {
             $p1 = $points[$i];

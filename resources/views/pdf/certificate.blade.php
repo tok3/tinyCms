@@ -1,30 +1,63 @@
-<!DOCTYPE html>
+@php
+    use SimpleSoftwareIO\QrCode\Facades\QrCode;
+
+    $incluCertUrl = url('/inclucert/' . $company->ulid);
+
+    // QR als base64 SVG erzeugen
+    $qrSvg = base64_encode(
+        QrCode::format('svg')
+            ->size(130)
+            ->margin(0)
+            ->generate($incluCertUrl)
+    );
+@endphp
+        <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Zertifikat</title>
     <style>
+        @font-face {
+            font-family: 'Solari';
+            src: url('{{ storage_path('fonts/solari.ttf') }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'f25';
+            src: url('{{ storage_path('fonts/f25_bank_printer/F25_Bank_Printer.ttf') }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'departure';
+            src: url('{{ storage_path('fonts/DepartureMono-1.500/DepartureMono-Regular.otf') }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         @page {
             margin: 0px;
 
         }
+        .page {
+            padding: 30px 40px;
+            position: relative;
 
+        }
         body {
             font-family: DejaVu Sans, sans-serif;
             font-size: 12pt;
             color: #222;
         }
 
-        .page {
-            border-left: 20px solid #222;
-            padding: 30px 30px;
-            position: relative;
-            height: 100%;
-        }
+
 
         .header {
             width: 100%;
-            margin-bottom: 40px;
+            margin-bottom: 0px;
         }
 
         .header-table {
@@ -76,6 +109,7 @@
         }
 
         .company-meta {
+            font-family: 'f25';
             font-size: 10pt;
             color: #666;
         }
@@ -89,7 +123,7 @@
         .metrics-table th,
         .metrics-table td {
             border: 1px solid #ccc;
-            padding: 8px 10px;
+            padding: 6px 8px;
             font-size: 10pt;
         }
 
@@ -98,26 +132,35 @@
             text-align: left;
         }
 
+        .metrics-table td {
+            font-family: 'departure', sans-serif;
+            font-size: 10pt;
+        }
+
+
         .score-box {
-            border: 1px solid #999;
+
+            border: 1px dashed #999;
             padding: 12px;
             margin: 15px 0 30px 0;
         }
 
         .score-label {
+            font-family: 'f25', sans-serif;
             font-size: 11pt;
             margin-bottom: 5px;
         }
 
         .score-value {
-            font-size: 24pt;
-            font-weight: bold;
+            font-family: 'f25', sans-serif !important;
+            font-size: 22pt;
+
         }
 
         .score-bar-container {
             margin-top: 8px;
             border: 1px solid #bbb;
-            height: 14px;
+            height: 10px;
             width: 100%;
         }
 
@@ -173,6 +216,30 @@
             color: #888;
         }
 
+        .splitflap {
+            font-family: 'Solari', sans-serif;
+            font-size: 24pt;
+            letter-spacing: 0.05em;
+        }
+
+        .f25 {
+            font-family: 'f25', sans-serif;
+            font-size: 24pt;
+            letter-spacing: 0.05em;
+        }
+
+        .departure {
+            font-family: 'departure', sans-serif;
+            font-size: 24pt;
+            letter-spacing: 0.05em;
+        }
+
+        .footer-table
+        {
+            font-family: 'departure', sans-serif;
+            font-size: 6pt;
+            line-height: 1.05em;
+        }
     </style>
 </head>
 <body>
@@ -185,15 +252,20 @@
                     <img src="{{ public_path('assets/img/incluCertPdfBadge.png') }}" alt="Logo" style="height:60px;">
                 </td>
                 <td class="logo-right">
-                    camindu GmbH · Behringstr. 13 · 63814 Mainaschaff<br>
-                    www.aktion-barrierefrei.org
+                    <div style="display:block; margin-top:5px;">
+                        <img src="data:image/svg+xml;base64,{{ $qrSvg }}"
+                             alt="QR-Code"
+                             style="height:80px; width:80px;">
+                    </div>
                 </td>
             </tr>
         </table>
     </div>
+    {{-- QR-Code --}}
 
     <div class="title">
-        <h1>ZERTIFIKAT</h1>
+        <h1>PoP Certificate</h1>
+        <sup>- Proof of Progress in Digital Accessibility -</sup>
     </div>
 
     <div class="subtitle">
@@ -201,7 +273,7 @@
     </div>
 
     <div class="company-block">
-        <div>Dieses Zertifikat wird ausgestellt für</div>
+        <div>Ausgestellt für</div>
         <div class="company-name">{{ $company->name }}</div>
 
         @if($company->website_url ?? false)
@@ -215,19 +287,17 @@
 
         <div class="company-meta">
             Beobachtungszeitraum (WCAG 2.1):
-            {{ $observationStart->format('d.m.Y') }}
-            –
-            {{ $observationEnd->format('d.m.Y') }}
+            {{ $observationStart->format('d.m.Y') }} - {{ $observationEnd->format('d.m.Y') }}
         </div>
     </div>
 
     <div class="score-box">
         <div class="score-label">Aktueller Barrierefreiheits-Score</div>
-        <div class="score-value">{{ $score }} / 100</div>
+        <div class="score-value">{{ $score }}/100</div>
         <div class="score-bar-container">
             <div class="score-bar-fill" style="width: {{ max(0, min(100, $score)) }}%;"></div>
         </div>
-        <div style="margin-top:8px; font-size:10pt;">
+        <div style="margin-top:8px; font-size:10pt;" class="departure">
             Tendenz seit Beginn: {{ $trendLabel }}
             ({{ $trendDiff >= 0 ? '+' : '' }}{{ $trendDiff }} Punkte)
         </div>
@@ -240,19 +310,22 @@
         </tr>
         <tr>
             <td>Aktuell offene Fehler</td>
-            <td>{{ $currentErrors }}</td>
+            <td>{!! str_replace(' ', '&nbsp;', str_pad($currentErrors, 5, ' ', STR_PAD_LEFT)) !!}</td>
         </tr>
         <tr>
             <td>Netto behobene Fehler seit Beginn</td>
-            <td>{{ $resolvedTotal }}</td>
+
+            <td>{!! str_replace(' ', '&nbsp;', str_pad($resolvedTotal, 5, ' ', STR_PAD_LEFT)) !!}</td>
         </tr>
         <tr>
             <td>Aktiv behobene Fehler im Beobachtungszeitraum</td>
-            <td>{{ $activityFixedTotal }}</td>
+
+            <td>{!! str_replace(' ', '&nbsp;', str_pad($activityFixedTotal, 5, ' ', STR_PAD_LEFT)) !!}</td>
         </tr>
         <tr>
             <td>Neu eingeführte Fehler im Beobachtungszeitraum</td>
-            <td>{{ $activityIntroducedTotal }}</td>
+
+            <td>{!! str_replace(' ', '&nbsp;', str_pad($activityIntroducedTotal, 5, ' ', STR_PAD_LEFT)) !!}</td>
         </tr>
     </table>
 
@@ -266,26 +339,23 @@
         @endif
     </div>
 
-    <div class="signature">
-        <div class="signature-line"></div>
-        <div class="signature-label">
-            Unterschrift / digitale Freigabe · {{ now()->format('d.m.Y') }}
-        </div>
-    </div>
 
-    <div class="footer">
-        <table class="footer-table">
-            <tr>
-                <td>
-                    Erstellt durch Aktion-Barrierefrei (Fixstern/Firmament)<br>
-                    Dieses Zertifikat beschreibt den zum Ausstellungszeitpunkt vorliegenden technischen Stand.
-                </td>
-                <td style="text-align:right;">
-                    Seite 1 / 1
-                </td>
-            </tr>
-        </table>
-    </div>
+
+        <div class="footer">
+            <table class="footer-table">
+                <tr>
+                    <td>
+                        <img src="{{ public_path('assets/img/logo/logo.svg') }}" alt="Logo" style="width:12px !important;">
+
+                    </td>
+                    <td style="text-align:right;">
+                        Erstellt durch Aktion-Barrierefrei (https://aktion-barrierefrei.com)<br>
+                        Dieser Nachweis beschreibt den zum Ausstellungszeitpunkt vorliegenden Stand.<br>
+                        Aktuellen Stand über QR-Code abfragen.
+                    </td>
+                </tr>
+            </table>
+        </div>
 
 </div>
 </body>
