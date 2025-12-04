@@ -1,16 +1,62 @@
 <x-layouts.blank>
     <style>
 
+        .issue{
+            padding-left:2em;
+            padding-top:1.5em;
+
+        }
         div.accIssues code,
         div.accIssues strong {
             margin-left: 0.25em;
             margin-right: 0.25em;
         }
-div.standardLogos a{
-    margin-left: 0.25em;
-    margin-right: 0.25em;
 
-}
+        div.standardLogos {
+            margin-top: 1em;
+            border-bottom:1px solid #E0DFEA;
+        }
+
+        div.standardLogos a {
+
+            margin-left: 0.25em;
+            margin-right: 0.25em;
+
+        }
+
+        .why-important {
+            margin-top: -20px;
+
+        }
+
+        .why-toggle {
+            background: none;
+            border: 0;
+            padding: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font: inherit;
+        }
+
+        .why-arrow {
+            font-size: 1.0rem; /* Größe wie im Screenshot */
+            display: inline-block;
+            transition: transform 0.2s ease;
+            color:#535353;
+        }
+
+        .why-arrow.open {
+            transform: rotate(90deg); /* ▶ wird zu ► oder ▼ */
+        }
+
+        .why-content {
+            margin-top: 0.6rem;
+            padding-left: 1.6rem;
+            padding-right: 1.6rem;
+            font-size:1.05rem;
+        }
     </style>
     <section class="position-relative d-flex justify-content-center h-100">
         <div class=" _bg-dark-subtle d-none d-md-flex position-fixed end-0 top-0 w-md-50 w-lg-60 h-100">
@@ -18,7 +64,7 @@ div.standardLogos a{
         </div>
         <div class="container z-2 position-relative">
             <div class="row align-items-center vh-100">
-                <div class="col-lg-11 pt-3 pb-4 pb-lg-5 pt-lg-5 me-auto col-md-6 z-2">
+                <div class="col-lg-11 pt-3 pb-4 pb-lg-5 pt-lg-5 me-auto col-md-11 z-2">
                     <div>
                         <h3>Barrierefreiheitserklärung</h3>
                         <!--:Logo: TODO Link auf incluCert-->
@@ -62,16 +108,38 @@ div.standardLogos a{
 
                                 @foreach($issues as $issue)
 
-
-
-                                    <div class=" p-6 m-3 ">
-                                        <div class="h5">{!!  $issue['rule[merged_html]']['description']  !!}</div>
+                                    <div class="issue">
                                         <div class="h6">{{ $issue['translated'] }}</div>
-                                        {!!  $issue['rule[merged_html]']['why_important']  !!}
+                                        <div>{!!  $issue['rule[merged_html]']['description']  !!}</div>
 
-                                        <div class="standardLogos">
-                                            <x-standard-logos :standards="json_decode($issue['rule[standard_logos]'])"/>
+                                        {{-- Toggle-Bereich --}}
+                                        <div class="why-important " x-data="{ open: false }">
+
+                                            <button
+                                                class="why-toggle"
+                                                @click="open = !open"
+                                                type="button"
+                                            >
+                                                <span class="why-arrow" :class="{ 'open': open }">▶</span>
+                                                <span class="why-toggle-label small">Warum das wichtig ist <i class="bi bi-info-circle"></i></span>
+                                            </button>
+
+                                            <div
+                                                class="why-content"
+                                                x-show="open"
+                                                x-collapse
+                                            >
+                                                {!! $issue['rule[merged_html]']['why_important'] !!}
+                                            </div>
+
+                                            <div class="standardLogos">
+                                                <x-standard-logos :standards="json_decode($issue['rule[standard_logos]'])"/>
+                                            </div>
+
+
                                         </div>
+
+
                                     </div>
                                 @endforeach
                             </div>
@@ -118,7 +186,7 @@ div.standardLogos a{
 
 
     @push('scripts')
-
+        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
         <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js?v1.1.9"></script>
         <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js?v1.1.9"></script>
         <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/localization/messages_de.js"></script>
