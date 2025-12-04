@@ -61,15 +61,18 @@ div.standardLogos a{
                             <div class="accIssues">
 
                                 @foreach($issues as $issue)
-                                <div class=" p-6 m-3 ">
-                                    <div class="h6">{!!  $issue['rule[merged_html]']['description']  !!}</div>
-                                    {{ $issue['translated'] }}<br>
-                                    {!!  $issue['rule[merged_html]']['why_important']  !!}
 
-                                <div class="standardLogos">
-                                    <x-standard-logos :standards="json_decode($issue['rule[standard_logos]'])" />
-                                </div>
-                                </div>
+
+
+                                    <div class=" p-6 m-3 ">
+                                        <div class="h6">{!!  $issue['rule[merged_html]']['description']  !!}</div>
+                                        {{ $issue['translated'] }}<br>
+                                        {!!  $issue['rule[merged_html]']['why_important']  !!}
+
+                                        <div class="standardLogos">
+                                            <x-standard-logos :standards="json_decode($issue['rule[standard_logos]'])"/>
+                                        </div>
+                                    </div>
                                 @endforeach
                             </div>
 

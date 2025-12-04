@@ -328,6 +328,9 @@ class AccessibilityDeclarationController extends Controller
                         'desc' => json_decode($issue->runnerExtras)->description,
                         //'selector' => $issue->selector,
                         'code' => $issue->code,
+                        'rule[merged_html]' => $issue->accessibilityRule->merged_html,
+                        'rule[standards_badges]' => $issue->accessibilityRule->standards_badges,
+                        'rule[standard_logos]' => $issue->accessibilityRule->standards,
                         'type' => $issue->type,
                         'typeCode' => $issue->typeCode,
                         'count' => $issue->issue_count, // Add the count to the records array
