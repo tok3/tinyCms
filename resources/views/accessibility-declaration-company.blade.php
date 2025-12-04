@@ -60,6 +60,8 @@ div.standardLogos a{
                             <hr class="my-2">
                             <div class="accIssues">
 
+
+
                                 @foreach($issues as $issue)
                                 <div class=" p-6 m-3 ">
                                     <div class="h6">{!!  $issue['rule[merged_html]']['description']  !!}</div>
