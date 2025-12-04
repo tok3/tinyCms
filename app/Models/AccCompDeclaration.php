@@ -43,8 +43,6 @@ class AccCompDeclaration extends Model
         'bfsg_partial',
         'bfsg_partial_ez',
         'non_conform_content_ez',
-
-
     ];
 
     public function company()

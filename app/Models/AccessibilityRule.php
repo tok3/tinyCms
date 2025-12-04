@@ -110,7 +110,6 @@ class AccessibilityRule extends Model
 
     }
 
-
     public function getStandardsBadgesAttribute()
     {
         $badges = '';
@@ -185,7 +184,8 @@ class AccessibilityRule extends Model
     public function getActRuleLinksAttribute()
     {
         // Falls das Feld leer ist oder null, gib ein leeres Array zurück
-        if (empty($this->act_rule)) {
+        if (empty($this->act_rule))
+        {
             return [];
         }
 
@@ -193,7 +193,8 @@ class AccessibilityRule extends Model
         $rules = array_filter(array_map('trim', explode(',', $this->act_rule)));
 
         // Falls nach der Filterung keine gültigen Regeln existieren, gib ein leeres Array zurück
-        if (empty($rules)) {
+        if (empty($rules))
+        {
             return [];
         }
 
