@@ -65,8 +65,8 @@ div.standardLogos a{
 
 
                                     <div class=" p-6 m-3 ">
-                                        <div class="h6">{!!  $issue['rule[merged_html]']['description']  !!}</div>
-                                        {{ $issue['translated'] }}<br>
+                                        <div class="h5">{!!  $issue['rule[merged_html]']['description']  !!}</div>
+                                        <div class="h6">{{ $issue['translated'] }}</div>
                                         {!!  $issue['rule[merged_html]']['why_important']  !!}
 
                                         <div class="standardLogos">
