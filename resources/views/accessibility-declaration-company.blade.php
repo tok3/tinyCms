@@ -1,4 +1,17 @@
 <x-layouts.blank>
+    <style>
+
+        div.accIssues code,
+        div.accIssues strong {
+            margin-left: 0.25em;
+            margin-right: 0.25em;
+        }
+div.standardLogos a{
+    margin-left: 0.25em;
+    margin-right: 0.25em;
+
+}
+    </style>
     <section class="position-relative d-flex justify-content-center h-100">
         <div class=" _bg-dark-subtle d-none d-md-flex position-fixed end-0 top-0 w-md-50 w-lg-60 h-100">
 
@@ -44,12 +57,21 @@
                                 {{ $declaration->bfsg_partial }}
                             </p>
                             <p><strong>{{ $declaration->non_conform_content }}</strong></p>
-                            <ul>
+                            <hr class="my-2">
+                            <div class="accIssues">
+
                                 @foreach($issues as $issue)
-                                    <li>{{ $issue['desc'] }}</li>
-                                    <li>{{ $issue['translated'] }}</li>
+                                <div class=" p-6 m-3 ">
+                                    <div class="h6">{!!  $issue['rule[merged_html]']['description']  !!}</div>
+                                    {{ $issue['translated'] }}<br>
+                                    {!!  $issue['rule[merged_html]']['why_important']  !!}
+
+                                <div class="standardLogos">
+                                    <x-standard-logos :standards="json_decode($issue['rule[standard_logos]'])" />
+                                </div>
+                                </div>
                                 @endforeach
-                            </ul>
+                            </div>
 
                         @endif
                         <p>
