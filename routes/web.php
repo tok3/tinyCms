@@ -273,6 +273,15 @@ Route::get('/trial/info', [TrialController::class, 'info'])->name('trial.info');
 
 // -----------------------------------------------
 
+use App\Http\Controllers\AccessibilityFeedbackController;
+
+Route::post('/accessibility-declaration/{company}/feedback', [
+    AccessibilityFeedbackController::class,
+    'store',
+])->name('accessibility-feedback.store');
+
+// -----------------------------------------------
+
 Route::get('/{slug}', [PageController::class, 'getIndex'])->name('frontend');
 Route::get('/', [PageController::class, 'getIndex'])->name('home');
 
@@ -288,3 +297,4 @@ Route::get('/{segment1?}/{segment2?}/{slug?}', [PageController::class, 'getIndex
     ->where('segment1', '[^/]+') // Optional: Erlaubt alles außer einem Slash
     ->where('segment2', '[^/]+') // Optional: Erlaubt alles außer einem Slash
     ->name('page.show');
+

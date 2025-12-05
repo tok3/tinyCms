@@ -55,6 +55,8 @@
                         </div>
                     @endif
 
+                    @include('accessibility.partials.feedback-form', ['company' => $company])
+
                     @if($declaration->acc_enforcement_agencies)
                         <h5>Durchsetzungsstelle</h5>
                         <p>{{ $declaration->market_surveillance_board_address_text }}</p>

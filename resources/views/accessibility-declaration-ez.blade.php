@@ -50,6 +50,9 @@
                         Die Erklärung wurde mithilfe der Aktion-Barrierefrei Software erstellt.
                     </p>
 
+
+                    @include('accessibility.partials.feedback-form', ['company' => $company])
+
                     @if($declaration->feedback_url)
                         <p>
                         {!! $declaration->feedback_text_ez !!}

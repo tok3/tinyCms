@@ -47,6 +47,8 @@
                         Die Erklärung wurde mithilfe der Aktion-Barrierefrei Software erstellt.
                     </p>
 
+                    @include('accessibility.partials.feedback-form', ['company' => $company])
+
                     @if($declaration->feedback_url)
                         <p>
                         {{ $declaration->feedback_text }}
@@ -58,6 +60,8 @@
                         </ul>
                         </p>
                     @endif
+
+
 
                     @if($declaration->market_surveillance_board_address)
                         <h5 class="mt-3">Marktüberwachungsbehörde</h5>
