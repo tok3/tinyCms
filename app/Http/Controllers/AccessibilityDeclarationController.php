@@ -16,6 +16,10 @@ class AccessibilityDeclarationController extends Controller
     /*
     TODO ausfuellen fuer csv/json download
     */
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse|\Symfony\Component\HttpFoundation\StreamedResponse
+     */
     public function getAccessabilityDeclarationJson(Request $request)
     {
 
@@ -113,6 +117,10 @@ class AccessibilityDeclarationController extends Controller
 
     }
 
+    /**
+     * @param Request $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Foundation\Application
+     */
     public function showAccessibilityDeclaration(Request $request)
     {
 
@@ -146,6 +154,7 @@ class AccessibilityDeclarationController extends Controller
         {
             $data = $this->getBoardData($company->id);
             $data['declaration']['federal_state'] = \App\Enums\FederalState::from($data['declaration']['federal_state'])->label();
+
             if ($data['published'] === 0)
             {
                 \Log::error('not published amt');
@@ -156,6 +165,10 @@ class AccessibilityDeclarationController extends Controller
         }
     }
 
+    /**
+     * @param Request $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Foundation\Application
+     */
     public function showAccessibilityDeclarationEz(Request $request)
     {
         $company = Company::where('slug', $request->slug)->first();
@@ -224,6 +237,10 @@ class AccessibilityDeclarationController extends Controller
         }
 
     */
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getAccessibilityDeclaration(Request $request)
     {
 
@@ -271,6 +288,10 @@ class AccessibilityDeclarationController extends Controller
     }
 
 
+    /**
+     * @param $company_id
+     * @return array
+     */
     private function getCompanyData($company_id)
     {
         $company = Company::find($company_id);
@@ -287,6 +308,10 @@ class AccessibilityDeclarationController extends Controller
     }
 
 
+    /**
+     * @param $company_id
+     * @return array
+     */
     private function getBoardData($company_id)
     {
         $company = Company::find($company_id);
@@ -303,12 +328,17 @@ class AccessibilityDeclarationController extends Controller
     }
 
 
+    /**
+     * @param $id
+     * @return array
+     */
     public function exportAllIssuesGrouped($id): array
     {
         //always include contrast errors
         //$showContrastErrors = CompanySetting::where('company_id', $id)->first();
         $records = [];
         $urls = Pa11yUrl::where('company_id', '=', $id)->get();
+
         foreach ($urls as $url)
         {
             //$issues = Pa11yAccessibilityIssue::where('url_id' , '=', $url->id)->where('type', 'warning')->groupBy('code')->get();
@@ -317,6 +347,7 @@ class AccessibilityDeclarationController extends Controller
                 ->groupBy('code')
                 ->selectRaw('code, issue, runnerExtras, type, typeCode, COUNT(*) as issue_count')
                 ->get();
+
             foreach ($issues as $issue)
             {
                 if (isset($issue->runnerExtras) && $issue->runnerExtras != '[]')
