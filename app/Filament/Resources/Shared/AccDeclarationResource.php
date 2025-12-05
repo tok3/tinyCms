@@ -25,6 +25,7 @@ class AccDeclarationResource extends Resource
 {
     protected static ?string $model = AccDeclaration::class;
     protected static ?string $label = 'Barrierefreiheitserklärung';
+    protected static ?string $navigationGroup = 'Erklärung zur Barrierefreiheit';
     protected static ?string $pluralLabel = 'Barrierefreiheitserklärung';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 

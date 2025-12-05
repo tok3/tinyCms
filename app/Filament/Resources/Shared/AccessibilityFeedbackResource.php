@@ -4,6 +4,8 @@ namespace App\Filament\Resources\Shared;
 
 use App\Filament\Resources\Shared\AccessibilityFeedbackResource\Pages;
 use App\Models\AccessibilityFeedback;
+use App\Models\Company;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -15,9 +17,28 @@ class AccessibilityFeedbackResource extends Resource
     protected static ?string $model = AccessibilityFeedback::class;
 
     protected static ?string $navigationLabel = 'Rückmeldungen Barrierefreiheit';
+    protected static ?string $navigationGroup = 'Erklärung zur Barrierefreiheit';
     protected static ?string $pluralLabel = 'Rückmeldungen Barrierefreiheit';
     protected static ?string $modelLabel = 'Rückmeldung';
-    protected static ?string $navigationIcon = null;
+    protected static ?string $navigationIcon = 'heroicon-o-envelope-open';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        if (auth()->user()->is_admin == 1)
+        {
+
+            return true;
+
+        }
+        $tenant = Filament::getTenant();
+        $company = Company::where('id', $tenant->id)->first();
+
+        if($company->hasFeature('barrierefreiheitserklaerung')){
+            return true;
+        }
+
+        return false;
+    }
 
     public static function form(Form $form): Form
     {
