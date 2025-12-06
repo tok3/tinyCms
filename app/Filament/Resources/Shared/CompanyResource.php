@@ -97,17 +97,19 @@ class CompanyResource extends Resource
                                             ->storeFileNamesIn('logo_orig_filename'),
 
                                         Forms\Components\Select::make('type')
+                                            ->label('Organisationstyp')
                                             ->options([
                                                 '0' => 'Unternehmen',
-                                                '1' => 'Gemeinde/Behörde',
+                                                '1' => 'Gemeinde / Behörde',
                                                 '2' => 'Verein',
                                             ])
-                                            ->required()
-                                            ->label('Firmentyp'),
+                                            ->required(),
+
 
                                         Forms\Components\TextInput::make('name')
                                             ->label(function ($record) {
-                                                if ($record && $record->billing_via_agency) {
+                                                if ($record && $record->billing_via_agency)
+                                                {
                                                     return new HtmlString('<strong>Kunde / Projektname / Domain</strong>');
                                                 }
 
@@ -128,7 +130,7 @@ class CompanyResource extends Resource
                                             ->maxLength(255)
                                             ->placeholder('Straße eingeben')
                                             // ausblenden, wenn über Agentur abgerechnet wird
-                                            ->hidden(fn ($get) => $get('billing_via_agency')),
+                                            ->hidden(fn($get) => $get('billing_via_agency')),
 
                                         Forms\Components\Grid::make(6)
                                             ->schema([
@@ -143,7 +145,7 @@ class CompanyResource extends Resource
                                                     ->placeholder('Ort eingeben')
                                                     ->columnSpan(4),
                                             ])
-                                            ->hidden(fn ($get) => $get('billing_via_agency')),
+                                            ->hidden(fn($get) => $get('billing_via_agency')),
 
                                         Forms\Components\Grid::make(4)
                                             ->schema([
@@ -159,7 +161,7 @@ class CompanyResource extends Resource
                                                     ->placeholder('Mobilnummer eingeben')
                                                     ->columnSpan(2),
                                             ])
-                                            ->hidden(fn ($get) => $get('billing_via_agency')),
+                                            ->hidden(fn($get) => $get('billing_via_agency')),
 
                                         Forms\Components\Grid::make(4)
                                             ->schema([
@@ -183,32 +185,34 @@ class CompanyResource extends Resource
                                                     ->placeholder('Webseiten-URL eingeben')
                                                     ->columnSpan(2),
                                             ])
-                                            ->hidden(fn ($get) => $get('billing_via_agency')),
+                                            ->hidden(fn($get) => $get('billing_via_agency')),
 
-// Stattdessen: Hinweis bei Abrechnung über Agentur
+                                        // Stattdessen: Hinweis bei Abrechnung über Agentur
                                         Forms\Components\Placeholder::make('agency_billing_info')
                                             ->label('')
                                             ->content(function ($record) {
-                                                if (! $record?->agency_company_id) {
+                                                if (!$record?->agency_company_id)
+                                                {
                                                     return new HtmlString(
                                                         'Die Abrechnung erfolgt über eine Agentur. '
-                                                        .'Bitte eine Agentur in <strong>agency_company_id</strong> hinterlegen.'
+                                                        . 'Bitte eine Agentur in <strong>agency_company_id</strong> hinterlegen.'
                                                     );
                                                 }
 
                                                 // falls du eine Relation hast, lieber $record->agencyCompany verwenden
                                                 $agency = Company::find($record->agency_company_id);
 
-                                                if (! $agency) {
+                                                if (!$agency)
+                                                {
                                                     return 'Die Abrechnung erfolgt über eine Agentur (Agentur nicht gefunden).';
                                                 }
 
                                                 return new HtmlString(
                                                     '<span style="font-size:12pt"><p style="color:red;font-weight:bold;">Hinweis</p>Die Abrechnung erfolgt über die Agentur '
-                                                    .'<strong>'.$agency->name.'</strong>.</span>'
+                                                    . '<strong>' . $agency->name . '</strong>.</span>'
                                                 );
                                             })
-                                            ->visible(fn ($get) => $get('billing_via_agency'))
+                                            ->visible(fn($get) => $get('billing_via_agency'))
                                             ->columnSpanFull(),
 
 
@@ -259,7 +263,7 @@ class CompanyResource extends Resource
                                     ])
                                     ->collapsed()
                                     ->visible(fn() => auth()->user()?->is_admin),
-                                            ]),
+                            ]),
 
 
                         Forms\Components\Tabs\Tab::make('Einstellungen')
@@ -350,20 +354,21 @@ class CompanyResource extends Resource
                                             ->description('')
                                             ->schema([
 
-Forms\Components\Toggle::make('start_crawl')
-    ->label('Domain crawlen')
-    ->inline(false)
-    ->live()
-    ->afterStateUpdated(function ($state, $set, $get, $livewire) {
-        if ($state) {
-            // reset toggle so it can be triggered again
-            $set('start_crawl', false);
-            $set('auto_add_urls', false);
-            $set('exclude_query_string_urls', false);
-            // open the already-registered action’s modal
-            $livewire->mountAction('crawlSites');
-        }
-    }),
+                                                Forms\Components\Toggle::make('start_crawl')
+                                                    ->label('Domain crawlen')
+                                                    ->inline(false)
+                                                    ->live()
+                                                    ->afterStateUpdated(function ($state, $set, $get, $livewire) {
+                                                        if ($state)
+                                                        {
+                                                            // reset toggle so it can be triggered again
+                                                            $set('start_crawl', false);
+                                                            $set('auto_add_urls', false);
+                                                            $set('exclude_query_string_urls', false);
+                                                            // open the already-registered action’s modal
+                                                            $livewire->mountAction('crawlSites');
+                                                        }
+                                                    }),
 
                                                 Forms\Components\Toggle::make('auto_add_urls')
                                                     ->label('URLs automatisch hinzufügen')
@@ -389,6 +394,27 @@ Forms\Components\Toggle::make('start_crawl')
                                             ]),
 
                                     ]),
+
+                                Forms\Components\Fieldset::make('Barrierefreiheitserklärung ')
+                                    ->relationship('settings', CompanySetting::class)
+                                    ->schema([
+                                        // Barrierefreiheitserklärung als Section mit type und Settings-Fieldset
+
+                                        Forms\Components\TextInput::make('a11y_feedback_receivers')
+                                            ->label('Feedbak-Formular Benachrichtigungs-Empfänger')
+                                            ->helperText('Kommagetrennte E-Mail-Adressen. Standard: die E-Mail-Adresse der Firma.')
+                                            ->placeholder('z. B. barrierefreiheit@example.org, info@example.org')
+                                            ->afterStateHydrated(function ($state, callable $set, $record) {
+                                                // Wenn noch nichts gesetzt wurde, mit company.email vorbelegen
+                                                if (blank($state) && $record && !blank($record->email))
+                                                {
+                                                    $set('a11y_feedback_receivers', $record->email);
+                                                }
+                                            })
+                                            ->maxLength(500),
+
+                                    ]),
+
 
                             ]),
 
@@ -519,14 +545,16 @@ Forms\Components\Toggle::make('start_crawl')
         ];
     }
 
-protected static function startCrawling(array $data, ?int $companyId): void
+    protected static function startCrawling(array $data, ?int $companyId): void
     {
-        if (!$companyId) {
+        if (!$companyId)
+        {
             Notification::make()
                 ->title('Crawl Fehler')
                 ->body('Fehler: Kein Unternehmen ausgewählt.')
                 ->danger()
                 ->send();
+
             return;
         }
 
@@ -542,16 +570,20 @@ protected static function startCrawling(array $data, ?int $companyId): void
             // 'maxPages' => $data['maxPages'] ?? 10, // Uncomment if maxPages enabled
         ]);
 
-        try {
+        try
+        {
             $response = $controller->startCrawl($request);
 
-            if ($response['status'] === 'ok') {
+            if ($response['status'] === 'ok')
+            {
                 Notification::make()
                     ->title('Crawler gestartet')
                     ->body('Crawling initiiert für ' . $data['domain'] . '. Der Vorgang kann einige Minuten dauern. Bitte laden Sie dann diese Seite erneut.')
                     ->success()
                     ->send();
-            } else {
+            }
+            else
+            {
                 \Log::error('Fehler beim Crawlen: ' . $response['data'] . ' Company: ' . $companyId . ' Domain: ' . $data['domain']);
                 Notification::make()
                     ->title('Crawl Fehler')
@@ -559,7 +591,9 @@ protected static function startCrawling(array $data, ?int $companyId): void
                     ->danger()
                     ->send();
             }
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e)
+        {
             \Log::error('Exception beim Crawlen: ' . $e->getMessage() . ' Company: ' . $companyId . ' Domain: ' . $data['domain']);
             Notification::make()
                 ->title('Crawl Fehler')

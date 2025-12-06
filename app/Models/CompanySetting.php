@@ -18,6 +18,7 @@ class CompanySetting extends Model
         'exclude_query_string_urls',
         'full_scan_interval',
         'widget_features',
+        'a11y_feedback_receivers',
     ];
 
     public function company()

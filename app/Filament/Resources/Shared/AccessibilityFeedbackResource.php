@@ -80,6 +80,7 @@ class AccessibilityFeedbackResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Eingang')
@@ -110,7 +111,7 @@ class AccessibilityFeedbackResource extends Resource
                     ->formatStateUsing(fn (bool $state) => $state ? 'Gelesen' : 'Neu')
                     ->colors([
                         'success' => true,
-                        'warning' => false,
+                        'info' => false,
                     ]),
             ])
             ->filters([
@@ -142,8 +143,38 @@ class AccessibilityFeedbackResource extends Resource
         ];
     }
 
+    public static function getNavigationBadge(): ?string
+    {
+        $panel = Filament::getCurrentPanel();
+
+        // Nur im Dashboard-Panel anzeigen
+        if (! $panel || $panel->getId() !== 'dashboard') {
+            return null;
+        }
+
+        // Aktuellen Tenant (Company) holen
+        $tenant = Filament::getTenant();
+        if (! $tenant) {
+            return null;
+        }
+
+        $count = AccessibilityFeedback::query()
+            ->where('company_id', $tenant->id)
+            ->where(function ($query) {
+                $query->where('is_read', false)
+                    ->orWhereNull('is_read');
+            })
+            ->count();
+
+        // Bei 0 kein Badge anzeigen
+        return $count > 0 ? (string) $count : null;
+    }
     public static function canCreate(): bool
     {
         return false;
+    }
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'info';
     }
 }
