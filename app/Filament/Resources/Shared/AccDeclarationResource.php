@@ -19,7 +19,7 @@ use Filament\Forms\Components\Grid;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
-
+use Filament\Resources\Pages\EditRecord;
 
 class AccDeclarationResource extends Resource
 {
@@ -54,97 +54,54 @@ class AccDeclarationResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Placeholder::make('accessibility_declaration_link')
-                    ->label('Barrierefreiheitserklärung Link')
-                    ->content(function ($record) {
-                        //$tenant = Filament::getTenant();
-
-                        //$company = Company::where('id', $tenant->id)->first();
-                        $company = null;
-                        if (isset($record->company_id))
-                        {
-
-                            $company = Company::where('id', $record->company_id)->first();
-                        }
-                        else
-                        {
-                            $tenant = Filament::getTenant();
-                            $company = Company::where('id', $tenant->id)->first();
-                        }
-                        if (!$company || !$company->slug)
-                        {
-                            return 'Kein Unternehmen oder Slug verfügbar';
-                        }
-                        $url = config('app.url') . '/showAccessibilityDeclaration/' . $company->slug;
-
-                        return new \Illuminate\Support\HtmlString(
-                            '<a href="' . e($url) . '" target="_blank" class="text-primary-600 hover:underline">' . e($url) . '</a>'
-                        );
-                    }),
-                Forms\Components\Placeholder::make('accessibility_declaration_link')
-                    ->label('Barrierefreiheitserklärung Link')
-                    ->content(function ($record) {
-                        $company = null;
-
-                        if (isset($record->company_id))
-                        {
-                            $company = Company::where('id', $record->company_id)->first();
-                        }
-                        else
-                        {
-                            $tenant = Filament::getTenant();
-                            $company = Company::where('id', $tenant->id)->first();
-                        }
-
-                        if (!$company || !$company->slug)
-                        {
-                            return 'Kein Unternehmen oder Slug verfügbar';
-                        }
-
-                        $url = config('app.url') . '/showAccessibilityDeclaration/' . $company->slug;
-
-                        return new \Illuminate\Support\HtmlString('
-            <div x-data="{ copied: false }" class="flex items-center gap-2">
-                <a href="' . e($url) . '" target="_blank" class="text-primary-600 hover:underline break-all">'
-                            . e($url) .
-                            '</a>
-                <button
-                    type="button"
-                    class="px-2 py-1 text-xs font-medium border rounded-md text-gray-700 hover:bg-gray-100"
-                    @click="navigator.clipboard.writeText(\'' . e($url) . '\'); copied = true; setTimeout(() => copied = false, 2000);"
-                >
-                    Link kopieren
-                </button>
-                <span x-show="copied" x-cloak class="text-xs text-green-600">
-                    Kopiert
-                </span>
-            </div>
-        ');
-                    }),
-                Forms\Components\Section::make('Hinweis')
-                    ->description('Inhalte mit leichter Sprache werden nach dem Speichern auf Basis der entsprechenden Texte generiert und können danach frei angepasst werden.')
-                    ->icon('heroicon-o-information-circle')
-                    ->collapsible(false)
-                    ->schema([]),
+                Forms\Components\View::make('filament.forms.components.accessibility-declaration-links')
+                    ->label('Links zur Barrierefreiheitserklärung'),
                 Forms\Components\Toggle::make('published')
                     ->label('Veröffentlichen')
-                    ->default(true),
-                Forms\Components\Select::make('federal_state')
-                    ->label('Bundesland')
-                    ->options(\App\Enums\FederalState::options())
-                    ->reactive() // or ->live() depending on your needs
-                    ->afterStateUpdated(function ($state, Set $set) {
-                        // Assuming the options in enforcement_agency are related to federal_state
-                        // You may need to adjust this logic to map federal_state to enforcement_agency
-                        $agency = \App\Models\AccEnforcementAgency::where('id', $state)->first();
-                        $set('enforcement_agency', $agency ? $agency->id : null);
-                    })
-                    ->required(),
+                    ->default(true)
+                    ->live()
+                    ->afterStateUpdated(function ($state, callable $set, callable $get, $livewire) {
+                        // Nur auf der Bearbeiten-Seite automatisch speichern,
+                        // nicht beim Anlegen
+                        if ($livewire instanceof EditRecord) {
+                            $livewire->save();
+                        }
+                    }),
+                Forms\Components\Grid::make(3)
+                    ->schema([
+                        Forms\Components\Select::make('federal_state')
+                            ->label('Bundesland')
+                            ->options(\App\Enums\FederalState::options())
+                            ->reactive() // or ->live() depending on your needs
+                            ->afterStateUpdated(function ($state, Set $set) {
+                                // Assuming the options in enforcement_agency are related to federal_state
+                                // You may need to adjust this logic to map federal_state to enforcement_agency
+                                $agency = \App\Models\AccEnforcementAgency::where('id', $state)->first();
+                                $set('enforcement_agency', $agency ? $agency->id : null);
+                            })
+                            ->required(),
 
-                Forms\Components\TextInput::make('scope')
-                    ->url()
-                    ->label('Geltungsbereich (Domain)')
-                    ->nullable(),
+                        Forms\Components\Select::make('federal_or_state_law')
+                            ->label('Bundes- oder Landesrecht')
+                            ->options([
+                                0 => 'Bundesrecht',
+                                1 => 'Landesrecht',
+                            ])
+                            ->required(),
+                        Forms\Components\select::make('enforcement_agency')
+                            ->label('Durchsetzungsstelle')
+                            ->options(\App\Models\AccEnforcementAgency::pluck('state', 'id')->toArray())
+                            //->required()
+                            ->nullable(),
+                    ]),
+                Forms\Components\Grid::make(12)
+                    ->schema([
+                        Forms\Components\TextInput::make('scope')
+                            ->url()
+                            ->label('Geltungsbereich (Domain)')
+                            ->columnSpan(8)
+                            ->nullable(),
+                    ]),
                 /*
                 Forms\Components\Select::make('status')
 
@@ -167,109 +124,247 @@ class AccDeclarationResource extends Resource
                     ->default(1)
                     ->label('Warum nicht vereinbar?'),
                 */
-                Forms\Components\select::make('enforcement_agency')
-                    ->label('Durchsetzungsstelle')
-                    ->options(\App\Models\AccEnforcementAgency::pluck('state', 'id')->toArray())
-                    //->required()
-                    ->nullable(),
-                Forms\Components\Select::make('federal_or_state_law')
-                    ->label('Bundes- oder Landesrecht')
-                    ->options([
-                        0 => 'Bundesrecht',
-                        1 => 'Landesrecht',
-                    ])
-                    ->required(),
-                Forms\Components\Textarea::make('consistency')
-                    ->rows(4)
-                    ->default('Unsere Produkte und Dienstleistungen sind für Menschen mit Behinderungen in der allgemein üblichen Weise, ohne besondere Erschwernis und grundsätzlich ohne fremde Hilfe auffindbar, zugänglich und nutzbar.')
-                    ->label('Vereinbarkeit'),
-                Forms\Components\Textarea::make('consistency_ez')
-                    ->rows(4)
-                    ->label('Vereinbarkeit (leichte Sprache)')
-                    ->visible(fn(Get $get): bool => filled($get('consistency_ez'))),
-                Forms\Components\Textarea::make('bfsg_full')
-                    ->rows(4)
-                    ->default('Unsere Webseite ist mit dem BFSG und der BFSGV vereinbar; alle Anforderungen werden erfüllt.')
-                    ->label('Text für volle Konformität'),
-                Forms\Components\Textarea::make('bfsg_full_ez')
-                    ->rows(4)
-                    ->label('Text für volle Konformität (leichte Sprache)')
-                    ->visible(fn(Get $get): bool => filled($get('bfsg_full_ez'))),
-                Forms\Components\Textarea::make('bfsg_partial')
-                    ->rows(4)
-                    ->default('Unsere Webseite ist in großen Teilen mit dem BFSG und der BFSGV vereinbar. Jedoch bestehen noch einige Barrieren auf unseren Seiten, an denen wir aktiv arbeiten und diese in Zukunft beseitigen wollen. Folgende Ausnahmen und Unvereinbarkeiten bestehen:')
-                    ->label('Text für teilweise Konformität'),
-                Forms\Components\Textarea::make('bfsg_partial_ez')
-                    ->rows(4)
-                    ->label('Text für teilweise Konformität (leichte Sprache)')
-                    ->visible(fn(Get $get): bool => filled($get('bfsg_partial_ez'))),
+                Forms\Components\Grid::make(12)
+                    ->schema([
+                        Forms\Components\RichEditor::make('consistency')
+                            ->default('Unsere Produkte und Dienstleistungen sind für Menschen mit Behinderungen in der allgemein üblichen Weise, ohne besondere Erschwernis und grundsätzlich ohne fremde Hilfe auffindbar, zugänglich und nutzbar.')
+                            ->label('Vereinbarkeit')
+                            ->columnSpan(8)
+                            ->toolbarButtons([
+                                'bold',
+                                'italic',
+                                'bulletList',
+                                'orderedList',
+                                'link',
+                            ]),
+                    ]),
 
-                Forms\Components\Textarea::make('non_conform_content')
-                    ->rows(4)
-                    ->default('Die folgenden Inhalte sind nicht barrierefrei, da Sie eine unverhältnismäßige Belastung gemäß § 12a Absatz 6 BGG darstellen:')
-                    ->label('Nicht konforme Inhalte'),
-                Forms\Components\Textarea::make('non_conform_content_ez')
-                    ->rows(4)
-                    ->label('Nicht konforme Inhalte (leichte Sprache)')
-                    ->visible(fn(Get $get): bool => filled($get('non_conform_content_ez'))),
+                // Leichte Sprache Texte zu Vereinbarkeit und Konformität
+                Forms\Components\Section::make('Texte in Leichter Sprache')
+                    ->schema([
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('consistency_ez')
+                                    ->label('Vereinbarkeit (Leichte Sprache)')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->visible(fn(Get $get): bool => filled($get('consistency_ez'))),
+                            ]),
 
-                Forms\Components\TextInput::make('feedback_url')
-                    ->url()
-                    ->label('Feedback URL')
-                    ->nullable(),
-                Forms\Components\TextInput::make('feedback_email')
-                    ->label('Feedback Email')
-                    ->nullable(),
-                Forms\Components\TextInput::make('feedback_phone')
-                    ->label('Feedback Tel.')
-                    ->nullable(),
-                Forms\Components\Textarea::make('feedback_address')
-                    ->label('Feedback Postanschrift')
-                    ->rows(4)
-                    ->nullable(),
-                Forms\Components\Textarea::make('feedback_text')
-                    ->rows(4)
-                    ->label('Feedback Zusatztext')
-                    ->nullable(),
-                Forms\Components\Textarea::make('feedback_text_ez')
-                    ->rows(4)
-                    ->label('Feedback Zusatztext (Leichte Sprache)')
-                    ->nullable()
-                    ->visible(fn(Get $get): bool => filled($get('feedback_text_ez'))),
-                Forms\Components\Textarea::make('market_supervision_board')
-                    ->rows(7)
-                    ->label('Marktüberwachungsbehörde Adresse')
-                    ->required()
-                    ->nullable(),
-                Forms\Components\Textarea::make('enforcement_text')
-                    ->rows(4)
-                    ->label('Zusatztext Durchsetzungsstelle')
-                    ->nullable(),
-                Forms\Components\Textarea::make('enforcement_text_ez')
-                    ->rows(4)
-                    ->label('Zusatztext Durchsetzungsstelle (Leichte Sprache)')
-                    ->nullable()
-                    ->visible(fn(Get $get): bool => filled($get('enforcement_text_ez'))),
-                /*
-            Forms\Components\Textarea::make('html')
-                ->rows(6)
-                ->label('HTML Content')
-                ->nullable(),
-            Forms\Components\Textarea::make('html_eztext')
-                ->rows(6)
-                ->label('HTML Content (Easy Read)')
-                ->nullable(),
-            Forms\Components\Textarea::make('json_full')
-                ->rows(6)
-                ->label('JSON Full')
-                ->json()
-                ->nullable(),
-            Forms\Components\Textarea::make('json_eztext')
-                ->rows(6)
-                ->label('JSON Easy Read')
-                ->json()
-                ->nullable(),
-                    */
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('bfsg_full')
+                                    ->default('Unsere Webseite ist mit dem BFSG und der BFSGV vereinbar; alle Anforderungen werden erfüllt.')
+                                    ->label('Text für volle Konformität')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ]),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('bfsg_full_ez')
+                                    ->label('Text für volle Konformität (Leichte Sprache)')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->visible(fn(Get $get): bool => filled($get('bfsg_full_ez'))),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('bfsg_partial')
+                                    ->default('Unsere Webseite ist in großen Teilen mit dem BFSG und der BFSGV vereinbar. Jedoch bestehen noch einige Barrieren auf unseren Seiten, an denen wir aktiv arbeiten und diese in Zukunft beseitigen wollen. Folgende Ausnahmen und Unvereinbarkeiten bestehen:')
+                                    ->label('Text für teilweise Konformität')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ]),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('bfsg_partial_ez')
+                                    ->label('Text für teilweise Konformität (Leichte Sprache)')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->visible(fn(Get $get): bool => filled($get('bfsg_partial_ez'))),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('non_conform_content')
+                                    ->default('Die folgenden Inhalte sind nicht barrierefrei, da Sie eine unverhältnismäßige Belastung gemäß § 12a Absatz 6 BGG darstellen:')
+                                    ->label('Nicht konforme Inhalte')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ]),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('non_conform_content_ez')
+                                    ->label('Nicht konforme Inhalte (Leichte Sprache)')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->visible(fn(Get $get): bool => filled($get('non_conform_content_ez'))),
+                            ]),
+                    ]),
+
+                // Feedback-Bereich
+                Forms\Components\Section::make('Feedback-Kanal')
+                    ->schema([
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\TextInput::make('feedback_url')
+                                    ->url()
+                                    ->label('Feedback URL')
+                                    ->columnSpan(4)
+                                    ->nullable(),
+                                Forms\Components\TextInput::make('feedback_email')
+                                    ->label('Feedback E-Mail')
+                                    ->columnSpan(4)
+                                    ->nullable(),
+                                Forms\Components\TextInput::make('feedback_phone')
+                                    ->label('Feedback Tel.')
+                                    ->columnSpan(4)
+                                    ->nullable(),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('feedback_address')
+                                    ->label('Feedback Postanschrift')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->nullable(),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('feedback_text')
+                                    ->label('Feedback Zusatztext')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->nullable(),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('feedback_text_ez')
+                                    ->label('Feedback Zusatztext (Leichte Sprache)')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->nullable()
+                                    ->visible(fn(Get $get): bool => filled($get('feedback_text_ez'))),
+                            ]),
+                    ]),
+
+                // Durchsetzungsstelle / Marktüberwachungsbehörde
+                Forms\Components\Section::make('Durchsetzungsstelle / Marktüberwachungsbehörde')
+                    ->schema([
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('market_supervision_board')
+                                    ->label('Marktüberwachungsbehörde Adresse')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->required()
+                                    ->nullable(),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('enforcement_text')
+                                    ->label('Zusatztext Durchsetzungsstelle')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->nullable(),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('enforcement_text_ez')
+                                    ->label('Zusatztext Durchsetzungsstelle (Leichte Sprache)')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->nullable()
+                                    ->visible(fn(Get $get): bool => filled($get('enforcement_text_ez'))),
+                            ]),
+                    ]),
             ]);
     }
 
@@ -335,4 +430,3 @@ class AccDeclarationResource extends Resource
             ]);
     }
 }
-

@@ -54,7 +54,7 @@
                     @include('accessibility.partials.feedback-form', ['company' => $company])
 
                     @if($declaration->feedback_url)
-                        <p>
+                        <p class="mt-5">
                         {!! $declaration->feedback_text_ez !!}
                         <ul style="list-style-type: none; padding-left: 0;">
                             <li><a href="{{ $declaration->feedback_url }}">{{ $declaration->feedback_url }}</a></li>
@@ -66,7 +66,7 @@
                     @endif
 
                     @if($declaration->market_surveillance_board_address)
-                        <h5>Marktüberwachungsbehörde</h5>
+                        <h5 class="3">Marktüberwachungsbehörde</h5>
                         <p>{{ $declaration->market_surveillance_board_address_text }}</p>
                         <p>{{ $declaration->market_surveillance_board_address }}</p>
                     @endif

@@ -148,7 +148,7 @@ class AccessibilityDeclarationController extends Controller
                 abort(404);
             }
 
-            return view('accessibility-declaration-company', $data);
+            return view('accessibility.accessibility-declaration-company', $data);
         }
         else
         {
@@ -161,7 +161,7 @@ class AccessibilityDeclarationController extends Controller
                 abort(404);
             }
 
-            return view('accessibility-declaration', $data);
+            return view('accessibility.accessibility-declaration', $data);
         }
     }
 
@@ -193,7 +193,7 @@ class AccessibilityDeclarationController extends Controller
                 abort(404);
             }
 
-            return view('accessibility-declaration-company-ez', $data);
+            return view('accessibility.accessibility-declaration-company-ez', $data);
         }
         else
         {
@@ -204,7 +204,7 @@ class AccessibilityDeclarationController extends Controller
                 abort(404);
             }
 
-            return view('accessibility-declaration-ez', $data);
+            return view('accessibility.accessibility-declaration-ez', $data);
         }
     }
 
@@ -225,14 +225,14 @@ class AccessibilityDeclarationController extends Controller
                     //$data = array('error' => 'Method not allowed');
                     abort(404);
                 }
-                return view('accessibility-declaration-company-ez', $data);
+                return view('accessibility.accessibility-declaration-company-ez', $data);
             } else {
                 $data = $this->getBoardData($company->id);
                 $data['declaration']['federal_state'] = \App\Enums\FederalState::from($data['declaration']['federal_state'])->label();
                 if($data['published'] === 0){
                     abort(404);
                 }
-                return view('accessibility-declaration-ez', $data);
+                return view('accessibility.accessibility-declaration-ez', $data);
             }
         }
 
@@ -282,7 +282,7 @@ class AccessibilityDeclarationController extends Controller
                 $data = array('error' => 'Method not allowed');
             }
 
-            //return view('accessibilityDeclaration', $data);
+            //return view('accessibility.accessibilityDeclaration', $data);
             return response()->json($data);
         }
     }
