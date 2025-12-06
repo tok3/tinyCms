@@ -26,7 +26,7 @@
                         </div>
                     </div>
 
-                    <p>{{ $declaration->declaration_intro_text_ez }}</p>
+                    <p>{!! $declaration->declaration_intro_text_ez !!}</p>
 
                     <h3>Bundesland</h3>
                     <p><x-federal-state-coa :state-name="$declaration->federal_state"/></p>
@@ -35,7 +35,7 @@
 
                     <h5>Vereinbarkeit</h5>
                     <p> <!-- TODO auch noch in Form reinmachen? -->
-                        {{ $declaration->consistency_ez }}
+                        {!! $declaration->consistency_ez !!}
                     </p>
 
                     <x-declaration-issues
@@ -66,9 +66,9 @@
                     @endif
 
                     @if($declaration->market_surveillance_board_address)
-                        <h5 class="3">Marktüberwachungsbehörde</h5>
-                        <p>{{ $declaration->market_surveillance_board_address_text }}</p>
-                        <p>{{ $declaration->market_surveillance_board_address }}</p>
+                        <h5 class="mt-5">Marktüberwachungsbehörde</h5>
+                        <p>{!! $declaration->market_surveillance_board_address_text !!}</p>
+                        <p>{!! $declaration->market_surveillance_board_address !!}</p>
                     @endif
 
                 </div>

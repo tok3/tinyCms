@@ -26,18 +26,18 @@
                         </div>
                     </div>
 
-                    <p>{{ $declaration->declaration_intro_text }}</p>
+                    <p>{!! $declaration->declaration_intro_text !!}</p>
 
                     @if(!empty($company->offer))
                         <h3>Beschreibung der Dienstleistung</h3>
-                        <p>{{ $company->offer }}</p>
+                        <p>{!! $company->offer !!}</p>
                     @endif
 
                     <h3>Erfüllung der Barrierefreiheitsanforderungen</h3>
 
                     <h5>Vereinbarkeit</h5>
                     <p> <!-- TODO auch noch in Form reinmachen? -->
-                        {{ $declaration->consistency }}
+                        {!! $declaration->consistency !!}
                     </p>
 
                     <x-declaration-issues :declaration="$declaration" :issues="$issues" />
@@ -50,13 +50,13 @@
                     @include('accessibility.partials.feedback-form', ['company' => $company])
 
                     @if($declaration->feedback_url)
-                        <p>
-                        {{ $declaration->feedback_text }}
+                        <p class="mt-5">
+                        {!! $declaration->feedback_text !!}
                         <ul>
                             <li><a href="{{ $declaration->feedback_url }}">{{ $declaration->feedback_url }}</a></li>
                             <li><a href="mailto:{{ $declaration->feedback_email }}">{{ $declaration->feedback_email }}</a></li>
                             <li>{{ $declaration->feedback_phone }}</li>
-                            <li>{{ $declaration->feedback_address }}</li>
+                            <li>{!! $declaration->feedback_address !!}</li>
                         </ul>
                         </p>
                     @endif
@@ -64,9 +64,9 @@
 
 
                     @if($declaration->market_surveillance_board_address)
-                        <h5 class="mt-3">Marktüberwachungsbehörde</h5>
-                        <p>{{ $declaration->market_surveillance_board_address_text }}</p>
-                        <p>{{ $declaration->market_surveillance_board_address }}</p>
+                        <h5 class="mt-5">Marktüberwachungsbehörde</h5>
+                        <p>{!! $declaration->market_surveillance_board_address_text !!}</p>
+                        <p>{!! $declaration->market_surveillance_board_address !!}</p>
                     @endif
 
                 </div>

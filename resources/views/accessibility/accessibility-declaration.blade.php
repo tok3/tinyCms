@@ -34,7 +34,7 @@
                     <h3>Erfüllung der Barrierefreiheitsanforderungen</h3>
 
                     <h5>Vereinbarkeit</h5>
-                    <p>{{ $declaration->consistency }}.</p>
+                    <p>{!! $declaration->consistency !!}.</p>
 
                     <x-declaration-issues :declaration="$declaration" :issues="$issues" />
 
@@ -45,12 +45,12 @@
 
                     @if($declaration->feedback_url)
                         <div>
-                            {{ $declaration->feedback_text }}
+                            {!! $declaration->feedback_text !!}
                             <ul>
                                 <li><a href="{{ $declaration->feedback_url }}">{{ $declaration->feedback_url }}</a></li>
                                 <li><a href="mailto:{{ $declaration->feedback_email }}">{{ $declaration->feedback_email }}</a></li>
                                 <li>{{ $declaration->feedback_phone }}</li>
-                                <li>{{ $declaration->feedback_address }}</li>
+                                <li>{!! $declaration->feedback_address !!}</li>
                             </ul>
                         </div>
                     @endif
@@ -58,9 +58,9 @@
                     @include('accessibility.partials.feedback-form', ['company' => $company])
 
                     @if($declaration->acc_enforcement_agencies)
-                        <h5>Durchsetzungsstelle</h5>
-                        <p>{{ $declaration->market_surveillance_board_address_text }}</p>
-                        <p>{{ $declaration->market_surveillance_board_address }}</p>
+                        <h5 class="mt-5">Durchsetzungsstelle</h5>
+                        <p>{!! $declaration->market_surveillance_board_address_text !!}</p>
+                        <p>{!! $declaration->market_surveillance_board_address !!}</p>
                     @endif
 
                 </div>
