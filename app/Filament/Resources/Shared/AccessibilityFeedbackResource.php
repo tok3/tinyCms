@@ -20,7 +20,7 @@ class AccessibilityFeedbackResource extends Resource
     protected static ?string $navigationGroup = 'Erklärung zur Barrierefreiheit';
     protected static ?string $pluralLabel = 'Rückmeldungen Barrierefreiheit';
     protected static ?string $modelLabel = 'Rückmeldung';
-    protected static ?string $navigationIcon = 'heroicon-o-envelope-open';
+    protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
     public static function shouldRegisterNavigation(): bool
     {
