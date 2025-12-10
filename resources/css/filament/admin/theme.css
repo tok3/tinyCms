@@ -10,3 +10,7 @@
         letter-spacing: normal !important; /* falls das Theme tracking-wider setzt */
     }
 }
+
+.a11y-easy-read {
+    @apply bg-emerald-50 rounded-md border border-emerald-100;
+}

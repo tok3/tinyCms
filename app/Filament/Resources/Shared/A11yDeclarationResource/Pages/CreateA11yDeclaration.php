@@ -9,4 +9,14 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateA11yDeclaration extends CreateRecord
 {
     protected static string $resource = A11yDeclarationResource::class;
+
+    protected function afterCreate(): void
+    {
+        $state = $this->form->getState();
+
+        if (isset($state['company_type']) && $this->record?->company) {
+            $this->record->company->type = (int) $state['company_type'];
+            $this->record->company->save();
+        }
+    }
 }
