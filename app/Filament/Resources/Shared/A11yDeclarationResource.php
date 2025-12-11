@@ -18,36 +18,40 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\Select;
+
 class A11yDeclarationResource extends Resource
 {
     protected static ?string $model = A11yDeclaration::class;
 
     protected static ?string $label = 'Barrierefreiheitserklärung';
     protected static ?string $pluralLabel = 'Barrierefreiheitserklärungen';
-    protected static ?string $navigationGroup = 'Erklärung zur Barrierefreiheit';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function shouldRegisterNavigation(): bool
     {
         $user = auth()->user();
 
-        if (! $user) {
+        if (!$user)
+        {
             return false;
         }
 
         // Admin sieht die Resource immer
-        if ($user->is_admin) {
+        if ($user->is_admin)
+        {
             return true;
         }
 
         // Für normale Kunden im Dashboard-Panel:
         $tenant = Filament::getTenant();
-        if (! $tenant) {
+        if (!$tenant)
+        {
             return false;
         }
 
         $company = Company::find($tenant->id);
-        if (! $company) {
+        if (!$company)
+        {
             return false;
         }
 
@@ -65,14 +69,16 @@ class A11yDeclarationResource extends Resource
         $user = auth()->user();
 
         // Admin sieht alle Datensätze
-        if ($user?->is_admin) {
+        if ($user?->is_admin)
+        {
             return $query;
         }
 
         // Kunde: nur eigene Firma (Tenant)
         $tenant = Filament::getTenant();
 
-        if ($tenant) {
+        if ($tenant)
+        {
             return $query->where('company_id', $tenant->id);
         }
 
@@ -86,7 +92,7 @@ class A11yDeclarationResource extends Resource
             ->schema([
                 // Firma automatisch setzen (für Kunden)
                 Forms\Components\Hidden::make('company_id')
-                    ->default(fn () => Filament::getTenant()?->id),
+                    ->default(fn() => Filament::getTenant()?->id),
 
                 // Links / Publish oben
                 Forms\Components\View::make('filament.forms.components.accessibility-declaration-links')
@@ -98,380 +104,393 @@ class A11yDeclarationResource extends Resource
                     ->default(true)
                     ->live()
                     ->afterStateUpdated(function ($state, callable $set, callable $get, $livewire) {
-                        if ($livewire instanceof EditRecord) {
+                        if ($livewire instanceof EditRecord)
+                        {
                             $livewire->save();
                         }
                     }),
-
-
-                // Restliches Formular
-                Forms\Components\Group::make()
+                Forms\Components\Grid::make(3)
                     ->schema([
-                        Forms\Components\Grid::make(8)
-                            ->schema([
-                                Forms\Components\Select::make('federal_state')
-                                    ->label('Bundesland')
-                                    ->options(\App\Enums\FederalState::options())
-                                    ->reactive()
-                                    ->afterStateUpdated(function ($state, Set $set) {
-                                        $agency = \App\Models\AccEnforcementAgency::where('id', $state)->first();
-                                        $set('enforcement_agency', $agency ? $agency->id : null);
-                                    })
-                                    ->nullable(),
+                        Forms\Components\Select::make('federal_state')
+                            ->label('Bundesland')
+                            ->options(\App\Enums\FederalState::options())
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, Set $set) {
+                                $agency = \App\Models\AccEnforcementAgency::where('id', $state)->first();
+                                $set('enforcement_agency', $agency ? $agency->id : null);
+                            })
+                            ->required(),
 
-                                Forms\Components\Select::make('federal_or_state_law')
-                                    ->label('Bundes- oder Landesrecht')
-                                    ->options([
-                                        0 => 'Bundesrecht',
-                                        1 => 'Landesrecht',
-                                    ])
-                                    ->nullable(),
+                        Forms\Components\Select::make('federal_or_state_law')
+                            ->label('Bundes- oder Landesrecht')
+                            ->options([
+                                0 => 'Bundesrecht',
+                                1 => 'Landesrecht',
+                            ])
+                            ->required(),
+                        Forms\Components\Select::make('enforcement_agency')
+                            ->label('Durchsetzungsstelle')
+                            ->options(\App\Models\AccEnforcementAgency::pluck('state', 'id')->toArray())
+                            ->nullable(),
+                    ])
+                    ->visible(function (Get $get): bool {
+                        // company_id kommt aus dem Hidden-Feld; Fallback auf Tenant
+                        $companyId = $get('company_id') ?? Filament::getTenant()?->id;
 
-                                Forms\Components\Select::make('enforcement_agency')
-                                    ->label('Durchsetzungsstelle')
-                                    ->options(\App\Models\AccEnforcementAgency::pluck('state', 'id')->toArray())
-                                    ->nullable(),
-                            ]),
+                        if (!$companyId) {
+                            // Fallback: im Zweifel anzeigen, damit Admins nicht "blind" sind
+                            return true;
+                        }
 
-                        // Geltungsbereich (Domain)
+                        $company = Company::find($companyId);
+
+                        if (!$company) {
+                            return true;
+                        }
+
+                        // 1 = Gemeinde / Behörde, 2 = Verein
+                        return in_array($company->type, [1, 2], true);
+                    }),
+
+
+                // Geltungsbereich (Domain)
+                Forms\Components\Grid::make(12)
+                    ->schema([
+                        Forms\Components\TextInput::make('scope')
+                            ->url()
+                            ->label('Geltungsbereich (Domain)')
+                            ->columnSpan(8)
+                            ->nullable(),
+                    ]),
+
+                // Standard-Texte (Firmen + allgemeine Texte)
+                Forms\Components\Section::make('Texte (Standard)')
+                    ->schema([
                         Forms\Components\Grid::make(12)
                             ->schema([
-                                Forms\Components\TextInput::make('scope')
-                                    ->url()
-                                    ->label('Geltungsbereich (Domain)')
+                                Forms\Components\RichEditor::make('declaration_intro_text')
+                                    ->label('Eingangsbeschreibung')
                                     ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ]),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('company_offer')
+                                    ->label('Beschreibung der Dienstleistung')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
                                     ->nullable(),
                             ]),
 
-                        // Standard-Texte (Firmen + allgemeine Texte)
-                        Forms\Components\Section::make('Texte (Standard)')
+                        Forms\Components\Grid::make(12)
                             ->schema([
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('declaration_intro_text')
-                                            ->label('Eingangsbeschreibung')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ]),
-                                    ]),
-
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('company_offer')
-                                            ->label('Beschreibung der Dienstleistung')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ])
-                                            ->nullable(),
-                                    ]),
-
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('consistency')
-                                            ->default('Unsere Produkte und Dienstleistungen sind für Menschen mit Behinderungen in der allgemein üblichen Weise, ohne besondere Erschwernis und grundsätzlich ohne fremde Hilfe auffindbar, zugänglich und nutzbar.')
-                                            ->label('Vereinbarkeit')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ]),
-                                    ]),
-
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('bfsg_full')
-                                            ->default('Unsere Webseite ist mit dem BFSG und der BFSGV vereinbar; alle Anforderungen werden erfüllt.')
-                                            ->label('Text für volle Konformität')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ]),
-                                    ]),
-
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('bfsg_partial')
-                                            ->default('Unsere Webseite ist in großen Teilen mit dem BFSG und der BFSGV vereinbar. Jedoch bestehen noch einige Barrieren auf unseren Seiten, an denen wir aktiv arbeiten und diese in Zukunft beseitigen wollen. Folgende Ausnahmen und Unvereinbarkeiten bestehen:')
-                                            ->label('Text für teilweise Konformität')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ]),
-                                    ]),
-
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('non_conform_content')
-                                            ->default('Die folgenden Inhalte sind nicht barrierefrei, da sie eine unverhältnismäßige Belastung gemäß § 12a Absatz 6 BGG darstellen:')
-                                            ->label('Nicht konforme Inhalte')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ]),
+                                Forms\Components\RichEditor::make('consistency')
+                                    ->default('Unsere Produkte und Dienstleistungen sind für Menschen mit Behinderungen in der allgemein üblichen Weise, ohne besondere Erschwernis und grundsätzlich ohne fremde Hilfe auffindbar, zugänglich und nutzbar.')
+                                    ->label('Vereinbarkeit')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
                                     ]),
                             ]),
 
-                        // Texte in Leichter Sprache
-                        Forms\Components\Section::make('Texte in Leichter Sprache')
+                        Forms\Components\Grid::make(12)
                             ->schema([
-                                Forms\Components\Placeholder::make('hint_easy_read')
-                                    ->label('Hinweis')
-                                    ->content('Inhalte in Leichter Sprache sind optional. Wenn Sie keine Leichte Sprache anbieten, lassen Sie die Felder einfach leer.'),
-
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('declaration_intro_text_ez')
-                                            ->label('Eingangsbeschreibung (Leichte Sprache)')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ])
-                                            ->extraAttributes(['class' => 'a11y-easy-read']),
-                                    ]),
-
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('company_offer_ez')
-                                            ->label('Beschreibung der Dienstleistung (Leichte Sprache)')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ]),
-                                    ]),
-
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('consistency_ez')
-                                            ->label('Vereinbarkeit (Leichte Sprache)')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ]),
-                                    ]),
-
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('bfsg_full_ez')
-                                            ->label('Text für volle Konformität (Leichte Sprache)')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ]),
-                                    ]),
-
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('bfsg_partial_ez')
-                                            ->label('Text für teilweise Konformität (Leichte Sprache)')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ]),
-                                    ]),
-
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('non_conform_content_ez')
-                                            ->label('Nicht konforme Inhalte (Leichte Sprache)')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ]),
+                                Forms\Components\RichEditor::make('bfsg_full')
+                                    ->default('Unsere Webseite ist mit dem BFSG und der BFSGV vereinbar; alle Anforderungen werden erfüllt.')
+                                    ->label('Text für volle Konformität')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
                                     ]),
                             ]),
 
-                        // Feedback-Bereich
-                        Forms\Components\Section::make('Feedback-Kanal')
+                        Forms\Components\Grid::make(12)
                             ->schema([
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\TextInput::make('feedback_url')
-                                            ->url()
-                                            ->label('Feedback URL')
-                                            ->columnSpan(4)
-                                            ->nullable(),
-                                        Forms\Components\TextInput::make('feedback_email')
-                                            ->label('Feedback E-Mail')
-                                            ->columnSpan(4)
-                                            ->nullable(),
-                                        Forms\Components\TextInput::make('feedback_phone')
-                                            ->label('Feedback Tel.')
-                                            ->columnSpan(4)
-                                            ->nullable(),
-                                    ]),
-
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('feedback_address')
-                                            ->label('Feedback Postanschrift')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ])
-                                            ->nullable(),
-                                    ]),
-
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('feedback_text')
-                                            ->label('Feedback Zusatztext')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ])
-                                            ->nullable(),
-                                    ]),
-
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('feedback_text_ez')
-                                            ->label('Feedback Zusatztext (Leichte Sprache)')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ])
-                                            ->nullable(),
+                                Forms\Components\RichEditor::make('bfsg_partial')
+                                    ->default('Unsere Webseite ist in großen Teilen mit dem BFSG und der BFSGV vereinbar. Jedoch bestehen noch einige Barrieren auf unseren Seiten, an denen wir aktiv arbeiten und diese in Zukunft beseitigen wollen. Folgende Ausnahmen und Unvereinbarkeiten bestehen:')
+                                    ->label('Text für teilweise Konformität')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
                                     ]),
                             ]),
 
-                        // Marktüberwachungsbehörde / Durchsetzungsstelle
-                        Forms\Components\Section::make('Marktüberwachungsbehörde / Durchsetzungsstelle')
+                        Forms\Components\Grid::make(12)
                             ->schema([
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('market_surveillance_board_address')
-                                            ->label('Marktüberwachungsbehörde Adresse')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ])
-                                            ->nullable(),
+                                Forms\Components\RichEditor::make('non_conform_content')
+                                    ->default('Die folgenden Inhalte sind nicht barrierefrei, da sie eine unverhältnismäßige Belastung gemäß § 12a Absatz 6 BGG darstellen:')
+                                    ->label('Nicht konforme Inhalte')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
                                     ]),
+                            ]),
+                    ]),
 
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('market_surveillance_board_address_text')
-                                            ->label('Marktüberwachungsbehörde Zusatztext')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ])
-                                            ->nullable(),
-                                    ]),
+                // Texte in Leichter Sprache
+                Forms\Components\Section::make('Texte in Leichter Sprache')
+                    ->schema([
+                        Forms\Components\Placeholder::make('hint_easy_read')
+                            ->label('Hinweis')
+                            ->content('Inhalte in Leichter Sprache sind optional. Wenn Sie keine Leichte Sprache anbieten, lassen Sie die Felder einfach leer.'),
 
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('market_surveillance_board_address_text_ez')
-                                            ->label('Marktüberwachungsbehörde Zusatztext (Leichte Sprache)')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ])
-                                            ->nullable(),
-                                    ]),
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('declaration_intro_text_ez')
+                                    ->label('Eingangsbeschreibung (Leichte Sprache)')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->extraAttributes(['class' => 'a11y-easy-read']),
+                            ]),
 
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('enforcement_text')
-                                            ->label('Zusatztext Durchsetzungsstelle')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ])
-                                            ->nullable(),
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('company_offer_ez')
+                                    ->label('Beschreibung der Dienstleistung (Leichte Sprache)')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
                                     ]),
+                            ]),
 
-                                Forms\Components\Grid::make(12)
-                                    ->schema([
-                                        Forms\Components\RichEditor::make('enforcement_text_ez')
-                                            ->label('Zusatztext Durchsetzungsstelle (Leichte Sprache)')
-                                            ->columnSpan(8)
-                                            ->toolbarButtons([
-                                                'bold',
-                                                'italic',
-                                                'bulletList',
-                                                'orderedList',
-                                                'link',
-                                            ])
-                                            ->nullable(),
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('consistency_ez')
+                                    ->label('Vereinbarkeit (Leichte Sprache)')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
                                     ]),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('bfsg_full_ez')
+                                    ->label('Text für volle Konformität (Leichte Sprache)')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ]),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('bfsg_partial_ez')
+                                    ->label('Text für teilweise Konformität (Leichte Sprache)')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ]),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('non_conform_content_ez')
+                                    ->label('Nicht konforme Inhalte (Leichte Sprache)')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ]),
+                            ]),
+                    ]),
+
+                // Feedback-Bereich
+                Forms\Components\Section::make('Feedback-Kanal')
+                    ->schema([
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\TextInput::make('feedback_url')
+                                    ->url()
+                                    ->label('Feedback URL')
+                                    ->columnSpan(4)
+                                    ->nullable(),
+                                Forms\Components\TextInput::make('feedback_email')
+                                    ->label('Feedback E-Mail')
+                                    ->columnSpan(4)
+                                    ->nullable(),
+                                Forms\Components\TextInput::make('feedback_phone')
+                                    ->label('Feedback Tel.')
+                                    ->columnSpan(4)
+                                    ->nullable(),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('feedback_address')
+                                    ->label('Feedback Postanschrift')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->nullable(),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('feedback_text')
+                                    ->label('Feedback Zusatztext')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->nullable(),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('feedback_text_ez')
+                                    ->label('Feedback Zusatztext (Leichte Sprache)')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->nullable(),
+                            ]),
+                    ]),
+
+                // Marktüberwachungsbehörde / Durchsetzungsstelle
+                Forms\Components\Section::make('Marktüberwachungsbehörde / Durchsetzungsstelle')
+                    ->schema([
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('market_surveillance_board_address')
+                                    ->label('Marktüberwachungsbehörde Adresse')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->nullable(),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('market_surveillance_board_address_text')
+                                    ->label('Marktüberwachungsbehörde Zusatztext')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->nullable(),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('market_surveillance_board_address_text_ez')
+                                    ->label('Marktüberwachungsbehörde Zusatztext (Leichte Sprache)')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->nullable(),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('enforcement_text')
+                                    ->label('Zusatztext Durchsetzungsstelle')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->nullable(),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('enforcement_text_ez')
+                                    ->label('Zusatztext Durchsetzungsstelle (Leichte Sprache)')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->nullable(),
                             ]),
                     ]),
             ]);
@@ -486,7 +505,7 @@ class A11yDeclarationResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('d.m.Y'))
+                    ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y'))
                     ->label('Erstellt am')
                     ->sortable(),
             ])
@@ -501,7 +520,7 @@ class A11yDeclarationResource extends Resource
             ->emptyStateDescription('Legen Sie den ersten Eintrag an.')
             ->emptyStateActions([
                 Tables\Actions\CreateAction::make()
-                    ->visible(fn () => ! auth()->user()?->is_admin),
+                    ->visible(fn() => !auth()->user()?->is_admin),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
