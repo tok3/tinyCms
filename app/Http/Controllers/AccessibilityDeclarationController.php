@@ -152,7 +152,9 @@ class AccessibilityDeclarationController extends Controller
         }
         else
         {
+
             $data = $this->getBoardData($company->id);
+
             $data['declaration']['federal_state'] = \App\Enums\FederalState::from($data['declaration']['federal_state'])->label();
 
             if ($data['published'] === 0)

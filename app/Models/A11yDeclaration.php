@@ -155,18 +155,6 @@ class A11yDeclaration extends Model
      */
     private function getEzText(string $text): string
     {
-        /*
-        $prompt = "Bitte übersetze folgenden Text kommentarlos und ohne Bestätigung in leichte Sprache "
-            . "nach dem Regelwerk für Leichte Sprache auf dem Sprachniveau A1 oder A2. "
-            . "Bitte füge einen HTML-Zeilenumbruch (<br>) zwischen jeden Satz. "
-            . "Fremdworte sollen vermieden oder erklärt werden. Begriffe in einer Fremdsprache sollten übersetzt werden. "
-            . "Ein 10-jähriges Kind sollte den Text verstehen können. "
-            . "Abkürzungen sollten möglichst erst ausgeschrieben und dann in Klammern angegeben werden. "
-            . "Die Sätze sollten möglichst kurze Hauptsätze mit etwa 8 Wörtern sein. "
-            . "Bitte verwende, falls es auftaucht, statt 'Einfache Sprache' den Begriff 'Leichte Sprache'. "
-            . "Bitte verwende außer den Zeilenumbrüchen keine weiteren HTML-Codes. Text:\n\n"
-            . $text;
-        */
 
         $prompt = "Bitte übersetze folgenden Text kommentarlos und ohne Bestätigung in Leichte Sprache "
             . "nach dem Regelwerk für Leichte Sprache auf dem Sprachniveau A1 oder A2. "

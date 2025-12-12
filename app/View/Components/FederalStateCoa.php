@@ -2,41 +2,43 @@
 
 namespace App\View\Components;
 
+use App\Enums\FederalState;
 use Illuminate\View\Component;
 
 class FederalStateCoa extends Component
 {
-    public string $stateName;
+    public string $label;
     public ?array $coat;
 
     /**
-     * @param string $stateName  z.B. "Bayern", "Berlin", "Brandenburg"
+     * Du kannst entweder stateId ODER stateName übergeben.
      */
-    public function __construct(string $stateName)
+    public function __construct(?int $stateId = null, ?string $stateName = null)
     {
-        $this->stateName = trim($stateName);
-        $this->coat = $this->mapCoat($this->stateName);
+        $this->label = '';
+
+        if ($stateId) {
+            $this->label = FederalState::tryFrom((int) $stateId)?->label() ?? (string) $stateId;
+        } elseif ($stateName) {
+            $this->label = trim($stateName);
+        }
+
+        $this->coat = $this->mapCoat($this->label);
     }
 
     public function render()
     {
-
         return view('components.federal-state-coa', [
             'coat'  => $this->coat,
-            'label' => $this->stateName,
+            'label' => $this->label,
         ]);
     }
 
-    /**
-     * Mappt Bundesland-Namen auf das richtige Wappen-Bild.
-     * Passe die Dateinamen hier an deine echten Files an.
-     */
     private function mapCoat(string $label): ?array
     {
         $map = [
             'Baden-Württemberg'      => 'Lesser_coat_of_arms_of_Baden-Wuerttemberg.svg.png',
-            'Bayern'                 => 'Bayern_Wappen.svg.png',
-            'Bayern'                 => 'Landessymbol_Freistaat_Bayern.svg.png', // schöner als Bayern_Wappen.svg.png
+            'Bayern'                 => 'Landessymbol_Freistaat_Bayern.svg.png',
             'Berlin'                 => 'Country_symbol_of_Berlin_b-w.svg.png',
             'Brandenburg'            => 'DEU_Brandenburg_COA.svg.webp',
             'Bremen'                 => 'Bremen_Wappen_frei.svg.png',
@@ -53,7 +55,7 @@ class FederalStateCoa extends Component
             'Thüringen'              => 'Coat_of_arms_of_Thuringia.svg.webp',
         ];
 
-        if (! isset($map[$label])) {
+        if (!isset($map[$label])) {
             return null;
         }
 
