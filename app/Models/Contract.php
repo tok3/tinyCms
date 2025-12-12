@@ -30,6 +30,7 @@ class Contract extends Model
         'setup_fee',
         'interval',
         'subscription_id',
+        'subscription_start_date',
         'iteration',
         'data',
         'order_date',
