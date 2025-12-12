@@ -86,6 +86,29 @@ class A11yDeclarationResource extends Resource
         return $query->whereRaw('1 = 0');
     }
 
+    private static function companyTypeFromForm(Get $get): ?int
+    {
+        $companyId = $get('company_id') ?? Filament::getTenant()?->id;
+
+        if (! $companyId) {
+            return null;
+        }
+
+        $type = Company::whereKey($companyId)->value('type');
+
+        return $type === null ? null : (int) $type;
+    }
+
+    private static function isCompany(Get $get): bool
+    {
+        return self::companyTypeFromForm($get) === 0;
+    }
+
+    private static function isBoardOrAssociation(Get $get): bool
+    {
+        return in_array(self::companyTypeFromForm($get), [1, 2], true);
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -161,7 +184,8 @@ class A11yDeclarationResource extends Resource
                             ->label('Geltungsbereich (Domain)')
                             ->columnSpan(8)
                             ->nullable(),
-                    ]),
+                    ])
+                    ->visible(fn (Get $get): bool => self::isBoardOrAssociation($get)),
 
                 // Standard-Texte (Firmen + allgemeine Texte)
                 Forms\Components\Section::make('Texte (Standard)')
@@ -178,7 +202,8 @@ class A11yDeclarationResource extends Resource
                                         'orderedList',
                                         'link',
                                     ]),
-                            ]),
+                            ])
+                            ->visible(fn (Get $get): bool => self::isCompany($get)),
 
                         Forms\Components\Grid::make(12)
                             ->schema([
@@ -193,7 +218,8 @@ class A11yDeclarationResource extends Resource
                                         'link',
                                     ])
                                     ->nullable(),
-                            ]),
+                            ])
+                            ->visible(fn (Get $get): bool => self::isCompany($get)),
 
                         Forms\Components\Grid::make(12)
                             ->schema([
@@ -274,9 +300,9 @@ class A11yDeclarationResource extends Resource
                                         'bulletList',
                                         'orderedList',
                                         'link',
-                                    ])
-                                    ->extraAttributes(['class' => 'a11y-easy-read']),
-                            ]),
+                                    ]),
+                            ])
+                            ->visible(fn (Get $get): bool => self::isCompany($get)),
 
                         Forms\Components\Grid::make(12)
                             ->schema([
@@ -290,7 +316,8 @@ class A11yDeclarationResource extends Resource
                                         'orderedList',
                                         'link',
                                     ]),
-                            ]),
+                            ])
+                            ->visible(fn (Get $get): bool => self::isCompany($get)),
 
                         Forms\Components\Grid::make(12)
                             ->schema([
@@ -347,7 +374,55 @@ class A11yDeclarationResource extends Resource
                                         'link',
                                     ]),
                             ]),
-                    ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('feedback_text_ez')
+                                    ->label('Feedback Zusatztext (Leichte Sprache)')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->nullable(),
+                            ]),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('market_surveillance_board_address_text_ez')
+                                    ->label('Marktüberwachungsbehörde Zusatztext (Leichte Sprache)')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->nullable(),
+                            ])
+                            ->visible(fn (Get $get): bool => self::isCompany($get)),
+
+                        Forms\Components\Grid::make(12)
+                            ->schema([
+                                Forms\Components\RichEditor::make('enforcement_text_ez')
+                                    ->label('Zusatztext Durchsetzungsstelle (Leichte Sprache)')
+                                    ->columnSpan(8)
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'bulletList',
+                                        'orderedList',
+                                        'link',
+                                    ])
+                                    ->nullable(),
+                            ])
+                            ->visible(fn (Get $get): bool => self::isBoardOrAssociation($get)),
+                    ])
+                    ->collapsed(),
 
                 // Feedback-Bereich
                 Forms\Components\Section::make('Feedback-Kanal')
@@ -398,21 +473,6 @@ class A11yDeclarationResource extends Resource
                                     ])
                                     ->nullable(),
                             ]),
-
-                        Forms\Components\Grid::make(12)
-                            ->schema([
-                                Forms\Components\RichEditor::make('feedback_text_ez')
-                                    ->label('Feedback Zusatztext (Leichte Sprache)')
-                                    ->columnSpan(8)
-                                    ->toolbarButtons([
-                                        'bold',
-                                        'italic',
-                                        'bulletList',
-                                        'orderedList',
-                                        'link',
-                                    ])
-                                    ->nullable(),
-                            ]),
                     ]),
 
                 // Marktüberwachungsbehörde / Durchsetzungsstelle
@@ -431,7 +491,8 @@ class A11yDeclarationResource extends Resource
                                         'link',
                                     ])
                                     ->nullable(),
-                            ]),
+                            ])
+                            ->visible(fn (Get $get): bool => self::isCompany($get)),
 
                         Forms\Components\Grid::make(12)
                             ->schema([
@@ -446,22 +507,8 @@ class A11yDeclarationResource extends Resource
                                         'link',
                                     ])
                                     ->nullable(),
-                            ]),
-
-                        Forms\Components\Grid::make(12)
-                            ->schema([
-                                Forms\Components\RichEditor::make('market_surveillance_board_address_text_ez')
-                                    ->label('Marktüberwachungsbehörde Zusatztext (Leichte Sprache)')
-                                    ->columnSpan(8)
-                                    ->toolbarButtons([
-                                        'bold',
-                                        'italic',
-                                        'bulletList',
-                                        'orderedList',
-                                        'link',
-                                    ])
-                                    ->nullable(),
-                            ]),
+                            ])
+                            ->visible(fn (Get $get): bool => self::isCompany($get)),
 
                         Forms\Components\Grid::make(12)
                             ->schema([
@@ -476,22 +523,8 @@ class A11yDeclarationResource extends Resource
                                         'link',
                                     ])
                                     ->nullable(),
-                            ]),
-
-                        Forms\Components\Grid::make(12)
-                            ->schema([
-                                Forms\Components\RichEditor::make('enforcement_text_ez')
-                                    ->label('Zusatztext Durchsetzungsstelle (Leichte Sprache)')
-                                    ->columnSpan(8)
-                                    ->toolbarButtons([
-                                        'bold',
-                                        'italic',
-                                        'bulletList',
-                                        'orderedList',
-                                        'link',
-                                    ])
-                                    ->nullable(),
-                            ]),
+                            ])
+                            ->visible(fn (Get $get): bool => self::isBoardOrAssociation($get)),
                     ]),
             ]);
     }

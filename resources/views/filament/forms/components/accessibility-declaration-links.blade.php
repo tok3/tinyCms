@@ -15,8 +15,13 @@
     }
 
     if ($company && $company->slug) {
-        $url   = config('app.url') . '/showAccessibilityDeclaration/' . $company->slug;
-        $urlEz = config('app.url') . '/showAccessibilityDeclarationEz/' . $company->slug;
+    $url = route('a11y.declaration.show', [
+        'slug' => $company->slug,
+    ]);
+
+    $urlEz = route('a11y.declaration-ez.show', [
+        'slug' => $company->slug,
+    ]);
     }
 
     // Publish-Status aus dem Record holen
@@ -61,28 +66,28 @@
         {{-- Standard-Version --}}
         <div x-data="{ copied: false }" class="flex flex-wrap items-center gap-3">
             <span class="font-medium w-40 text-gray-700 flex items-center gap-1">
-                <x-filament::icon name="heroicon-o-globe-alt" class="w-4 h-4 text-gray-600" />
+                <x-filament::icon name="heroicon-o-globe-alt" class="w-4 h-4 text-gray-600"/>
                 Standard
             </span>
 
             <x-filament::button
-                tag="a"
-                :href="$url"
-                target="_blank"
-                size="xs"
-                color="primary"
-                icon="heroicon-m-eye"
-                :disabled="! $published"
+                    tag="a"
+                    :href="$url"
+                    target="_blank"
+                    size="xs"
+                    color="primary"
+                    icon="heroicon-m-eye"
+                    :disabled="! $published"
             >
                 Seite anzeigen
             </x-filament::button>
 
             <x-filament::button
-                size="xs"
-                color="gray"
-                icon="heroicon-m-clipboard"
-                :disabled="! $published"
-                x-on:click="
+                    size="xs"
+                    color="gray"
+                    icon="heroicon-m-clipboard"
+                    :disabled="! $published"
+                    x-on:click="
                     navigator.clipboard.writeText('{{ $url }}');
                     copied = true;
                     setTimeout(() => copied = false, 2000);
@@ -99,29 +104,29 @@
         {{-- Leichte Sprache --}}
         <div x-data="{ copied: false }" class="flex flex-wrap items-start gap-3">
             <span class="font-medium w-40 text-gray-700 flex items-center gap-1">
-                <x-filament::icon name="heroicon-o-sparkles" class="w-4 h-4 text-gray-600" />
+                <x-filament::icon name="heroicon-o-sparkles" class="w-4 h-4 text-gray-600"/>
                 Leichte Sprache
             </span>
 
             <div class="flex flex-wrap items-center gap-3">
                 <x-filament::button
-                    tag="a"
-                    :href="$urlEz"
-                    target="_blank"
-                    size="xs"
-                    color="primary"
-                    icon="heroicon-m-eye"
-                    :disabled="! $published"
+                        tag="a"
+                        :href="$urlEz"
+                        target="_blank"
+                        size="xs"
+                        color="primary"
+                        icon="heroicon-m-eye"
+                        :disabled="! $published"
                 >
                     Seite anzeigen
                 </x-filament::button>
 
                 <x-filament::button
-                    size="xs"
-                    color="gray"
-                    icon="heroicon-m-clipboard"
-                    :disabled="! $published"
-                    x-on:click="
+                        size="xs"
+                        color="gray"
+                        icon="heroicon-m-clipboard"
+                        :disabled="! $published"
+                        x-on:click="
                         navigator.clipboard.writeText('{{ $urlEz }}');
                         copied = true;
                         setTimeout(() => copied = false, 2000);
