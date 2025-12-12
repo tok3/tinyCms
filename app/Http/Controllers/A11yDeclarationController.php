@@ -146,17 +146,16 @@ class A11yDeclarationController extends Controller
         }*/
 
 
-        $stateId = (int) $data['declaration']->federal_state;
+        $data = $this->getDeclarationData($company->id);
 
-        $stateName = FederalState::tryFrom($stateId)?->label();
+        $declaration = $data['declaration'];
 
-echo       $data['declaration']->federal_state = $stateName;
+        if ($declaration && $declaration->federal_state) {
+            $stateId = (int) $declaration->federal_state;
 
-        if ($data['published'] === 0) {
-            \Log::error('not published amt');
-            abort(404);
+            $declaration->federal_state_label =
+                FederalState::tryFrom($stateId)?->label();
         }
-
 
         return view('accessibility.accessibility-declaration', $data);
     }

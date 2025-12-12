@@ -23,10 +23,13 @@
                             <h1 class="mt-0">{{ $company->name }}</h1>
                         </div>
                     </div>
-                    <h3>Bundesland</h3>d
-                    -->{{$declaration->federal_state}}
-                    <p><x-federal-state-coa :state-name="$declaration->federal_state"/></p>
+                    {{--<h3>Bundesland</h3>
+                    <p><x-federal-state-coa :state-name="$declaration->federal_state"/></p>--}}
+                    <h3>Bundesland</h3>
 
+                    <p><x-federal-state-coa
+                            :state-name="$declaration->federal_state_label"
+                    /></p>
                     <h4>Geltungsbereich</h4>
                     <p>{{ $declaration->scope }}</p>
 
