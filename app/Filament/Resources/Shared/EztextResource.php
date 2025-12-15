@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Models\Company;
 use Filament\Forms\Components\Placeholder;
+use Filament\Support\Enums\VerticalAlignment;
 use Illuminate\Support\HtmlString;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
@@ -112,9 +113,17 @@ class EztextResource extends Resource
                     ->columnSpan(3),
                     ]),
 
-                Forms\Components\Textarea::make('text')
-                    ->label('Text')
-                    ->rows(20)
+                Forms\Components\RichEditor::make('text')
+                    ->label('Text in leichter Sprache')
+                    ->toolbarButtons([
+                        'bold',
+                        'italic',
+                        'bulletList',
+                        'orderedList',
+                        'link',
+                        'undo',
+                        'redo',
+                    ])
                     ->required(),
 
                 Placeholder::make('url')
@@ -140,11 +149,34 @@ class EztextResource extends Resource
                 Tables\Columns\TextColumn::make('company.name')
                     ->label('Firma')
                     ->visible(fn () => auth()->user()?->isAdmin())
+                    ->verticalAlignment(VerticalAlignment::Start)
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('text')
                     ->label('Text')
                     ->wrap()
+                    ->formatStateUsing(function ($state) {
+                        if ($state === null) {
+                            return '';
+                        }
+
+                        // 1) Entities decodieren, 2) HTML-Tags entfernen, 3) Whitespace normalisieren
+                        $plain = html_entity_decode((string) $state, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                        $plain = strip_tags($plain);
+                        $plain = preg_replace('/\s+/u', ' ', trim($plain));
+
+                        // 4) Auf 200 Wörter kürzen
+                        $words = preg_split('/\s+/u', $plain, -1, PREG_SPLIT_NO_EMPTY);
+                        if (! is_array($words)) {
+                            return $plain;
+                        }
+
+                        if (count($words) <= 50) {
+                            return $plain;
+                        }
+
+                        return implode(' ', array_slice($words, 0, 50)) . ' [...]';
+                    })
                     ->searchable(),
                 Tables\Columns\TextColumn::make('url')
                     ->label('Url')
