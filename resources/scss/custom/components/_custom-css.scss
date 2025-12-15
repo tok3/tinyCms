@@ -372,3 +372,14 @@ mark-blue,
     height: 1px;
     overflow: hidden;
 }
+
+/* Pfeil/Toggle näher an den Titel ziehen (Filament v3) */
+.a11y-easy-language-section .fi-section-header {
+    justify-content: flex-start;
+    gap: .5rem;
+
+}
+
+.a11y-easy-language-section .fi-section-header-actions {
+    margin-left: 0;
+}
