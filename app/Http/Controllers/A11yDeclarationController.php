@@ -269,35 +269,36 @@ class A11yDeclarationController extends Controller
      * @param int $id
      * @return array
      */
-    public function exportAllIssuesGrouped(int $id): array
+    public function exportAllIssuesGrouped(int $companyId): array
     {
+        $urlIds = Pa11yUrl::where('company_id', $companyId)->pluck('id');
+
+        $issues = Pa11yAccessibilityIssue::query()
+            ->whereIn('url_id', $urlIds)
+            ->whereNotNull('runnerExtras')
+            ->where('runnerExtras', '!=', '[]')
+            ->selectRaw('code, issue, runnerExtras, type, typeCode, COUNT(*) as issue_count')
+            ->groupBy('code', 'issue', 'runnerExtras', 'type', 'typeCode')
+            ->with(['accessibilityRule']) // wichtig, sonst N+1
+            ->get();
+
         $records = [];
-        $urls    = Pa11yUrl::where('company_id', '=', $id)->get();
 
-        foreach ($urls as $url) {
-            $issues = Pa11yAccessibilityIssue::where('url_id', '=', $url->id)
-                ->groupBy('code')
-                ->selectRaw('code, issue, runnerExtras, type, typeCode, COUNT(*) as issue_count')
-                ->get();
+        foreach ($issues as $issue) {
+            $rule = $issue->accessibilityRule;
 
-            foreach ($issues as $issue) {
-                if (isset($issue->runnerExtras) && $issue->runnerExtras !== '[]') {
-                    $rule = $issue->accessibilityRule; // Relation
-
-                    $records[] = [
-                        'issue'                    => $issue->issue,
-                        'desc'                     => json_decode($issue->runnerExtras)->description ?? null,
-                        'code'                     => $issue->code,
-                        'rule[merged_html]'        => $rule->merged_html        ?? null,
-                        'rule[standards_badges]'   => $rule->standards_badges   ?? null,
-                        'rule[standard_logos]'     => $rule->standards          ?? null,
-                        'type'                     => $issue->type,
-                        'typeCode'                 => $issue->typeCode,
-                        'count'                    => $issue->issue_count,
-                        'translated'               => $issue->translated_message,
-                    ];
-                }
-            }
+            $records[] = [
+                'issue'                  => $issue->issue,
+                'desc'                   => data_get(json_decode($issue->runnerExtras, true), 'description'),
+                'code'                   => $issue->code,
+                'rule[merged_html]'      => $rule?->merged_html,
+                'rule[standards_badges]' => $rule?->standards_badges,
+                'rule[standard_logos]'   => $rule?->standards,
+                'type'                   => $issue->type,
+                'typeCode'               => $issue->typeCode,
+                'count'                  => (int) $issue->issue_count,
+                'translated'             => $issue->translated_message,
+            ];
         }
 
         return collect($records)->unique()->values()->all();
