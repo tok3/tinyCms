@@ -10,3 +10,80 @@
         letter-spacing: normal !important; /* falls das Theme tracking-wider setzt */
     }
 }
+@layer utilities {
+    /* Grundlayout: Section wie eine Card */
+    .fi-section.a11y-easy-language-section {
+        border-radius: .75rem !important;
+        overflow: hidden; /* damit Header/Background sauber abschließt */
+    }
+
+    /* Hintergrund + Rahmen nur wenn geöffnet */
+    .fi-section.a11y-easy-language-section:not(.fi-collapsed) {
+        background-color: #fffbe6 !important; /* zeitungspapier */
+        border: 1px solid #f0e6b8 !important;
+    }
+    .fi-section.a11y-easy-language-section:not(.fi-closed) {
+        background-color: #fffbe6 !important; /* zeitungspapier */
+        border: 1px solid #f0e6b8 !important;
+    }
+
+    /* Header etwas “cardiger” */
+    .fi-section.a11y-easy-language-section .fi-section-header {
+        padding: .75rem 1rem !important;
+    /*    align-items: center !important;*/
+        justify-content: flex-start !important;
+        gap: .5rem !important;
+    }
+
+    /* Inhalt einrücken, damit er nicht “klebt” */
+    .fi-section.a11y-easy-language-section .fi-section-content {
+        padding: 1rem !important;
+    }
+
+    /* Wenn geöffnet, Content leicht absetzen */
+    .fi-section.a11y-easy-language-section:not(.fi-collapsed) .fi-section-content {
+        margin-top: 0 !important;
+    }
+
+    /* Description/Hinweis dezenter, aber lesbar */
+    .fi-section.a11y-easy-language-section .fi-section-description {
+        opacity: .85 !important;
+        margin-top: .15rem !important;
+    }
+}
+
+@layer utilities {
+    /* Action-Container nach links ziehen (statt ganz rechts kleben) */
+    .fi-section.a11y-easy-language-section .fi-section-header-actions {
+        margin-left: .25rem !important;
+    }
+
+    /* Der Button selbst: sichtbarer, klickbarer */
+    .fi-section.a11y-easy-language-section .fi-section-header-actions button {
+        border: 1px solid rgba(0,0,0,.15) !important;
+        border-radius: .5rem !important;
+        padding: .35rem .45rem !important;
+        background: rgba(255,255,255,.65) !important;
+    }
+
+    .fi-section.a11y-easy-language-section:not(.fi-collapsed) .fi-section-header-actions button {
+        background: rgba(255,255,255,.85) !important;
+        border-color: rgba(0,0,0,.18) !important;
+    }
+
+    /* Hover: klarer "da kann man klicken" */
+    .fi-section.a11y-easy-language-section .fi-section-header-actions button:hover {
+        background: rgba(255,255,255,1) !important;
+        border-color: rgba(0,0,0,.28) !important;
+    }
+}
+@layer utilities {
+    .fi-section.a11y-easy-language-section .fi-section-description {
+        font-size: .875rem !important;
+    }
+}
+@layer utilities {
+    .fi-section.a11y-easy-language-section .fi-section-header {
+        cursor: pointer !important;
+    }
+}

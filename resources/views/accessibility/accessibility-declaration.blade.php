@@ -17,17 +17,19 @@
                                 </a>
                             </div>
                         @endif
-
                         <div class="col-12 col-md-8 col-lg-9 order-md-1">
                             <span class="mb-1 h3">Barrierefreiheitserklärung</span>
                             <div class="h6">{{ $declaration->federal_or_state_law == 0 ? ' - Bundesrecht' : ' - Landesrecht' }}</div>
                             <h1 class="mt-0">{{ $company->name }}</h1>
                         </div>
                     </div>
-
+                    {{--<h3>Bundesland</h3>
+                    <p><x-federal-state-coa :state-name="$declaration->federal_state"/></p>--}}
                     <h3>Bundesland</h3>
-                    <p><x-federal-state-coa :state-name="$declaration->federal_state"/></p>
 
+                    <p><x-federal-state-coa
+                            :state-name="$declaration->federal_state_label"
+                    /></p>
                     <h4>Geltungsbereich</h4>
                     <p>{{ $declaration->scope }}</p>
 

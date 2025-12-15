@@ -5,22 +5,16 @@
 
     <p><strong>Neue Rückmeldung zur Barrierefreiheit</strong></p>
 
-    <p>Es ist eine neue Rückmeldung eingegangen.</p>
+    <p>Es ist eine neue Rückmeldung zur Barrierefreiheit Ihrer Website eingegangen.</p>
 
     <p>
-        <strong>Von:</strong> {{ $feedback->first_name }} {{ $feedback->last_name }}<br>
-        <strong>E-Mail:</strong> {{ $feedback->email }}<br>
-        <strong>Seite:</strong> {{ $feedback->page_url ?? '—' }}
+        Die Nachricht können Sie nach dem Login im Dashboard einsehen.
     </p>
-
-    <p><strong>Nachricht:</strong></p>
-    <p>{{ $feedback->body }}</p>
 
     <hr>
 
     <p>
-        Sie können diese Rückmeldung im Dashboard einsehen:<br>
-        <a href="{{ url('/dashboard') }}">{{ url('/dashboard') }}</a>
+        <a href="{{ url('/dashboard') }}">Zum Dashboard</a>
     </p>
 
     <p>

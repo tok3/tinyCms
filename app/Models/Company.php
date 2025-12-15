@@ -309,4 +309,9 @@ class Company extends Model
         return $this->hasMany(AccCompDeclaration::class);
     }
 
+    public function a11yDeclarations()
+    {
+        return $this->hasMany(A11yDeclaration::class, 'company_id');
+    }
+
 }

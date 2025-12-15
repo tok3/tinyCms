@@ -29,7 +29,10 @@
                     <p>{!! $declaration->declaration_intro_text_ez !!}</p>
 
                     <h3>Bundesland</h3>
-                    <p><x-federal-state-coa :state-name="$declaration->federal_state"/></p>
+
+                    <p><x-federal-state-coa
+                            :state-name="$declaration->federal_state_label"
+                        /></p>
 
                     <h3>Erfüllung der Barrierefreiheitsanforderungen</h3>
 

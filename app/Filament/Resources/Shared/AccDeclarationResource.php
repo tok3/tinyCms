@@ -32,6 +32,7 @@ class AccDeclarationResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
+        return false;
         if (auth()->user()->is_admin == 1)
         {
 
