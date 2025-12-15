@@ -38,7 +38,6 @@
                     <h5>Vereinbarkeit</h5>
                     <p>{!! $declaration->consistency !!}.</p>
 
-                    <x-declaration-issues :declaration="$declaration" :issues="$issues" />
 
                     <p class="mt-5">
                         Diese Erklärung wurde am {{ $declaration->updated_at->format('d.m.Y H:i') }} erstellt.
