@@ -37,9 +37,9 @@ return [
         'business_process' => 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0',  // Peppol-Prozess
     ],
     'sepa' => [
-        'gid' => 'DE70030000024889900', //gläubiger indentifikationsnummer
+        'gid' => 'DE7003000002488990', //gläubiger indentifikationsnummer
         // Eine oder mehrere E-Mail-Adressen
-        'csv_recipients' => explode(',', env('SEPA_CSV_RECIPIENTS', 'buchhaltung@example.org')),
+        'csv_recipients' => explode(',', env('SEPA_CSV_RECIPIENTS', 'buchhaltung@eq3w.de')),
     ],
     // Zahlungsanbieter (Payment Provider)
     'payment_providers' => [
