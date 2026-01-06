@@ -61,7 +61,11 @@ Route::post('/molliesubscription', CreateSubscriptionController::class)->name('c
 
 //Route::post('/webhooks/mollie', [WebhookController::class, 'handleWebhook'])->name('ng-webhook');
 
-// rg test
+// rg zahler einlesen
+use App\Filament\Pages\ImportBankPayments;
+
+Route::post('/admin/import-bank-payments/confirm', [ImportBankPayments::class, 'confirmPayments'])
+    ->name('filament.admin.pages.import-bank-payments.confirm');
 
 // molllie test
 

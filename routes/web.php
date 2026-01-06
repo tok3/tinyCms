@@ -98,6 +98,7 @@ Route::post('/getAccessibilityDeclaration/', [AccessibilityDeclarationController
 //Route::post('/accessibilityDeclaration', [AccessibilityDeclarationController::class, 'checkAccessibilityDeclaration'])->name('accessibilitydeclaration.check');
 
 
+
 // NEU – A11y
 use App\Http\Controllers\A11yDeclarationController;
 
