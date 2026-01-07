@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Shared\InvoiceResource\Pages;
 use App\Filament\Resources\Shared\InvoiceResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use App\Filament\Pages\ImportBankPayments;
 
 class ListInvoices extends ListRecords
 {
@@ -19,6 +20,13 @@ class ListInvoices extends ListRecords
                 ->label('Manuelle Rechnung erstellen')
                 ->url(InvoiceResource::getUrl('create'))
                 ->icon('heroicon-o-plus')
+                ->visible(fn () => auth()->user()?->is_admin),
+
+            Actions\Action::make('importPayers')
+                ->label('Zahler einlesen')
+                ->url(ImportBankPayments::getUrl())
+                ->icon('heroicon-o-banknotes')
+                ->openUrlInNewTab()
                 ->visible(fn () => auth()->user()?->is_admin),
         ];
     }

@@ -19,6 +19,7 @@ class ImportBankPayments extends Page
     protected static ?string $navigationLabel = 'Zahlungseingänge einlesen';
     protected static ?string $title = 'Zahlungseingänge einlesen';
     protected static string $view = 'filament.pages.import-bank-payments';
+    protected static bool $shouldRegisterNavigation = false;
 
     public $csvFile;
 
