@@ -62,12 +62,14 @@
 
                                 @if($match['invoice_id'])
                                     @php $invoice = \App\Models\Invoice::find($match['invoice_id']); @endphp
-                                    <a href="{{ \App\Filament\Resources\Shared\InvoiceResource::getUrl('edit', ['record' => $invoice]) }}" target="_blank" class="inline-block mt-1 text-primary-600 hover:text-primary-800 font-medium underline">
-                                        [{{ $match['invoice_number'] }}]
-                                        @if($match['already_paid'])
-                                            <span class="text-red-600 text-xs ml-2">(bereits bezahlt)</span>
-                                        @endif
-                                    </a>
+                                    @if($invoice)
+                                        <a href="{{ \App\Filament\Resources\Shared\InvoiceResource::getUrl('edit', ['record' => $invoice]) }}" target="_blank" class="inline-block mt-1 text-primary-600 hover:text-primary-800 font-medium underline">
+                                            [{{ $match['invoice_number'] }}]
+                                            @if($match['already_paid'])
+                                                <span class="text-red-600 text-xs ml-2">(bereits bezahlt)</span>
+                                            @endif
+                                        </a>
+                                    @endif
                                 @endif
 
                                 @if(!empty($match['suggested_invoice_ids']))
@@ -85,7 +87,9 @@
                                                     </a>
                                                     <span class="text-xs {{ $amount_match ? 'text-green-600 font-bold' : 'text-gray-600' }}">
                                                             {{ number_format($suggestion->total_gross, 2, ',', '.') }} €
-                                                            @if($amount_match) ← Betrag passt genau! @endif
+                                                            @if($amount_match)
+                                                            ← Betrag passt genau!
+                                                        @endif
                                                         </span>
                                                 </div>
                                             @endforeach
@@ -102,9 +106,11 @@
                             <td class="px-4 py-3 text-sm text-right">
                                 @if($match['invoice_id'] && !($match['already_paid'] ?? false))
                                     @php $invoice = \App\Models\Invoice::find($match['invoice_id']); @endphp
-                                    {{ number_format($invoice->total_gross, 2, ',', '.') }} €
-                                    @if(!$match['perfect_match'])
-                                        <span class="text-red-600 text-xs block">≠ Betrag abweichend</span>
+                                    @if($invoice)
+                                        {{ number_format($invoice->total_gross, 2, ',', '.') }} €
+                                        @if(!$match['perfect_match'])
+                                            <span class="text-red-600 text-xs block">≠ Betrag abweichend</span>
+                                        @endif
                                     @endif
                                 @else
                                     —
@@ -125,11 +131,12 @@
                 </table>
 
                 <div class="mt-8 text-right">
-                    <button type="submit" class="inline-flex items-center px-8 py-3 bg-success-600 text-white rounded-lg font-semibold hover:bg-success-700 transition shadow-md">
+                    <button type="submit" class="inline-flex items-center px-8 py-3 bg-gray-500 text-white rounded-lg font-semibold hover:bg-success-700 transition shadow-md">
                         Markierte Zahlungen bestätigen & Rest-CSV erzeugen
                     </button>
                 </div>
             </form>
         </div>
     @endif
+
 </x-filament::page>
