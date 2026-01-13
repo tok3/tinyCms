@@ -71,6 +71,9 @@ class ImagetagResource extends Resource
         }
         return false;
         */
+
+
+
         $company = Company::where('id', $tenant->id)->first();
 
         if($company->hasFeature('image-alt-tags') || $company->hasFeature('image-alt-tags-all')){
