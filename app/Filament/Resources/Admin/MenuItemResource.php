@@ -34,6 +34,17 @@ class   MenuItemResource extends Resource
         return $form->schema([
             Forms\Components\Section::make('Menu Item')
                 ->schema([
+
+                    Forms\Components\Section::make('Menu Explorer (Navbar Top')
+                        ->schema([
+
+                            MenuExplorer::make($record->id ?? null),
+
+                        ])->live()
+                        ->extraAttributes(['class' => 'overflow-y-auto overflow-visible'])
+                        ->collapsible()
+                        ->collapsed(false),
+
                     Forms\Components\TextInput::make('name')
                         ->label('Name')
                         ->required(),
