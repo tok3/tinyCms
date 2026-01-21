@@ -72,7 +72,7 @@
                                                 {{ $data['btn_1_txt'] }}
                                             </button>
                                         @else
-                                            <a class="btn btn-white w-100" href="{{ $data['btn_1_target'] ?: '#' }}">
+                                            <a class="btn btn-white w-100" href="{{ @$data['btn_1_target'] ?: '#' }}">
                                                 {{ $data['btn_1_txt'] }}
                                             </a>
                                         @endif
@@ -88,7 +88,7 @@
                                                 {{ $data['btn_2_txt'] }}
                                             </button>
                                         @else
-                                            <a class="btn btn-white w-100" href="{{ $data['btn_2_target'] ?: '#' }}">
+                                            <a class="btn btn-white w-100" href="{{ @$data['btn_2_target'] ?: '#' }}">
                                                 {{ $data['btn_2_txt'] }}
                                             </a>
                                         @endif

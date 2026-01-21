@@ -691,6 +691,79 @@
 
     </section>
 
+
+    <!-- -->
+
+    <section class="position-relative bg-blend-lighten py-5">
+        <div class="container position-relative">
+            <div class="row justify-content-center mb-4">
+                <div class="col-lg-10 text-center">
+                    <h2 class="gb-card-variant2__title elementor-heading-title">Unsere Lösung: Die notwendigen Barrierefrei-Bausteine in Fixstern.</h2>
+                </div>
+            </div>
+            <div class="row g-4 justify-content-center"><!-- Karte 1: Webseiten-Plugin (angepasst an Fixstern Widget) -->
+                <div class="col-md-6 col-lg-3"><a href="../../fixstern" class="card gb-card-variant2 gb-card-variant2--pink hoverwhite text-decoration-none">
+                        <div class="card-body"><img src="https://aktion-barrierefrei.org/storage/01KAKF5Y1CP1DG9EDC44672XTW.svg" alt="Fixstern Widget Icon" class="gb-card-variant2__icon mb-3" style="height: 75px; width: auto;" />
+                            <h3 class="gb-card-variant2__subtitle">Assist Widget</h3>
+                            <hr class="elementor-divider-separator my-3" />
+                            <p class="gb-card-variant2__text"><strong>Sofort einsatzbereit – ganz ohne Umbau.</strong><br />Nutzer passen Ihre Site individuell an – mit einem Klick. Schnell integriert, sofort wirksam.</p>
+                            <p class="gb-card-variant2__text hoverwhite">Mehr zum Widget</p>
+                        </div>
+                    </a></div>
+                <!-- Karte 2: Auto-Optimierung -->
+                <div class="col-md-6 col-lg-3"><a href="../../fixstern#auto" class="card gb-card-variant2 gb-card-variant2--pink hoverwhite text-decoration-none">
+                        <div class="card-body"><img src="https://aktion-barrierefrei.org/storage/01KAKFVQ9KS6GND12H36WY2R3Z.png" alt="Auto-Optimierung Icon" class="gb-card-variant2__icon mb-3" style="height: 75px; width: auto;" />
+                            <h3 class="gb-card-variant2__subtitle">Auto-Optimierung</h3>
+                            <hr class="elementor-divider-separator my-3" />
+                            <p class="gb-card-variant2__text"><strong>Intelligente Anpassung.</strong><br />Passt Kontraste, Schriften und Reize automatisch an – barrierefrei für alle, ohne manuelles Eingreifen.</p>
+                            <p class="gb-card-variant2__text hoverwhite">Mehr zur Auto-Optimierung</p>
+                        </div>
+                    </a></div>
+                <!-- Karte 3: Audit & Monitoring (angepasst an Fixstern Profiles/Monitoring) -->
+                <div class="col-md-6 col-lg-3"><a href="../../fixstern#monitoring" class="card gb-card-variant2 gb-card-variant2--pink hoverwhite text-decoration-none">
+                        <div class="card-body"><img src="https://aktion-barrierefrei.org/storage/01KAKFVQ9KS6GND12H36WY2R3Z.png" alt="Monitoring Icon" class="gb-card-variant2__icon mb-3" style="height: 75px; width: auto;" />
+                            <h3 class="gb-card-variant2__subtitle">Profil &amp; Monitoring</h3>
+                            <hr class="elementor-divider-separator my-3" />
+                            <p class="gb-card-variant2__text"><strong>Kein Rätselraten: klare Profile.</strong><br />Voreingestellte Modi für Epilepsie, ADHS etc. – erkennt und passt automatisch, mit persistenten Einstellungen.</p>
+                            <p class="gb-card-variant2__text hoverwhite">Mehr zu Profilen &amp; Monitoring</p>
+                        </div>
+                    </a></div>
+                <!-- Karte 4: Barrierefreiheits-Erklärung (angepasst an Fixstern Compliance) -->
+                <div class="col-md-6 col-lg-3"><a href="../../fixstern#compliance" class="card gb-card-variant2 gb-card-variant2--pink hoverwhite text-decoration-none">
+                        <div class="card-body"><img src="https://aktion-barrierefrei.org/storage/01KAKFVQ9KS6GND12H36WY2R3Z.png" alt="Compliance Icon" class="gb-card-variant2__icon mb-3" style="height: 75px; width: auto;" />
+                            <h3 class="gb-card-variant2__subtitle">Compliance-Check</h3>
+                            <hr class="elementor-divider-separator my-3" />
+                            <p class="gb-card-variant2__text"><strong>Pflicht erledigt – automatisch.</strong><br />Hilft bei gesetzlicher Barrierefreiheit – passt sich an, ohne Cookie-Hinweise oder Logins.</p>
+                            <p class="gb-card-variant2__text hoverwhite">Mehr zum Compliance-Check</p>
+                        </div>
+                    </a></div>
+            </div>
+            <!-- Untere breite Karte: Browser Assistent (angepasst an Fixstern Assist) -->
+            <div class="row justify-content-center mt-4">
+                <div class="col-lg-10"><a href="../../fixstern#assist" class="card gb-card-variant2 gb-card-variant2--pink hoverwhite text-decoration-none" style="background-color: #333; color: white;"><!-- Dunkel für Kontrast wie accessgo -->
+                        <div class="card-body d-flex align-items-center"><img src="https://aktion-barrierefrei.org/storage/01KAKFVQ9KS6GND12H36WY2R3Z.png" alt="Assist Icon" class="gb-card-variant2__icon me-3" style="height: 75px; width: auto;" />
+                            <div>
+                                <h3 class="gb-card-variant2__subtitle">Fixstern Assist</h3>
+                                <p class="gb-card-variant2__text"><strong>Barrieren direkt erkennen.</strong> <br />Zeigt Anpassungen live, generiert Modi und macht Status sichtbar – direkt auf Ihrer Site.</p>
+                                <p class="gb-card-variant2__text hoverwhite">Mehr zum Fixstern Assist</p>
+                            </div>
+                        </div>
+                    </a></div>
+            </div>
+            <!-- CTA-Buttons wie in eurem Original -->
+            <div class="row justify-content-center mt-5">
+                <div class="col-lg-4">
+                    <div class="gradient-button-wrapper"><a href="../../fixstern" class="btn btn-white w-100">Mehr erfahren</a></div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="gradient-button-wrapper"><a href="../../preise" class="btn btn-white w-100">Pakete &amp; Preise</a></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- -->
+
     <section class="position-relative bg-gradient-iceblue text-white no-hyphen">
         <div class="container pt-10 pb-3 pb-lg-5 position-relative z-2">
             <div class="row pb-0 pt-lg-5 align-items-center">
