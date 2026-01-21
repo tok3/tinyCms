@@ -42,6 +42,7 @@ img.bg-image {
 .bg-gradient-blue {
   background-image: $bg-gradient-blue;
 }
+
 .bg-gradient-blue-dark {
   background-image: $bg-gradient-blue-dark;
 }
@@ -56,7 +57,19 @@ img.bg-image {
   mask-image: $bg-gradient-dark;
   -webkit-mask-image: $bg-gradient-dark;
 }
-
+.bg-gradient-dark-night  {
+    background: linear-gradient(155deg, #010314 0%, #02082a 0%, #04124a 0%, #02072e 0%, #010314 100%);
+}
+.bg-gradient-dark-night  {
+    background: linear-gradient(
+            155deg,
+            #010314 0%,
+            #02082a 15%,
+            #04124a 45%,
+            #02072e 70%,
+            #010314 100%
+    );
+}
 .bg-gradient-tint {
   background-image: $bg-gradient-tint;
 }

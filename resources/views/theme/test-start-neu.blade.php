@@ -684,6 +684,19 @@
         .bg-gradient-iceblue {
             background: linear-gradient(135deg, #00c6ff, #0072ff);
         }
+        .bg-gradient-dark-night  {
+            background: linear-gradient(155deg, #010314 0%, #02082a 0%, #04124a 0%, #02072e 0%, #010314 100%);
+        }
+        .bg-gradient-dark-night  {
+            background: linear-gradient(
+                155deg,
+                #010314 0%,
+                #02082a 15%,
+                #04124a 45%,
+                #02072e 70%,
+                #010314 100%
+            );
+        }
 
 
     </style>
@@ -764,7 +777,41 @@
 
     <!-- -->
 
-    <section class="position-relative bg-gradient-iceblue text-white no-hyphen">
+    <section class="position-relative bg-gradient-dark-night  text-white no-hyphen">
+        <div class="container pt-10 pb-3 pb-lg-5 position-relative z-2">
+            <div class="row pb-0 pt-lg-5 align-items-center">
+                <div class="col-12 col-lg-7 mb-5 mb-lg-0">
+
+                    <h2 class="h2 display-4 mb-4">
+                    <span style="font-size: 53.354px;">
+                        Überwachen. Verbessern. Nachweisen.
+                    </span>
+                    </h2>
+
+                    <p class="mb-6 lead text-white aos-init aos-animate" data-aos="fade-up">
+                        Erfassen. Scannen. Nachweisen.
+                        Ihre URLs werden automatisch gesammelt, kontinuierlich auf WCAG-2.1-Fehler geprüft und vollständig dokumentiert.
+                        Jeder Fortschritt messbar, jede Verbesserung belegbar – inklusive Fortrschrittszertifikat für externe Nachweise.
+                    </p>
+
+                    <div class="d-flex mb-2"></div>
+                    <div class="d-flex">
+                        <div></div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 ms-auto">
+                    <img src="http://localhost:8004/assets/img/produkte/altstar-top.png"
+                         alt="Screenshot Site-Scan"
+
+                         class="img-fluid">
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- -->
+
+    <section class="position-relative bg-gradient-night  text-white no-hyphen">
         <div class="container pt-10 pb-3 pb-lg-5 position-relative z-2">
             <div class="row pb-0 pt-lg-5 align-items-center">
                 <div class="col-12 col-lg-7 mb-5 mb-lg-0">
