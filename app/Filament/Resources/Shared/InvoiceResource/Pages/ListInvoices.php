@@ -22,11 +22,16 @@ class ListInvoices extends ListRecords
                 ->icon('heroicon-o-plus')
                 ->visible(fn () => auth()->user()?->is_admin),
 
+
             Actions\Action::make('importPayers')
                 ->label('Zahler einlesen')
-                ->url(ImportBankPayments::getUrl())
                 ->icon('heroicon-o-banknotes')
                 ->openUrlInNewTab()
+                ->url(fn () =>
+                auth()->user()?->is_admin
+                    ? ImportBankPayments::getUrl()
+                    : null
+                )
                 ->visible(fn () => auth()->user()?->is_admin),
         ];
     }
