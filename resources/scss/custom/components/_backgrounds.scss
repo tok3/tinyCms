@@ -70,6 +70,17 @@ img.bg-image {
             #010314 100%
     );
 }
+
+
+.bg-gradient-behindi-light  {
+    background: linear-gradient( 135deg,
+        #5f8fbf 0%,
+        #7eaad3 40%,
+        #bcd3ea 75%,
+        #f5f9fd 100%);
+}
+
+
 .bg-gradient-tint {
   background-image: $bg-gradient-tint;
 }

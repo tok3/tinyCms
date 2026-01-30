@@ -687,6 +687,19 @@
         .bg-gradient-dark-night  {
             background: linear-gradient(155deg, #010314 0%, #02082a 0%, #04124a 0%, #02072e 0%, #010314 100%);
         }
+
+        .bg-gradient-behindi-light  {
+            background: linear-gradient(155deg, #6699cc 0%, #ccffff 0%, #336699 0%, #99ccff 0%, #6699cc 100%);
+        }
+
+        .bg-gradient-behindi-light  {
+            background: linear-gradient( 135deg,
+            #5f8fbf 0%,
+            #7eaad3 40%,
+            #bcd3ea 75%,
+            #f5f9fd 100%);
+        }
+
         .bg-gradient-dark-night  {
             background: linear-gradient(
                 155deg,
@@ -704,6 +717,23 @@
 
     </section>
 
+
+    <!-- -->
+    <section class="position-relative bg-gradient-behindi-light text-white no-hyphen">
+        <div class="container pt-10 pb-3 pb-lg-5 position-relative z-2">
+            <div class="row pb-0 pt-lg-5 align-items-center">
+                <div class="col-12 col-lg-7 mb-5 mb-lg-0">
+                    <h2 class="h2 display-4 mb-4"><span style="font-size: 53.354px;"> Die Barrierefreiheitserklärung als Service </span></h2>
+                    <p class="mb-6 lead text-white aos-init aos-animate" data-aos="fade-up">Erstellen, veröffentlichen und pflegen Sie Ihre Barrierefreiheitserklärung zentral und rechtssicher. Unsere Lösung passt Inhalte automatisch an Bundes- oder Landesrecht an, stellt eine Version in Leichter Sprache bereit und ermöglicht die strukturierte Bearbeitung von Rückmeldungen über ein integriertes Backend.</p>
+                    <div class="d-flex mb-2"></div>
+                    <div class="d-flex">
+                        <div></div>
+                    </div>
+                </div>
+                <div class="col-lg-4 ms-auto"><img src="http://localhost:8004/storage/storage/wcbGN0b7HAf6KAw889osOPiDdK4H0rND8Ljm0C56.png" alt="Produktansicht Barrierefreiheitserklärung mit Rückmeldungs-Workflow" width="1536" height="1024" class="img-fluid"></div>
+            </div>
+        </div>
+    </section>
 
     <!-- -->
 
