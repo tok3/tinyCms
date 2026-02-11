@@ -8,6 +8,7 @@ use App\Models\A11yDeclaration;
 use App\Models\Pa11yAccessibilityIssue;
 use App\Models\Pa11yUrl;
 use App\Enums\FederalState;
+use App\Models\AccEnforcementAgency;
 
 class A11yDeclarationController extends Controller
 {
@@ -254,7 +255,13 @@ class A11yDeclarationController extends Controller
         }
 
         $issues = $this->exportAllIssuesGrouped($company_id);
-
+        if($declaration->acc_enforcement_agencies){
+            $agencyData = AccEnforcementAgency::find($declaration->acc_enforcement_agencies);
+            $declaration->acc_enforcement_name = $agencyData->name;
+            $declaration->acc_enforcement_email = $agencyData->email;
+            $declaration->acc_enforcement_link = $agencyData->link;
+        }
+        //$declaration->acc_enforcement_data = AccEnforcementAgency::find($declaration->acc_enforcement_agencies);
         return [
             'company'     => $company,
             'declaration' => $declaration,

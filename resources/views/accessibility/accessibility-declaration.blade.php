@@ -40,10 +40,25 @@
 
                     <x-declaration-issues :declaration="$declaration" :issues="$issues" />
 
+                    @if($declaration->acc_enforcement_agencies)
+                        <h5 class="mt-5">Durchsetzungsstelle</h5>
+                        <p>{!! $declaration->acc_enforcement_name !!}</p>
+                        <p>Email: <a href="mailto:{!!$declaration->acc_enforcement_email!!}">{!!$declaration->acc_enforcement_email!!}</a></p>
+                        <p>Website: <a href="{!!$declaration->acc_enforcement_link!!}" target="_blank">{!!$declaration->acc_enforcement_link!!}</a></p>
+                    @endif
+                    @if($declaration->market_surveillance_board_address)
+                        <h5 class="mt-5">Marktüberwachungsbehörde</h5>
+                        <p>{!! $declaration->market_surveillance_board_address_text !!}</p>
+                        <p>{!! $declaration->market_surveillance_board_address !!}</p>
+                    @endif
+
                     <p class="mt-5">
                         Diese Erklärung wurde am {{ $declaration->updated_at->format('d.m.Y H:i') }} erstellt.
                         Die Erklärung wurde mithilfe der Aktion-Barrierefrei Software erstellt.
                     </p>
+
+
+
 
                     @if($declaration->feedback_url)
                         <div>
@@ -59,11 +74,6 @@
 
                     @include('accessibility.partials.feedback-form', ['company' => $company])
 
-                    @if($declaration->acc_enforcement_agencies)
-                        <h5 class="mt-5">Durchsetzungsstelle</h5>
-                        <p>{!! $declaration->market_surveillance_board_address_text !!}</p>
-                        <p>{!! $declaration->market_surveillance_board_address !!}</p>
-                    @endif
 
                 </div>
             </div>

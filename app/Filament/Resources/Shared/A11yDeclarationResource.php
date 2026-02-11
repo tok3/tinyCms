@@ -206,7 +206,7 @@ class A11yDeclarationResource extends Resource
                                 1 => 'Landesrecht',
                             ])
                             ->required(),
-                        Forms\Components\Select::make('enforcement_agency')
+                        Forms\Components\Select::make('acc_enforcement_agencies')
                             ->label('Durchsetzungsstelle')
                             ->options(\App\Models\AccEnforcementAgency::pluck('state', 'id')->toArray())
                             ->nullable(),
