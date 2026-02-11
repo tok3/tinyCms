@@ -33,9 +33,16 @@
                     <h4>Geltungsbereich</h4>
                     <p>{{ $declaration->scope }}</p>
 
+                    <p>{!! $declaration->declaration_intro_text !!}</p>
+
+                    @if(!empty($declaration->company_offer) &&  $company->type == 0)
+                        <h3>Beschreibung der Dienstleistung</h3>
+                        <p>{!! $declaration->company_offer !!}</p>
+                    @endif
+
                     <h3>Erfüllung der Barrierefreiheitsanforderungen</h3>
 
-                    <h5>Vereinbarkeit</h5>
+                    <h5  class="mt-3">Vereinbarkeit</h5>
                     <p>{!! $declaration->consistency !!}.</p>
 
                     <x-declaration-issues :declaration="$declaration" :issues="$issues" />
