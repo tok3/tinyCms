@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="384" viewBox="0 0 512 384">
+    <!-- Document outline -->
+    <path
+        d="M140 70
+       L410 45
+       L395 310
+       L155 335
+       Z"
+        fill="none"
+        stroke="#1F1F1F"
+        stroke-width="18"
+        stroke-linejoin="round"
+        stroke-linecap="round"
+    />
+
+    <!-- Text lines -->
+    <line x1="190" y1="120" x2="360" y2="105"
+          stroke="#1F1F1F" stroke-width="18" stroke-linecap="round"/>
+    <line x1="190" y1="170" x2="330" y2="158"
+          stroke="#1F1F1F" stroke-width="18" stroke-linecap="round"/>
+    <line x1="190" y1="230" x2="355" y2="218"
+          stroke="#1F1F1F" stroke-width="18" stroke-linecap="round"/>
+
+    <!-- Green circle -->
+    <circle cx="375" cy="265" r="68" fill="#4FBF9A"/>
+</svg>

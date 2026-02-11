@@ -700,6 +700,34 @@
             #f5f9fd 100%);
         }
 
+        .bg-gradient-behindi-dark {
+            background: linear-gradient(
+                135deg,
+                #1f2a36 0%,
+                #2a3a4b 40%,
+                #3a4f66 75%,
+                #4a647f 100%
+            );
+        }
+        .btn-behindi-dark {
+            --bs-btn-color: #ffffff;
+            --bs-btn-bg: #2a3a4b;
+            --bs-btn-border-color: #3a4f66;
+
+            --bs-btn-hover-color: #ffffff;
+            --bs-btn-hover-bg: #32465c;
+            --bs-btn-hover-border-color: #4a647f;
+
+            --bs-btn-active-color: #ffffff;
+            --bs-btn-active-bg: #233241;
+            --bs-btn-active-border-color: #32465c;
+
+            --bs-btn-focus-shadow-rgb: 58, 79, 102;
+
+            --bs-btn-disabled-color: #bfc8d2;
+            --bs-btn-disabled-bg: #1f2a36;
+            --bs-btn-disabled-border-color: #1f2a36;
+        }
         .bg-gradient-dark-night  {
             background: linear-gradient(
                 155deg,
@@ -841,7 +869,7 @@
     </section>
     <!-- -->
 
-    <section class="position-relative bg-gradient-night  text-white no-hyphen">
+    <section class="position-relative bg-gradient-behindi-dark  text-white no-hyphen">
         <div class="container pt-10 pb-3 pb-lg-5 position-relative z-2">
             <div class="row pb-0 pt-lg-5 align-items-center">
                 <div class="col-12 col-lg-7 mb-5 mb-lg-0">
@@ -858,6 +886,7 @@
                         Jeder Fortschritt messbar, jede Verbesserung belegbar – inklusive Fortrschrittszertifikat für externe Nachweise.
                     </p>
 
+                    <div class="me-2 me-md-3"><a href="#pricing" class="btn btn-hover-arrow flex-shrink-0 btn-behindi-dark py-lg-3 px-lg-6"><span>Mehr erfahren ...</span></a></div>
                     <div class="d-flex mb-2"></div>
                     <div class="d-flex">
                         <div></div>
