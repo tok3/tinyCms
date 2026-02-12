@@ -41,12 +41,16 @@
                         {!! $declaration->consistency_ez !!}
                     </p>
 
-                    <x-declaration-issues
-                        :full-text="$declaration->bfsg_full_ez"
-                        :partial-text="$declaration->bfsg_partial_ez"
-                        :non-conform-text="$declaration->non_conform_content_ez"
-                        :issues="$issues"
-                    />
+                    @if(count($issues) > 0)
+                        <p>{!! $declaration->bfsg_partial_ez !!}</p>
+
+                        <x-declaration-issues :declaration="$declaration" :issues="$issues" />
+                    @else
+                        <p>{!! $declaration->bfsg_full_ez !!}</p>
+                    @endif
+                    @if(!empty($declaration->non_conform_content_ez) || $declaration->non_conform_content_ez != 'Die folgenden Inhalte sind nicht barrierefrei, da sie eine unverhältnismäßige Belastung gemäß § 12a Absatz 6 BGG darstellen:')
+                        <p>{!! $declaration->non_conform_content_ez !!}</p>
+                    @endif
 
                     @if($declaration->acc_enforcement_agencies)
                         <h5 class="mt-5">Durchsetzungsstelle</h5>

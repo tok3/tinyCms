@@ -43,9 +43,19 @@
                     <h3>Erfüllung der Barrierefreiheitsanforderungen</h3>
 
                     <h5  class="mt-3">Vereinbarkeit</h5>
-                    <p>{!! $declaration->consistency !!}.</p>
+                    <p>{!! $declaration->consistency !!}</p>
+                    @if(count($issues) > 0)
+                        <p>{!! $declaration->bfsg_partial !!}</p>
 
-                    <x-declaration-issues :declaration="$declaration" :issues="$issues" />
+                        <x-declaration-issues :declaration="$declaration" :issues="$issues" />
+                    @else
+                        <p>{!! $declaration->bfsg_full !!}</p>
+                    @endif
+                    @if(!empty($declaration->non_conform_content) && trim($declaration->non_conform_content) != 'Die folgenden Inhalte sind nicht barrierefrei, da sie eine unverhältnismäßige Belastung gemäß § 12a Absatz 6 BGG darstellen:')
+                        <p>{!! $declaration->non_conform_content !!}</p>
+                    @endif
+
+
 
                     @if($declaration->acc_enforcement_agencies)
                         <h5 class="mt-5">Durchsetzungsstelle</h5>
