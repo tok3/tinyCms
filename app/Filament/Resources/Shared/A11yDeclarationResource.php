@@ -258,8 +258,7 @@ class A11yDeclarationResource extends Resource
                                             ->extraInputAttributes(self::editorInputExtraAttributes()),
                                     ])
                                     ->columnSpan(8),
-                            ])
-                            ->visible(fn (Get $get): bool => self::isCompany($get)),
+                            ]),
 
                         Forms\Components\Grid::make(12)
                             ->schema([
