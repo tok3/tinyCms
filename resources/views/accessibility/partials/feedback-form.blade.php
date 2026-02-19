@@ -15,6 +15,7 @@
                 method="POST"
                 action="{{ route('accessibility-feedback.store', $company) }}"
                 class="mt-4"
+
         >
             @csrf
 
@@ -120,7 +121,7 @@
                 @enderror
             </div>
 
-            <button type="submit" class="btn btn-primary">
+            <button type="submit"  id="fbForm" class="btn btn-primary">
                 Nachricht absenden
             </button>
         </form>

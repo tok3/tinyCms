@@ -11,6 +11,11 @@ class AccessibilityFeedbackRequest extends FormRequest
         return true; // öffentliches Formular
     }
 
+    protected function getRedirectUrl()
+    {
+        return url()->previous() . '#fbForm';
+    }
+
     public function rules(): array
     {
         return [
