@@ -72,6 +72,7 @@ class ScriptController extends Controller
 
             if ($companyFeatures->count() >= 1) {
                 //if ($companyFeatures->contains(fn($feature) => $feature->feature_id == 4)) {
+                /*
                 if($company->hasFeature('image-alt-tags-all') == 1) {
                     $tool = 'imgAlltags.min';
                 } elseif($company->hasFeature('image-alt-tags') == 1) {
@@ -79,6 +80,23 @@ class ScriptController extends Controller
                 } else {
                     return response('Feature not available', 404);
                 }
+                */
+                //rewrite: if any feature containing alt-tag is enabled let the user choose in the settings
+                if($company->hasFeature('image-alt-tags-all') == 1 || $company->hasFeature('image-alt-tags') == 1) {
+                    $setting = CompanySetting::where('company_id', $company->id)->first();
+                    if($setting->altstar_type == 0){
+                        $tool = 'img.min';
+                        //\Log::info('tool: ' . $tool);
+                    } else {
+                        $tool = 'imgAlltags.min';
+                        //\Log::info('tool: ' . $tool);
+                    }
+                } else {
+                    return response('Feature not available', 404);
+                }
+
+
+
             } else {
                 if ($ulid === $specialUlid) {
                     $tool = 'img.min';
