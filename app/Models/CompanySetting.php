@@ -19,6 +19,7 @@ class CompanySetting extends Model
         'full_scan_interval',
         'widget_features',
         'a11y_feedback_receivers',
+        'altstar_type',
     ];
 
     public function company()

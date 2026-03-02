@@ -395,6 +395,30 @@ class CompanyResource extends Resource
 
                                     ]),
 
+                                Forms\Components\Fieldset::make('Altstar Typ ')
+                                    ->relationship('settings', CompanySetting::class)
+                                        ->schema([
+                                            /*Forms\Components\Select::make('altstar_type')
+                                            ->label('Altstar')
+                                            ->options([
+                                                0 => 'Nur leere img-Tags bearbeiten',
+                                                1 => 'Alle img-Tags bearbeiten',
+                                            ])
+                                            ->default(0)*/
+                                            Forms\Components\Toggle::make('altstar_type')
+                                                    ->label('Altstar override')
+                                                    ->default(false)
+                                                    ->helperText('Bestehende Bildbeschreibungen werden überschrieben.')
+                                            ->visible(function ($livewire) {
+
+                                                $company = $livewire->record;
+                                                //\Log::info($company);
+                                                return $company->features()->where('slug', 'image-alt-tags-all')->orWhere('slug', 'image-alt-tags')->exists();
+                                            })
+
+                                    ]),
+
+
                                 Forms\Components\Fieldset::make('Barrierefreiheitserklärung ')
                                     ->relationship('settings', CompanySetting::class)
                                     ->schema([
