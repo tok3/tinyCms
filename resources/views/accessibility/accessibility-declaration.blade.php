@@ -7,7 +7,7 @@
                     <div class="row align-items-center mb-4 declaration-head">
                         @if($company->logo_image)
                             <div class="col-12 col-md-4 col-lg-3 text-md-end order-md-2 mb-3 mb-md-0">
-                                <a href="{{ url('/') }}" class="d-inline-block">
+                                <a href="{{ $company->web  }}" class="d-inline-block">
                                     <img
                                         src="{{ URL::asset('storage/' . $company->logo_image) }}"
                                         class="img-fluid"
@@ -70,8 +70,7 @@
                     @endif
 
                     <p class="mt-5">
-                        Diese Erklärung wurde am {{ $declaration->updated_at->format('d.m.Y H:i') }} erstellt.
-                        Die Erklärung wurde mithilfe der Aktion-Barrierefrei Software erstellt.
+                        Diese Erklärung wurde am {{ $declaration->updated_at->format('d.m.Y') }} mit dem Service von <a href="https://aktion-barrierefrei.org" style="text-decoration:underline;">aktion-barrierefrei.org</a> erstellt.
                     </p>
 
 
