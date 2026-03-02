@@ -6,7 +6,9 @@ use App\Services\OpenAIService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 class A11yDeclaration extends Model
 {
     use HasFactory;
@@ -108,6 +110,30 @@ class A11yDeclaration extends Model
         return (int) $this->declaration_type === 0;
     }
 
+    /**
+     * Gibt das aktuellste last_checked der Company aus pa11y_urls zurück.
+     * Fallback: created_at der Declaration.
+     */
+    protected function effectiveLastChecked(): Attribute
+    {
+        return Attribute::make(
+            get: function (): ?Carbon {
+                $companyId = $this->company_id;
+
+                if (empty($companyId)) {
+                    return $this->created_at;
+                }
+
+                $lastChecked = DB::table('pa11y_urls')
+                    ->where('company_id', $companyId)
+                    ->whereNotNull('last_checked')
+                    ->orderByDesc('last_checked')
+                    ->value('last_checked'); // holt direkt den Wert der ersten Zeile
+
+                return $lastChecked ? Carbon::parse($lastChecked) : $this->created_at;
+            }
+        );
+    }
     /**
      * Automatische Generierung Leichte Sprache.
      */
