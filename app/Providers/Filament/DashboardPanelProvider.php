@@ -61,6 +61,7 @@ class DashboardPanelProvider extends PanelProvider
             ->plugin(new MinimalTheme())
             ->viteTheme(['resources/css/app.css', 'resources/css/filament/admin/theme.css'])
             ->colors(MinimalTheme::getColors())
+            ->darkMode(false)
             ->icons(MinimalTheme::getIcons())
             ->sidebarCollapsibleOnDesktop()
             ->sidebarWidth('15rem')

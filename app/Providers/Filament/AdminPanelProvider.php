@@ -49,6 +49,7 @@ class AdminPanelProvider extends PanelProvider
             ->plugin(new MinimalTheme())
             ->viteTheme(['resources/css/utilities.css','resources/css/filament/admin/theme.css'])
             ->colors(MinimalTheme::getColors())
+            ->darkMode(false)
             ->icons(MinimalTheme::getIcons())
             ->sidebarCollapsibleOnDesktop()
             ->maxContentWidth(MaxWidth::SevenExtraLarge)->sidebarCollapsibleOnDesktop(false)
