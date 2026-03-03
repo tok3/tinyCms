@@ -62,6 +62,15 @@ class FixsternController extends Controller
                     'it' => "Permetti di tradurre questo testo senza commenti in una lingua semplice: ".$text,
                     'da' => "Oversæt følgende tekst til let dansk. Følg reglerne for let sprog. Brug sprogniveau A1 eller A2. Sæt et linjeskift mellem hver sætning. Undgå fremmedord eller forklar dem. Oversæt ord på fremmedsprog. En 10-årig skal forstå teksten. Skriv forkortelser ud først. Brug derefter forkortelsen i parentes. Lav korte hovedsætninger med cirka 8 ord. Brug kun linjeskift, ingen andre (HTML) koder: ".$text,
                     'pl' => "Proszę przetłumaczyć następujący tekst na prosty język: ".$text,
+                    'uk' => "Будь ласка, перекладіть наступний текст простою мовою без коментарів: ".$text,
+                    'es' => "Por favor, traduzca el siguiente texto a un lenguaje sencillo y sin comentarios: ".$text,
+                    'hu' => "Kérjük, fordítsa le az alábbi szöveget egyszerű nyelvezetre, megjegyzések nélkül: ".$text,
+                    'nl' => "Vertaal de volgende tekst alstublieft in eenvoudige taal en zonder opmerkingen: ".$text,
+                    'pt' => "Por favor, traduza o seguinte texto para uma linguagem simples e sem comentários: ".$text,
+                    'sv' => "Vänligen översätt följande text till enkelt språk utan kommentarer: ".$text,
+                    'el' => "Παρακαλώ μεταφράστε το ακόλουθο κείμενο σε απλή γλώσσα χωρίς σχόλια: ".$text,
+                    'cs' => "Přeložte prosím následující text do jednoduchého jazyka bez komentářů: ".$text,
+
 
                 );
                 //\Log::info("text: ".$text);
