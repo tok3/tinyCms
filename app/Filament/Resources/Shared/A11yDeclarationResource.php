@@ -18,6 +18,10 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Illuminate\Support\HtmlString;
+use Filament\Forms\Components\Hidden;
+
 
 class A11yDeclarationResource extends Resource
 {
@@ -397,12 +401,14 @@ class A11yDeclarationResource extends Resource
                     ]),
 */
                 // Marktüberwachungsbehörde / Durchsetzungsstelle
-                Forms\Components\Section::make('Marktüberwachungsbehörde / Durchsetzungsstelle')
+                Forms\Components\Section::make('Marktüberwachungsbehörde')
                     ->schema([
                         Forms\Components\Grid::make(12)
                             ->schema([
-                                Forms\Components\Section::make('Marktüberwachungsbehörde Adresse')
-                                    ->description('Wird angezeigt, wenn eine Marktüberwachungsbehörde genannt werden muss. Bitte die vollständige Kontaktadresse eintragen.')
+                                //Forms\Components\Section::make('Marktüberwachungsbehörde Adresse')
+                                Forms\Components\Section::make('')
+                                    ->description('Wird angezeigt, wenn eine Marktüberwachungsbehörde genannt werden muss.')
+                                    /*
                                     ->schema([
                                         Forms\Components\RichEditor::make('market_surveillance_board_address')
                                             ->label('')
@@ -412,6 +418,34 @@ class A11yDeclarationResource extends Resource
                                             ->extraInputAttributes(self::editorInputExtraAttributes())
                                             ->nullable(),
                                     ])
+                                    ->columnSpan(8),
+                                    */
+
+                                    ->schema([
+                                        Forms\Components\Placeholder::make('market_surveillance_board_address')                                            ->label('')
+                                            ->content(new HtmlString('Marktüberwachungsstelle der Länder für die Barrierefreiheit von Produkten und Dienstleistungen (MLBF AöR)
+                                                <br>c/o Ministerium für Arbeit, Soziales, Gesundheit und Gleichstellung Sachsen-Anhalt
+                                                <br>Postfach: 39 11 55, 39135 Magdeburg
+                                                <br>Telefon: +49 391 567 6970
+                                                <br>E-Mail: <a target="_blank" href="mailto:MLBF@ms.sachsen-anhalt.de">MLBF@ms.sachsen-anhalt.de</a>
+                                                <br>Website: <a target="_blank" href="https://ms.sachsen-anhalt.de/themen/menschen-mit-behinderungen/aktuelles/marktueberwachungsstelle-der-laender-fuer-die-barrierefreiheit-von-produkten-und-dienstleistungen">MLBF AöR</a>
+                                                ')),
+
+                                        Hidden::make('market_surveillance_board_address')
+                                            ->default('Marktüberwachungsstelle der Länder für die Barrierefreiheit von Produkten und Dienstleistungen (MLBF AöR)
+                                                <br>c/o Ministerium für Arbeit, Soziales, Gesundheit und Gleichstellung Sachsen-Anhalt
+                                                <br>Postfach: 39 11 55, 39135 Magdeburg
+                                                <br>Telefon: +49 391 567 6970
+                                                <br>E-Mail: <a target="_blank" href="mailto:MLBF@ms.sachsen-anhalt.de">MLBF@ms.sachsen-anhalt.de</a>
+                                                <br>Website: <a target="_blank" href="https://ms.sachsen-anhalt.de/themen/menschen-mit-behinderungen/aktuelles/marktueberwachungsstelle-der-laender-fuer-die-barrierefreiheit-von-produkten-und-dienstleistungen">MLBF AöR</a>
+                                                ')
+                                            ->dehydrated(true),
+
+
+                                    ])
+
+
+
                                     ->columnSpan(8),
                             ])
                             ->visible(fn (Get $get): bool => self::isCompany($get)),
