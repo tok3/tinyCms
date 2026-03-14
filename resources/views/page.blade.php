@@ -131,5 +131,9 @@
                     });
                 });
             </script>
+        {{-- Page specific additional JS from CMS --}}
+        @if(isset($page->custom_footer_code) && !empty($page->custom_footer_code))
+            {!! $page->custom_footer_code !!}
+        @endif
     @endpush
 </x-page-layout>

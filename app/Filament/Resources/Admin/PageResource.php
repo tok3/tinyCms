@@ -66,7 +66,9 @@ class   PageResource extends Resource
                             ->visible(),
 
                     ]),
-                    Tabs::make('Page Tabs')->tabs([
+                    Tabs::make('Page Tabs')
+                        ->persistTabInQueryString()
+                        ->tabs([
 
                         Tabs\Tab::make('Page')
                             ->schema([
@@ -975,62 +977,158 @@ class   PageResource extends Resource
                         Tabs\Tab::make('SEO')
                             ->schema([
 
-                                Fieldset::make('Meta Information')->schema([
-                                    Textarea::make('meta.description')->columnSpan(2)
-                                        ->label('Meta Description'),
-                                    Textarea::make('meta.keywords')->columnSpan(2)
-                                        ->label('Meta Keywords'),
-                                ])->columns(2),
-                                Fieldset::make('Opengraph')->schema([
-                                    Textarea::make('meta_og.description')
-                                        ->columnSpan(2)
-                                        ->label('og:description'),
-                                    Select::make('meta_og.type')
-                                        ->label('OG Type')
-                                        ->options([
-                                            'website' => 'Website',
-                                            'article' => 'Article',
-                                            'profile' => 'Profile',
-                                        ])
-                                        ->default('website'),
+                                Fieldset::make('Meta Information')
+                                    ->schema([
+                                        Textarea::make('meta.description')
+                                            ->label('Meta Description')
+                                            ->rows(3)
+                                            ->columnSpanFull(),
 
-                                    FileUpload::make('meta_og.image')
-                                        ->label('OG Image')
-                                        ->image()
-                                        ->disk('public') // oder einen anderen Disk, je nachdem, wo Sie die Bilder speichern möchten
-                                        ->directory('meta_images') // Das Verzeichnis im gewählten Disk, in dem die Bilder gespeichert werden
-                                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif']),
+                                        Textarea::make('meta.keywords')
+                                            ->label('Meta Keywords')
+                                            ->rows(2)
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->columns(2),
+
+                                Fieldset::make('Opengraph')
+                                    ->schema([
+
+                                        Textarea::make('meta_og.description')
+                                            ->label('og:description')
+                                            ->rows(3)
+                                            ->columnSpanFull(),
+
+                                        Select::make('meta_og.type')
+                                            ->label('OG Type')
+                                            ->options([
+                                                'website' => 'Website',
+                                                'article' => 'Article',
+                                                'profile' => 'Profile',
+                                            ])
+                                            ->default('website'),
+
+                                        FileUpload::make('meta_og.image')
+                                            ->label('OG Image')
+                                            ->image()
+                                            ->disk('public')
+                                            ->directory('meta_images')
+                                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif']),
+                                    ])
+                                    ->columns(2),
+
+                                Fieldset::make('Twitter / X')
+                                    ->schema([
+
+                                        Textarea::make('meta_twitter.description')
+                                            ->label('twitter:description')
+                                            ->rows(3)
+                                            ->columnSpanFull(),
+
+                                        Select::make('meta_twitter.card')
+                                            ->label('Twitter Card Type')
+                                            ->options([
+                                                'summary' => 'Summary',
+                                                'summary_large_image' => 'Summary with Large Image',
+                                                'app' => 'App',
+                                                'player' => 'Player',
+                                            ])
+                                            ->default('summary'),
+
+                                        FileUpload::make('meta_twitter.image')
+                                            ->label('Twitter Image')
+                                            ->image()
+                                            ->disk('public')
+                                            ->directory('meta_images')
+                                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif']),
+
+                                    ])
+                                    ->columns(2),
 
 
-                                ])->columns(2),
-                                Fieldset::make('Twitter X')->schema([
-
-                                    Textarea::make('meta_twitter.description')
-                                        ->label('twitter:description')
-                                        ->columnSpan(2),
-                                    Select::make('meta_twitter.card')
-                                        ->label('Twitter Card Type')
-                                        ->options([
-                                            'summary' => 'Summary',
-                                            'summary_large_image' => 'Summary with Large Image',
-                                            'app' => 'App',
-                                            'player' => 'Player',
-                                        ])
-                                        ->default('summary'),
-
-                                    FileUpload::make('meta_twitter.image')
-                                        ->label('Twitter Image')
-                                        ->image()
-                                        ->disk('public') // oder einen anderen Disk, je nachdem, wo Sie die Bilder speichern möchten
-                                        ->directory('meta_images') // Das Verzeichnis im gewählten Disk, in dem die Bilder gespeichert werden
-                                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif'])
-
-
-                                ])->columns(2),
                             ]),
-                        Tabs\Tab::make('Settings')
+                        Tabs\Tab::make('Custom Code & Structured Data (Schema.org)')
                             ->schema([
-                                // Hier können weitere Einstellungsfelder hinzugefügt werden
+                                Fieldset::make('Structured Data (Schema.org)')
+                                    ->schema([
+
+                                        Textarea::make('schema_json')
+                                            ->label('Structured Data (JSON-LD)')
+                                            ->rows(12)
+                                            ->columnSpanFull()
+                                            ->helperText('Nur JSON eingeben – keine <script>-Tags.')
+                                            ->extraAttributes([
+                                                'class' => 'font-mono text-xs'
+                                            ])
+                                            ->rules([
+                                                function () {
+                                                    return function ($attribute, $value, $fail) {
+
+                                                        if (empty($value)) {
+                                                            return;
+                                                        }
+
+                                                        json_decode($value);
+
+                                                        if (json_last_error() !== JSON_ERROR_NONE) {
+                                                            $fail('Ungültiges JSON-LD.');
+                                                        }
+                                                    };
+                                                },
+                                            ]),
+
+                                    ]),
+
+                                Fieldset::make('Custom Code')
+                                    ->schema([
+
+                                        Textarea::make('custom_head_code')
+                                            ->label('Custom Head Code')
+                                            ->rows(8)
+                                            ->columnSpanFull()
+                                            ->helperText('Zusätzlicher Code für den <head>-Bereich (z.B. CSS, JSON-LD, Tracking). Keine </head>-Tags einfügen.')
+                                            ->extraAttributes([
+                                                'class' => 'font-mono text-xs'
+                                            ])
+                                            ->rules([
+                                                function () {
+                                                    return function ($attribute, $value, $fail) {
+
+                                                        if (empty($value)) {
+                                                            return;
+                                                        }
+
+                                                        if (str_contains(strtolower($value), '</head>')) {
+                                                            $fail('Bitte kein </head> Tag einfügen.');
+                                                        }
+                                                    };
+                                                },
+                                            ]),
+
+                                        Textarea::make('custom_footer_code')
+                                            ->label('Custom Footer Code')
+                                            ->rows(8)
+                                            ->columnSpanFull()
+                                            ->helperText('Wird direkt vor </body> ausgegeben (z.B. Scripts oder Tracking-Code). Kein </body>-Tag einfügen.')
+                                            ->extraAttributes([
+                                                'class' => 'font-mono text-xs'
+                                            ])
+                                            ->rules([
+                                                function () {
+                                                    return function ($attribute, $value, $fail) {
+
+                                                        if (empty($value)) {
+                                                            return;
+                                                        }
+
+                                                        if (str_contains(strtolower($value), '</body>')) {
+                                                            $fail('Bitte kein </body> Tag einfügen.');
+                                                        }
+                                                    };
+                                                },
+                                            ]),
+
+                                    ]),
                             ]),
                     ])->columns(2),
 

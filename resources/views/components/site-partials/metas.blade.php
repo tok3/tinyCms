@@ -40,4 +40,17 @@
         @endif
         <meta property="twitter:{{$key}}" content="{{ $value }}"/>
     @endforeach
+
+
+    @if(!empty($pageData->schema_json))
+        <script type="application/ld+json">
+{!! $pageData->schema_json !!}
+        </script>
+    @endif
+
+    {{-- Custom Head Code (styles, meta, small scripts etc.) --}}
+    @if(!empty($pageData->custom_head_code))
+{!! $pageData->custom_head_code !!}
+    @endif
+
 @endif
