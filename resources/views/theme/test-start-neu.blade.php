@@ -684,16 +684,17 @@
         .bg-gradient-iceblue {
             background: linear-gradient(135deg, #00c6ff, #0072ff);
         }
-        .bg-gradient-dark-night  {
+
+        .bg-gradient-dark-night {
             background: linear-gradient(155deg, #010314 0%, #02082a 0%, #04124a 0%, #02072e 0%, #010314 100%);
         }
 
-        .bg-gradient-behindi-light  {
+        .bg-gradient-behindi-light {
             background: linear-gradient(155deg, #6699cc 0%, #ccffff 0%, #336699 0%, #99ccff 0%, #6699cc 100%);
         }
 
-        .bg-gradient-behindi-light  {
-            background: linear-gradient( 135deg,
+        .bg-gradient-behindi-light {
+            background: linear-gradient(135deg,
             #5f8fbf 0%,
             #7eaad3 40%,
             #bcd3ea 75%,
@@ -709,6 +710,7 @@
                 #4a647f 100%
             );
         }
+
         .btn-behindi-dark {
             --bs-btn-color: #ffffff;
             --bs-btn-bg: #2a3a4b;
@@ -728,7 +730,8 @@
             --bs-btn-disabled-bg: #1f2a36;
             --bs-btn-disabled-border-color: #1f2a36;
         }
-        .bg-gradient-dark-night  {
+
+        .bg-gradient-dark-night {
             background: linear-gradient(
                 155deg,
                 #010314 0%,
@@ -746,202 +749,226 @@
     </section>
 
 
+
+
     <!-- -->
     <style>
 
-        .akb-platform{
-            padding:120px 0;
-            text-align:center;
+        .akb-platform {
+            padding: 120px 0;
+            text-align: center;
         }
 
-        .akb-platform-title{
-            font-size:42px;
-            font-weight:700;
-            margin-bottom:20px;
+        .akb-platform-title {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 20px;
         }
 
-        .akb-platform-intro{
-            max-width:720px;
-            margin:auto;
-            margin-bottom:90px;
-            opacity:.8;
+        .akb-platform-intro {
+            max-width: 720px;
+            margin: auto;
+            margin-bottom: 90px;
+            opacity: .8;
         }
 
-        .akb-system{
-            position:relative;
-            width:640px;
-            height:640px;
-            margin:auto;
+        .akb-system {
+            position: relative;
+            width: 640px;
+            height: 640px;
+            margin: auto;
         }
 
-        .akb-core{
-            position:absolute;
-            top:50%;
-            left:50%;
-            transform:translate(-50%,-50%);
-            width:200px;
+        .akb-core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
         }
 
-        .akb-core img{
-            width:70%;
-            height:auto;
+        .akb-core img {
+            width: 70%;
+            height: auto;
         }
-        .akb-core::after{
-            content:"";
-            position:absolute;
-            width:260px;
-            height:260px;
-            background:radial-gradient(circle,
-            rgba(255,255,255,0.25),
+
+        .akb-core::after {
+            content: "";
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            background: radial-gradient(circle,
+            rgba(255, 255, 255, 0.25),
             transparent 70%);
-            left:50%;
-            top:50%;
-            transform:translate(-50%,-50%);
-            filter:blur(25px);
-            z-index:-1;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            filter: blur(25px);
+            z-index: -1;
         }
+
         /* Nodes */
 
-        .akb-node{
-            position:absolute;
-            width:170px;
+        .akb-node {
+            position: absolute;
+            width: 170px;
         }
 
-        .akb-node img{
-            width:90%;
-            height:auto;
+        .akb-node img {
+            width: 90%;
+            height: auto;
         }
 
         /* Positionen */
 
-        .akb-fixstern{
-            top:0;
-            left:50%;
-            transform:translateX(-50%);
+        .akb-fixstern {
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
-        .akb-altstar{
-            top:110px;
-            right:0;
+        .akb-altstar {
+            top: 110px;
+            right: 0;
         }
 
-        .akb-sitescan{
-            bottom:0;
-            left:50%;
-            transform:translateX(-50%);
+        .akb-sitescan {
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
-        .akb-inclucert{
-            top:110px;
-            left:0;
+        .akb-inclucert {
+            top: 110px;
+            left: 0;
         }
 
-        .akb-firmament{
-            bottom:120px;
-            right:60px;
+        .akb-firmament {
+            bottom: 120px;
+            right: 60px;
         }
 
         /*für system rechts */
 
-        .akb-layout{
-            display:grid;
+        .akb-layout {
+            display: grid;
             grid-template-columns: 1fr 640px;
-            align-items:center;
-            gap:60px;
+            align-items: center;
+            gap: 60px;
         }
 
-        .akb-text{
-            text-align:left;
+        .akb-text {
+            text-align: left;
         }
 
-        .akb-platform-intro{
-            margin:0;
-            max-width:520px;
+        .akb-platform-intro {
+            margin: 0;
+            max-width: 520px;
         }
 
-        @media(max-width:900px){
+        @media (max-width: 900px) {
 
-            .akb-layout{
+            .akb-layout {
                 grid-template-columns:1fr;
-                text-align:center;
+                text-align: center;
             }
 
-            .akb-text{
-                text-align:center;
+            .akb-text {
+                text-align: center;
             }
 
-            .akb-system{
-                margin-top:40px;
+            .akb-system {
+                margin-top: 40px;
             }
 
         }
 
-        .akb-system{
-            width:540px;
-            height:540px;
+        .akb-system {
+            width: 540px;
+            height: 540px;
         }
+
         /* Floating Motion */
 
-        .akb-node{
-            animation:akb-float 6s ease-in-out infinite;
+        .akb-node {
+            animation: akb-float 6s ease-in-out infinite;
         }
 
-        .akb-altstar{animation-delay:1s;}
-        .akb-sitescan{animation-delay:2s;}
-        .akb-inclucert{animation-delay:1.5s;}
-        .akb-firmament{animation-delay:2.5s;}
+        .akb-altstar {
+            animation-delay: 1s;
+        }
 
-        @keyframes akb-float{
+        .akb-sitescan {
+            animation-delay: 2s;
+        }
 
-            0%{ transform:translateY(0px); }
+        .akb-inclucert {
+            animation-delay: 1.5s;
+        }
 
-            50%{ transform:translateY(-10px); }
+        .akb-firmament {
+            animation-delay: 2.5s;
+        }
 
-            100%{ transform:translateY(0px); }
+        @keyframes akb-float {
+
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
 
         }
 
         /* Verbindungskreis */
 
-        .akb-system::before{
+        .akb-system::before {
 
-            content:"";
-            position:absolute;
-            top:50%;
-            left:50%;
-            width:520px;
-            height:520px;
-            border-radius:50%;
-            border:1px dashed rgba(255,255,255,.15);
-            transform:translate(-50%,-50%);
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 520px;
+            height: 520px;
+            border-radius: 50%;
+            border: 1px dashed rgba(255, 255, 255, .15);
+            transform: translate(-50%, -50%);
 
         }
-        .akb-system::after{
-            content:"";
-            position:absolute;
-            top:50%;
-            left:50%;
-            width:380px;
-            height:380px;
-            border-radius:50%;
-            border:1px dotted rgba(255,255,255,0.09);
-            transform:translate(-50%,-50%);
+
+        .akb-system::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 380px;
+            height: 380px;
+            border-radius: 50%;
+            border: 1px dotted rgba(255, 255, 255, 0.09);
+            transform: translate(-50%, -50%);
         }
+
         /* Mobile */
 
-        @media(max-width:900px){
+        @media (max-width: 900px) {
 
-            .akb-system{
-                width:420px;
-                height:420px;
+            .akb-system {
+                width: 420px;
+                height: 420px;
             }
 
-            .akb-node{
-                width:110px;
+            .akb-node {
+                width: 110px;
             }
 
-            .akb-core{
-                width:160px;
+            .akb-core {
+                width: 160px;
             }
 
         }
@@ -959,7 +986,8 @@
                 </h2>
 
                 <p class="akb-platform-intro">
-                    Aktion-Barrierefrei verbindet Assistenzsoftware, Analyse-Tools und Nachweise in einer Plattform. Alle Module greifen ineinander und verbessern dauerhaft die Zugänglichkeit Ihrer Website.
+                    Aktion-Barrierefrei verbindet Assistenzsoftware, Analyse-Tools und Nachweise in einer Plattform. Alle Module greifen ineinander und verbessern dauerhaft die Zugänglichkeit Ihrer
+                    Website.
                 </p>
 
             </div>
@@ -1044,13 +1072,16 @@
             <div class="row pb-0 pt-lg-5 align-items-center">
                 <div class="col-12 col-lg-7 mb-5 mb-lg-0">
                     <h2 class="h2 display-4 mb-4"><span style="font-size: 53.354px;"> Die Barrierefreiheitserklärung als Service </span></h2>
-                    <p class="mb-6 lead text-white aos-init aos-animate" data-aos="fade-up">Erstellen, veröffentlichen und pflegen Sie Ihre Barrierefreiheitserklärung zentral und rechtssicher. Unsere Lösung passt Inhalte automatisch an Bundes- oder Landesrecht an, stellt eine Version in Leichter Sprache bereit und ermöglicht die strukturierte Bearbeitung von Rückmeldungen über ein integriertes Backend.</p>
+                    <p class="mb-6 lead text-white aos-init aos-animate" data-aos="fade-up">Erstellen, veröffentlichen und pflegen Sie Ihre Barrierefreiheitserklärung zentral und rechtssicher. Unsere
+                        Lösung passt Inhalte automatisch an Bundes- oder Landesrecht an, stellt eine Version in Leichter Sprache bereit und ermöglicht die strukturierte Bearbeitung von Rückmeldungen
+                        über ein integriertes Backend.</p>
                     <div class="d-flex mb-2"></div>
                     <div class="d-flex">
                         <div></div>
                     </div>
                 </div>
-                <div class="col-lg-4 ms-auto"><img src="http://localhost:8004/storage/storage/wcbGN0b7HAf6KAw889osOPiDdK4H0rND8Ljm0C56.png" alt="Produktansicht Barrierefreiheitserklärung mit Rückmeldungs-Workflow" width="1536" height="1024" class="img-fluid"></div>
+                <div class="col-lg-4 ms-auto"><img src="http://localhost:8004/storage/storage/wcbGN0b7HAf6KAw889osOPiDdK4H0rND8Ljm0C56.png"
+                                                   alt="Produktansicht Barrierefreiheitserklärung mit Rückmeldungs-Workflow" width="1536" height="1024" class="img-fluid"></div>
             </div>
         </div>
     </section>
@@ -1066,48 +1097,59 @@
             </div>
             <div class="row g-4 justify-content-center"><!-- Karte 1: Webseiten-Plugin (angepasst an Fixstern Widget) -->
                 <div class="col-md-6 col-lg-3"><a href="../../fixstern" class="card gb-card-variant2 gb-card-variant2--pink hoverwhite text-decoration-none">
-                        <div class="card-body"><img src="https://aktion-barrierefrei.org/storage/01KAKF5Y1CP1DG9EDC44672XTW.svg" alt="Fixstern Widget Icon" class="gb-card-variant2__icon mb-3" style="height: 75px; width: auto;" />
+                        <div class="card-body"><img src="https://aktion-barrierefrei.org/storage/01KAKF5Y1CP1DG9EDC44672XTW.svg" alt="Fixstern Widget Icon" class="gb-card-variant2__icon mb-3"
+                                                    style="height: 75px; width: auto;"/>
                             <h3 class="gb-card-variant2__subtitle">Assist Widget</h3>
-                            <hr class="elementor-divider-separator my-3" />
-                            <p class="gb-card-variant2__text"><strong>Sofort einsatzbereit – ganz ohne Umbau.</strong><br />Nutzer passen Ihre Site individuell an – mit einem Klick. Schnell integriert, sofort wirksam.</p>
+                            <hr class="elementor-divider-separator my-3"/>
+                            <p class="gb-card-variant2__text"><strong>Sofort einsatzbereit – ganz ohne Umbau.</strong><br/>Nutzer passen Ihre Site individuell an – mit einem Klick. Schnell integriert,
+                                sofort wirksam.</p>
                             <p class="gb-card-variant2__text hoverwhite">Mehr zum Widget</p>
                         </div>
                     </a></div>
                 <!-- Karte 2: Auto-Optimierung -->
                 <div class="col-md-6 col-lg-3"><a href="../../fixstern#auto" class="card gb-card-variant2 gb-card-variant2--pink hoverwhite text-decoration-none">
-                        <div class="card-body"><img src="https://aktion-barrierefrei.org/storage/01KAKFVQ9KS6GND12H36WY2R3Z.png" alt="Auto-Optimierung Icon" class="gb-card-variant2__icon mb-3" style="height: 75px; width: auto;" />
+                        <div class="card-body"><img src="https://aktion-barrierefrei.org/storage/01KAKFVQ9KS6GND12H36WY2R3Z.png" alt="Auto-Optimierung Icon" class="gb-card-variant2__icon mb-3"
+                                                    style="height: 75px; width: auto;"/>
                             <h3 class="gb-card-variant2__subtitle">Auto-Optimierung</h3>
-                            <hr class="elementor-divider-separator my-3" />
-                            <p class="gb-card-variant2__text"><strong>Intelligente Anpassung.</strong><br />Passt Kontraste, Schriften und Reize automatisch an – barrierefrei für alle, ohne manuelles Eingreifen.</p>
+                            <hr class="elementor-divider-separator my-3"/>
+                            <p class="gb-card-variant2__text"><strong>Intelligente Anpassung.</strong><br/>Passt Kontraste, Schriften und Reize automatisch an – barrierefrei für alle, ohne manuelles
+                                Eingreifen.</p>
                             <p class="gb-card-variant2__text hoverwhite">Mehr zur Auto-Optimierung</p>
                         </div>
                     </a></div>
                 <!-- Karte 3: Audit & Monitoring (angepasst an Fixstern Profiles/Monitoring) -->
                 <div class="col-md-6 col-lg-3"><a href="../../fixstern#monitoring" class="card gb-card-variant2 gb-card-variant2--pink hoverwhite text-decoration-none">
-                        <div class="card-body"><img src="https://aktion-barrierefrei.org/storage/01KAKFVQ9KS6GND12H36WY2R3Z.png" alt="Monitoring Icon" class="gb-card-variant2__icon mb-3" style="height: 75px; width: auto;" />
+                        <div class="card-body"><img src="https://aktion-barrierefrei.org/storage/01KAKFVQ9KS6GND12H36WY2R3Z.png" alt="Monitoring Icon" class="gb-card-variant2__icon mb-3"
+                                                    style="height: 75px; width: auto;"/>
                             <h3 class="gb-card-variant2__subtitle">Profil &amp; Monitoring</h3>
-                            <hr class="elementor-divider-separator my-3" />
-                            <p class="gb-card-variant2__text"><strong>Kein Rätselraten: klare Profile.</strong><br />Voreingestellte Modi für Epilepsie, ADHS etc. – erkennt und passt automatisch, mit persistenten Einstellungen.</p>
+                            <hr class="elementor-divider-separator my-3"/>
+                            <p class="gb-card-variant2__text"><strong>Kein Rätselraten: klare Profile.</strong><br/>Voreingestellte Modi für Epilepsie, ADHS etc. – erkennt und passt automatisch, mit
+                                persistenten Einstellungen.</p>
                             <p class="gb-card-variant2__text hoverwhite">Mehr zu Profilen &amp; Monitoring</p>
                         </div>
                     </a></div>
                 <!-- Karte 4: Barrierefreiheits-Erklärung (angepasst an Fixstern Compliance) -->
                 <div class="col-md-6 col-lg-3"><a href="../../fixstern#compliance" class="card gb-card-variant2 gb-card-variant2--pink hoverwhite text-decoration-none">
-                        <div class="card-body"><img src="https://aktion-barrierefrei.org/storage/01KAKFVQ9KS6GND12H36WY2R3Z.png" alt="Compliance Icon" class="gb-card-variant2__icon mb-3" style="height: 75px; width: auto;" />
+                        <div class="card-body"><img src="https://aktion-barrierefrei.org/storage/01KAKFVQ9KS6GND12H36WY2R3Z.png" alt="Compliance Icon" class="gb-card-variant2__icon mb-3"
+                                                    style="height: 75px; width: auto;"/>
                             <h3 class="gb-card-variant2__subtitle">Compliance-Check</h3>
-                            <hr class="elementor-divider-separator my-3" />
-                            <p class="gb-card-variant2__text"><strong>Pflicht erledigt – automatisch.</strong><br />Hilft bei gesetzlicher Barrierefreiheit – passt sich an, ohne Cookie-Hinweise oder Logins.</p>
+                            <hr class="elementor-divider-separator my-3"/>
+                            <p class="gb-card-variant2__text"><strong>Pflicht erledigt – automatisch.</strong><br/>Hilft bei gesetzlicher Barrierefreiheit – passt sich an, ohne Cookie-Hinweise oder
+                                Logins.</p>
                             <p class="gb-card-variant2__text hoverwhite">Mehr zum Compliance-Check</p>
                         </div>
                     </a></div>
             </div>
             <!-- Untere breite Karte: Browser Assistent (angepasst an Fixstern Assist) -->
             <div class="row justify-content-center mt-4">
-                <div class="col-lg-10"><a href="../../fixstern#assist" class="card gb-card-variant2 gb-card-variant2--pink hoverwhite text-decoration-none" style="background-color: #333; color: white;"><!-- Dunkel für Kontrast wie accessgo -->
-                        <div class="card-body d-flex align-items-center"><img src="https://aktion-barrierefrei.org/storage/01KAKFVQ9KS6GND12H36WY2R3Z.png" alt="Assist Icon" class="gb-card-variant2__icon me-3" style="height: 75px; width: auto;" />
+                <div class="col-lg-10"><a href="../../fixstern#assist" class="card gb-card-variant2 gb-card-variant2--pink hoverwhite text-decoration-none"
+                                          style="background-color: #333; color: white;"><!-- Dunkel für Kontrast wie accessgo -->
+                        <div class="card-body d-flex align-items-center"><img src="https://aktion-barrierefrei.org/storage/01KAKFVQ9KS6GND12H36WY2R3Z.png" alt="Assist Icon"
+                                                                              class="gb-card-variant2__icon me-3" style="height: 75px; width: auto;"/>
                             <div>
                                 <h3 class="gb-card-variant2__subtitle">Fixstern Assist</h3>
-                                <p class="gb-card-variant2__text"><strong>Barrieren direkt erkennen.</strong> <br />Zeigt Anpassungen live, generiert Modi und macht Status sichtbar – direkt auf Ihrer Site.</p>
+                                <p class="gb-card-variant2__text"><strong>Barrieren direkt erkennen.</strong> <br/>Zeigt Anpassungen live, generiert Modi und macht Status sichtbar – direkt auf Ihrer
+                                    Site.</p>
                                 <p class="gb-card-variant2__text hoverwhite">Mehr zum Fixstern Assist</p>
                             </div>
                         </div>
@@ -1269,7 +1311,8 @@
                                 <h5>Lückenlose Historie & Compliance-Dokumentation</h5>
                                 <p class="mb-0 text-body-secondary">
                                     Alle Scan-Ergebnisse werden chronologisch erfasst und dauerhaft archiviert.
-                                    So entsteht ein revisionssicherer Nachweis über den Zustand jeder einzelnen URL – ideal für interne Qualitätsprozesse, externe Audits und zukünftige gesetzliche Anforderungen.
+                                    So entsteht ein revisionssicherer Nachweis über den Zustand jeder einzelnen URL – ideal für interne Qualitätsprozesse, externe Audits und zukünftige gesetzliche
+                                    Anforderungen.
                                 </p>
                             </div>
                         </div>
@@ -1280,7 +1323,7 @@
                 <div class="col-lg-6 col-xl-5 col-md-10 me-lg-auto order-1 mb-7 mb-lg-0">
                     <div class="position-relative" data-aos="fade-left" data-aos-delay="150">
                         <img src="http://localhost:8004/assets/img/produkte/site-scan.png"
-                             alt="Firmament-Dashboard"  class="img-fluid position-relative">
+                             alt="Firmament-Dashboard" class="img-fluid position-relative">
                     </div>
                 </div>
             </div>
@@ -1326,7 +1369,8 @@
                                     </div>
                                     <p class="mb-0">
                                         <strong>Lückenlose Historie</strong><br>
-                                        Alle Scan-Ergebnisse werden kontinuierlich gesammelt und übersichtlich dargestellt. So zeigen Sie klar, wie sich Ihre Website entwickelt und wo Optimierungen greifen.
+                                        Alle Scan-Ergebnisse werden kontinuierlich gesammelt und übersichtlich dargestellt. So zeigen Sie klar, wie sich Ihre Website entwickelt und wo Optimierungen
+                                        greifen.
                                     </p>
                                 </li>
 
@@ -1336,7 +1380,8 @@
                                     </div>
                                     <p class="mb-0">
                                         <strong>Transparenter Accessibility-Score</strong><br>
-                                        Der InkluCert-Score zeigt sofort, wo Ihre Website steht. Die Score-Kurve macht Fortschritte sichtbar und zeigt klar, in welche Richtung sich Ihre Barrierefreiheit entwickelt.
+                                        Der InkluCert-Score zeigt sofort, wo Ihre Website steht. Die Score-Kurve macht Fortschritte sichtbar und zeigt klar, in welche Richtung sich Ihre
+                                        Barrierefreiheit entwickelt.
                                     </p>
                                 </li>
 
@@ -1540,7 +1585,7 @@
             </div>
         </div>
     </section>
-  <!-- sectioin button gestalten  --->
+    <!-- sectioin button gestalten  --->
 
     <!-- section firmamemnt -->
     <section class="position-relative overflow-hidden">
@@ -1585,7 +1630,6 @@
                         </div>
 
 
-
                     </div>
                 </div>
 
@@ -1618,7 +1662,8 @@
                     </h3>
 
                     <p class="mb-6 lead text-body-secondary" data-aos="fade-up">
-                        Fixstern passt sich sofort der Sprache Ihrer Webseite an. Ist die <code>lang</code>-Angabe im Dokument korrekt gesetzt, zeigt das Widget alle Inhalte automatisch in der passenden Sprache – ohne Umstellen, ohne Aufwand.
+                        Fixstern passt sich sofort der Sprache Ihrer Webseite an. Ist die <code>lang</code>-Angabe im Dokument korrekt gesetzt, zeigt das Widget alle Inhalte automatisch in der
+                        passenden Sprache – ohne Umstellen, ohne Aufwand.
                     </p>
 
                     <div class="row">
@@ -1764,21 +1809,21 @@
             </div>
         </div>
     </section>
-<style>
+    <style>
 
-    /* Nur im Darkmode und nur in der Pricing-Section */
-    [data-bs-theme="dark"] .card .btn-outline-primary {
-        color: #fff;
-        border-color: #fff;
-    }
+        /* Nur im Darkmode und nur in der Pricing-Section */
+        [data-bs-theme="dark"] .card .btn-outline-primary {
+            color: #fff;
+            border-color: #fff;
+        }
 
-    /* Optional: Hover-State im Darkmode */
-    [data-bs-theme="dark"] .card .btn-outline-primary:hover {
-        background-color: #fff;
-        color: #000;
-    }
+        /* Optional: Hover-State im Darkmode */
+        [data-bs-theme="dark"] .card .btn-outline-primary:hover {
+            background-color: #fff;
+            color: #000;
+        }
 
-</style>
+    </style>
     <style>
         .fixed-cta {
             position: fixed;
@@ -1817,7 +1862,7 @@
         }
     </style>
     <!-- PRICING PLANS -->
-    <section  id="pricing" class="py-8">
+    <section id="pricing" class="py-8">
         <div class="container">
             <div class="row justify-content-center mb-6">
                 <div class="col-lg-8 text-center">
@@ -1841,7 +1886,7 @@
                     <div class="card h-100 border-0 shadow-sm">
                         <div class="card-body p-5 text-center">
                             <div class="mb-4">
-                                <img src="/assets/css/svgs/fixstern-logo.svg" style="width:60%";>
+                                <img src="/assets/css/svgs/fixstern-logo.svg" style="width:60%" ;>
                             </div>
                             <h3 class="h4 fw-bold">Starter</h3>
                             <p class="text-muted small mb-4">
@@ -1895,7 +1940,7 @@
                         </div>
                         <div class="card-body p-5 text-center">
                             <div class="mb-4">
-                                <img src="/assets/css/svgs/fixstern-logo.svg" style="width:60%";>
+                                <img src="/assets/css/svgs/fixstern-logo.svg" style="width:60%" ;>
                             </div>
                             <h3 class="h4 fw-bold">Individual</h3>
                             <p class="text-muted small mb-4">
@@ -2048,8 +2093,6 @@
         });
     </script>
     <!-- Ende PRICING PLANS -->
-
-
 
 
     <section style="background: linear-gradient(135deg, #0055ff 0%, #0033cc 100%); padding: 30px 0; color: white;">
