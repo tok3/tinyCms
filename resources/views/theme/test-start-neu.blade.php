@@ -747,6 +747,298 @@
 
 
     <!-- -->
+    <style>
+
+        .akb-platform{
+            padding:120px 0;
+            text-align:center;
+        }
+
+        .akb-platform-title{
+            font-size:42px;
+            font-weight:700;
+            margin-bottom:20px;
+        }
+
+        .akb-platform-intro{
+            max-width:720px;
+            margin:auto;
+            margin-bottom:90px;
+            opacity:.8;
+        }
+
+        .akb-system{
+            position:relative;
+            width:640px;
+            height:640px;
+            margin:auto;
+        }
+
+        .akb-core{
+            position:absolute;
+            top:50%;
+            left:50%;
+            transform:translate(-50%,-50%);
+            width:200px;
+        }
+
+        .akb-core img{
+            width:70%;
+            height:auto;
+        }
+        .akb-core::after{
+            content:"";
+            position:absolute;
+            width:260px;
+            height:260px;
+            background:radial-gradient(circle,
+            rgba(255,255,255,0.25),
+            transparent 70%);
+            left:50%;
+            top:50%;
+            transform:translate(-50%,-50%);
+            filter:blur(25px);
+            z-index:-1;
+        }
+        /* Nodes */
+
+        .akb-node{
+            position:absolute;
+            width:170px;
+        }
+
+        .akb-node img{
+            width:90%;
+            height:auto;
+        }
+
+        /* Positionen */
+
+        .akb-fixstern{
+            top:0;
+            left:50%;
+            transform:translateX(-50%);
+        }
+
+        .akb-altstar{
+            top:110px;
+            right:0;
+        }
+
+        .akb-sitescan{
+            bottom:0;
+            left:50%;
+            transform:translateX(-50%);
+        }
+
+        .akb-inclucert{
+            top:110px;
+            left:0;
+        }
+
+        .akb-firmament{
+            bottom:120px;
+            right:60px;
+        }
+
+        /*für system rechts */
+
+        .akb-layout{
+            display:grid;
+            grid-template-columns: 1fr 640px;
+            align-items:center;
+            gap:60px;
+        }
+
+        .akb-text{
+            text-align:left;
+        }
+
+        .akb-platform-intro{
+            margin:0;
+            max-width:520px;
+        }
+
+        @media(max-width:900px){
+
+            .akb-layout{
+                grid-template-columns:1fr;
+                text-align:center;
+            }
+
+            .akb-text{
+                text-align:center;
+            }
+
+            .akb-system{
+                margin-top:40px;
+            }
+
+        }
+
+        .akb-system{
+            width:540px;
+            height:540px;
+        }
+        /* Floating Motion */
+
+        .akb-node{
+            animation:akb-float 6s ease-in-out infinite;
+        }
+
+        .akb-altstar{animation-delay:1s;}
+        .akb-sitescan{animation-delay:2s;}
+        .akb-inclucert{animation-delay:1.5s;}
+        .akb-firmament{animation-delay:2.5s;}
+
+        @keyframes akb-float{
+
+            0%{ transform:translateY(0px); }
+
+            50%{ transform:translateY(-10px); }
+
+            100%{ transform:translateY(0px); }
+
+        }
+
+        /* Verbindungskreis */
+
+        .akb-system::before{
+
+            content:"";
+            position:absolute;
+            top:50%;
+            left:50%;
+            width:520px;
+            height:520px;
+            border-radius:50%;
+            border:1px dashed rgba(255,255,255,.15);
+            transform:translate(-50%,-50%);
+
+        }
+        .akb-system::after{
+            content:"";
+            position:absolute;
+            top:50%;
+            left:50%;
+            width:380px;
+            height:380px;
+            border-radius:50%;
+            border:1px dotted rgba(255,255,255,0.09);
+            transform:translate(-50%,-50%);
+        }
+        /* Mobile */
+
+        @media(max-width:900px){
+
+            .akb-system{
+                width:420px;
+                height:420px;
+            }
+
+            .akb-node{
+                width:110px;
+            }
+
+            .akb-core{
+                width:160px;
+            }
+
+        }
+    </style>
+
+
+    <section class="akb-platform bg-gradient-dark-night text-white no-hyphen">
+
+        <div class="container akb-layout">
+
+            <div class="akb-text">
+
+                <h2 class="akb-platform-title">
+                    Digitale Barrierefreiheit – eine Plattform
+                </h2>
+
+                <p class="akb-platform-intro">
+                    Aktion-Barrierefrei verbindet Assistenzsoftware, Analyse-Tools und Nachweise in einer Plattform. Alle Module greifen ineinander und verbessern dauerhaft die Zugänglichkeit Ihrer Website.
+                </p>
+
+            </div>
+
+            <div class="akb-system">
+
+                <div class="akb-core">
+                    <img src="/assets/img/produkte/trigger-icon-glass.svg" alt="Aktion Barrierefrei Plattform">
+                </div>
+
+                <div class="akb-node akb-fixstern">
+                    <img src="/assets/img/produkte/fixstern-glasscard.svg" alt="Fixstern Assistenzsoftware">
+                </div>
+
+                <div class="akb-node akb-altstar">
+                    <img src="/assets/img/produkte/altstar-glasscard.svg" alt="AltStar Bildbeschreibungen">
+                </div>
+
+                <div class="akb-node akb-sitescan">
+                    <img src="/assets/img/produkte/sitescan-glasscard.svg" alt="SiteScan Analyse">
+                </div>
+
+                <div class="akb-node akb-inclucert">
+                    <img src="/assets/img/produkte/inclu-cert-glasscard.svg" alt="IncluCert Zertifikat">
+                </div>
+
+                <div class="akb-node akb-firmament">
+                    <img src="/assets/img/produkte/firmament-glasscard.svg" alt="Firmament Dashboard">
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+
+    <section class="akb-platform bg-gradient-dark-night text-white no-hyphen">
+
+        <div class="container">
+
+            <h2 class="akb-platform-title">
+                Digitale Barrierefreiheit – eine Plattform
+            </h2>
+
+            <p class="akb-platform-intro">
+                Aktion-Barrierefrei verbindet Assistenzsoftware, Analyse-Tools und Nachweise
+                in einer Plattform. Alle Module greifen ineinander und verbessern dauerhaft
+                die Zugänglichkeit Ihrer Website.
+            </p>
+
+            <div class="akb-system">
+
+                <div class="akb-core">
+                    <img src="/assets/img/produkte/trigger-icon-glass.svg" alt="Aktion Barrierefrei Plattform">
+                </div>
+
+                <div class="akb-node akb-fixstern">
+                    <img src="/assets/img/produkte/fixstern-glasscard.svg" alt="Fixstern Assistenzsoftware">
+                </div>
+
+                <div class="akb-node akb-altstar">
+                    <img src="/assets/img/produkte/altstar-glasscard.svg" alt="AltStar Bildbeschreibungen">
+                </div>
+
+                <div class="akb-node akb-sitescan">
+                    <img src="/assets/img/produkte/sitescan-glasscard.svg" alt="SiteScan Analyse">
+                </div>
+
+                <div class="akb-node akb-inclucert">
+                    <img src="/assets/img/produkte/inclu-cert-glasscard.svg" alt="IncluCert Zertifikat">
+                </div>
+
+                <div class="akb-node akb-firmament">
+                    <img src="/assets/img/produkte/firmament-glasscard.svg" alt="Firmament Dashboard">
+                </div>
+
+            </div>
+        </div>
+    </section>
+    <!-- -->
     <section class="position-relative bg-gradient-behindi-light text-white no-hyphen">
         <div class="container pt-10 pb-3 pb-lg-5 position-relative z-2">
             <div class="row pb-0 pt-lg-5 align-items-center">

@@ -3,8 +3,8 @@
 namespace App\Providers;
 
 use App\Http\Responses\LogoutResponse;
-use Illuminate\Support\ServiceProvider;
 use Filament\Http\Responses\Auth\Contracts\LogoutResponse as LogoutResponseContract;
+use Illuminate\Support\ServiceProvider;
 use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;

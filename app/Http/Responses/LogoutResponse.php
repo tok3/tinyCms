@@ -2,14 +2,14 @@
 
 namespace App\Http\Responses;
 
-use Filament\Http\Responses\Auth\Contracts\LogoutResponse as Responsable;
+use Filament\Http\Responses\Auth\Contracts\LogoutResponse as LogoutResponseContract;
 use Illuminate\Http\RedirectResponse;
+use Livewire\Features\SupportRedirects\Redirector;
 
-class LogoutResponse implements Responsable
+class LogoutResponse implements LogoutResponseContract
 {
-    public function toResponse($request): RedirectResponse
+    public function toResponse($request): RedirectResponse|Redirector
     {
-        // change this to your desired route
-        return redirect()->route('home');
+        return redirect('/login');
     }
 }
