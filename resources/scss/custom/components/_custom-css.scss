@@ -1,4 +1,19 @@
 
+html {
+    hyphens: auto;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+li {
+    hyphens: auto;
+}
+
 .btn {
     text-transform: none !important;
 }
