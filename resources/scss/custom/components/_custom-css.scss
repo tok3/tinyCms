@@ -407,3 +407,18 @@ mark-blue,
     .mobile-off{display:none !important}
     .desktop-off{display:block}
 }
+
+
+/* alles unter 1000px ausblenden */
+@media (max-width:1000px){
+    .mobile-off{
+        display:none !important;
+    }
+}
+
+
+@media (max-width:1000px){
+    .desktop-off{
+        display:block;
+    }
+}
