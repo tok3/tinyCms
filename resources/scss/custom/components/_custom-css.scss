@@ -383,3 +383,11 @@ mark-blue,
 .a11y-easy-language-section .fi-section-header-actions {
     margin-left: 0;
 }
+
+.mobile-off{display:block}
+.desktop-off{display:none}
+
+@media (max-width:768px){
+    .mobile-off{display:none !important}
+    .desktop-off{display:block}
+}
