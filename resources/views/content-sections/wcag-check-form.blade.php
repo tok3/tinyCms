@@ -107,7 +107,7 @@
                     <form novalidate="" class="needs-validation">
                         <div class="d-flex flex-column flex-md-row">
                             <div class="mb-2 flex-grow-1 mb-md-0 me-md-2">
-                                <label for="urlInput" id="urllabel" class="shrink">Zu prüfende URL eingeben</label>
+                                <label for="urlInput" id="urllabel" class="shrink mobile-off">Zu prüfende URL eingeben</label>
                                 <input type="url" id="urlInput" name="url" required="required" placeholder="https://ihre-domain.de"  class="form-control" >
                             </div>
                             <div class="flex-shrink-0">
