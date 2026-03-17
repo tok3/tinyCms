@@ -1,6 +1,6 @@
 
 html {
-    hyphens: auto;
+    hyphens: auto !important;
 }
 
 p,
@@ -11,8 +11,9 @@ h4,
 h5,
 h6,
 li {
-    hyphens: auto;
+    hyphens: auto !important;
 }
+
 
 .btn {
     text-transform: none !important;
