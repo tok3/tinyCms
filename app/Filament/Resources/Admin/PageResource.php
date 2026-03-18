@@ -910,7 +910,18 @@ class   PageResource extends Resource
                                                                 Forms\Components\Checkbox::make('showCta')
                                                                     ->label('CTA nach Prüfung anzeigen')
                                                                     ->reactive() // Sichtbarkeit der Felder steuern
-                                                                    ->columnSpan(6),
+                                                                    ->columnSpan(2),
+
+                                                                Forms\Components\Select::make('ctaPosition')
+                                                                    ->label('CTA Position')
+                                                                    ->options([
+                                                                        'after-result' => 'Nach Ergebnis (oben)',
+                                                                        'after-form' => 'Nach Formular (unten)',
+                                                                    ])
+                                                                    ->default('after-form')
+                                                                    ->visible(fn($get) => $get('showCta'))
+                                                                ->columnSpan(3),
+
                                                             ]),
 
                                                             // CTA-Felder untereinander (jede Überschrift in einer Zeile)
