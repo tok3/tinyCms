@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
-
+use Illuminate\Support\Facades\Validator;
 class TrialController extends Controller
 {
     public function create()
@@ -40,7 +40,7 @@ class TrialController extends Controller
             ];
 
             // 1) Validate
-            $validator = \Validator::make($request->all(), [
+            $validator = Validator::make($request->all(), [
                 'url'        => ['required', 'url', 'max:2048'],
                 'first_name' => ['required', 'string', 'max:100'],
                 'last_name'  => ['required', 'string', 'max:100'],
