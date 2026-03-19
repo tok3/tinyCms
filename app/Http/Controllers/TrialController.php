@@ -38,7 +38,56 @@ class TrialController extends Controller
             'website'    => ['nullable', 'max:0'], // Honeypot
         ]);
 
-        // 2) Rate limit (z. B. 5/Minute pro IP)
+        // ── NEU: Disposable / Wegwerf-Email Blacklist ───────────────────────────────
+        $email = strtolower(trim($data['email']));
+        $domain = explode('@', $email)[1] ?? '';  // Sicher: falls keine @ → leer
+
+        $blockedDomains = [
+            '10minutemail.com', '10minemail.com', 'temp-mail.org', 'tempmail.org',
+            'guerrillamail.com', 'grr.la', 'sharklasers.com', 'mailinator.com',
+            'yopmail.com', 'yopmail.fr', 'yopmail.net', 'trashmail.com',
+            'throwawaymail.com', 'emailondeck.com', 'fakeinbox.com',
+            'getnada.com', 'maildrop.cc', 'dispostable.com',
+            'tempmail.com', 'tempemail.cc', 'tempail.com',
+            'byom.de', 'mailnesia.com', 'mailnull.com', 'mytemp.email',
+            'inboxkitten.com', 'anonymbox.com', 'mail7.io', 'tempmail.plus',
+            // ── 2025/2026 Ergänzungen (aus gängigen Listen) ──
+            'gufum.com', 'kekemail.me', 'moakt.com', '33mail.com',
+            'dropmail.me', '33m.co', 'airmail.cc', 'generator.email',
+            'mail.tm', 'proton.me', 'tuta.io', // ← manchmal missbraucht, aber Vorsicht: Proton & Tuta sind eigentlich seriös → nur wenn du sehr streng filtern willst
+        ];
+
+        if (in_array($domain, $blockedDomains)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'errors' => [
+                        'email' => ['Bitte verwenden Sie eine echte, permanente E-Mail-Adresse (keine temporären Dienste).']
+                    ]
+                ], 422);
+            }
+
+            return back()
+                ->withErrors(['email' => 'Bitte verwenden Sie eine echte, permanente E-Mail-Adresse (keine temporären Dienste).'])
+                ->withInput();
+        }
+
+        // Optional: noch robuster – Subdomain-Check (z. B. xyz.temp-mail.org)
+        foreach ($blockedDomains as $bad) {
+            if (str_ends_with($domain, $bad)) {
+                // gleiche Fehlerbehandlung wie oben
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'errors' => ['email' => ['Bitte verwenden Sie eine echte E-Mail-Adresse – temporäre Adressen sind nicht erlaubt.']]
+                    ], 422);
+                }
+                return back()
+                    ->withErrors(['email' => 'Bitte verwenden Sie eine echte E-Mail-Adresse – temporäre Adressen sind nicht erlaubt.'])
+                    ->withInput();
+            }
+        }
+        // ──────────────────────────────────────────────────────────────────────────────
+
+        // 2) Rate limit ...
         if (RateLimiter::tooManyAttempts('trial:' . $request->ip(), 5)) {
             return back()->withErrors(['email' => 'Bitte später erneut versuchen.'])->withInput();
         }
