@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // =========================================================
     // Trial-Form: URL-Sync, Einblendung, Ajax-Submit
     // =========================================================
+
     const urlInput   = document.getElementById('urlInput');
     const summary    = document.getElementById('summaryOutput');
     const trialBox   = document.getElementById('trialFormSection');
