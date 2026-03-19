@@ -165,6 +165,8 @@ class TrialController extends Controller
             ], 201);
         }
 
-        return redirect()->route('trial.info');
+        return response()->json([
+            'ok' => true
+        ]);
     }
 }
