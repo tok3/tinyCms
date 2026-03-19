@@ -102,6 +102,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+
+
     // =========================================================
     // WCAG-Check-Formular mit Streaming + Fun-Mode
     // =========================================================
