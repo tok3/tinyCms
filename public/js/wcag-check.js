@@ -90,9 +90,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     trialAlert.className = 'alert alert-warning';
                     trialAlert.textContent = 'Bitte Eingaben prüfen.';
                 } else {
+                    const text = await resp.text();
+
                     trialAlert.className = 'alert alert-danger';
-                    trialAlert.textContent = 'Unerwarteter Fehler. Bitte später erneut versuchen.';
-                }
+                    trialAlert.textContent = 'Fehler: ' + resp.status;
+
+                    console.error('Server Response:', text);
+                }  trialAlert.textContent = 'Unerwarteter Fehler. Bitte später erneut versuchen.';
+
             } catch (e2) {
                 trialAlert.className = 'alert alert-danger';
                 trialAlert.textContent = 'Netzwerkfehler. Bitte später erneut versuchen.';
