@@ -25,7 +25,6 @@ class TrialController extends Controller
     {
         return view('trial.info');
     }
-
     public function store(Request $request)
     {
         // 1) Validate + Honeypot
