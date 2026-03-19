@@ -28,6 +28,34 @@ class TrialController extends Controller
 
     public function store(Request $request)
     {
+        // 🔥 BLOCKLIST (quick & dirty)
+        $blockedDomains = [
+            '10minutemail.com',
+            '10minemail.com',
+            'wegwerfemail.com',
+            'mailinator.com',
+            'guerrillamail.com',
+            'trashmail.com',
+            'fakemailgenerator.com',
+            'tempmail.com',
+            'byom.de',
+            'fakeinbox.com',
+            'getnada.com',
+            'maildrop.cc',
+            'dispostable.com',
+            'yopmail.com',
+            'sharklasers.com',
+            'throwawaymail.com',
+            'emailondeck.com',
+            'mintemail.com',
+            'spamgourmet.com',
+            'mailnesia.com',
+            'mailnull.com',
+            'mytemp.email',
+            'inboxkitten.com',
+            'anonymbox.com',
+        ];
+
         // 1) Validate + Honeypot
         $data = $request->validate([
             'url'        => ['required', 'url', 'max:2048'],
@@ -38,16 +66,41 @@ class TrialController extends Controller
             'website'    => ['nullable', 'max:0'], // Honeypot
         ]);
 
-        // 2) Rate limit (z. B. 5/Minute pro IP)
+        // 🔥 EMAIL DOMAIN CHECK (JETZT GREIFT ES)
+        $email = strtolower($data['email']);
+        $domain = substr(strrchr($email, "@"), 1);
+
+        foreach ($blockedDomains as $blocked) {
+            if (str_ends_with($domain, $blocked)) {
+                return response()->json([
+                    'errors' => [
+                        'email' => ['Bitte verwenden Sie eine echte E-Mail-Adresse.']
+                    ]
+                ], 422);
+            }
+        }
+
         if (RateLimiter::tooManyAttempts('trial:' . $request->ip(), 5)) {
-            return back()->withErrors(['email' => 'Bitte später erneut versuchen.'])->withInput();
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'errors' => [
+                        'email' => ['Bitte später erneut versuchen.']
+                    ]
+                ], 429);
+            }
+
+            return back()
+                ->withErrors(['email' => 'Bitte später erneut versuchen.'])
+                ->withInput();
         }
         RateLimiter::hit('trial:' . $request->ip(), 60);
 
         $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
+
         // 3) User anlegen/holen
         $user = User::firstOrCreate(
-            ['email' => strtolower($data['email'])],
+            ['email' => $email],
             ['name'  => $fullName]
         );
 
@@ -70,7 +123,7 @@ class TrialController extends Controller
             ['slug' => Str::slug('trial-' . $user->id)]
         );
 
-        // 7) User <-> Company verknüpfen (Relation ggf. anpassen)
+        // 7) User <-> Company verknüpfen
         $user->companies()->syncWithoutDetaching([$company->id]);
 
         // 8) Pa11y-URL anlegen
@@ -83,9 +136,7 @@ class TrialController extends Controller
         $cmd = "php " . base_path('artisan') . " scan:accessibility-21 {$pa11y->id} > /dev/null 2>&1 &";
         shell_exec($cmd);
 
-        // 10) Breeze-Verify-Link signiert erstellen (48h gültig)
-        // Achtung: Standard-Route 'verification.verify' hat 'auth' + 'signed' Middleware.
-        // Der Nutzer muss beim Klick eingeloggt sein (ansonsten wird er zum Login geleitet).
+        // 10) Verify-Link
         $verifyUrl = URL::temporarySignedRoute(
             'verification.verify',
             now()->addHours(48),
@@ -95,8 +146,7 @@ class TrialController extends Controller
             ]
         );
 
-        // 11) Eigene Trial-Mail mit Verify-Link + (falls frisch vergeben) Passwort senden
-        // Falls der User bereits existierte und schon ein Passwort hatte, senden wir kein Plaintext-Passwort mit.
+        // 11) Mail senden
         Mail::to($user->email)->send(new TrialVerifyMail(
             verifyUrl: $verifyUrl,
             scannedUrl: $pa11y->url,
@@ -104,7 +154,7 @@ class TrialController extends Controller
             userEmail: $user->email,
         ));
 
-        // === JSON-Antwort für AJAX ===
+        // JSON
         if ($request->expectsJson()) {
             return response()->json([
                 'ok'         => true,
@@ -114,10 +164,7 @@ class TrialController extends Controller
                 'url_id'     => $pa11y->id,
             ], 201);
         }
-        // Optional: aktuellen Request-User einloggen (für direkten Zugriff auf /dashboard etc.)
-        //Auth::login($user);
 
-        // 12) Info-Seite
         return redirect()->route('trial.info');
     }
 }

@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     trialAlert.className = 'alert alert-success mt-5';
                     trialAlert.innerHTML = '<strong>Fast geschafft!</strong><br>Wir haben Ihnen eine E-Mail zum Freischalten Ihres Benutzerkontos zugesendet. Bitte prüfen Sie Ihren Posteingang und klicken Sie auf den Link, um Ihre E-Mail zu bestätigen und die Analyse zu öffnen. Sollten Sie die E-Mail nicht erhalten haben, senden wir Ihnen gerne eine neue zu.';
-                } else if (resp.status === 422) {
+                } else if (resp.status === 422 || resp.status === 429){
                     const data   = await resp.json();
                     const errors = data.errors || {};
                     Object.entries(errors).forEach(([field, messages]) => {

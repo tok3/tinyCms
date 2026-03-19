@@ -342,7 +342,7 @@ window.checkoutAlpine = function () {
                 'mytemp.email',
                 'inboxkitten.com',
                 'anonymbox.com'
-                // ... weitere Domains nach Bedarf
+                 // ... weitere Domains nach Bedarf
             ];
 
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

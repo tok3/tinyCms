@@ -12,7 +12,7 @@
       "description": "Softwarelösungen für digitale Barrierefreiheit, WCAG-Prüfung, Assistenzsoftware und KI-Tools für barrierefreie Websites.",
       "founder": {
         "@type": "Person",
-        "name": "Tobias Koch"
+        "name": "Tobias C. Koch"
       },
       "areaServed": {
         "@type": "Country",
