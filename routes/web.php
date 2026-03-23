@@ -290,6 +290,14 @@ Route::get('/trial/info', [TrialController::class, 'info'])->name('trial.info');
 
 // -----------------------------------------------
 
+use App\Http\Controllers\MagicLoginController;
+
+Route::middleware(['web'])->group(function () {
+    Route::get('/magic-login/{token}', [MagicLoginController::class, 'login']);
+});
+
+// -----------------------------------------------
+
 use App\Http\Controllers\AccessibilityFeedbackController;
 
 Route::post('/accessibility-declaration/{company}/feedback', [
