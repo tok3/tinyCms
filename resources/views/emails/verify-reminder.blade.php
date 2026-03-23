@@ -12,40 +12,40 @@
     </table>
 
     <h2 style="margin:0 0 16px;font:20px Arial, sans-serif;color:#111;">
-        Ihre Analyse wartet auf Sie
+        Analyse noch nicht aktiviert
     </h2>
 
     <p style="margin:0 0 12px;font:15px/1.5 Arial, sans-serif;color:#333;">
-        Ihre Website wurde bereits geprüft – dabei wurden Barrieren festgestellt.
+        Ihre Auswertung für
+        <strong style="word-break:break-all;">
+            {{ $scannedUrl ?? 'Ihre Website' }}
+        </strong>
+        ist bereits fertig.
     </p>
 
     <p style="margin:0 0 20px;font:15px/1.5 Arial, sans-serif;color:#333;">
-        👉 Sie können die Ergebnisse jederzeit wieder aufrufen:
+        👉 Sie müssen nur noch Ihre E-Mail bestätigen, um die Ergebnisse zu sehen:
     </p>
 
     <table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:24px auto;">
         <tr>
             <td bgcolor="#2d6cdf" style="border-radius:4px;">
-                <a href="{{ $magicLoginUrl }}" style="font:16px Arial, sans-serif;color:#fff;text-decoration:none;padding:12px 24px;display:inline-block;border-radius:4px;">
-                    Ergebnisse ansehen
+                <a href="{{ $verifyUrl }}" style="font:16px Arial, sans-serif;color:#fff;text-decoration:none;padding:12px 24px;display:inline-block;border-radius:4px;">
+                    Analyse freischalten
                 </a>
             </td>
         </tr>
     </table>
 
-    <small style="display:block;margin-top:10px;text-align:center;font:13px Arial, sans-serif;color:#666;">
-        Sollte der Button nicht funktionieren, öffnen Sie bitte folgenden Link:<br>
-        <a href="{{ $magicLoginUrl }}" style="word-break:break-all;color:#2d6cdf;">
-            {{ $magicLoginUrl }}
+    <small>
+        Sollte der Button nicht funktionieren, rufen Sie bitte folgende URL in Ihrem Browser auf:<br>
+        <a href="{{ $verifyUrl }}" style="word-break:break-all;">
+            {{ $verifyUrl }}
         </a>
     </small>
 
-    <p style="margin:20px 0 12px;font:15px/1.5 Arial, sans-serif;color:#333;">
-        Ihre Website verändert sich ständig – neue Inhalte und Seiten können jederzeit neue Barrieren verursachen.
-    </p>
-
-    <p style="margin:0 0 20px;font:15px/1.5 Arial, sans-serif;color:#333;">
-        Lassen Sie mit unseren Tools alle URLs Ihrer Domain automatisch erfassen und regelmäßig auf Barrieren überprüfen. So behalten Sie den Überblick und dokumentieren Ihren Fortschritt nachvollziehbar.
+    <p style="margin:20px 0 0;font:15px/1.5 Arial, sans-serif;color:#333;">
+        Ihre Analyse wartet bereits – es fehlt nur noch ein Klick.
     </p>
 
     <p style="margin:20px 0 4px;font:15px Arial, sans-serif;color:#333;">Danke,</p>

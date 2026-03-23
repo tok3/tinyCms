@@ -289,12 +289,11 @@ Route::post('/trial', [TrialController::class, 'store'])->name('trial.store');
 Route::get('/trial/info', [TrialController::class, 'info'])->name('trial.info');
 
 // -----------------------------------------------
+use App\Http\Controllers\Auth\MagicLoginController;
 
-use App\Http\Controllers\MagicLoginController;
 
-Route::middleware(['web'])->group(function () {
-    Route::get('/magic-login/{token}', [MagicLoginController::class, 'login']);
-});
+Route::get('/magic-login/{token}', MagicLoginController::class)
+    ->name('magic.login');
 
 // -----------------------------------------------
 

@@ -7,6 +7,8 @@ use App\Models\Company;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\WcagFollowupMail;
 use App\Models\AutomationLog;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class SendWcagFollowup extends Command
 {
@@ -18,7 +20,7 @@ class SendWcagFollowup extends Command
         $companies = Company::where('source', 'wcag_tool')
             ->whereNull('converted_at')
             ->whereDoesntHave('contracts')
-            ->where('created_at', '<=', now()->subHours(24))
+            //->where('created_at', '<=', now()->subHours(24))
             ->with(['users:id,email'])
             ->get();
 
@@ -40,9 +42,19 @@ class SendWcagFollowup extends Command
                 continue;
             }
 
-            Mail::to($user->email)
-                ->send(new WcagFollowupMail($company, $user));
+            // 👉 TOKEN ERZEUGEN + SPEICHERN
+            $token = Str::random(40);
 
+            $user->update([
+                'login_token' => $token,
+                'login_token_expires_at' => now()->addHours(24),
+            ]);
+
+            // 👉 MAIL MIT TOKEN
+            Mail::to($user->email)
+                ->send(new WcagFollowupMail($company, $user, $token));
+
+            // 👉 LOG
             AutomationLog::create([
                 'company_id' => $company->id,
                 'automation' => 'wcag_followup_24h',

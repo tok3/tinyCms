@@ -7,7 +7,7 @@ use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Str;
+
 
 class WcagFollowupMail extends Mailable
 {
@@ -15,30 +15,23 @@ class WcagFollowupMail extends Mailable
 
     public Company $company;
     public User $user;
+    public string $token;
 
-    public function __construct(Company $company, User $user)
+    public function __construct(Company $company, User $user, string $token)
     {
         $this->company = $company;
         $this->user = $user;
+        $this->token = $token;
     }
 
     public function build()
     {
-
-
-        $this->user->login_token = \Str::random(64);
-        $this->user->login_token_expires_at = now()->addMinutes(30);
-        $this->user->save();
-
-
-
-        $magicLoginUrl = url('/magic-login/' . $this->user->login_token);
-
+        $magicLink = route('magic.login', $this->token);
 
         return $this->subject('Ihre Analyse – nächster Schritt')
             ->view('emails.wcag-followup')
             ->with([
-                'magicLoginUrl' => $magicLoginUrl,
+                'magicLoginUrl' => $magicLink,
             ]);
     }
 }
