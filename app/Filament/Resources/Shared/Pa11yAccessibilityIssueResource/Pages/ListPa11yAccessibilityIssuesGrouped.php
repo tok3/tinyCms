@@ -9,10 +9,6 @@ use Filament\Resources\Pages\Page;
 use App\Models\Pa11yUrl;
 use App\Models\AccessibilityRule;
 use App\Models\CompanySetting;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-
 
 class ListPa11yAccessibilityIssuesGrouped extends Page
 {
@@ -92,7 +88,6 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
                 ->when($standard, fn($query) => $query->where('standard', $standard)) // Filter für den Standard
                 ->when($standard === '2.0', fn($query) => $query->whereIn('wcag_level', $selectedLevels)) // Nur für 2.0 Level berücksichtigen
                 ->when($type, fn($query) => $query->where('type', $type));
-
                 //->when($code, fn($query) => $query->whereNotLike('code' , 'color-contrast'))
 
 
@@ -107,98 +102,75 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
     }
 
 
-
-
-public function getRecords(): LengthAwarePaginator
-{
-    $grouped = $this->getGroupedRecords();
-
-    $perPage = $this->tableRecordsPerPage ?? 10;
-
-    if ($perPage === 'all') {
-        $perPage = $grouped->count() ?: 1; // avoid division by zero
-    }
-
-    $total = $grouped->count();
-
-    // Calculate real last page using ceil (most accurate)
-    $lastPage = $total > 0 ? (int) ceil($total / $perPage) : 1;
-
-    // Get requested page from query string
-    $page = (int) request()->query('page', 1);
-
-    // Clamp page number → prevent going beyond last real page
-    if ($page < 1) {
-        $page = 1;
-    }
-    if ($page > $lastPage) {
-        $page = $lastPage;
-    }
-
-    // Slice correctly
-    /*$items = $grouped
-        ->values()
-        ->forPage($page, $perPage);
-    */
-
-    $offset = ($page - 1) * $perPage;
-    $items = $grouped->values()->slice($offset, $perPage);
-
-    return new LengthAwarePaginator(
-        $items,
-        $total,
-        $perPage,
-        $page,
-        [
-            'path'  => url()->current(),
-            'query' => request()->query(),
-        ]
-    );
-}
-// Crucial: Prevent Filament from trying to paginate an Eloquent query itself
-protected function getTableRecordsQuery(): ?\Illuminate\Database\Eloquent\Builder
-{
-    return null; // We're fully manual → no default query pagination
-}
-
-// Ensure the per-page selector is visible & working
-public function table(Table $table): Table
-{
-    return $table
-        ->columns([
-            // your columns, e.g.:
-            TextColumn::make('code')
-                ->label('Issue Code')
-                ->searchable(),
-            TextColumn::make('issue_count')
-                ->label('Occurrences')
-                ->numeric()
-                ->sortable(),
-            TextColumn::make('description')
-                ->label('Description')
-                ->limit(80)
-                ->tooltip(fn ($state) => $state),
-            // Add expandable row or actions to show $record->issues if needed
-        ])
-        ->paginated([10, 25, 50, 100, 'all']) // ← enables dropdown + 'all'
-        ->defaultSort('issue_count', 'desc')
-        // filters, actions, etc.
-    ;
-}
-
-
-
-    public function getGroupedRecordCount()
+    /**
+     * Holen der Datensätze für die Kartenanzeige.
+     */
+    public function getRecords()
     {
-        return $this->getGroupedRecords()->count();
+        //$perPage = request('perPage', 30);
+        $perPage = request('perPage', 30);
+        //get length of possible issues
+        if(request('perPage') == 'all'){
+            $perPage = AccessibilityRule::count();
+        }
+
+
+
+
+        return $this->prepareQuery()->paginate($perPage);
+        //return $this->prepareQuery()->paginate($perPage);
+    }
+
+    public function getGroupedCodes()
+    {
+        return $this->prepareQuery()
+            ->select('code')
+            ->distinct()
+            ->paginate(request('perPage', 10));
     }
 
     public function getGroupedRecords()
     {
-        return $this->prepareQuery()
+        $perPage = request('perPage', 10);
+        $page = request()->get('page', 1);
+
+        // ALLE DISTINCT CODES holen (wichtig!)
+        $allCodes = $this->prepareQuery()
+            ->select('code')
+            ->distinct()
+            ->pluck('code');
+
+        // TOTAL = echte Anzahl der Gruppen
+        $total = $allCodes->count();
+
+        // Codes für aktuelle Seite
+        $codesForPage = $allCodes->slice(($page - 1) * $perPage, $perPage);
+
+        //  Issues nur für diese Codes laden
+        $issues = $this->prepareQuery()
+            ->whereIn('code', $codesForPage)
             ->get()
-            ->groupBy('code'); // Gruppierung auf Anwendungsebene
+            ->groupBy('code');
+
+        // Paginator bauen
+        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+            $codesForPage,
+            $total,
+            $perPage,
+            $page,
+            [
+                'path' => request()->url(),
+                'query' => request()->query(),
+            ]
+        );
+
+        return [
+            'groups' => $issues,
+            'paginator' => $paginator,
+        ];
     }
+
+
 
     public function getProcessedGroupedRecords()
     {
