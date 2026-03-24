@@ -61,6 +61,8 @@ class UpgradeProductPage extends Page
             $this->products = Product::query()
                 ->where('active', 1)   // passe ggf. Spaltennamen an: is_active
                 ->where('visible', 1)  // ggf. is_visible
+                ->orwhere('id', 30)  // ggf. is_visible
+                ->orwhere('id', 24)  // ggf. is_visible
                 ->orderBy('sequence')      // falls vorhanden
                 ->get();
         }
