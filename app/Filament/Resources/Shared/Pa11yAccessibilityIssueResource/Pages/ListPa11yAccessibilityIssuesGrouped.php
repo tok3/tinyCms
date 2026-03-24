@@ -134,25 +134,25 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
         $perPage = request('perPage', 10);
         $page = request()->get('page', 1);
 
-        // 👉 ALLE DISTINCT CODES holen (wichtig!)
+        // ALLE DISTINCT CODES holen (wichtig!)
         $allCodes = $this->prepareQuery()
             ->select('code')
             ->distinct()
             ->pluck('code');
 
-        // 👉 TOTAL = echte Anzahl der Gruppen
+        // TOTAL = echte Anzahl der Gruppen
         $total = $allCodes->count();
 
-        // 👉 Codes für aktuelle Seite
+        // Codes für aktuelle Seite
         $codesForPage = $allCodes->slice(($page - 1) * $perPage, $perPage);
 
-        // 👉 Issues nur für diese Codes laden
+        //  Issues nur für diese Codes laden
         $issues = $this->prepareQuery()
             ->whereIn('code', $codesForPage)
             ->get()
             ->groupBy('code');
 
-        // 👉 Paginator bauen
+        // Paginator bauen
         $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
             $codesForPage,
             $total,
