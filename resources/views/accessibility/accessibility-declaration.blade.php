@@ -103,5 +103,18 @@
         <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js?v1.1.9"></script>
         <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/localization/messages_de.js"></script>
         <script src="{{ URL::asset('js/jquery-smartwizard/dist/js/jquery.smartWizard.min.js') }}"></script>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                if (window.self === window.top) return;
+
+                document.querySelectorAll('a[href^="http"]').forEach(link => {
+                    if (!link.href.startsWith(window.location.origin)) {
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                    }
+                });
+            });
+        </script>
     @endpush
 </x-layouts.blank>

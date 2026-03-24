@@ -164,6 +164,7 @@
         return window.matchMedia("(max-width: 768px)").matches;
     }
 </script>
+
 @stack('scripts')
 
 <link rel="stylesheet" href="{!! url('service/fixstern.css?t=').time() !!}">
