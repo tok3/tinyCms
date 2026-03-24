@@ -108,7 +108,7 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
     public function getRecords()
     {
         //$perPage = request('perPage', 30);
-        $perPage = request(30);
+        $perPage = request('perPage', 30);
         //get length of possible issues
         if(request('perPage') == 'all'){
             $perPage = AccessibilityRule::count();
@@ -121,11 +121,53 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
         //return $this->prepareQuery()->paginate($perPage);
     }
 
-    public function getGroupedRecords()
+    public function getGroupedCodes()
     {
         return $this->prepareQuery()
+            ->select('code')
+            ->distinct()
+            ->paginate(request('perPage', 10));
+    }
+
+    public function getGroupedRecords()
+    {
+        $perPage = request('perPage', 10);
+        $page = request()->get('page', 1);
+
+        // 👉 ALLE DISTINCT CODES holen (wichtig!)
+        $allCodes = $this->prepareQuery()
+            ->select('code')
+            ->distinct()
+            ->pluck('code');
+
+        // 👉 TOTAL = echte Anzahl der Gruppen
+        $total = $allCodes->count();
+
+        // 👉 Codes für aktuelle Seite
+        $codesForPage = $allCodes->slice(($page - 1) * $perPage, $perPage);
+
+        // 👉 Issues nur für diese Codes laden
+        $issues = $this->prepareQuery()
+            ->whereIn('code', $codesForPage)
             ->get()
-            ->groupBy('code'); // Gruppierung auf Anwendungsebene
+            ->groupBy('code');
+
+        // 👉 Paginator bauen
+        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+            $codesForPage,
+            $total,
+            $perPage,
+            $page,
+            [
+                'path' => request()->url(),
+                'query' => request()->query(),
+            ]
+        );
+
+        return [
+            'groups' => $issues,
+            'paginator' => $paginator,
+        ];
     }
 
     public function getProcessedGroupedRecords()
