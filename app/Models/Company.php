@@ -11,6 +11,9 @@ use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\App;
 
+/**
+ *
+ */
 class Company extends Model
 {
     use HasFactory, Sluggable, SoftDeletes;
@@ -212,6 +215,15 @@ class Company extends Model
         return $this->hasOne(MollieCustomer::class, 'model_id');
     }
 
+    // App\Models\Company.php
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function automationLogs()
+    {
+        return $this->hasMany(AutomationLog::class);
+    }
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
      */

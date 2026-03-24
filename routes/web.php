@@ -289,6 +289,13 @@ Route::post('/trial', [TrialController::class, 'store'])->name('trial.store');
 Route::get('/trial/info', [TrialController::class, 'info'])->name('trial.info');
 
 // -----------------------------------------------
+use App\Http\Controllers\Auth\MagicLoginController;
+
+
+Route::get('/magic-login/{token}', MagicLoginController::class)
+    ->name('magic.login');
+
+// -----------------------------------------------
 
 use App\Http\Controllers\AccessibilityFeedbackController;
 

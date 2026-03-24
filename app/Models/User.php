@@ -59,6 +59,8 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
         'email',
         'password',
         'is_admin',
+        'login_token',
+        'login_token_expires_at',
     ];
 
     /**
