@@ -30,6 +30,8 @@ use App\Http\Controllers\InkluCertController;
 |
 */
 
+
+
 /*Route::get('/{any}.html', function () {
     return redirect('/', 301);
 })->where('any', '.*');*/
