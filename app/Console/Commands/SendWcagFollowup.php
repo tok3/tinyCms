@@ -13,7 +13,7 @@ use Carbon\Carbon;
 class SendWcagFollowup extends Command
 {
     protected $signature = 'followup:wcag';
-    protected $description = 'Send WCAG follow-up mails after 24 hours';
+    protected $description = 'Send WCAG follow-up mails after XX hours';
 
     public function handle()
     {
@@ -29,7 +29,7 @@ class SendWcagFollowup extends Command
         foreach ($companies as $company) {
 
             $alreadySent = AutomationLog::where('company_id', $company->id)
-                ->where('automation', 'wcag_followup_24h')
+                ->where('automation', 'wcag_followup')
                 ->exists();
 
             if ($alreadySent) {
@@ -57,7 +57,7 @@ class SendWcagFollowup extends Command
             // 👉 LOG
             AutomationLog::create([
                 'company_id' => $company->id,
-                'automation' => 'wcag_followup_24h',
+                'automation' => 'wcag_followup',
                 'sent_at' => now(),
             ]);
 
