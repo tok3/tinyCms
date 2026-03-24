@@ -170,6 +170,8 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
         ];
     }
 
+
+
     public function getProcessedGroupedRecords()
     {
         $groupedRecords = $this->getGroupedRecords();
