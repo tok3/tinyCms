@@ -102,7 +102,13 @@
 
             {{-- hier könntest du später ein echtes Captcha integrieren --}}
             {{-- <div class="mb-3"> … reCAPTCHA etc. … </div> --}}
+            <div class="privacy-declarations mb-3">
 
+                    @if($declaration->customer_privacy_declaration_url != '')
+                    <a class="link-primary link-underline-primary" href="{{ $declaration->customer_privacy_declaration_url }}" target="_blank" rel="noopener noreferrer">Datenschutzhinweise {{ $company->name }}</a><br><br>
+                    @endif
+                    <a class="link-primary link-underline-primary" href="https://aktion-barrierefrei.org/datenschutzerklaerung" target="_blank" rel="noopener noreferrer">Datenschutzerklärung des Dienstleisters Aktion-Barrierefrei</a><br><br>
+                </div>
             <div class="form-check mb-3">
                 <input
                         class="form-check-input @error('privacy_accepted') is-invalid @enderror"
@@ -113,6 +119,7 @@
                         {{ old('privacy_accepted') ? 'checked' : '' }}
                         required
                 >
+
                 <label class="form-check-label" for="privacy_accepted">
                     Ich habe die Datenschutzhinweise zur Kenntnis genommen und bin mit der Verarbeitung meiner Angaben zum Zweck der Bearbeitung meiner Rückmeldung einverstanden.
                 </label>

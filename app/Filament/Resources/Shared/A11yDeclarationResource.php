@@ -246,6 +246,20 @@ class A11yDeclarationResource extends Resource
                     ])
                     ->visible(fn (Get $get): bool => self::isBoardOrAssociation($get)),
 
+                Forms\Components\Section::make('Datenschutz')
+                ->schema([
+                Forms\Components\Grid::make(12)
+                    ->schema([
+                        Forms\Components\TextInput::make('customer_privacy_declaration_url')
+                            ->url()
+                            ->label('Eigene Datenschutzerklärung')
+                            ->columnSpan(8)
+                            ->helperText('(Zusätzlich wird die Datenschutzerklärung der Camindu GmbH angezeigt.)')
+                            ->placeholder('https://meine-datenschutzerklaerung.de')
+                            ->nullable(),
+                        ])
+                    ]),
+
                 // Standard-Texte (Firmen + allgemeine Texte)
                 Forms\Components\Section::make('Texte (Standard)')
                     ->schema([

@@ -77,6 +77,9 @@ class A11yDeclaration extends Model
 
         // Publish-Status
         'published',
+
+        // eigene Datenschutzerklaerung
+        'customer_privacy_declaration_url',
     ];
 
     protected $casts = [
