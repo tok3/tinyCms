@@ -446,13 +446,15 @@ body {
 }
 
 .feature-list li {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px; /* kontrollierter Abstand */
+    display: grid;
+    grid-template-columns: 11px 1fr; /* Icon-Spalte */
+    gap: 12px; /* Abstand */
+
+    align-items: start;
     margin-bottom: 6px;
 }
 
 .feature-list li i {
-    flex-shrink: 0; /* verhindert Verrutschen */
+    font-size: 15px;
     margin-top: 2px;
 }
