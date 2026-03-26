@@ -139,13 +139,9 @@
     @endif
 
     {{-- DESCRIPTION --}}
-    <ul class="mt-3 text-sm text-gray-700 space-y-1 rounded-xl">
-        @foreach(explode("\n", strip_tags($product->description)) as $line)
-            @if(trim($line))
-                <li>✔ {{ $line }}</li>
-            @endif
-        @endforeach
-    </ul>
+    <div class="product-description-text mt-3">
+        {!! $product->description !!}
+    </div>
 
 
 

@@ -391,8 +391,8 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const planSwitch = document.getElementById('planSwitch');
-            planSwitch.checked = true;
-            switchPlans(true);
+            planSwitch.checked = false;
+            switchPlans(false);
 
             planSwitch.addEventListener('change', () => switchPlans(planSwitch.checked));
 
