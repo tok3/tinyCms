@@ -59,11 +59,22 @@ class UpgradeProductPage extends Page
         {
             // Trial: alle regulären Pakete anzeigen (aktiv + sichtbar)
             $this->products = Product::query()
-                ->where('active', 1)   // passe ggf. Spaltennamen an: is_active
-                ->where('visible', 1)  // ggf. is_visible
-                ->orwhere('id', 30)  // ggf. is_visible
-                ->orwhere('id', 24)  // ggf. is_visible
-                ->orderBy('sequence')      // falls vorhanden
+                ->where('active', 1)
+                ->where(function ($query) {
+                    $query->where(function ($q) {
+                        $q->whereIn('type', ['package', 'product'])
+                          ->where('visible', 1);
+                    })
+                    ->orWhereIn('id', [24, 30,27]);
+                })
+                ->orderByRaw("
+        CASE
+            WHEN type = 'package' THEN 1
+            WHEN type = 'product' THEN 2
+            ELSE 3
+        END
+    ")
+                ->orderBy('sequence')
                 ->get();
         }
         else
