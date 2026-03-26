@@ -26,6 +26,7 @@
         'max-url-10k'        => ['file' => '03-site-scan-10k',     'style' => 'height:17px;margin-top:3px;'],
         'max-url-15k'        => ['file' => '03-site-scan-15k',     'style' => 'height:17px;margin-top:3px;'],
         'max-url-100k'       => ['file' => '03-site-scan-100k',    'style' => 'height:17px;margin-top:3px;'],
+         'barrierefreiheitserklaerung' => ['file' => 'be'],
     ];
 
     $logoPath = public_path('assets/img/features');
@@ -74,6 +75,30 @@
     @media (max-width: 576px) {
         .feature-logo-tags { gap: 8px; }
         .feature-logo-tag { padding: 4px 7px; }
+    }
+
+    .product-description h3 {
+        font-size: 0.92rem;   /* ≈ h6 */
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .product-description ul {
+        list-style: none;
+        padding-left: 0;
+        margin: 0;
+    }
+
+    .product-description li {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 4px;
+       font-size: 0.9rem;
+    }
+
+    .product-description li::before {
+        content: "✔";
+        font-weight: 500;
     }
 </style>
 
@@ -168,9 +193,12 @@
                         </div>
 
                         <div class="col-lg-3 col-md-4 col-12 d-flex align-items-center justify-content-center justify-content-md-start text-center text-md-start">
-                            <p class="h6 mt-2 d-inline-flex align-items-center no-hyphens" style="line-height: 1.5;">
+                            <div class="mt-0 product-description">
                                 {!! $product->description !!}
-                            </p>
+                            </div>
+                         {{--   <p class="h6 mt-2 d-inline-flex align-items-center no-hyphens" style="line-height: 1.5;">
+                                {!! $product->description !!}
+                            </p>--}}
                         </div>
 
                         <div class="col-lg-1 col-md-1 col-12">

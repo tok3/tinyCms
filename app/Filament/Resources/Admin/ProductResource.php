@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Filament\Resources\Admin;
 
 use App\Filament\Resources\Admin\ProductResource\Pages;
@@ -16,7 +17,9 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\MultiSelect;
 use Filament\Forms\Components\HasManyRepeater;
-use Filament\Forms\Components\Section;      // ← HIER importieren
+use Filament\Forms\Components\Section;
+
+// ← HIER importieren
 use Filament\Support\Enums\Alignment;
 use Illuminate\Support\Str;
 use App\Helpers\FormatHelper;
@@ -39,14 +42,35 @@ class ProductResource extends Resource
     {
         return $form
             ->schema([
-                // ROW 1: Produktname
-                Forms\Components\Section::make('ROW 1: Produktname + Reihenfolge')
+                Forms\Components\Section::make('Produkt')
+                    ->extraAttributes(['class' => 'max-w-3xl'])
                     ->schema([
                         TextInput::make('name')
                             ->label('Produktname')
                             ->required()
                             ->maxLength(255)
-                            ->columnSpan(3),  // belegt 3 von 4 Spalten
+                            ->columnSpan(3),
+
+                        Select::make('type')
+                            ->label('Produkttyp')
+                            ->options([
+                                'package' => 'Kombi-Paket (für neue Kunden)',
+                                'product' => 'Einzelprodukt',
+                                'upgrade' => 'Upgrade (nur für Bestandskunden)',
+                            ])
+                            ->helperText('Bestimmt, wo und wie das Produkt angezeigt wird.')
+                            ->required()
+                            ->default('product')
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                if ($state === 'upgrade') {
+                                    $set('upgrade', true);
+                                    $set('visible', false);
+                                } else {
+                                    $set('upgrade', false);
+                                }
+                            })
+                            ->columnSpan(2),
 
                         TextInput::make('sequence')
                             ->label('Reihenfolge')
@@ -58,56 +82,48 @@ class ProductResource extends Resource
                                 'style' => 'width: 4rem;',
                                 'class' => 'text-right',
                             ])
-                            ->columnSpan(1),  // die schmale 4. Spalte
+                            ->columnSpan(1),
                     ])
                     ->columns(6),
 
-                // ROW 2: Beschreibung
-                Forms\Components\Section::make()
+                Forms\Components\Section::make('Inhalte & Beschreibung')
+                    ->extraAttributes(['class' => 'max-w-3xl'])
                     ->schema([
                         RichEditor::make('description')
-                            ->label('Beschreibung Kurz')
+                            ->label('Kurzbeschreibung')
                             ->extraInputAttributes([
                                 'style' => 'min-height: 5rem; max-height: 10rem; overflow-y: auto;',
                             ])
                             ->nullable(),
-                    ])
-                    ->columns(2),
 
-                Forms\Components\Section::make()
-                    ->schema([
                         RichEditor::make('info')
-                            ->label('Info/Eigenschaften (wird in modal popup angezeigt)')
+                            ->label('Details (Modal)')
                             ->maxLength(2000),
-                    ])
-                    ->columns(2),
 
-                // ROW 2: Beschreibung
-                Forms\Components\Section::make()
-                    ->schema([
                         TextInput::make('invoice_text')
-                            ->label('Rechnungstext (Text für Position/Zeile für Produkt auf der Rechnung)')
+                            ->label('Rechnungstext')
                             ->required(),
                     ])
-                    ->columns(2),
-
-
-
+                    ->columns(1),
                 // ROW 4: Preis, Währung, Intervall, Laufzeit (nur wenn Zahlungstyp "recurrent") und Testzeitraum
-                Forms\Components\Section::make()
+                Forms\Components\Section::make('Zahlung & Laufzeit')
+                    ->extraAttributes(['class' => 'max-w-3xl'])
                     ->schema([
                         Select::make('payment_type')
                             ->label('Zahlungstyp')
                             ->options([
-                                'one_time'  => 'Einmalzahlung',
+                                'one_time' => 'Einmalzahlung',
                                 'recurrent' => 'Wiederkehrend',
                             ])
                             ->required()
                             ->reactive()
                             ->afterStateUpdated(function ($state, callable $set) {
-                                if ($state === 'one_time') {
+                                if ($state === 'one_time')
+                                {
                                     $set('interval', 'one_time');
-                                } else {
+                                }
+                                else
+                                {
                                     $set('interval', null);
                                 }
                             }),
@@ -116,7 +132,7 @@ class ProductResource extends Resource
                             ->label('Laufzeit (Monate)')
                             ->numeric()
                             ->default(24)
-                            ->hidden(fn (callable $get) => $get('payment_type') !== 'recurrent'),
+                            ->hidden(fn(callable $get) => $get('payment_type') !== 'recurrent'),
 
                         TextInput::make('trial_period_days')
                             ->label('Testzeitraum (Tage)')
@@ -125,42 +141,44 @@ class ProductResource extends Resource
                     ])
                     ->columns(4),
 
-    Section::make('Produktpreise')
-        ->extraAttributes(['class' => 'fi-section bg-gray-100'])
-        ->schema([
-            HasManyRepeater::make('prices')
-                ->label('Produktpreise')
-                ->addActionLabel('Produktpreis hinzufügen')
-                ->relationship('prices')
-                ->orderable('sort')
-                ->schema([
-                    Select::make('interval')
-                        ->label('Zahlungsintervall')
-                        ->options([
-                            'one_time' => 'Einmalzahlung',
-                            'monthly'  => 'Monatlich',
-                            'annual'   => 'Jährlich',
-                        ])
-                        ->required(),
-                    TextInput::make('price')
-                        ->label('Preis (€)')
-                        ->required()
-                        ->afterStateHydrated(function ($component, $state) {
-                            if ($state !== null) {
-                                $component->state(number_format($state / 100, 2, ',', '.'));
-                            }
-                        })
-                        ->dehydrateStateUsing(function ($state) {
-                            $normalized = str_replace(['.', ' '], ['', ''], $state);
-                            $normalized = str_replace(',', '.', $normalized);
-                            return (int) round((float) $normalized * 100);
-                        }),
-                ])
-                ->columns(2)
-                ->minItems(1)
-                ->defaultItems(1),
-        ])
-        ->columns(2),
+                Section::make('Produktpreise')
+                    ->extraAttributes(['class' => 'fi-section bg-gray-100'])
+                    ->schema([
+                        HasManyRepeater::make('prices')
+                            ->label('Produktpreise')
+                            ->addActionLabel('Produktpreis hinzufügen')
+                            ->relationship('prices')
+                            ->orderable('sort')
+                            ->schema([
+                                Select::make('interval')
+                                    ->label('Zahlungsintervall')
+                                    ->options([
+                                        'one_time' => 'Einmalzahlung',
+                                        'monthly' => 'Monatlich',
+                                        'annual' => 'Jährlich',
+                                    ])
+                                    ->required(),
+                                TextInput::make('price')
+                                    ->label('Preis (€)')
+                                    ->required()
+                                    ->afterStateHydrated(function ($component, $state) {
+                                        if ($state !== null)
+                                        {
+                                            $component->state(number_format($state / 100, 2, ',', '.'));
+                                        }
+                                    })
+                                    ->dehydrateStateUsing(function ($state) {
+                                        $normalized = str_replace(['.', ' '], ['', ''], $state);
+                                        $normalized = str_replace(',', '.', $normalized);
+
+                                        return (int)round((float)$normalized * 100);
+                                    }),
+                            ])
+                            ->columns(2)
+                            ->minItems(1)
+                            ->defaultItems(1),
+                    ])
+                    ->columns(2),
                 // ROW 5: Features
                 Forms\Components\Section::make()
                     ->schema([
@@ -173,46 +191,48 @@ class ProductResource extends Resource
                     ->columns(2),
 
 
-                Select::make('feature_visibility_mode')
-                    ->label('Sichtbarkeitslogik für Features')
-                    ->options([
-                        'exclude' => 'Nicht anzeigen, wenn Kunde eines dieser Features hat',
-                        'include' => 'Nur anzeigen, wenn Kunde eines dieser Features hat',
+                Forms\Components\Section::make('Upgrade-Logik')
+                    ->visible(fn(callable $get) => $get('type') === 'upgrade')
+                    ->schema([
+                        Select::make('feature_visibility_mode')
+                            ->label('Upgrade anzeigen wenn...')
+                            ->options([
+                                'exclude' => 'Kunde diese Features NICHT hat',
+                                'include' => 'Kunde diese Features hat',
+                            ])
+                            ->default('exclude'),
+
+                        Select::make('excluded_feature_ids')
+                            ->label('Betroffene Features')
+                            ->multiple()
+                            ->options(fn() => \App\Models\Feature::pluck('name', 'id'))
+                            ->searchable()
+                            ->preload(),
                     ])
-                    ->default('exclude')
-                    ->visible(fn (callable $get) => $get('upgrade'))
-                    ->columns(2),
-                Select::make('excluded_feature_ids')
-                    ->label('Features für Sichtbarkeitslogik')
-                    ->multiple()
-                    ->options(fn () => \App\Models\Feature::pluck('name', 'id'))
-                    ->visible(fn (callable $get) => $get('upgrade'))
-                    ->searchable()
-                    ->preload()
                     ->columns(2),
                 // Status & Sichtbarkeit
                 Forms\Components\Fieldset::make('Status')
                     ->schema([
                         Toggle::make('active')
-                            ->label('Aktiv')
+                            ->label('Produkt aktiv')
                             ->default(true)
                             ->required(),
 
                         Toggle::make('visible')
-                            ->label('auf Preise/Pakete seite sichtbar')
+                            ->label('Auf öffentlicher Preisseite sichtbar')
                             ->default(true)
-                            ->required()
                             ->reactive()
-                            ->dehydrated(fn ($state, callable $get) => $get('upgrade') ? true : $state)
-                            ->disabled(fn (callable $get) => $get('upgrade')),
+                            ->disabled(fn(callable $get) => $get('type') === 'upgrade'),
 
                         Toggle::make('upgrade')
-                            ->label('Intern buchbares Upgrade')
+                            ->label('Automatisch: Upgrade')
                             ->default(false)
+                            ->disabled()
                             ->required()
                             ->reactive()
                             ->afterStateUpdated(function (bool $state, callable $set) {
-                                if ($state) {
+                                if ($state)
+                                {
                                     $set('visible', false);
                                 }
                             }),
@@ -221,16 +241,16 @@ class ProductResource extends Resource
                     ->columns(4),
                 \Filament\Forms\Components\Placeholder::make('direct_booking_links')
                     ->label('Replacement-Tags')
-                    ->visible(fn (callable $get, $livewire) =>
-                        $get('active')
-                        && ! $get('visible')
-                        && ! $get('upgrade')
+                    ->visible(fn(callable $get, $livewire) => $get('active')
+                        && $get('type') !== 'upgrade'
+                        && !$get('visible')
                         && filled($livewire->record?->prices)
                     )
                     ->content(function (callable $get, $state, $livewire) {
                         $record = $livewire->record;
 
-                        if (! $record || ! $record->exists) {
+                        if (!$record || !$record->exists)
+                        {
                             return null;
                         }
 
@@ -243,10 +263,11 @@ class ProductResource extends Resource
 
                         // Anzeige-Reihenfolge
                         $ordered = collect(['monthly', 'annual', 'one_time'])
-                            ->filter(fn ($i) => $availableIntervals->contains($i))
+                            ->filter(fn($i) => $availableIntervals->contains($i))
                             ->values();
 
-                        if ($ordered->isEmpty()) {
+                        if ($ordered->isEmpty())
+                        {
                             return new \Illuminate\Support\HtmlString(
                                 '<div class="text-sm text-gray-500">Keine Preise/Intervalle gefunden.</div>'
                             );
@@ -254,7 +275,7 @@ class ProductResource extends Resource
 
                         // Tokens je Intervall: LINK + PRICE
                         $tokensHtml = $ordered->map(function ($interval) use ($productId) {
-                            $upper     = strtoupper($interval);
+                            $upper = strtoupper($interval);
                             $linkToken = "##P{$productId}_{$upper}_LINK##";
                             $priceToken = "##P{$productId}_{$upper}_PRICE##";
 
@@ -290,6 +311,7 @@ class ProductResource extends Resource
                     }),
             ]);
     }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -297,36 +319,37 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('id')
                     ->sortable()
                     ->searchable(),
-      Tables\Columns\TextColumn::make('name')
-                    ->formatStateUsing(fn (?string $state) => Str::limit(
+                Tables\Columns\TextColumn::make('name')
+                    ->formatStateUsing(fn(?string $state) => Str::limit(
                         FormatHelper::stripHtmlButKeepSpaces($state ?? ''),
                         20,
                         '...'
                     ))
                     ->tooltip(function ($record) {
                         $cleanText = FormatHelper::stripHtmlButKeepSpaces($record->name);
+
                         return strlen($cleanText) > 20 ? $cleanText : null;
                     })
                     ->sortable()
                     ->searchable(),
 
                 TextColumn::make('description')
-                    ->formatStateUsing(fn (?string $state) => Str::limit(
+                    ->formatStateUsing(fn(?string $state) => Str::limit(
                         FormatHelper::stripHtmlButKeepSpaces($state ?? ''),
                         55,
                         '...'
                     ))
                     ->tooltip(function ($record) {
                         $cleanText = FormatHelper::stripHtmlButKeepSpaces($record->description);
+
                         return strlen($cleanText) > 55 ? $cleanText : null;
                     })
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('prices')
                     ->label('Preise')
-                    ->formatStateUsing(fn($state, $record) =>
-                    $record->prices
-                        ->map(fn($p) => "{$p->interval}: ".number_format($p->price/100,2,',','.').' €')
+                    ->formatStateUsing(fn($state, $record) => $record->prices
+                        ->map(fn($p) => "{$p->interval}: " . number_format($p->price / 100, 2, ',', '.') . ' €')
                         ->implode(' / ')
                     )
                     ->sortable(false)
@@ -340,7 +363,7 @@ class ProductResource extends Resource
                     ->label('Features')
                     ->badge()
                     ->limit(3)
-                    ->tooltip(fn ($record) => $record->features->pluck('name')->join(', ')),
+                    ->tooltip(fn($record) => $record->features->pluck('name')->join(', ')),
 
                 Tables\Columns\BooleanColumn::make('active')
                     ->sortable()
@@ -348,11 +371,11 @@ class ProductResource extends Resource
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
-                ->sortable(),
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
-                ->sortable(),
+                    ->sortable(),
             ])
             ->filters([])
             ->actions([

@@ -11,11 +11,12 @@ class Product extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name', 'description', 'info', 'invoice_text', 'price', 'currency', 'payment_type', 'lz', 'interval', 'sequence', 'active', 'visible', 'upgrade','excluded_feature_ids','feature_visibility_mode','trial_period_days'
+        'name', 'description', 'info', 'invoice_text', 'price', 'currency', 'payment_type', 'lz', 'interval', 'sequence', 'active', 'visible', 'upgrade', 'excluded_feature_ids', 'feature_visibility_mode', 'trial_period_days'
     ];
 
     protected $casts = [
         'excluded_feature_ids' => 'array',
+        'is_package' => 'boolean', // falls noch da
     ];
 
     public static function boot()
@@ -38,21 +39,23 @@ class Product extends Model
     /**
      * Liefert den Preis für ein Intervall.
      *
-     * @param  string  $interval    Zahlungsintervall („monthly“, „annual“, …)
-     * @param  bool    $formatted   Wenn true, formatierten Euro-String zurückgeben
+     * @param string $interval Zahlungsintervall („monthly“, „annual“, …)
+     * @param bool $formatted Wenn true, formatierten Euro-String zurückgeben
      * @return int|string|null      Cent-Integer oder formatierter String oder null
      */
     public function priceFor(string $interval, bool $formatted = false)
     {
         $priceModel = $this->prices->firstWhere('interval', $interval);
 
-        if (! $priceModel) {
+        if (!$priceModel)
+        {
             return null;
         }
 
         $cents = $priceModel->price; // z. B. 69000
 
-        if (! $formatted) {
+        if (!$formatted)
+        {
             return $cents;             // rohe Cent-Zahl
         }
 
@@ -78,7 +81,7 @@ class Product extends Model
      * Prüft, ob dieses Produkt bei der übergebenen Firma *nicht* zum Upselling
      * angeboten werden soll, weil die Firma bereits mindestens eines seiner Features besitzt.
      *
-     * @param  \App\Models\Company  $company
+     * @param \App\Models\Company $company
      * @return bool  true = upsellbar; false = bereits abgedeckt
      */
     public function isUpsellableForCompany(\App\Models\Company $company): bool
@@ -104,34 +107,40 @@ class Product extends Model
 
     public function isVisibleForCompany(?\App\Models\Company $company): bool
     {
-        if (! $this->upgrade) {
+        if (!$this->upgrade)
+        {
             return false;
         }
 
-        if (! $company) {
+        if (!$company)
+        {
             return false;
         }
 
         // Wenn keine Einschränkungen gesetzt sind oder Modus fehlt, dann anzeigen
-        if (empty($this->feature_visibility_mode)) {
+        if (empty($this->feature_visibility_mode))
+        {
             return true;
         }
 
         $excluded = $this->excluded_feature_ids;
 
-        if (!is_array($excluded) || empty($excluded)) {
+        if (!is_array($excluded) || empty($excluded))
+        {
             return $this->feature_visibility_mode !== 'include';
         }
 
         $companyFeatureIds = $company->features()->pluck('features.id')->toArray();
         $overlap = array_intersect($excluded, $companyFeatureIds);
 
-        return match ($this->feature_visibility_mode) {
+        return match ($this->feature_visibility_mode)
+        {
             'exclude' => count($overlap) === 0,
             'include' => count($overlap) > 0,
             default => true,
         };
     }
+
     // Accessor to get the price in a formatted way
     public function getPriceAttribute($value)
     {
