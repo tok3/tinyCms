@@ -158,7 +158,7 @@
     }
 
     /* Mobile */
-    @media (max-width: 990px) {
+    @media (max-width: 989px) {
 
         .logo-col {
             text-align: center !important;
