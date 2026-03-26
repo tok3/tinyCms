@@ -166,6 +166,7 @@
     .trial-hint {
         padding-bottom: 0.8em;
     }
+
     @media (max-width: 992px) {
         .product-description-grid {
             max-width: 420px;
