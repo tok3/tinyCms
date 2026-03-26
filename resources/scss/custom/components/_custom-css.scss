@@ -439,3 +439,24 @@ body {
     overflow-x: hidden;
 }
 
+.feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.feature-list li {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    gap: 10px;
+    align-items: start;
+    margin-bottom: 10px;
+}
+
+.feature-list li i {
+    margin-top: 3px;
+}
+.feature-list li {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
