@@ -156,7 +156,23 @@
     .trial-hint {
         padding-bottom: 0.8em;
     }
+    @media (max-width: 992px) {
+        .product-description-grid {
+            max-width: 420px;
+            margin: 0 auto;
+        }
+        .text-md-end {
+            text-align: center !important;
+            margin-top: 1rem;
+        }
+     .logo-col,
+        .text-md-start {
+            flex: 0 0 100%;
+            max-width: 100%;
+            text-align: center !important;
+        }
 
+    }
     /* Mobile */
     @media (max-width: 989px) {
 
@@ -282,7 +298,7 @@
                             </div>
                         </div>
 
-                        <div class="col-lg-4 col-md-5 col-12 d-flex align-items-center">
+                        <div class="col-lg-4 col-12 d-flex align-items-center">
 
                             <div class="product-description-grid">
 
