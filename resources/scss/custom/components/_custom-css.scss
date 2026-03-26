@@ -447,16 +447,13 @@ body {
 
 .feature-list li {
     display: grid;
-    grid-template-columns: 24px 1fr;
-    gap: 10px;
+    grid-template-columns: 18px 1fr; /* kleiner als 24px */
+    gap: 6px; /* vorher 10px → jetzt kompakt */
     align-items: start;
-    margin-bottom: 10px;
+    margin-bottom: 6px; /* vorher größer → jetzt näher an Default */
 }
 
 .feature-list li i {
-    margin-top: 3px;
-}
-.feature-list li {
-    font-size: 0.95rem;
-    line-height: 1.5;
+    font-size: 14px;
+    margin-top: 2px;
 }
