@@ -54,7 +54,6 @@ class UpgradeProductPage extends Page
         ]);
         // }
 
-
         if ($company && !$company->contracts()->exists())
         {
             // Trial: alle regulären Pakete anzeigen (aktiv + sichtbar)
