@@ -34,7 +34,51 @@
 @endphp
 
 <style>
-    .no-hyphens { -webkit-hyphens: none; -ms-hyphens: none; hyphens: none; }
+    .text-md-start h6 {
+
+    }
+
+    .text-md-start h3 {
+        line-height: 0.8em;
+    }
+
+    .product-description-grid {
+        display: grid;
+        grid-template-columns: 1fr 40px;
+        gap: 12px;
+        align-items: center;
+        width: 100%; /* 🔥 DAS ist wichtig */
+
+    }
+
+    .product-description-text {
+        font-size: 0.9rem;
+        line-height: 1.4;
+        padding-right: 10px;
+    }
+
+    .product-description-info {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+    }
+
+    .product-description-info i {
+        font-size: 26px;
+        opacity: 0.6;
+        transition: all 0.2s ease;
+    }
+
+    .product-description-info:hover i {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+
+    .no-hyphens {
+        -webkit-hyphens: none;
+        -ms-hyphens: none;
+        hyphens: none;
+    }
 
     .feature-logo-tags {
         display: flex;
@@ -44,6 +88,7 @@
         justify-content: left;
         margin: 8px 0 0;
         padding: 0;
+        padding-bottom: 3px;
     }
 
     .feature-logo-tag {
@@ -53,6 +98,8 @@
         padding: 2px 5px;
         transition: all 0.2s ease;
         line-height: 1;
+
+        margin-top: 8px;
     }
 
     .feature-logo-tag:hover,
@@ -73,32 +120,80 @@
     }
 
     @media (max-width: 576px) {
-        .feature-logo-tags { gap: 8px; }
-        .feature-logo-tag { padding: 4px 7px; }
+        .feature-logo-tags {
+            gap: 8px;
+        }
+
+        .feature-logo-tag {
+            padding: 4px 7px;
+        }
     }
 
-    .product-description h3 {
-        font-size: 0.92rem;   /* ≈ h6 */
+    .product-description-text h3 {
+        font-size: 0.92rem; /* ≈ h6 */
         font-weight: 600;
         margin-bottom: 4px;
     }
 
-    .product-description ul {
+    .product-description-text ul {
         list-style: none;
         padding-left: 0;
         margin: 0;
     }
 
-    .product-description li {
+    .product-description-text li {
         display: flex;
         gap: 6px;
         margin-bottom: 4px;
-       font-size: 0.9rem;
+        font-size: 0.9rem;
     }
 
-    .product-description li::before {
+    .product-description-text li::before {
         content: "✔";
         font-weight: 500;
+    }
+
+    .trial-hint {
+        padding-bottom: 0.8em;
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+
+        .logo-col {
+            text-align: center !important;
+        }
+
+        .main-logo {
+            display: block;
+            margin: 0 auto;
+            height: 80px; /* größer für mobile */
+        }
+
+        .btn,
+        .text-md-end {
+            margin-top: 0.3em;
+            width: 100%;
+        }
+
+        .product-description-grid {
+            padding-bottom: 1em;
+            margin-bottom: 0.5em;
+            border-bottom: 1px dashed lightgray;
+        }
+
+        .feature-logo-tags {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center; /* 🔥 DAS ist der Key */
+            gap: 6px;
+            padding-bottom: 1em;
+            margin-bottom: 1em;
+            border-bottom: 1px dashed lightgray;
+
+        }
+
+
     }
 </style>
 
@@ -129,20 +224,15 @@
             <div class="container py-3 py-lg-3 plan" data-plan="{{ $plan }}">
                 <div class="bg-body overflow-hidden shadow-lg px-4 py-2 px-lg-5">
                     <div class="row align-items-center">
-                        <div class="col-lg-1 col-md-1 col-12 text-center text-md-start mb-3 mb-md-0">
-                            {{--<i class="h1 bi bi-shield-shaded"></i>--}}
-
+                        <div class="col-lg-1 col-md-2 col-12 text-center text-md-start mb-3 mb-md-0 logo-col">
                             <img src="{{ asset('assets/img/produkte/kombi-paket.svg') }}"
-                                 alt=""
-                                 class="feature-logo-img"
-                                 style=""
-                                 loading="lazy"
-                                 aria-hidden="true">
+                                 class="feature-logo-img main-logo"
+                                 alt="">
                         </div>
 
                         <div class="col-lg-3 col-md-4 col-12 text-center text-md-start">
                             <h6>Kombi-Paket</h6>
-                            <h3 class="mt-2 display-5" data-aos="zoom-in-up" data-aos-delay="100">
+                            <h3 class="display-5" data-aos="zoom-in-up" data-aos-delay="100">
                                 {{ $product->name }}
                             </h3>
 
@@ -192,23 +282,32 @@
                             </div>
                         </div>
 
-                        <div class="col-lg-3 col-md-4 col-12 d-flex align-items-center justify-content-center justify-content-md-start text-center text-md-start">
-                            <div class="mt-0 product-description">
-                                {!! $product->description !!}
-                            </div>
-                         {{--   <p class="h6 mt-2 d-inline-flex align-items-center no-hyphens" style="line-height: 1.5;">
-                                {!! $product->description !!}
-                            </p>--}}
-                        </div>
+                        <div class="col-lg-4 col-md-5 col-12 d-flex align-items-center">
 
-                        <div class="col-lg-1 col-md-1 col-12">
-                            @if($product->info)
-                                <button type="button" class="btn btn-link mt--20" style="float: right;"
-                                        data-bs-toggle="modal" data-bs-target="#infoModal-{{ $product->id }}"
-                                        aria-label="Weitere Informationen">
-                                    <i class="bi bi-info-circle h2 text-secondary"></i>
-                                </button>
-                            @endif
+                            <div class="product-description-grid">
+
+                                <!-- TEXT -->
+                                <div class="product-description-text">
+                                    {!! $product->description !!}
+                                </div>
+
+                                <!-- INFO ICON -->
+                                @if($product->info)
+                                    <div class="product-description-info">
+                                        <button type="button"
+                                                class="btn btn-link p-0"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#infoModal-{{ $product->id }}"
+                                                aria-label="Weitere Informationen">
+
+                                            <i class="bi bi-info-circle"></i>
+
+                                        </button>
+                                    </div>
+                                @endif
+
+                            </div>
+
                         </div>
 
                         <div class="col-lg-2 col-md-2 col-12 text-center text-md-end">
@@ -221,7 +320,7 @@
                         </div>
 
                         <div class="col-lg-2 col-md-12 text-center text-md-end">
-                            <div data-aos="fade-left" data-aos-delay="200" class="small">
+                            <div data-aos="fade-left" data-aos-delay="200" class="small trial-hint">
                                 {{ $trialHint }}
                             </div>
                             <input type="radio" class="btn-check"
@@ -271,7 +370,7 @@
 
             planSwitch.addEventListener('change', () => switchPlans(planSwitch.checked));
 
-            new bootstrap.Tooltip(document.body, { selector: '[data-bs-toggle="tooltip"]' });
+            new bootstrap.Tooltip(document.body, {selector: '[data-bs-toggle="tooltip"]'});
         });
     </script>
 @endpush
