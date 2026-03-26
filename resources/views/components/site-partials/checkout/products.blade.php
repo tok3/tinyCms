@@ -153,6 +153,16 @@
         font-weight: 500;
     }
 
+    .product-description-text h3{
+
+        margin-bottom:8px;
+
+    }
+    .product-description-grid {
+        display: grid;
+        grid-template-columns: 1fr auto; /* 👈 KEY CHANGE */
+        gap: 0;
+    }
     .trial-hint {
         padding-bottom: 0.8em;
     }
