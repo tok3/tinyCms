@@ -447,10 +447,11 @@ body {
 
 .feature-list li {
     display: grid;
-    grid-template-columns: 18px 1fr; /* kleiner als 24px */
-    gap: 6px; /* vorher 10px → jetzt kompakt */
+    grid-template-columns: 11px 1fr; /* Icon-Spalte */
+    gap: 6px; /* Abstand */
+
     align-items: start;
-    margin-bottom: 6px; /* vorher größer → jetzt näher an Default */
+    margin-bottom: 6px;
 }
 
 .feature-list li i {
