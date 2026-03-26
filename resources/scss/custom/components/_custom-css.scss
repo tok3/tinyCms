@@ -447,20 +447,14 @@ body {
 
 .feature-list li {
     display: grid;
-    grid-template-columns: 17px 1fr; /* FIX: dein exakter Abstand */
-    column-gap: 0; /* kein extra spacing */
+    grid-template-columns: 11px 1fr; /* Icon-Spalte */
+    gap: 12px; /* Abstand */
 
     align-items: start;
     margin-bottom: 6px;
 }
 
 .feature-list li i {
-    display: flex;
-    justify-content: center; /* Icon IM Slot zentriert */
-    align-items: flex-start;
-
-    font-size: 16px; /* Originalgröße lassen */
-    line-height: 1;
-
-    margin-top: 2px; /* visuelle Baseline */
+    font-size: 16px;
+    margin-top: 2px;
 }
