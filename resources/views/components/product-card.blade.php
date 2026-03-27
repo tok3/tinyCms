@@ -187,10 +187,14 @@
 
                         {{ $paymentInterval[$price->interval] }}
                     </div>
+                    <div>
 
                     <strong>
                         {{ number_format($price->price / 100, 2, ',', '.') }} €
                     </strong>
+                        <muted style="font-size:0.6em;">(inkl. MwSt.)
+                        </muted>
+                    </div>
                 </label>
             @endforeach
 
