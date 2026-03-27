@@ -84,7 +84,15 @@ class Company extends Model
     }
 
 
-
+    /**
+     * @return bool
+     */
+    public function isTrial(): bool
+    {
+        return $this->wcag_tool
+            && is_null($this->converted_at)
+            && !$this->contracts()->exists();
+    }
     public function clients() // inverse: von Agentur zu ihren Kunden
     {
         return $this->hasMany(self::class, 'agency_company_id');

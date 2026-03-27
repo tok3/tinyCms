@@ -9,6 +9,8 @@ use Filament\Resources\Pages\Page;
 use App\Models\Pa11yUrl;
 use App\Models\AccessibilityRule;
 use App\Models\CompanySetting;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\HtmlString;
 
 class ListPa11yAccessibilityIssuesGrouped extends Page
 {
@@ -44,7 +46,14 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
     {
         return __('Observer Ergebnisse'); // Angepasster Seitentitel
     }
-
+    public function getHeading(): string|Htmlable
+    {
+        return new HtmlString(
+            '<div class="flex items-center gap-3" style="margin-top:0.8em;width:50%; color:#262629;">'
+            . file_get_contents(public_path('assets/css/svgs/firmament-logo.svg'))
+            . '</div>'
+        );
+    }
     public  function getBreadcrumb(): string
     {
         return 'Accessibility Issues'; // Neuer Name für die aktuelle Seite

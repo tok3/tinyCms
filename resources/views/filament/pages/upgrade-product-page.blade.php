@@ -6,8 +6,52 @@
             'monthly' => 'monatlich',
             'one_time' => 'Einmalzahlung',
         ];
-    @endphp
 
+
+        @endphp
+    <script>
+        function startTour() {
+
+            const tour = new Shepherd.Tour({
+                useModalOverlay: true,
+                defaultStepOptions: {
+                    cancelIcon: { enabled: true },
+                    classes: 'shadow-lg bg-white ab-tour',
+                    cancelIcon: { enabled: true },
+                    scrollTo: true
+                }
+            });
+
+            tour.addStep({
+                title: 'Willkommen 👋',
+                text: 'Das ist dein Dashboard.',
+                attachTo: { element: 'body', on: 'center' },
+                buttons: [{ text: 'Weiter', action: tour.next }]
+            });
+
+            tour.addStep({
+                title: 'Hier passiert Magie ✨',
+                text: 'Hier siehst du deine Daten.',
+                attachTo: { element: '.fi-main', on: 'bottom' },
+                buttons: [
+                    { text: 'Zurück', action: tour.back },
+                    { text: 'Weiter', action: tour.next }
+                ]
+            });
+
+            tour.addStep({
+                title: 'Mehr rausholen 🚀',
+                text: 'Mit Upgrade bekommst du deutlich mehr Möglichkeiten.',
+                attachTo: { element: '.fi-sidebar', on: 'right' },
+                buttons: [{ text: 'Fertig', action: tour.complete }]
+            });
+
+            tour.start();
+        }
+    </script>
+    <button onclick="startTour()" class="btn btn-primary">
+        Tour starten
+    </button>
     <section class="py-0 bg-white md:py-16 dark:bg-gray-900">
         <div class="bg-white">
             <!-- Gutschein -->

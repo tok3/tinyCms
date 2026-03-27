@@ -27,14 +27,15 @@ use Filament\MinimalTheme;
 use Filament\PluginServiceProvider;
 use Filament\Navigation\NavigationGroup;
 use App\Helpers\CompanyHelper;
+use Filament\Support\Assets\Js;
+use Filament\Support\Assets\Css;
 
 class DashboardPanelProvider extends PanelProvider
 {
 
-
+    
     public function panel(Panel $panel): Panel
     {
-
         $tenant_id = \Request::segment(2);
 
        $tenant = Company::where('id', $tenant_id)->first();
@@ -94,6 +95,11 @@ class DashboardPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+            ])
+            ->assets([
+                Js::make('shepherd', 'https://cdn.jsdelivr.net/npm/shepherd.js@11.2.0/dist/js/shepherd.min.js'),
+                Css::make('shepherd-css', 'https://cdn.jsdelivr.net/npm/shepherd.js@11.2.0/dist/css/shepherd.css'),
+                Css::make('shepherd-custom', resource_path('css/shepherd-custom.css')),
             ])
             ->navigationItems([
                 NavigationItem::make('Termin Vereinbaren')

@@ -6,3 +6,9 @@
 
 // Bootstrap
 @import 'bootstrap/scss/bootstrap';
+
+
+
+import Shepherd from 'shepherd.js';
+
+window.Shepherd = Shepherd;

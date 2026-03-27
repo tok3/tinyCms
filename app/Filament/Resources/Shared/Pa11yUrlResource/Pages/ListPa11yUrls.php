@@ -7,6 +7,7 @@ use App\Filament\Resources\Shared\Pa11yUrlResource;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\HtmlString;
 use App\Filament\Resources\CompanyResource;
 use Filament\Actions\Concerns\InteractsWithActions;
@@ -27,7 +28,14 @@ class ListPa11yUrls extends ListRecords
     {
         return __('Firmament Urls');
     }
-
+    public function getHeading(): string|Htmlable
+    {
+        return new HtmlString(
+            '<div class="flex items-center gap-3" style="margin-top:0.8em;width:50%; color:#262629;">'
+            . file_get_contents(public_path('assets/css/svgs/firmament-logo.svg'))
+            . '</div>'
+        );
+    }
     protected function getHeaderActions(): array
     {
         $company = Filament::getTenant();

@@ -59,6 +59,12 @@ class VerifyEmailController extends Controller
                     session(['current_company_id' => $company->id]);
                     if ($url = $company->pa11yUrls()->first())
                     {
+                        /*return redirect()->route('filament.dashboard.resources.pa11y-urls.index', [
+                            'company' => $company->id,
+                        ])->with([
+                            'tour_hint' => 'first_scan_done',
+                            'highlight_url_id' => $url->id,
+                        ]);*/
                         return redirect("/dashboard/{$company->id}/firmament-issues/grouped/2.1?url_id={$url->id}");
                     }
 

@@ -86,7 +86,7 @@
     <!-- Linke Spalte -->
     <div class="flex flex-col space-y-4">
         <h2 class="text-lg font-bold">
-            Scan Ergebnisse für {{ $this->fetchUrl()->url }}
+            Scan Ergebnisse für {{ $this->fetchUrl()->url  }}
         </h2>
 
         @livewire('pa11y-rescan-button', ['urlId' => $this->fetchUrl()->id, 'standard' => $currentStandard])

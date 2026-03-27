@@ -110,26 +110,44 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
         return $this->companies;
     }
 
+    /**
+     * @return bool
+     */
     public function isAdmin(): bool
     {
         return (bool) $this->is_admin;
     }
+
+    /**
+     * @return bool
+     */
+    public function isTrial(): bool
+    {
+        return $this->company?->isTrial() ?? false;
+    }
+
+    /**
+     * @return string
+     */
     public function getPanelUri()
     {
-
-        if ($this->is_admin == 1)
-        {
-            $this->panelPath = 'admin';
-
+        if ($this->is_admin == 1) {
+            return 'admin';
         }
-        else
-        {
-            $this->panelPath = 'dashboard/' . $this->companies()->orderBy('name', 'ASC')->first()->id;
 
+        $company = $this->companies()->orderBy('name', 'ASC')->first();
+
+        if (!$company) {
+            return '/'; // fallback
         }
 
 
-        return $this->panelPath;
+        // 👉 HIER DIE MAGIC
+        if ($this->isTrial()) {
+            return "dashboard/{$company->id}/pa11y-urls";
+        }
+
+        return "dashboard/{$company->id}";
     }
 
 }
