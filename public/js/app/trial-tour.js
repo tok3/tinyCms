@@ -127,6 +127,6 @@ function startTrialTour() {
 
 
     // nicht jedes Mal nerven
-    // if (localStorage.getItem('trial_tour_done')) return;
+     if (localStorage.getItem('trial_tour_done')) return;
     tour.start();
 }

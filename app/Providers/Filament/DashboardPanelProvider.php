@@ -105,6 +105,7 @@ class DashboardPanelProvider extends PanelProvider
             ->renderHook(
                 'panels::body.end',
                 fn () => view('filament.partials.trial-data')
+
             )
             ->navigationItems([
                 NavigationItem::make('Termin Vereinbaren')

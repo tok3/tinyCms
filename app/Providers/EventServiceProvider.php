@@ -13,6 +13,8 @@ use App\Listeners\HandleFirstPaymentPaid;
 use App\Listeners\HandleFirstPaymentFailed;
 use App\Listeners\HandleOrderPaymentPaid;
 use App\Listeners\HandleOrderPaymentFailed;
+use Illuminate\Auth\Events\Login;
+use App\Listeners\IncrementLoginCount;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -36,6 +38,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         OrderPaymentFailed::class => [
             HandleOrderPaymentFailed::class,
+        ],
+        Login::class => [
+            IncrementLoginCount::class,
         ],
     ];
 

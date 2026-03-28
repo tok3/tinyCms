@@ -181,7 +181,7 @@ class Company extends Model
             'max-url-100k' => 100000,
         ];
 
-        $maxLimit = 3; // Fallback-Wert (Standard)
+        $maxLimit = 2; // Fallback-Wert (Standard)
 
         foreach ($features as $feature => $limit) {
             if ($this->hasFeature($feature) && $limit > $maxLimit) {

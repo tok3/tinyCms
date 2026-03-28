@@ -60,7 +60,7 @@ class ListPa11yUrls extends ListRecords
             return [
                 Action::make('create_url')
                     ->label('URL hinzufügen')
-                    ->icon('heroicon-o-sparkles')
+                    ->icon('heroicon-o-squares-plus')
                     ->extraAttributes(['id' => 'addUrlButton'])
                     ->modalHeading('Limit erreicht')
                     ->modalContent(fn() => new HtmlString(
@@ -114,13 +114,13 @@ class ListPa11yUrls extends ListRecords
             return [
                 Action::make('create_url')
                     ->label('URL hinzufügen')
-                    ->icon('icon-feature-2')
+                    ->icon('heroicon-o-squares-plus')
                     ->url(Pa11yUrlResource::getUrl('create'))
                     ->extraAttributes(['id' => 'addUrlButton']),
 
                 Action::make('crawlSites')
                     ->label('URLs automatisch erfassen')
-                    ->icon('heroicon-o-squares-plus')
+                    ->icon('heroicon-o-sparkles')
                     ->color('primary')
                     ->form(fn(Form $form): array => $this->getCrawlFormSchema($form))
                     ->action(function (array $data) {
