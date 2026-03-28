@@ -33,7 +33,7 @@ use Filament\Support\Assets\Css;
 class DashboardPanelProvider extends PanelProvider
 {
 
-    
+
     public function panel(Panel $panel): Panel
     {
         $tenant_id = \Request::segment(2);
@@ -71,7 +71,6 @@ class DashboardPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Dashboard/Pages'), for: 'App\\Filament\\Dashboard\\Pages')
             ->pages([
                 Pages\Dashboard::class,
-
             ])
             ->resources([
 
@@ -98,9 +97,15 @@ class DashboardPanelProvider extends PanelProvider
             ])
             ->assets([
                 Js::make('shepherd', 'https://cdn.jsdelivr.net/npm/shepherd.js@11.2.0/dist/js/shepherd.min.js'),
+                Js::make('trial-tour', resource_path('trial-tour.js')),
+                Js::make('panel-dashboard-custom', resource_path('panel-dashboard-custom.js')),
                 Css::make('shepherd-css', 'https://cdn.jsdelivr.net/npm/shepherd.js@11.2.0/dist/css/shepherd.css'),
-                Css::make('shepherd-custom', resource_path('css/shepherd-custom.css')),
+                Css::make('shepherd-custom', resource_path('shepherd-custom.css')),
             ])
+            ->renderHook(
+                'panels::body.end',
+                fn () => view('filament.partials.trial-data')
+            )
             ->navigationItems([
                 NavigationItem::make('Termin Vereinbaren')
                     ->url('https://calendar.google.com/calendar/appointments/schedules/AcZssZ002z7FSLxfqDLL47QcSvPz_XZbGC-2uwnyJso0MjsOmuNK9FDuwO_HG3uJKMpsWoLqfOBefBw9?gv=true', shouldOpenInNewTab: true)

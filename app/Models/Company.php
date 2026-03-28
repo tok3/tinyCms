@@ -38,6 +38,9 @@ class Company extends Model
         'billing_via_agency',
         'billing_email_overwrite',
         'type',
+        'source',
+        'converted_at',
+
     ];
 
     protected $casts = [
@@ -89,7 +92,7 @@ class Company extends Model
      */
     public function isTrial(): bool
     {
-        return $this->wcag_tool
+        return $this->source === 'wcag_tool'
             && is_null($this->converted_at)
             && !$this->contracts()->exists();
     }
@@ -178,7 +181,7 @@ class Company extends Model
             'max-url-100k' => 100000,
         ];
 
-        $maxLimit = 1; // Fallback-Wert (Standard)
+        $maxLimit = 3; // Fallback-Wert (Standard)
 
         foreach ($features as $feature => $limit) {
             if ($this->hasFeature($feature) && $limit > $maxLimit) {

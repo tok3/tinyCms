@@ -123,7 +123,13 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
      */
     public function isTrial(): bool
     {
-        return $this->company?->isTrial() ?? false;
+        $company = $this->companies()->first();
+
+        if (!$company) {
+            return false;
+        }
+
+        return $company->isTrial();
     }
 
     /**
@@ -144,7 +150,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
 
         // 👉 HIER DIE MAGIC
         if ($this->isTrial()) {
-            return "dashboard/{$company->id}/pa11y-urls";
+            return "dashboard/{$company->id}/firmament-urls";
         }
 
         return "dashboard/{$company->id}";
