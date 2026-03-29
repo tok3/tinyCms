@@ -36,12 +36,12 @@ function startTrialTour() {
         title: 'Ihre Website im Überblick',
 
             text: `
-    Sie sehen aktuell eine einzelne geprüfte URL.<br><br>
+   Sie sehen hier die aktuell geprüften URLs Ihrer Website.<br><br>
 
-    Hier entsteht die vollständige Übersicht Ihrer Website –
-    alle Seiten werden automatisch erfasst und regelmässig überwacht.<br><br>
+Hier entsteht die vollständige Übersicht –
+alle Seiten werden automatisch erfasst und regelmässig überwacht.<br><br>
 
-    <strong>Mit einem Klick auf „Ansehen“ gelangen Sie zur Detailanalyse dieser URL.</strong>
+    <strong>Mit einem Klick auf „Ansehen“ gelangen Sie zur Detailanalyse der entsprechenden URL.</strong>
 `,
 
         buttons: [
@@ -127,6 +127,20 @@ function startTrialTour() {
 
 
     // nicht jedes Mal nerven
-     if (localStorage.getItem('trial_tour_done')) return;
+    if (!window.forceTour && localStorage.getItem('trial_tour_done')) return;
     tour.start();
 }
+
+
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('#start-tour-btn');
+    if (!btn) return;
+
+    // 🔥 FORCE MODE AN
+    window.forceTour = true;
+
+    startTrialTour();
+
+    // 🔥 danach wieder resetten
+    window.forceTour = false;
+});

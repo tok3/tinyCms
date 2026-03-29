@@ -107,6 +107,10 @@ class DashboardPanelProvider extends PanelProvider
                 fn () => view('filament.partials.trial-data')
 
             )
+            ->renderHook(
+                'panels::page.end',
+                fn () => view('filament.partials.tour-button')
+            )
             ->navigationItems([
                 NavigationItem::make('Termin Vereinbaren')
                     ->url('https://calendar.google.com/calendar/appointments/schedules/AcZssZ002z7FSLxfqDLL47QcSvPz_XZbGC-2uwnyJso0MjsOmuNK9FDuwO_HG3uJKMpsWoLqfOBefBw9?gv=true', shouldOpenInNewTab: true)
