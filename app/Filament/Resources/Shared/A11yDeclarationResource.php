@@ -30,7 +30,7 @@ class A11yDeclarationResource extends Resource
     protected static ?string $label = 'Barrierefreiheitserklärung';
     protected static ?string $navigationGroup = 'Erklärung zur Barrierefreiheit';
     protected static ?string $pluralLabel = 'Barrierefreiheitserklärungen';
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'be-card-check';
 
     public static function shouldRegisterNavigation(): bool
     {
