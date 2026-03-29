@@ -24,8 +24,10 @@ use Filament\Tables\Actions\ViewAction;
 use Illuminate\Contracts\View\View;
 use Filament\Forms\Components\Placeholder;
 use Illuminate\Support\HtmlString;
+use App\Filament\Resources\BaseResource;
 
-class ContractResource extends Resource
+
+class ContractResource extends BaseResource
 {
     protected static ?string $model = Contract::class;
 

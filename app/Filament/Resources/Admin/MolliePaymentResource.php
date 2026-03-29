@@ -17,7 +17,8 @@ use GuzzleHttp\Client;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use App\Models\MollieCustomer;
-class MolliePaymentResource extends Resource
+use App\Filament\Resources\BaseResource;
+class MolliePaymentResource extends BaseResource
 {
     protected static ?string $model = MolliePayment::class;
 

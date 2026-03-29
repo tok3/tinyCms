@@ -20,7 +20,9 @@ use Illuminate\Support\HtmlString;
 use App\Helpers\IconHelper;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
-class Pa11yUrlResource extends Resource
+use App\Filament\Resources\BaseResource;
+
+class Pa11yUrlResource extends BaseResource
 {
     protected static ?string $model = Pa11yUrl::class;
 

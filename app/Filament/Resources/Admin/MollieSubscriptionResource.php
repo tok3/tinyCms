@@ -23,8 +23,9 @@ use GuzzleHttp\Client;
 use Filament\Tables\Actions\Action;
 use Mollie\Laravel\Facades\Mollie;
 use Filament\Notifications\Notification;
+use App\Filament\Resources\BaseResource;
 
-class MollieSubscriptionResource extends Resource
+class MollieSubscriptionResource extends BaseResource
 {
     protected static ?string $model = MollieSubscription::class;
 

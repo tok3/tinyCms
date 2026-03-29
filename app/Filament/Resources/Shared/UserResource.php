@@ -20,7 +20,9 @@ use Illuminate\Support\HtmlString;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\View as ViewField;
 use App\Filament\Resources\Shared\CompanyResource;
-class UserResource extends Resource
+use App\Filament\Resources\BaseResource;
+
+class UserResource extends BaseResource
 {
     protected static ?string $model = User::class;
 

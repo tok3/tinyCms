@@ -16,6 +16,8 @@ class UpgradeProductPage extends Page
 
     // Optional: Navigationslabel auf null, wenn die Seite nicht in der Sidebar erscheinen soll
     protected static ?string $navigationLabel = null;
+    // Öffentliche Variable, damit sie in der View verfügbar ist
+    public $products;
 
     public static function getNavigationLabel(): string
     {
@@ -29,9 +31,10 @@ class UpgradeProductPage extends Page
         return 'Produkte & Upgrade';
     }
 
-    // Öffentliche Variable, damit sie in der View verfügbar ist
-    public $products;
-
+    public static function getNavigationSort(): ?int
+    {
+        return 60; // bei Produkte rein
+    }
     public function mount(): void
     {
         //   if (\Auth::check() && !session()->has('cached_user')) {

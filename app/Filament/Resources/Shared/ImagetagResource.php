@@ -24,9 +24,10 @@ use Illuminate\Support\Facades\Http;
 use Filament\Forms\Components\Placeholder;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
+use App\Filament\Resources\BaseResource;
 
 
-class ImagetagResource extends Resource
+class ImagetagResource extends BaseResource
 {
 
 

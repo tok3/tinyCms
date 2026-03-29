@@ -22,7 +22,9 @@ use App\Models\Coupon;
 use App\Models\Product;
 use Illuminate\Support\HtmlString;
 use Filament\Forms\Components\Placeholder;
-class PromotionResource extends Resource
+use App\Filament\Resources\BaseResource;
+
+class PromotionResource extends BaseResource
 {
     protected static ?string $model = Promotion::class;
 

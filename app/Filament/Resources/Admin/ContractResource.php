@@ -27,9 +27,10 @@ use Filament\Forms\Components\MultiSelect;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\HtmlString;
 use App\Forms\Components\InfoBox;
+use App\Filament\Resources\BaseResource;
 
 
-class ContractResource extends Resource
+class ContractResource extends BaseResource
 {
     protected static ?string $model = Contract::class;
 

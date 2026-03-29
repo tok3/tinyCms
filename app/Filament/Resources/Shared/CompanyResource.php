@@ -28,8 +28,9 @@ use Filament\Forms\Components\View as ViewField;
 use Filament\Actions\Action;
 use App\Http\Controllers\CrawlController;
 use Illuminate\Http\Request;
+use App\Filament\Resources\BaseResource;
 
-class CompanyResource extends Resource
+class CompanyResource extends BaseResource
 {
     protected static ?string $model = Company::class;
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
