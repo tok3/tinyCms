@@ -30,9 +30,6 @@
                         </div>
                     </div>
 
-
-
-
                     <p class="mt-2 text-gray-600">
                         Sie haben einen Aktionscode und möchten diesen nutzen?
                     </p>
