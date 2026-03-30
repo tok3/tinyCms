@@ -25,5 +25,7 @@ class VerifyCsrfToken extends Middleware
         'imageDescription',
         'start-crawl',
         'getAccessibilityDeclaration',
+        'a11y/declaration/issues-csv',
+        'a11y/declaration/export',
     ];
 }

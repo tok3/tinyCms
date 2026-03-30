@@ -1,4 +1,4 @@
-<x-layouts.blank>
+<x-layouts.declaration-blank title="Barrierefreiheitserklärung {{ $company->name }}">
     <section class="position-relative d-flex justify-content-center h-100">
         <div class="container z-2 position-relative">
             <div class="row align-items-center vh-100">
@@ -7,7 +7,7 @@
                     <div class="row align-items-center mb-4 declaration-head">
                         @if($company->logo_image)
                             <div class="col-12 col-md-4 col-lg-3 text-md-end order-md-2 mb-3 mb-md-0">
-                                <a href="{{ $company->web  }}" class="d-inline-block">
+                                <a href="{{  $company->web ? $company->web : '#' }}" class="d-inline-block">
                                     <img
                                         src="{{ URL::asset('storage/' . $company->logo_image) }}"
                                         class="img-fluid"
@@ -19,19 +19,24 @@
                         @endif
                         <div class="col-12 col-md-8 col-lg-9 order-md-1">
                             <span class="mb-1 h3">Barrierefreiheitserklärung</span>
+                            @if($company->type == 1)
                             <div class="h6">{{ $declaration->federal_or_state_law == 0 ? ' - Bundesrecht' : ' - Landesrecht' }}</div>
+                            @endif
                             <h1 class="mt-0">{{ $company->name }}</h1>
                         </div>
                     </div>
+                    <h2 class="h3">Geltungsbereich</h2>
+                    <p>{{ $declaration->scope }}</p>
                     {{--<h3>Bundesland</h3>
                     <p><x-federal-state-coa :state-name="$declaration->federal_state"/></p>--}}
+                    @if($company->type == 1)
                     <h3>Bundesland</h3>
 
                     <p><x-federal-state-coa
                             :state-name="$declaration->federal_state_label"
                     /></p>
-                    <h4>Geltungsbereich</h4>
-                    <p>{{ $declaration->scope }}</p>
+                    @endif
+
 
                     <p>{!! $declaration->declaration_intro_text !!}</p>
 
@@ -42,7 +47,7 @@
 
                     <h3>Erfüllung der Barrierefreiheitsanforderungen</h3>
 
-                    <h5  class="mt-3">Vereinbarkeit</h5>
+                    <h4  class="mt-3">Vereinbarkeit</h4>
                     <p>{!! $declaration->consistency !!}</p>
                     @if(count($issues) > 0)
                         <p>{!! $declaration->bfsg_partial !!}</p>
@@ -71,7 +76,7 @@
                     @endif
                     -->
                     <p class="mt-5">
-                        Diese Erklärung wurde am {{ $declaration->updated_at->format('d.m.Y') }} mit dem Service von <a href="https://aktion-barrierefrei.org" style="text-decoration:underline;">aktion-barrierefrei.org</a> erstellt. <span style="color:grey">( Letzte Aktualisierung {{ $declaration->effective_last_checked->format('d.m.Y H:i') }} Uhr )</span>
+                        Diese Erklärung wurde am {{ $declaration->updated_at->format('d.m.Y') }} mit dem Service von <a href="https://aktion-barrierefrei.org" style="text-decoration:underline;">aktion-barrierefrei.org</a> erstellt. <span style="color:dark-grey">( Letzte Aktualisierung {{ $declaration->effective_last_checked->format('d.m.Y H:i') }} Uhr )</span>
                     </p>
 
 
@@ -117,4 +122,4 @@
             });
         </script>
     @endpush
-</x-layouts.blank>
+</x-layouts.declaration-blank>
