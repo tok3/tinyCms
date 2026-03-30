@@ -22,7 +22,7 @@ class MagicLoginController extends Controller
         if (!$user) {
             Log::warning('Ungültiger oder abgelaufener Magic-Login-Token', ['token' => $token]);
             return redirect()->route('login')
-                ->with('error', 'Der Login-Link ist ungültig oder abgelaufen.');
+                ->with('error', 'Der Login-Link ist ungültig oder bereits abgelaufen.');
         }
 
         // Token sofort ungültig machen (One-Time-Use)
@@ -38,18 +38,14 @@ class MagicLoginController extends Controller
 
 
         if ($company && !$company->contracts()->exists()) {
+
             session(['current_company_id' => $company->id]);
 
-            if ($url = $company->pa11yUrls()->first()) {
-                return redirect("/dashboard/{$company->id}/firmament-issues/grouped/2.1?url_id={$url->id}")
-                    ->with('success', 'Eingeloggt – deine Ergebnisse');
-            }
-
-            return redirect($user->getPanelUri() . '?magic=1&no_url=1')
-                ->with('success', 'Eingeloggt – kein Scan vorhanden');
+            return redirect("/dashboard/{$company->id}/firmament-urls?tour=1")
+                ->with('success', 'Eingeloggt – Ihre Analyse wird geladen');
         }
 
-        return redirect($user->getPanelUri() . '?magic=1')
+        return redirect($user->getPanelUri())
             ->with('success', 'Willkommen zurück!');
     }
 }

@@ -25,7 +25,7 @@ class CreatePa11yUrl extends CreateRecord
     {
         return [
             Actions\Action::make('create')
-                ->label('Speichern')
+                ->label('Hinzufügen')
                 ->submit('create'),
 
             Actions\Action::make('back')
@@ -39,5 +39,13 @@ class CreatePa11yUrl extends CreateRecord
     {
         return Pa11yUrlResource::getUrl('index');
     }
+    protected function afterCreate(): void
+    {
+        $url = $this->record;
+        $company = $url->company;
 
+        // sofort scannen
+        $command = "php " . base_path('artisan') . " scan:accessibility-21 {$url->id} > /dev/null 2>&1 &";
+        shell_exec($command);
+    }
 }

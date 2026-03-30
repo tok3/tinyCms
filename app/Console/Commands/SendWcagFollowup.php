@@ -9,6 +9,8 @@ use App\Mail\WcagFollowupMail;
 use App\Models\AutomationLog;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use App\Services\DemoUrlDiscoveryService;
+use App\Models\Pa11yUrl;
 
 class SendWcagFollowup extends Command
 {
@@ -50,11 +52,36 @@ class SendWcagFollowup extends Command
                 'login_token_expires_at' => now()->addHours(24),
             ]);
 
-            // 👉 MAIL MIT TOKEN
+            $urlCount = Pa11yUrl::where('company_id', $company->id)->count();
+
+            if ($urlCount < 5) {
+
+                $firstUrl = Pa11yUrl::where('company_id', $company->id)
+                    ->latest()
+                    ->first();
+
+                if ($firstUrl && filter_var($firstUrl->url, FILTER_VALIDATE_URL)) {
+
+                    $parsed = parse_url($firstUrl->url);
+
+                    if (!empty($parsed['scheme']) && !empty($parsed['host'])) {
+
+                        $domain = $parsed['scheme'] . '://' . $parsed['host'];
+
+                        app(DemoUrlDiscoveryService::class)
+                            ->discoverAndScan($company, $domain, 10);
+
+                        \Log::info("Demo Scan gestartet für Company {$company->id} ({$domain})");
+                    }
+                }
+            }
+
+            // kleine Pause damit Jobs anlaufen
+            usleep(500000);
+
             Mail::to($user->email)
                 ->send(new WcagFollowupMail($company, $user, $token));
 
-            // 👉 LOG
             AutomationLog::create([
                 'company_id' => $company->id,
                 'automation' => 'wcag_followup',

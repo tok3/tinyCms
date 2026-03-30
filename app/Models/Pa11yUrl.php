@@ -99,6 +99,25 @@ class Pa11yUrl extends Model
         return $this->hasMany(Pa11yAccessibilityIssue::class, 'url_id');
     }
 
+    public function setUrlAttribute($value)
+    {
+        $this->attributes['url'] = self::normalizeUrl($value);
+    }
+    public static function normalizeUrl(string $url): string
+    {
+        $parsed = parse_url($url);
+
+        if (!$parsed) return $url;
+
+        $scheme = $parsed['scheme'] ?? 'https';
+        $host = strtolower($parsed['host'] ?? '');
+        $path = $parsed['path'] ?? '';
+
+        // 🔥 trailing slash entfernen (außer root)
+        $path = $path === '/' ? '' : rtrim($path, '/');
+
+        return $scheme . '://' . $host . $path;
+    }
 
 
 }
