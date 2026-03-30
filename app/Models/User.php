@@ -60,6 +60,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
         'password',
         'is_admin',
         'login_token',
+        'last_login_at',
         'login_token_expires_at',
     ];
 
@@ -110,26 +111,50 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
         return $this->companies;
     }
 
+    /**
+     * @return bool
+     */
     public function isAdmin(): bool
     {
         return (bool) $this->is_admin;
     }
+
+    /**
+     * @return bool
+     */
+    public function isTrial(): bool
+    {
+        $company = $this->companies()->first();
+
+        if (!$company) {
+            return false;
+        }
+
+        return $company->isTrial();
+    }
+
+    /**
+     * @return string
+     */
     public function getPanelUri()
     {
-
-        if ($this->is_admin == 1)
-        {
-            $this->panelPath = 'admin';
-
+        if ($this->is_admin == 1) {
+            return 'admin';
         }
-        else
-        {
-            $this->panelPath = 'dashboard/' . $this->companies()->orderBy('name', 'ASC')->first()->id;
 
+        $company = $this->companies()->orderBy('name', 'ASC')->first();
+
+        if (!$company) {
+            return '/'; // fallback
         }
 
 
-        return $this->panelPath;
+        // 👉 HIER DIE MAGIC
+        if ($this->isTrial()) {
+            return "dashboard/{$company->id}/firmament-urls";
+        }
+
+        return "dashboard/{$company->id}";
     }
 
 }

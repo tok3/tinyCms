@@ -20,7 +20,7 @@ class SendWcagFollowup extends Command
         $companies = Company::where('source', 'wcag_tool')
             ->whereNull('converted_at')
             ->whereDoesntHave('contracts')
-            //->where('created_at', '<=', now()->subHours(24))
+            ->where('created_at', '<=', now()->subHours(24))
             ->with(['users:id,email'])
             ->get();
 

@@ -27,13 +27,14 @@ use Filament\Forms\Components\MultiSelect;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\HtmlString;
 use App\Forms\Components\InfoBox;
+use App\Filament\Resources\BaseResource;
 
 
-class ContractResource extends Resource
+class ContractResource extends BaseResource
 {
     protected static ?string $model = Contract::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
     public static function form(Form $form): Form
     {

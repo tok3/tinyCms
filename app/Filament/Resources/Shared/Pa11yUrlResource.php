@@ -20,7 +20,9 @@ use Illuminate\Support\HtmlString;
 use App\Helpers\IconHelper;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
-class Pa11yUrlResource extends Resource
+use App\Filament\Resources\BaseResource;
+
+class Pa11yUrlResource extends BaseResource
 {
     protected static ?string $model = Pa11yUrl::class;
 
@@ -164,12 +166,14 @@ class Pa11yUrlResource extends Resource
                 Action::make('exportAllStatsCsv')
                     ->label('Gesamtstatistiken')
                     ->url(fn () => route('all_stats_export.csv', ['id' => Filament::getTenant()->id]))
-                    ->icon('heroicon-o-arrow-down-tray'),
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->extraAttributes(['class' => 'trial-blocked']),
 
                 Action::make('exportAllIssuesCsv')
                     ->label('Gesamte Fehler')
                     ->url(fn () => route('all_issues_export.csv', ['id' => Filament::getTenant()->id]))
-                    ->icon('heroicon-o-arrow-down-tray'),
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->extraAttributes(['class' => 'trial-blocked']),
                 ]
             )
             ->actions([
@@ -209,13 +213,21 @@ class Pa11yUrlResource extends Resource
                 Action::make('exportStatsCsv')
                     ->label('Stats⬇︎')
                     ->url(fn ($record) => route('stats_export.csv', ['id' => $record->id]))
+                    ->extraAttributes(['class' => 'trial-blocked'])
                     ->icon('icon-stats'),
 
                 Action::make('exportIssuesCsv')
                     ->label('Issues⬇︎')
-
                     ->url(fn ($record) => route('issues_export.csv', ['id' => $record->id]))
+                    ->extraAttributes(['class' => 'trial-blocked'])
                     ->icon('icon-bug_report'),
+
+                Tables\Actions\Action::make('view_pdf')
+                    ->icon('icon-adobe-acrobat-reader')
+                    ->label('PDF⬇︎')
+                    ->url(fn ($record) => route('pdf.exportIssuesPdf', ['id' => $record->id]))
+                    ->openUrlInNewTab()
+                    ->extraAttributes(['class' => 'trial-blocked']),
                 /*
                 Tables\Actions\Action::make('view_pdf')
                     ->label('View Pdf')
@@ -239,12 +251,6 @@ class Pa11yUrlResource extends Resource
                     ->icon('heroicon-o-eye'),
                 */
 
-                Tables\Actions\Action::make('view_pdf')
-                    //->icon('heroicon-o-eye')
-                    ->icon('icon-adobe-acrobat-reader')
-                    ->label('PDF⬇︎')
-                    ->url(fn ($record) => route('pdf.exportIssuesPdf', ['id' => $record->id]))
-                    ->openUrlInNewTab(),
 
 
                 // Edit-Action (automatisch verfügbar)
@@ -324,33 +330,6 @@ class Pa11yUrlResource extends Resource
                     ->limit(1),
             ]);
     }
-  /*  public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withCount([
-                'accessibilityIssues as error_count' => function ($query) {
-                    $query->where('type', 'error')
-                        ->where('standard', '2.1');
-                },
-                'accessibilityIssues as warning_count' => function ($query) {
-                    $query->where('type', 'warning')
-                        ->where('standard', '2.1');
-                },
-                'accessibilityIssues as error_count_20' => function ($query) {
-                    $query->where('type', 'error')
-                        ->where('standard', '2.0');
-                },
-                'accessibilityIssues as warning_count_20' => function ($query) {
-                    $query->where('type', 'warning')
-                        ->where('standard', '2.0');
-                },
-
-                'accessibilityIssues as notice_count_20' => function ($query) {
-                    $query->where('type', 'notice')
-                        ->where('standard', '2.0');
-                },
-            ]);
-    }*/
 
     public static function getPages(): array
     {

@@ -115,8 +115,14 @@ class TrialController extends Controller
         // 6) Trial-Company minimal anlegen
         $company = Company::firstOrCreate(
             ['name' => 'Trial-' . $user->id],
-            ['slug' => Str::slug('trial-' . $user->id)]
+            [
+                'slug' => Str::slug('trial-' . $user->id),
+            ]
         );
+
+        $company->update([
+            'source' => 'wcag_tool',
+        ]);
 
         // 7) User <-> Company verknüpfen (Relation ggf. anpassen)
         $user->companies()->syncWithoutDetaching([$company->id]);

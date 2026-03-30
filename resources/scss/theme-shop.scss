@@ -1,16 +1,16 @@
 // Required
-@import "./node_modules/bootstrap/scss/functions";
+@import "bootstrap/scss/functions";
 //Import bootstrap overrides variables - theme variables
 @import "./custom/variables/variables-theme-shop";
 @import "./custom/variables/variables-dark-theme-shop";
-@import "./node_modules/bootstrap/scss/maps";
-@import "./node_modules/bootstrap/scss/mixins";
-@import "./node_modules/bootstrap/scss/utilities";
+@import "bootstrap/scss/maps";
+@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/utilities";
 @import "./custom/utilities/utilities";
 
 
 //Import bootstrap scss
-@import "./node_modules/bootstrap/scss/bootstrap.scss";
+@import "bootstrap/scss/bootstrap.scss";
 
 
 //Custom css variables for Assan Theme

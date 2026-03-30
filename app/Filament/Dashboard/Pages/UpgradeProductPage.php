@@ -9,28 +9,32 @@ use App\Helpers\CompanyHelper;
 
 class UpgradeProductPage extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-credit-card';
+    protected static ?string $navigationIcon = 'upgrade';
     protected static string $view = 'filament.pages.upgrade-product-page';
     protected static ?string $slug = 'upgrade-page';
 
 
     // Optional: Navigationslabel auf null, wenn die Seite nicht in der Sidebar erscheinen soll
     protected static ?string $navigationLabel = null;
+    // Öffentliche Variable, damit sie in der View verfügbar ist
+    public $products;
 
     public static function getNavigationLabel(): string
     {
         if (CompanyHelper::currentCompany()->contracts()->count() == 0)
         {
 
+
             return 'Produkte buchen';
         }
 
-        return 'Produkt Update';
+        return 'Produkte & Upgrade';
     }
 
-    // Öffentliche Variable, damit sie in der View verfügbar ist
-    public $products;
-
+    public static function getNavigationSort(): ?int
+    {
+        return 60; // bei Produkte rein
+    }
     public function mount(): void
     {
         //   if (\Auth::check() && !session()->has('cached_user')) {

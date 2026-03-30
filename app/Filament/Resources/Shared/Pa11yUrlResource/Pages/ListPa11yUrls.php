@@ -7,6 +7,7 @@ use App\Filament\Resources\Shared\Pa11yUrlResource;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\HtmlString;
 use App\Filament\Resources\CompanyResource;
 use Filament\Actions\Concerns\InteractsWithActions;
@@ -21,6 +22,7 @@ use Illuminate\Http\Request;
 class ListPa11yUrls extends ListRecords
 {
     use InteractsWithActions;
+
     protected static string $resource = Pa11yUrlResource::class;
 
     public function getTitle(): string
@@ -28,11 +30,20 @@ class ListPa11yUrls extends ListRecords
         return __('Firmament Urls');
     }
 
+    public function getHeading(): string|Htmlable
+    {
+        return new HtmlString(
+            '<div class="flex items-center gap-3" style="margin-top:0.8em;width:50%; color:#262629;">'
+            . file_get_contents(public_path('assets/css/svgs/firmament-logo.svg'))
+            . '</div>'
+        );
+    }
+
     protected function getHeaderActions(): array
     {
         $company = Filament::getTenant();
 
-        if ( \Auth::user()->is_admin == 1)
+        if (\Auth::user()->is_admin == 1)
         {
             $currentUrls = 0;
             $maxUrls = 1000000;
@@ -44,74 +55,123 @@ class ListPa11yUrls extends ListRecords
             $maxUrls = $company->max_urls;
 
         }
-
         if ($currentUrls >= $maxUrls)
         {
-            // Wenn das Limit erreicht ist, zeige den Upgrade‑Button an
             return [
                 Action::make('create_url')
-                    ->label('Neue URL hinzufügen')
-                    ->icon('heroicon-o-sparkles')
+                    ->label('URL hinzufügen')
+                    ->icon('heroicon-o-squares-plus')
+                    ->extraAttributes(['id' => 'addUrlButton'])
                     ->modalHeading('Limit erreicht')
-                    ->modalContent(fn() => new HtmlString('Sie haben das URL-Limit von ' . $maxUrls . ' für Ihren aktuellen Plan erreicht. <br>Für Upgrade-Optionen und weitere Informationen klicken Sie auf den Button.'))
+                    ->modalContent(fn() => new HtmlString(
+                        view('partials.upgrade-modal', [
+                            'recommendedPlan' => null,
+                            'coupon' => null,
+                            'maxUrl' => $maxUrls,
+                            'isTrial' => auth()->user()?->isTrial(),
+                        ])->render()
+                    ))
                     ->modalActions([
                         Action::make('upgrade_now')
-                            ->label('Upgrade und Informationen ...')
+                            ->label('Paket erweitern')
                             ->url(UpgradeProductPage::getUrl())
                             ->openUrlInNewTab()
-                            ->extraAttributes(['class' => 'ml-auto']),
+                            ->extraAttributes([
+                                'class' => 'ml-auto',
+                                'id' => 'upgradeButton'
+                            ]),
+                    ]),
+
+                // 🔥 CRAWLER BUTTON (NEU)
+                Action::make('crawlSites')
+                    ->label('URLs automatisch erfassen')
+                    ->icon('heroicon-o-sparkles')
+                    ->color('primary')
+                    ->extraAttributes(['id' => 'crawlButton'])
+                    ->modalHeading('Limit erreicht')
+                    ->modalContent(fn() => new HtmlString(
+                        view('partials.upgrade-modal', [
+                            'recommendedPlan' => null,
+                            'coupon' => null,
+                            'maxUrl' => $maxUrls,
+                            'isTrial' => auth()->user()?->isTrial(),
+                        ])->render()
+                    ))
+                    ->modalActions([
+                        Action::make('upgrade_now')
+                            ->label('Paket erweitern')
+                            ->url(UpgradeProductPage::getUrl())
+                            ->openUrlInNewTab()
+                            ->extraAttributes([
+                                'class' => 'ml-auto',
+                                'id' => 'upgradeButton'
+                            ]),
                     ]),
             ];
         }
-        if(\Auth::user()->is_admin != 1){
-        // Sonst zeige den normalen Button an
-        return [
-            Action::make('create_url')
-                ->label('Neue URL hinzufügen')
-                ->icon('icon-feature-2')
-                ->url(Pa11yUrlResource::getUrl('create')),
-            Action::make('crawlSites')
-                ->label('Domain crawlen')
-                ->icon('heroicon-o-squares-plus') // Optional: Use a relevant icon
-                ->color('primary')
-                ->form(fn (Form $form): array => $this->getCrawlFormSchema($form))
-                ->action(function (array $data) {
-                    $this->startCrawling($data);
-                })
-                ->requiresConfirmation() // Optional: Add confirmation before crawling
-                ->modalHeading('Site Crawler starten')
-                ->modalDescription('Domainnamen eingeben.')
-                ->modalSubmitActionLabel('Crawler starten'),
-
-        ];
-        }
-        if(\Auth::user()->is_admin == 1){
+        if (\Auth::user()->is_admin != 1)
+        {
             return [
                 Action::make('create_url')
-                    ->label('Neue URL hinzufügen')
+                    ->label('URL hinzufügen')
+                    ->icon('heroicon-o-squares-plus')
+                    ->url(Pa11yUrlResource::getUrl('create'))
+                    ->extraAttributes(['id' => 'addUrlButton']),
+
+                Action::make('crawlSites')
+                    ->label('URLs automatisch erfassen')
+                    ->icon('heroicon-o-sparkles')
+                    ->color('primary')
+                    ->form(fn(Form $form): array => $this->getCrawlFormSchema($form))
+                    ->action(function (array $data) {
+                        $this->startCrawling($data);
+                    })
+                    ->requiresConfirmation()
+                    ->modalHeading('Automatische URL-Erfassung starten')
+                    ->ModalIcon('heroicon-o-sparkles')
+                    ->modalDescription('
+                                        Geben Sie hier Ihre Domain ein.
+                                        Dir URLs dieser Domain werden automatisch erfasst und regelmäßig überwacht.
+
+                                        Die Anzahl der URLs richtet sich nach Ihrem aktuellen Limit.
+                                        ')
+
+                    ->modalSubmitActionLabel('Erfassung starten')
+                    ->extraAttributes(['id' => 'crawlButton']),
+
+            ];
+        }
+
+        if (\Auth::user()->is_admin == 1)
+        {
+            return [
+                Action::make('create_url')
+                    ->label('URL hinzufügen')
                     ->icon('icon-feature-2')
-                    ->url(Pa11yUrlResource::getUrl('create')),
+                    ->url(Pa11yUrlResource::getUrl('create'))
+                    ->extraAttributes(['id' => 'addUrlButton']),
             ];
         }
     }
+
     public function getCrawlFormSchema(Form $form): array
     {
         return [
             TextInput::make('domain')
                 ->label('Domain')
                 ->required()
-                ->placeholder('https://example.com')
+                ->placeholder('https://ihre-domain.de')
                 ->maxLength(255)
                 ->url(), // Validates as URL
-                //->prefix('https://'),
-           /* TextInput::make('maxPages')
-                ->label('Max Pages')
-                ->required()
-                ->numeric()
-                ->minValue(1)
-                ->maxValue(1000) // Adjust limit as needed
-                ->default(10),
-                */
+            //->prefix('https://'),
+            /* TextInput::make('maxPages')
+                 ->label('Max Pages')
+                 ->required()
+                 ->numeric()
+                 ->minValue(1)
+                 ->maxValue(1000) // Adjust limit as needed
+                 ->default(10),
+                 */
         ];
     }
 
@@ -139,16 +199,19 @@ class ListPa11yUrls extends ListRecords
         ]);
         $response = $controller->startCrawl($request);
 
-        if ($response['status'] == 'ok') {
+        if ($response['status'] == 'ok')
+        {
             // Success notification (info field/modal)
             Notification::make()
                 ->title('Crawler gestarted')
                 ->body('Crawling initiert für ' . $data['domain'] . '  Der Vorgang kann einige Minuten dauern. Bitte laden Sie dann diese Seite erneut.')
                 ->success()
                 ->send();
-        } else {
+        }
+        else
+        {
             // Error notification
-            \Log::error('Fehler beim Crawlen: ' . $response['data'].' Company: '.$companyId.' Domain: '.$data['domain']);
+            \Log::error('Fehler beim Crawlen: ' . $response['data'] . ' Company: ' . $companyId . ' Domain: ' . $data['domain']);
             Notification::make()
                 ->title('Crawl Fehler')
                 ->body('Fehler: ' . $response['data'])

@@ -26,8 +26,9 @@ use App\Helpers\FormatHelper;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Get;
+use App\Filament\Resources\BaseResource;
 
-class ProductResource extends Resource
+class ProductResource extends BaseResource
 {
     protected static ?string $model = Product::class;
 

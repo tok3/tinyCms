@@ -22,11 +22,13 @@ use App\Models\Coupon;
 use App\Models\Product;
 use Illuminate\Support\HtmlString;
 use Filament\Forms\Components\Placeholder;
-class PromotionResource extends Resource
+use App\Filament\Resources\BaseResource;
+
+class PromotionResource extends BaseResource
 {
     protected static ?string $model = Promotion::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'coupon';
 
     public static function form(Form $form): Form
     {

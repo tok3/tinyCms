@@ -11,13 +11,14 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use App\Filament\Resources\BaseResource;
 
-class AccessibilityFeedbackResource extends Resource
+class AccessibilityFeedbackResource extends BaseResource
 {
     protected static ?string $model = AccessibilityFeedback::class;
 
     protected static ?string $navigationLabel = 'Rückmeldungen Barrierefreiheit';
-    protected static ?string $navigationGroup = 'Erklärung zur Barrierefreiheit';
+    protected static ?string $navigationGroup = 'Barrierefreiheitserklärung';
     protected static ?string $pluralLabel = 'Rückmeldungen Barrierefreiheit';
     protected static ?string $modelLabel = 'Rückmeldung';
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';

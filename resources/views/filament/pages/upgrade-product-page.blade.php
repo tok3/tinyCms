@@ -6,48 +6,11 @@
             'monthly' => 'monatlich',
             'one_time' => 'Einmalzahlung',
         ];
-    @endphp
 
-    <style>
 
-        .product-description-text h3 {
-            font-size: 0.95rem;
-            font-weight: 600;
-            margin-bottom: 6px;
-            line-height: 1.3;
-        }
-        .product-description-text ul {
-            list-style: none;
-            padding-left: 0;
-            margin: 0;
-        }
+        @endphp
 
-        .product-description-text li {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            margin-bottom: 6px;
-            font-size: 0.9rem;
-            line-height: 1.4;
-        }
-
-        .product-description-text li::before {
-            content: "✔";
-            font-size: 0.8rem;
-            margin-top: 2px;
-            opacity: 0.7;
-        }
-
-        .product-description-text {
-            color: #374151; /* text-gray-700 */
-            margin-right: 2em; /* 🔥 wichtig für Harmonie */
-        margin-left:2em;
-        }
-        .product-description-text h3 + ul {
-            margin-top: 4px;
-        }
-    </style>
-    <section class="py-0 bg-white md:py-16 dark:bg-gray-900">
+    <section class="py-0 bg-white md:py-16 dark:bg-gray-900 pt-0">
         <div class="bg-white">
             <!-- Gutschein -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-5 ">

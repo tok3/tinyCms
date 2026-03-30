@@ -9,64 +9,78 @@
              $grouped = '';
         }
 @endphp
+
+@php
+    $query = request()->getQueryString() ? '?' . request()->getQueryString() : '';
+    $currentRoute = Route::currentRouteName();
+    $currentStandard = request()->route('standard', '2.1');
+
+    $isGrouped = str_contains(request()->path(), 'grouped');
+@endphp
 <style>
-        @media print {
+    @media print {
         aside, .fi-sidebar {
             display: none;
         }
+
         .issue-group {
 
             width: 100%;
         }
+
         .issue-group:not(:last-child) {
             /*    page-break-after: always;
                 break-after: page;
                 -webkit-break-after: page; /* Safari */
         }
 
-            /* Optional: Ensure proper display */
+        /* Optional: Ensure proper display */
         .issue-group {
-                display: block;
-                page-break-inside: avoid; /* Prevent breaking inside elements */
+            display: block;
+            page-break-inside: avoid; /* Prevent breaking inside elements */
         }
+
         div.grid:not(:last-child) {
             page-break-after: always;
         }
+
         @page {
             margin: 0; /* Remove browser's default print margins */
         }
+
         body {
             margin: 1cm; /* Add custom margin to ensure content is not cut off */
         }
 
         .issue-card:nth-child(2n):not(:last-child) {
-                page-break-after: always;
-                break-after: page;
-                -webkit-break-after: page;
-            }
+            page-break-after: always;
+            break-after: page;
+            -webkit-break-after: page;
+        }
 
         .issue-card {
-                margin-top: 3rem;
-                page-break-inside: avoid;
-                break-inside: avoid;
-                display: block;
-                margin-bottom: 20px; /* Optional: space between cards */
-            }
+            margin-top: 3rem;
+            page-break-inside: avoid;
+            break-inside: avoid;
+            display: block;
+            margin-bottom: 20px; /* Optional: space between cards */
+        }
+
         div.space-y-4 {
             page-break-after: avoid;
         }
     }
 </style>
 <script>
-    (function() {
-    // Wait for DOM to be ready
-    document.addEventListener('DOMContentLoaded', function() {
-        const summaries = document.querySelectorAll('summary');
-        summaries.forEach(summary => {
-        //if (summary.textContent.trim() === '36 Vorkommnisse anzeigen') {
-            summary.click();
-        //}
-    });
+    (function () {
+        // Wait for DOM to be ready
+        document.addEventListener('DOMContentLoaded', function () {
+            const summaries = document.querySelectorAll('summary');
+            summaries.forEach(summary => {
+                //if (summary.textContent.trim() === '36 Vorkommnisse anzeigen') {
+                summary.click();
+                //}
+            });
             try {
                 // Get URL parameters
                 const urlParams = new URLSearchParams(window.location.search);
@@ -86,7 +100,7 @@
     <!-- Linke Spalte -->
     <div class="flex flex-col space-y-4">
         <h2 class="text-lg font-bold">
-            Scan Ergebnisse für {{ $this->fetchUrl()->url }}
+            Scan Ergebnisse für {{ $this->fetchUrl()->url  }}
         </h2>
 
         @livewire('pa11y-rescan-button', ['urlId' => $this->fetchUrl()->id, 'standard' => $currentStandard])
@@ -106,23 +120,36 @@
                 </tr>
                 <tr>
                     <td>
-                        <div class="mt-3" role="group">
+                        <div class="mt-3 inline-flex rounded-md shadow-sm" role="group">
 
                             @php
                                 $query = request()->getQueryString() ? '?' . request()->getQueryString() : '';
-                                $currentRoute = Route::currentRouteName(); // Aktuelle Route
-
+                                $currentStandard = request()->route('standard', '2.1');
+                                $isGrouped = str_contains(request()->path(), 'grouped');
                             @endphp
 
-                                <!-- Link zur gruppierten Ansicht -->
-                            <a href="{{ $slugGrouped .'/'.$currentStandard. $query }}"
-                               class="text-xs font-medium inline-flex items-center px-4 py-2 text-sm font-medium border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white  {{ $currentRoute === 'filament.admin.resources.firmament-issues.grouped' ? 'bg-gray-200 text-gray-900 dark:text-gray-400' : 'bg-white dark:text-white'  }}">
+                                <!-- Gruppiert -->
+                            <a href="{{ $currentStandard === '2.1' ? $slugGrouped . '/' . $currentStandard . $query : '#' }}"
+                               class="
+       text-xs inline-flex items-center px-4 py-2 border border-gray-200 rounded-s-lg
+       hover:bg-gray-100 hover:text-blue-700
+       {{ ($isGrouped && $currentStandard === '2.1')
+            ? 'bg-gray-200 text-gray-900'
+            : 'bg-white dark:text-white' }}
+       {{ $currentStandard === '2.0' ? 'opacity-50 pointer-events-none cursor-not-allowed' : '' }}
+       ">
                                 Anzeige: Gruppiert
                             </a>
 
-                            <!-- Link zur einzelnen Ansicht -->
-                            <a disabled href="{{ $slugIndex .'/'.$currentStandard . $query }}"
-                               class="text-xs font-medium inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900  border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700  dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white {{ $currentRoute === 'filament.admin.resources.firmament-issues.index' ? 'bg-gray-200 text-gray-900 dark:text-gray-400' : 'bg-white dark:text-white' }}">
+                            <!-- Einzeln -->
+                            <a href="{{ $slugIndex . '/' . $currentStandard . $query }}"
+                               class="
+       text-xs inline-flex items-center px-4 py-2 border border-gray-200 rounded-e-lg
+       hover:bg-gray-100 hover:text-blue-700
+       {{ (!$isGrouped || $currentStandard === '2.0')
+            ? 'bg-gray-200 text-gray-900'
+            : 'bg-white dark:text-white' }}
+       ">
                                 Anzeige: Einzeln
                             </a>
 
@@ -136,8 +163,8 @@
              <p class="text-sm text-red-600">Errors: {{ $this->fetchUrlWithCounts()->error_count }}</p>
                     <p class="text-sm text-yellow-600">Warnings: {{ $this->fetchUrlWithCounts()->warning_count }}</p>
             @if($currentStandard == "2.0")
-            <p class="text-sm text-blue-600">Notices: {{ $this->fetchUrlWithCounts()->notice_count }}</p>
-                @endif
+                <p class="text-sm text-blue-600">Notices: {{ $this->fetchUrlWithCounts()->notice_count }}</p>
+            @endif
         </div>
     </span>
         </div>

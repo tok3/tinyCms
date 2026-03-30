@@ -21,16 +21,18 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Illuminate\Support\HtmlString;
 use Filament\Forms\Components\Hidden;
+use App\Filament\Resources\BaseResource;
 
 
-class A11yDeclarationResource extends Resource
+class A11yDeclarationResource extends BaseResource
 {
     protected static ?string $model = A11yDeclaration::class;
 
     protected static ?string $label = 'Barrierefreiheitserklärung';
-    protected static ?string $navigationGroup = 'Erklärung zur Barrierefreiheit';
-    protected static ?string $pluralLabel = 'Barrierefreiheitserklärungen';
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = 'Barrierefreiheitserklärung';
+    protected static ?string $pluralLabel = 'Barrierefreiheitserklärung';
+    protected static ?string $navigationLabel = 'be. Erklärung zur digitalen Barrierefreiheit';
+    protected static ?string $navigationIcon = 'be-card-check';
 
     public static function shouldRegisterNavigation(): bool
     {

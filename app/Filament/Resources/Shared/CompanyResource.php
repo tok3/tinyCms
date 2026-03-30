@@ -28,15 +28,27 @@ use Filament\Forms\Components\View as ViewField;
 use Filament\Actions\Action;
 use App\Http\Controllers\CrawlController;
 use Illuminate\Http\Request;
+use App\Filament\Resources\BaseResource;
 
-class CompanyResource extends Resource
+class CompanyResource extends BaseResource
 {
     protected static ?string $model = Company::class;
-    protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
+    protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
 
     public static function getPluralModelLabel(): string
     {
         return 'Firmen';
+    }
+
+    public static function getNavigationIcon(): string
+    {
+        return auth()->user()->is_admin
+            ? 'heroicon-o-building-office-2'
+            : 'heroicon-o-cog-6-tooth';
+    }
+    public static function getNavigationLabel(): string
+    {
+        return auth()->user()->is_admin ? 'Firmen/Kunden' : 'Konto & Einstellungen';
     }
 
     public static function form(Form $form): Form
@@ -46,6 +58,7 @@ class CompanyResource extends Resource
                 Forms\Components\Tabs::make('Company Information')
                     ->tabs([
                         Forms\Components\Tabs\Tab::make('Firmendetails')
+                            ->icon('heroicon-o-building-office-2')
                             ->schema([
                                 Forms\Components\Section::make(function ($record) {
                                     $title = 'Firmendetails';
@@ -267,6 +280,7 @@ class CompanyResource extends Resource
 
 
                         Forms\Components\Tabs\Tab::make('Einstellungen')
+                            ->icon('heroicon-o-cog-6-tooth')
                             ->schema([
 
                                 // === NEU: Affiliate Settings ===
@@ -302,7 +316,7 @@ class CompanyResource extends Resource
                                     ])
                                     ->columns(2),
 
-                                Forms\Components\Fieldset::make('Site Observer')
+                                Forms\Components\Fieldset::make('SiteScan / Monitoring')
                                     ->relationship('settings', CompanySetting::class)
                                     ->schema([
                                         Forms\Components\Grid::make(2)
@@ -356,6 +370,7 @@ class CompanyResource extends Resource
 
                                                 Forms\Components\Toggle::make('start_crawl')
                                                     ->label('Domain crawlen')
+                                                    ->helperText('URLs automatisch zum SiteScan Monitoring hinzufügen.')
                                                     ->inline(false)
                                                     ->live()
                                                     ->afterStateUpdated(function ($state, $set, $get, $livewire) {
@@ -443,7 +458,8 @@ class CompanyResource extends Resource
                             ]),
 
                         Forms\Components\Tabs\Tab::make('Upgrade Möglichkeiten (intern)')
-                            ->schema([
+                            ->icon('upgrade')
+                    ->schema([
                                 InfoBox::make()
                                     ->label('Für diese Firma sichtbare Upgrade-Produkte')
                                     ->content(function ($record) {
@@ -555,10 +571,6 @@ class CompanyResource extends Resource
         return [];
     }
 
-    public static function getNavigationLabel(): string
-    {
-        return auth()->user()->is_admin ? 'Firmen/Kunden' : 'Meine Daten';
-    }
 
     public static function getPages(): array
     {

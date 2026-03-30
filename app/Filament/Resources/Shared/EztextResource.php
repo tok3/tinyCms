@@ -22,8 +22,10 @@ use Filament\Support\Enums\VerticalAlignment;
 use Illuminate\Support\HtmlString;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
+use App\Filament\Resources\BaseResource;
 
-class EztextResource extends Resource
+
+class EztextResource extends BaseResource
 {
     protected static ?string $model = Eztext::class;
     protected static ?string $recordTitleAttribute = 'text';
@@ -34,6 +36,7 @@ class EztextResource extends Resource
     {
         return Str::limit($record->text, 30); // Replace 'name' with your attribute
     }
+
 
     public static function getGlobalSearchResultTitle(Model $record): string | Htmlable
     {

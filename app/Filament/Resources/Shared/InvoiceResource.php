@@ -23,12 +23,13 @@ use Filament\Forms\Components\Placeholder;
 use App\Forms\Components\InfoBox;
 use App\Helpers\CompanyHelper;
 use Filament\Tables\Columns\TextColumn;
+use App\Filament\Resources\BaseResource;
 
-class InvoiceResource extends Resource
+class InvoiceResource extends BaseResource
 {
     protected static ?string $model = Invoice::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-document-currency-euro';
 
     // Navigation Label ändern
     public static function getNavigationLabel(): string
@@ -43,10 +44,14 @@ class InvoiceResource extends Resource
         return 'Rechnungen';
     }
     // Navigation Group ändern
-//    public static function getNavigationGroup(): ?string
-//    {
-//        return 'Finanzen'; // Name der Gruppe, in der der Eintrag erscheint
-//    }
+    /*public static function getNavigationGroup(): ?string
+    {
+
+
+
+        return '%%Finanzen%%'; // Name der Gruppe, in der der Eintrag erscheint
+    }*/
+
 
     public static function shouldRegisterNavigation(): bool
     {
