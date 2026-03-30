@@ -51,7 +51,7 @@
     <!-- Logos -->
     <div class="logos flex flex-wrap gap-4">
         @foreach ($processedStandards['logos'] as $logo)
-            <a href="{{ $logo['link'] }}" title="{{ $logo['alt'] }}" class="logo-item">
+            <a href="{{ $logo['link']}}?no={{ mt_rand() }}" title="{{ $logo['alt'] }}" class="logo-item" aria-hidden="true" tabindex="-1">
                 <img src="{{ $logo['img'] }}" alt="{{ $logo['alt'] }}" class="logo-img">
             </a>
         @endforeach

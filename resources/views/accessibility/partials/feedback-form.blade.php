@@ -22,7 +22,7 @@
             {{-- Honeypot-Feld (für Bots) --}}
             <div class="hp-field" aria-hidden="true">
                 <label for="website">Bitte dieses Feld frei lassen</label>
-                <input type="text" name="website" id="website" autocomplete="off">
+                <input type="text" name="website" id="website" autocomplete="off" tabindex="-1">
             </div>
 
             <div class="row">

@@ -22,6 +22,7 @@ class A11yDeclarationController extends Controller
     public function getAccessabilityDeclarationJson(Request $request)
     {
         $company = Company::where('slug', $request->slug)->first();
+        //\Log::info();
         $domain  = $request->domain; // TODO: später für mehrere Domains pro Company nutzbar machen
 
         if (! $company) {
@@ -200,6 +201,7 @@ class A11yDeclarationController extends Controller
     public function getAccessibilityDeclaration(Request $request)
     {
         $company = Company::where('ulid', $request->ulid)->first();
+
         $domain  = $request->domain; // später für Multi-Domain
 
         if (! $company) {

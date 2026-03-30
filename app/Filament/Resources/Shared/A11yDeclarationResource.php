@@ -243,8 +243,8 @@ class A11yDeclarationResource extends Resource
                             ->label('Geltungsbereich (Domain)')
                             ->columnSpan(8)
                             ->nullable(),
-                    ])
-                    ->visible(fn (Get $get): bool => self::isBoardOrAssociation($get)),
+                    ]),
+                    //->visible(fn (Get $get): bool => self::isBoardOrAssociation($get)),
 
                 Forms\Components\Section::make('Datenschutz')
                 ->schema([
