@@ -25,8 +25,6 @@ use Filament\Navigation\NavigationItem;
 use Filament\Pages\Dashboard;
 use Filament\MinimalTheme;
 use Filament\PluginServiceProvider;
-use Filament\Navigation\NavigationGroup;
-use App\Helpers\CompanyHelper;
 use Filament\Support\Assets\Js;
 use Filament\Support\Assets\Css;
 
