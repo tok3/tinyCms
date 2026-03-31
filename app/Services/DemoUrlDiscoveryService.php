@@ -49,7 +49,8 @@ class DemoUrlDiscoveryService
             ]);
 
             //  sofort scannen
-            shell_exec("php " . base_path('artisan') . " scan:accessibility-21 {$model->id} > /dev/null 2>&1 &");
+            //shell_exec("php " . base_path('artisan') . " scan:accessibility-21 {$model->id} > /dev/null 2>&1 &");
+            \App\Jobs\ScanAccessibilityJob::dispatch($model->id);
         }
     }
 
