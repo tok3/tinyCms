@@ -83,10 +83,12 @@ class UserResource extends BaseResource
                   ->searchable(),
                 Tables\Columns\TextColumn::make('email')
                     ->label('Email')
+                    ->sortable()
                   ->searchable(),
                 Tables\Columns\TextColumn::make('email_verified_at')
                     ->label('Email verifiziert')
                     ->default('0000-00-00')
+                    ->sortable()
                     ->formatStateUsing(function ($state) {
                         // Prüfe, ob das Datum gültig ist, bevor es formatiert wird
                         return ($state && Carbon::hasFormat($state, 'Y-m-d H:i:s'))
