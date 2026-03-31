@@ -94,6 +94,9 @@ class UserResource extends BaseResource
                             : 'n/a';
                     })->alignment(Alignment::Center),
 
+                Tables\Columns\TextColumn::make('login_count')
+                    ->label('Logins Count')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Aktualisiert')
                     ->formatStateUsing(fn($state) => Carbon::parse($state)
