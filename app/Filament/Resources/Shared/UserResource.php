@@ -95,7 +95,7 @@ class UserResource extends BaseResource
                     })->alignment(Alignment::Center),
 
                 Tables\Columns\TextColumn::make('login_count')
-                    ->label('Logins Count')
+                    ->label('Login Count')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Aktualisiert')
