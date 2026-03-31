@@ -27,37 +27,53 @@
     }
 
     .why-important {
-        margin-top: -20px;
-
+        margin-top: 0.5rem;
     }
 
     .why-toggle {
-        background: none;
-        border: 0;
-        padding: 0;
+        width: 100%;
+        background: #f6f7f9;
+        border: 1px solid #e2e5ea;
+        border-radius: 6px;
+        padding: 8px 12px;
         cursor: pointer;
         display: flex;
         align-items: center;
+        justify-content: space-between;
+        font-size: 0.95rem;
+        transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .why-toggle:hover {
+        background: #eef1f4;
+        border-color: #d6dae0;
+    }
+
+    .why-toggle-label {
+        display: flex;
+        align-items: center;
         gap: 0.4rem;
-        font: inherit;
+        font-weight: 500;
+        color: #2c2c2c;
     }
 
     .why-arrow {
-        font-size: 1.0rem; /* Größe wie im Screenshot */
-        display: inline-block;
+        font-size: 0.9rem;
         transition: transform 0.2s ease;
-        color: #535353;
+        color: #666;
     }
 
     .why-arrow.open {
-        transform: rotate(90deg); /* ▶ wird zu ► oder ▼ */
+        transform: rotate(90deg);
     }
 
     .why-content {
         margin-top: 0.6rem;
-        padding-left: 1.6rem;
-        padding-right: 1.6rem;
-        font-size: 1.05rem;
+        padding: 12px;
+        background: #fafbfc;
+        border-left: 3px solid #d1d5db;
+        border-radius: 4px;
+        font-size: 1rem;
     }
 </style>
 
@@ -84,15 +100,18 @@
                 <div>{!! $issue['rule[merged_html]']['description'] !!}</div>
 
                 <div class="why-important" x-data="{ open: false }">
+
                     <button
                         class="why-toggle"
                         @click="open = !open"
                         type="button"
                     >
-                        <span class="why-arrow" :class="{ 'open': open }">▶</span>
-                        <span class="why-toggle-label small">
-                            Warum das wichtig ist
-                        </span>
+        <span class="why-toggle-label">
+            <span class="why-arrow" :class="{ 'open': open }">▶</span>
+            Warum das wichtig ist
+        </span>
+
+                        <span class="small text-muted" x-text="open ? 'Weniger anzeigen' : 'Mehr anzeigen'"></span>
                     </button>
 
                     <div
@@ -106,6 +125,7 @@
                     <div class="standardLogos">
                         <x-standard-logos :standards="json_decode($issue['rule[standard_logos]'])"/>
                     </div>
+
                 </div>
             </div>
         @endforeach
