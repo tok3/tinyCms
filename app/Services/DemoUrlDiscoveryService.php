@@ -11,17 +11,22 @@ class DemoUrlDiscoveryService
     {
         $urls = collect();
 
-        // 🔥 1. Sitemap versuchen
+        //  1. Sitemap versuchen
         $urls = $urls->merge($this->fromSitemap($domain, $limit));
 
-        // 🔥 2. Homepage parsen (wenn zu wenig gefunden)
+        //  2. Homepage parsen (wenn zu wenig gefunden)
         if ($urls->count() < 5) {
             $urls = $urls->merge($this->fromHomepage($domain, $limit));
         }
 
-        // 🔥 3. Fallback (nur geprüfte Standardseiten)
-        if ($urls->count() < 3) {
+        //  3. Fallback (klassisch)
+        if ($urls->count() < 5) {
             $urls = $urls->merge($this->fallbackUrls($domain));
+        }
+
+        //  4. FORCED FALLBACK (IMMER!)
+        if ($urls->count() < 5) {
+            $urls = $urls->merge($this->forcedUrls($domain));
         }
 
         $urls = $urls
@@ -43,7 +48,7 @@ class DemoUrlDiscoveryService
                 'url' => $url,
             ]);
 
-            // 🔥 sofort scannen
+            //  sofort scannen
             shell_exec("php " . base_path('artisan') . " scan:accessibility-21 {$model->id} > /dev/null 2>&1 &");
         }
     }
@@ -90,7 +95,7 @@ class DemoUrlDiscoveryService
 
             $html = $response->body();
 
-            // 🔥 nur BODY extrahieren
+            //  nur BODY extrahieren
             if (preg_match('/<body.*?>(.*?)<\/body>/is', $html, $bodyMatch)) {
                 $html = $bodyMatch[1];
             }
@@ -99,7 +104,8 @@ class DemoUrlDiscoveryService
 
             foreach ($matches[1] as $link) {
 
-                // 🔥 Müll raus
+                $link = preg_replace('/\?+$/', '', $link);
+                //  Müll raus
                 if (
                     str_starts_with($link, '#') ||
                     str_starts_with($link, 'mailto:') ||
@@ -107,24 +113,24 @@ class DemoUrlDiscoveryService
                     str_starts_with($link, 'javascript:')
                 ) continue;
 
-                // 🔥 absolute URL bauen
+                //  absolute URL bauen
                 if (str_starts_with($link, 'http')) {
                     $full = $link;
                 } else {
                     $full = rtrim($domain, '/') . '/' . ltrim($link, '/');
                 }
 
-                // 🔥 nur gleiche Domain
+                //  nur gleiche Domain
                 if (parse_url($full, PHP_URL_HOST) !== parse_url($domain, PHP_URL_HOST)) {
                     continue;
                 }
 
-                // 🔥 ASSETS RAUSFILTERN
+                //  ASSETS RAUSFILTERN
                 if (preg_match('/\.(jpg|jpeg|png|gif|svg|webp|css|js|pdf|mp4|mp3|ico|woff|woff2|ttf)$/i', $full)) {
                     continue;
                 }
 
-                // 🔥 typische System-Pfade raus
+                //  typische System-Pfade raus
                 if (
                     str_contains($full, '/wp-content/') ||
                     str_contains($full, '/wp-json/') ||
@@ -133,7 +139,7 @@ class DemoUrlDiscoveryService
                     str_contains($full, '/fonts/')
                 ) continue;
 
-                // 🔥 VALIDIERUNG
+                //  VALIDIERUNG
                 if ($this->isValidUrl($full)) {
                     $urls->push($full);
                 }
@@ -175,11 +181,24 @@ class DemoUrlDiscoveryService
     private function isValidUrl(string $url): bool
     {
         try {
-            $response = Http::timeout(3)->head($url);
+            $response = Http::timeout(5)->get($url);
+            return $response->status() < 400;
 
-            return $response->ok();
         } catch (\Exception $e) {
             return false;
         }
     }
+
+    private function forcedUrls(string $domain)
+    {
+        return collect([
+            rtrim($domain, '/'),
+            rtrim($domain, '/') . '/impressum',
+            rtrim($domain, '/') . '/kontakt',
+            rtrim($domain, '/') . '/datenschutz',
+            rtrim($domain, '/') . '/barrierefreiheit',
+        ]);
+    }
+
+
 }
