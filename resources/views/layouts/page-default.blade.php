@@ -16,26 +16,26 @@
     <!--Swiper slider-->
     <link rel="stylesheet" href="{{ URL::asset('assets/vendor/node_modules/css/swiper-bundle.min.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Karla:ital,wght@0,200..800;1,200..800&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
-{{--    <link rel="stylesheet" href="{{ URL::asset('assets/css/aktion-bf.min.css') }}">--}}
+    {{--    <link rel="stylesheet" href="{{ URL::asset('assets/css/aktion-bf.min.css') }}">--}}
 
     <!-- Main CSS -->
     {{--    <link href="{{ URL::asset('assets/css/theme.min.css')}}" rel="stylesheet">--}}
     <!-- Matomo -->
-<script>
+    <script>
 
-    var _paq = window._paq = window._paq || [];
-    /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
-    _paq.push(['trackPageView']);
-    _paq.push(['enableLinkTracking']);
-    (function() {
-      var u="//tracking.hausverw.de/";
-      _paq.push(['setTrackerUrl', u+'matomo.php']);
-      _paq.push(['setSiteId', '5']);
-      var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-      g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
-    })();
-  </script>
-  <!-- End Matomo Code -->
+        var _paq = window._paq = window._paq || [];
+        /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+        _paq.push(['trackPageView']);
+        _paq.push(['enableLinkTracking']);
+        (function() {
+            var u="//tracking.hausverw.de/";
+            _paq.push(['setTrackerUrl', u+'matomo.php']);
+            _paq.push(['setSiteId', '5']);
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+        })();
+    </script>
+    <!-- End Matomo Code -->
 
     @vite(['resources/scss/theme.scss'])
 
@@ -44,13 +44,13 @@
 
 
 
-@if(isset(json_decode($page, true)['title']))
-    <title>{{ json_decode($page, true)['title'] }}</title>
-@elseif(isset($pageinclucert['title']))
-    <title>IncluCert PDF</title>
-@else
-    <title></title>
-@endif
+    @if(isset(json_decode($page, true)['title']))
+        <title>{{ json_decode($page, true)['title'] }}</title>
+    @elseif(isset($pageinclucert['title']))
+        <title>IncluCert PDF</title>
+    @else
+        <title></title>
+    @endif
     <!--<title>{{ isset(json_decode($page, true)['title']) ? json_decode($page, true)['title'] : '' }}</title>-->
 
 </head>
