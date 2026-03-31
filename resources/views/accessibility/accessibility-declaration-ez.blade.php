@@ -66,7 +66,7 @@
                     @endif
                     -->
                     <p class="mt-5">
-                        Diese Erklärung wurde am {{ $declaration->updated_at->format('d.m.Y') }} mit dem Service von <a href="https://aktion-barrierefrei.org" style="text-decoration:underline;">aktion-barrierefrei.org</a> erstellt. <span style="color:grey">( Letzte Aktualisierung {{ $declaration->effective_last_checked->format('d.m.Y H:i') }} Uhr )</span>
+                        Diese Erklärung wurde am {{ $declaration->updated_at->format('d.m.Y') }} mit<a href="https://aktion-barrierefrei.org/produkte/barrierefreiheitserklaerung"><img style="width:3em;" src="{{ asset('assets/img/produkte/be.svg') }}" alt="be. barrierefreiheitserklärung"></a> erstellt. Ein Service von <a href="https://aktion-barrierefrei.org" style="text-decoration:underline;">aktion-barrierefrei.org</a>. <span style="color:dark-grey">( Letzte Aktualisierung {{ $declaration->effective_last_checked->format('d.m.Y H:i') }} Uhr )</span>
                     </p>
 
 

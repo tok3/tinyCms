@@ -102,7 +102,7 @@
 
             {{-- hier könntest du später ein echtes Captcha integrieren --}}
             {{-- <div class="mb-3"> … reCAPTCHA etc. … </div> --}}
-            <div class="privacy-declarations mb-3">
+            <div class="privacy-declarations">
 
                     @if($declaration->customer_privacy_declaration_url != '')
                     <a class="link-primary link-underline-primary" href="{{ $declaration->customer_privacy_declaration_url }}" target="_blank" rel="noopener noreferrer">Datenschutzhinweise {{ $company->name }}</a><br><br>
@@ -120,8 +120,9 @@
                         required
                 >
 
-                <label class="form-check-label" for="privacy_accepted">
-                    Ich habe die Datenschutzhinweise zur Kenntnis genommen und bin mit der Verarbeitung meiner Angaben zum Zweck der Bearbeitung meiner Rückmeldung einverstanden.
+                <label class="form-check-label small mb-3" for="privacy_accepted">
+                    Ich habe die Datenschutzhinweise zur Kenntnis genommen und bin mit der Verarbeitung meiner Angaben zum Zweck der Bearbeitung meiner Rückmeldung einverstanden.<br>
+                    Die Einverständniserklärung ist freiwillig und kann jederzeit mit Wirkung für die Zukunft widerrufen werden.
                 </label>
                 @error('privacy_accepted')
                 <div class="invalid-feedback d-block">{{ $message }}</div>
