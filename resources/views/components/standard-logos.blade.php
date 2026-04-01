@@ -47,7 +47,7 @@
         box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5);
     }
 </style>
-<div class="standard-logos-container">
+<div class="standard-logos-container" >
     <!-- Logos -->
     <div class="logos flex flex-wrap gap-4">
         @foreach ($processedStandards['logos'] as $logo)

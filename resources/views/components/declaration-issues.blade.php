@@ -15,8 +15,8 @@
     }
 
     div.standardLogos {
-        margin-top: 1em;
-        border-bottom: 1px solid #E0DFEA;
+        margin-top: 0.5em;
+      /*  border-bottom: 1px solid #E0DFEA;*/
     }
 
     div.standardLogos a {
@@ -27,7 +27,9 @@
     }
 
     .why-important {
-        margin-top: 0.5rem;
+        margin-top: -0.5rem;
+        padding-bottom:1em;
+        border-bottom: 1px solid #E0DFEA;
     }
 
     .why-toggle {
@@ -75,6 +77,13 @@
         border-radius: 4px;
         font-size: 1rem;
     }
+
+    .mb-5{
+
+        margin-bottom:0.8em !important;
+    }
+
+
 </style>
 
 @if(empty($issues))
@@ -92,12 +101,15 @@
 
     <hr class="my-2">
 
-    <div class="accIssues">
+    <div class="accIssues" >
         @foreach($issues as $issue)
-            <div class="issue">
+            <div class="issue" >
                 <div class="h6">{{ $issue['translated'] }}</div>
 
-                <div>{!! $issue['rule[merged_html]']['description'] !!}</div>
+                <div class="mb-0">{!! $issue['rule[merged_html]']['description'] !!}</div>
+                <div class="standardLogos">
+                    <x-standard-logos :standards="json_decode($issue['rule[standard_logos]'])"/>
+                </div>
 
                 <div class="why-important" x-data="{ open: false }">
 
@@ -106,6 +118,8 @@
                         @click="open = !open"
                         type="button"
                     >
+
+
         <span class="why-toggle-label">
             <span class="why-arrow" :class="{ 'open': open }">▶</span>
             Warum das wichtig ist
@@ -122,9 +136,7 @@
                         {!! $issue['rule[merged_html]']['why_important'] !!}
                     </div>
 
-                    <div class="standardLogos">
-                        <x-standard-logos :standards="json_decode($issue['rule[standard_logos]'])"/>
-                    </div>
+
 
                 </div>
             </div>
