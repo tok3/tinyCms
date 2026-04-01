@@ -99,7 +99,12 @@ class UserResource extends BaseResource
                 Tables\Columns\TextColumn::make('login_count')
                     ->label('Login Count')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('updated_at')
+                Tables\Columns\TextColumn::make('last_login_at')
+                    ->label('Letztes Login')
+                    ->formatStateUsing(fn($state) => Carbon::parse($state)
+                        ->format('d.m.Y H:i'))
+                    ->sortable(),
+               Tables\Columns\TextColumn::make('updated_at')
                     ->label('Aktualisiert')
                     ->formatStateUsing(fn($state) => Carbon::parse($state)
                         ->format('d.m.Y H:i'))
