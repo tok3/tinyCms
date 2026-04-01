@@ -71,6 +71,7 @@ class Company extends Model
                 ->whereNull('company_user.company_id')
                 ->where('users.is_admin', '!=', 1)
                 ->pluck('id');
+
             \App\Models\User::whereIn('id', $userIdsToDelete)->delete();
         });
 

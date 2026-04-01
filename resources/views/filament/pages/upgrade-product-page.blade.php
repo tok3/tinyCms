@@ -10,6 +10,7 @@
 
         @endphp
 
+
     <section class="py-0 bg-white md:py-16 dark:bg-gray-900 pt-0">
         <div class="bg-white">
             <!-- Gutschein -->
