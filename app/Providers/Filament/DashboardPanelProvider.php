@@ -40,6 +40,33 @@ class DashboardPanelProvider extends PanelProvider
 
 
 
+        $items = [];
+
+        $items[] = NavigationItem::make('Termin Vereinbaren')
+            ->url('https://calendar.google.com/calendar/appointments/schedules/AcZssZ002z7FSLxfqDLL47QcSvPz_XZbGC-2uwnyJso0MjsOmuNK9FDuwO_HG3uJKMpsWoLqfOBefBw9?gv=true', shouldOpenInNewTab: true)
+            ->icon('heroicon-o-calendar')
+            ->sort(999);
+
+
+        $upsellFeatures = [
+            'image-alt-tags' => 'Alt-Texte (KI)',
+            'fixstern'       => 'Fixstern',
+        ];
+
+        foreach ($upsellFeatures as $feature => $label) {
+            if (! $tenant?->hasFeature($feature)) {
+
+                $items[] = NavigationItem::make($label)
+                    ->url("#feature={$feature}")
+                    ->icon('heroicon-o-arrow-up-circle')
+                    ->group('Features')
+                    ->sort(1000);
+            }
+        }
+
+
+
+
         $widgets = [
             Widgets\AccountWidget::class,
             \App\Filament\Dashboard\Widgets\CalendarAppointmentWidget::class,
@@ -125,18 +152,7 @@ class DashboardPanelProvider extends PanelProvider
                 'panels::body.end',
                 fn () => view('filament.partials.upsell-templates')
             )
-            ->navigationItems([
-
-
-
-
-                NavigationItem::make('Termin Vereinbaren')
-                    ->url('https://calendar.google.com/calendar/appointments/schedules/AcZssZ002z7FSLxfqDLL47QcSvPz_XZbGC-2uwnyJso0MjsOmuNK9FDuwO_HG3uJKMpsWoLqfOBefBw9?gv=true', shouldOpenInNewTab: true)
-                    ->icon('heroicon-o-calendar')
-                    ->sort(999)
-                    ->visible(fn () => auth()->check()  ), // oder eigene Policy/Permission
-
-             ]);
+           ;
 
 
         return $panel;
