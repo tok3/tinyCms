@@ -113,21 +113,30 @@ class DashboardPanelProvider extends PanelProvider
                 'body.end',
                 fn () => view('filament.modals.upgrade-modal')
             )
+            ->renderHook(
+                'panels::body.end',
+                fn () => view('filament.modals.upsell-modal')
+            )
+            ->renderHook(
+                'panels::scripts.after',
+                fn () => '<script src="' . asset('js/upsell-modal.js') . '"></script>'
+            )
+            ->renderHook(
+                'panels::body.end',
+                fn () => view('filament.partials.upsell-templates')
+            )
             ->navigationItems([
+
+
+
+
                 NavigationItem::make('Termin Vereinbaren')
                     ->url('https://calendar.google.com/calendar/appointments/schedules/AcZssZ002z7FSLxfqDLL47QcSvPz_XZbGC-2uwnyJso0MjsOmuNK9FDuwO_HG3uJKMpsWoLqfOBefBw9?gv=true', shouldOpenInNewTab: true)
                     ->icon('heroicon-o-calendar')
                     ->sort(999)
                     ->visible(fn () => auth()->check()  ), // oder eigene Policy/Permission
-                /*    NavigationItem::make('Firmendaten')
-                        ->url('/'.$panel->getId().'/'.$tenant_id.'/companies/'.$tenant_id.'/edit', shouldOpenInNewTab: false)
-                        ->icon('heroicon-o-newspaper')
-                        ->sort(3),
-    */
-                /*  NavigationItem::make('Analytics')
-                      ->visible(fn(): bool => auth()->user()->can('view-analytics')),*/
-                // ...
-            ]);
+
+             ]);
 
 
         return $panel;
