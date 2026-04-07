@@ -152,7 +152,8 @@ class DashboardPanelProvider extends PanelProvider
                 'panels::body.end',
                 fn () => view('filament.partials.upsell-templates')
             )
-           ;
+            ->navigationItems($items);
+
 
 
         return $panel;
