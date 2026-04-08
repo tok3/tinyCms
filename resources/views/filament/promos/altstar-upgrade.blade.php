@@ -1,44 +1,63 @@
-<div style="display:flex; flex-direction:column; gap:16px;">
+<div data-feature="image-alt-tags">
 
-    <h3 style="font-size:1.4rem; font-weight:600;">
-        Alt-Texte automatisch generieren
-    </h3>
+    <div style="
+        display:grid;
+        grid-template-columns:1.2fr 1fr;
+        gap:0;
+    ">
 
-    <p>
-        Alt-Texte für Bilder sind Pflicht für Barrierefreiheit –
-        aber in der Praxis werden sie fast nie gepflegt.
-    </p>
+        {{-- LEFT --}}
+        <div style="padding:40px; display:flex; flex-direction:column; gap:18px;">
 
-    <p>
-        <strong>AltStar löst das automatisch.</strong><br>
-        Deine Website bekommt sinnvolle Alt-Texte – ohne Aufwand.
-    </p>
+            <h3 style="font-size:1.8rem; font-weight:700;">
+             ss   Alt-Texte? Läuft jetzt automatisch.
+            </h3>
 
-    {{-- Optional Video --}}
-    <div>
-        <video controls style="width:100%; border-radius:8px;">
-            <source src="/videos/altstar-demo.mp4" type="video/mp4">
-        </video>
+            <p>AltStar analysiert deine Bilder und erstellt automatisch sinnvolle Alt-Texte.
+            </p>
+
+            <div style="
+                background: rgba(255,255,255,0.08);
+                padding:16px;
+                border-radius:10px;
+            ">
+                • Kein Redaktionsaufwand<br>
+                • Sofort bessere WCAG-Werte<br>
+                • Funktioniert auf bestehenden Seiten
+            </div>
+
+            <div>
+                <a href="/dashboard/upgrade"
+                   style="
+                        display:inline-block;
+                        background:white;
+                        color:black;
+                        padding:12px 22px;
+                        border-radius:8px;
+                        font-weight:600;
+                        text-decoration:none;
+                   ">
+                    AltStar aktivieren
+                </a>
+            </div>
+
+        </div>
+
+        {{-- RIGHT --}}
+        <div style="
+            background: linear-gradient(135deg, #1e3a8a, #312e81);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:20px;
+        ">
+
+            <video controls style="width:100%; border-radius:10px;">
+                <source src="/videos/altstar-demo.mp4" type="video/mp4">
+            </video>
+
+        </div>
+
     </div>
-
-    {{-- Vorteile --}}
-    <ul style="padding-left:18px;">
-        <li>Automatische Generierung</li>
-        <li>Bessere WCAG-Bewertung</li>
-        <li>Kein Redaktionsaufwand</li>
-    </ul>
-
-    {{-- CTA --}}
-    <div style="margin-top:10px;">
-        <a href="/dashboard/upgrade"
-           style="background:#3b82f6; color:white; padding:12px 20px; border-radius:8px; text-decoration:none;">
-            Jetzt aktivieren
-        </a>
-    </div>
-
-    {{-- Promo --}}
-    <p style="font-size:0.9rem; color:#666;">
-        Aktuell: 30% Rabatt mit Code <strong>ALT30</strong>
-    </p>
 
 </div>

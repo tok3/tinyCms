@@ -11,15 +11,9 @@
 
     {{-- FIXSTERN --}}
     <div data-feature="fixstern">
-        <h3>Fixstern</h3>
 
-        <p>
-            Deine Website wird sofort barrierefreier – ohne Umbau.
-        </p>
+        @include('filament.promos.fixstern-upgrade')
 
-        <a href="/dashboard/upgrade">
-            Jetzt aktivieren
-        </a>
     </div>
 
 </div>
