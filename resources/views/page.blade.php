@@ -12,6 +12,7 @@
                 width: min(920px, calc(100% - 2rem)); /* hübsche Breite */
             }
         </style>
+
         <meta name="csrf-token" content="{{ csrf_token() }}">
     @endsection
 
@@ -131,6 +132,8 @@
                     });
                 });
             </script>
+
+
         {{-- Page specific additional JS from CMS --}}
         @if(isset($page->custom_footer_code) && !empty($page->custom_footer_code))
             {!! $page->custom_footer_code !!}

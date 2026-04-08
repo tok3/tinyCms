@@ -108,7 +108,26 @@
     slider.control('arrows');
 
 </script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
 
+        const preloader = document.querySelector('.spinner-loader');
+
+        if (!preloader) return;
+
+        setTimeout(() => {
+
+            preloader.style.opacity = '0';
+            preloader.style.transition = 'opacity 0.3s ease';
+
+            setTimeout(() => {
+                preloader.remove(); // WICHTIG → komplett entfernen
+            }, 30);
+
+        }, 60);
+
+    });
+</script>
 
 <!--Swiper slider-->
 <script src="{{ URL::asset('assets/vendor/node_modules/js/swiper-bundle.min.js') }}"></script>

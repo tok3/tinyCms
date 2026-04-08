@@ -13,6 +13,8 @@ function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" =
  */
 
 (function (window, document) {
+
+
   // constants for better minification
   var _CREATE_ELEMENT_ = 'createElement';
   var _GET_ELEMENTS_BY_TAG_NAME_ = 'getElementsByTagName';
@@ -1076,6 +1078,10 @@ function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" =
     };
   return {
     init: function init(e) {
+        //disable aos ani tok@eq3w.de
+        e = e || {};
+        e.disable = true;
+        // end disabling ani by tok@eq3w.de
       return ae = I(ae, e), oe = ne(), ae.disableMutationObserver || _.isSupported() || (console.info('\n      aos: MutationObserver is not supported on this browser,\n      code mutations observing has been disabled.\n      You may have to call "refreshHard()" by yourself.\n    '), ae.disableMutationObserver = !0), ae.disableMutationObserver || _.ready("[data-aos]", se), de(ae.disable) || re() ? ue() : (document.querySelector("body").setAttribute("data-aos-easing", ae.easing), document.querySelector("body").setAttribute("data-aos-duration", ae.duration), document.querySelector("body").setAttribute("data-aos-delay", ae.delay), -1 === ["DOMContentLoaded", "load"].indexOf(ae.startEvent) ? document.addEventListener(ae.startEvent, function () {
         ce(!0);
       }) : window.addEventListener("load", function () {
@@ -16895,3 +16901,4 @@ require("./custom/mouseover");
 },{"./custom/aos":24,"./custom/buttons":25,"./custom/custom-bootstrap":26,"./custom/dark-mode":27,"./custom/form-validation":28,"./custom/glightbox":29,"./custom/header-sticky":31,"./custom/header-sticky-reverse":30,"./custom/isotope-layout":32,"./custom/jarallax":33,"./custom/mouseover":34,"./custom/nav-indicators":35,"./custom/preloader":36,"./custom/rellax":37,"./custom/smooth-scroll":38,"./custom/svgInjector":39,"./custom/topTop":40,"./custom/typed":41}]},{},[42]);
 
 //# sourceMappingURL=theme.bundle.js.map
+
