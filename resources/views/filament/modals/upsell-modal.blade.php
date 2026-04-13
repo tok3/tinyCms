@@ -4,7 +4,11 @@
         position: fixed;
         inset: 0;
         z-index: 99999;
-        background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+        background: radial-gradient(
+            circle at center,
+            rgba(15, 23, 42, 0.6) 0%,
+            rgba(2, 6, 23, 0.95) 100%
+        );
         align-items: center;
         justify-content: center;
         padding: 40px;
@@ -15,10 +19,10 @@
         max-width: 1100px;
         border-radius: 16px;
         overflow: hidden;
-        background: rgba(255,255,255,0.05);
+        background: rgba(255, 255, 255, 0.05);
         backdrop-filter: blur(20px);
-        border: 1px solid rgba(255,255,255,0.1);
-        box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
         color: white;
         position: relative;
     }
@@ -27,7 +31,7 @@
         position: absolute;
         top: 14px;
         right: 16px;
-        background: rgba(255,255,255,0.1);
+        background: rgba(255, 255, 255, 0.1);
         border: none;
         color: white;
         font-size: 20px;
