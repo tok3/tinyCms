@@ -1,7 +1,6 @@
 <x-filament::widget class="fi-account-widget">
     <x-filament::section>
 
-
         <div class="flex items-center gap-x-3">
 
 

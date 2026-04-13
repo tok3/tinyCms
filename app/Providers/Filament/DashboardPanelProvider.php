@@ -38,8 +38,7 @@ class DashboardPanelProvider extends PanelProvider
 
        $tenant = Company::where('id', $tenant_id)->first();
 
-
-
+       
         $widgets = [
             Widgets\AccountWidget::class,
             \App\Filament\Dashboard\Widgets\CalendarAppointmentWidget::class,
