@@ -37,6 +37,17 @@
     </script>
     <!-- End Matomo Code -->
 
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EZW5W60BED"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-EZW5W60BED');
+    </script>
+    <!-- \Google tag (gtag.js) -->
+
     @vite(['resources/scss/theme.scss'])
 
     @yield('add-head')
@@ -57,7 +68,7 @@
 
 <body>
 
-<x-partials.preloader/>
+{{--<x-partials.preloader/>--}}
 <x-site-partials.headers.default-header navbarType="{{$navbarType}}"/>
 
 <main >
