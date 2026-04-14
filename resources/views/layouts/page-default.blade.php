@@ -93,7 +93,7 @@
 
 <!-- scripts -->
 {{--<script src="{{ URL::asset('assets/js/theme.bundle.min.js') }}"></script>--}}
-<script src="{{ URL::asset('assets/js/theme.bundle.js') }}"></script>
+<script src="{{ URL::asset('assets/js/theme.bundle.js?t=').time() }}"></script>
 
 <!--Mastert Slider start (Include jquery before master slider js)-->
 <script src="{{ URL::asset('assets/vendor/node_modules/js/jquery.min.js') }}"></script>
