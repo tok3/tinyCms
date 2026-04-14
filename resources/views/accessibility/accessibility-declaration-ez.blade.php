@@ -1,4 +1,4 @@
-<x-layouts.blank>
+<x-layouts.declaration-blank title="Barrierefreiheitserklärung {{ $company->name }}">
     <section class="position-relative d-flex justify-content-center h-100">
         <div class="container z-2 position-relative">
             <div class="row align-items-center vh-100">
@@ -8,7 +8,7 @@
                         {{-- Logo rechts (aber auf Mobile oben) --}}
                         @if($company->logo_image)
                             <div class="col-12 col-md-4 col-lg-3 text-md-end order-md-2 mb-3 mb-md-0">
-                                <a href="{{ $company->web  }}" class="d-inline-block">
+                                <a href="{{  $company->web ? $company->web : '#' }}" class="d-inline-block">
                                     <img
                                         src="{{ URL::asset('storage/' . $company->logo_image) }}"
                                         class="img-fluid"
@@ -18,29 +18,37 @@
                                 </a>
                             </div>
                         @endif
-
-                        {{-- Titel links --}}
                         <div class="col-12 col-md-8 col-lg-9 order-md-1">
-                            <h3 class="mb-1">Barrierefreiheitserklärung</h3>
+                            <span class="mb-1 h3">Barrierefreiheitserklärung</span>
+                            @if($company->type == 1)
+                            <div class="h6">{{ $declaration->federal_or_state_law == 0 ? ' - Bundesrecht' : ' - Landesrecht' }}</div>
+                            @endif
                             <h1 class="mt-0">{{ $company->name }}</h1>
                         </div>
                     </div>
-
-                    <p>{!! $declaration->declaration_intro_text_ez !!}</p>
-
+                    <h2 class="h3">Geltungsbereich</h2>
+                    <p>{{ $declaration->scope }}</p>
+                    {{--<h3>Bundesland</h3>
+                    <p><x-federal-state-coa :state-name="$declaration->federal_state"/></p>--}}
+                    @if($company->type == 1)
                     <h3>Bundesland</h3>
 
                     <p><x-federal-state-coa
                             :state-name="$declaration->federal_state_label"
-                        /></p>
+                    /></p>
+                    @endif
+
+                    <p>{!! $declaration->declaration_intro_text_ez !!}</p>
+
+                    @if(!empty($declaration->company_offer) &&  $company->type == 0)
+                        <h3>Beschreibung der Dienstleistung</h3>
+                        <p>{!! $declaration->company_offer !!}</p>
+                    @endif
 
                     <h3>Erfüllung der Barrierefreiheitsanforderungen</h3>
 
-                    <h5>Vereinbarkeit</h5>
-                    <p> <!-- TODO auch noch in Form reinmachen? -->
-                        {!! $declaration->consistency_ez !!}
-                    </p>
-
+                    <h4  class="mt-3">Vereinbarkeit</h4>
+                    <p>{!! $declaration->consistency_ez !!}</p>
                     @if(count($issues) > 0)
                         <p>{!! $declaration->bfsg_partial_ez !!}</p>
 
@@ -48,9 +56,10 @@
                     @else
                         <p>{!! $declaration->bfsg_full_ez !!}</p>
                     @endif
-                    @if(!empty($declaration->non_conform_content_ez) || $declaration->non_conform_content_ez != 'Die folgenden Inhalte sind nicht barrierefrei, da sie eine unverhältnismäßige Belastung gemäß § 12a Absatz 6 BGG darstellen:')
+                    @if(!empty($declaration->non_conform_content_ez) && trim($declaration->non_conform_content_ez) != 'Die folgenden Inhalte sind nicht barrierefrei, da sie eine unverhältnismäßige Belastung gemäß § 12a Absatz 6 BGG darstellen:')
                         <p>{!! $declaration->non_conform_content_ez !!}</p>
                     @endif
+
 
                     @if($declaration->acc_enforcement_agencies)
                         <h5 class="mt-5">Durchsetzungsstelle</h5>
@@ -70,19 +79,19 @@
                     </p>
 
 
-                    @include('accessibility.partials.feedback-form', ['company' => $company])
-
                     @if($declaration->feedback_url)
-                        <p class="mt-5">
-                        {!! $declaration->feedback_text_ez !!}
-                        <ul style="list-style-type: none; padding-left: 0;">
-                            <li><a href="{{ $declaration->feedback_url }}">{{ $declaration->feedback_url }}</a></li>
-                            <li><a href="mailto:{{ $declaration->feedback_email }}">{{ $declaration->feedback_email }}</a></li>
-                            <li>{{ $declaration->feedback_phone }}</li>
-                            <li>{{ $declaration->feedback_address }}</li>
-                        </ul>
-                        </p>
+                        <div>
+                            {!! $declaration->feedback_text_ez !!}
+                            <ul>
+                                <li><a href="{{ $declaration->feedback_url }}">{{ $declaration->feedback_url }}</a></li>
+                                <li><a href="mailto:{{ $declaration->feedback_email }}">{{ $declaration->feedback_email }}</a></li>
+                                <li>{{ $declaration->feedback_phone }}</li>
+                                <li>{!! $declaration->feedback_address !!}</li>
+                            </ul>
+                        </div>
                     @endif
+
+                    @include('accessibility.partials.feedback-form', ['company' => $company])
 
 
                 </div>

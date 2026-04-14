@@ -529,8 +529,8 @@ class A11yDeclarationResource extends BaseResource
                                                     ->extraAttributes(self::editorExtraAttributes())
                                                     ->extraInputAttributes(self::editorInputExtraAttributes()),
                                             ]),
-                                    ])
-                                    ->visible(fn (Get $get): bool => self::isCompany($get)),
+                                    ]),
+                                    //->visible(fn (Get $get): bool => self::isCompany($get)),
 
                                 Forms\Components\Grid::make(12)
                                     ->schema([
