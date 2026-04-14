@@ -37,16 +37,6 @@
     </script>
     <!-- End Matomo Code -->
 
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EZW5W60BED"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-
-        gtag('config', 'G-EZW5W60BED');
-    </script>
-    <!-- \Google tag (gtag.js) -->
 
     @vite(['resources/scss/theme.scss'])
 
@@ -65,6 +55,16 @@
     <!--<title>{{ isset(json_decode($page, true)['title']) ? json_decode($page, true)['title'] : '' }}</title>-->
 
 </head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EZW5W60BED"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-EZW5W60BED');
+</script>
+<!-- \Google tag (gtag.js) -->
 
 <body>
 
