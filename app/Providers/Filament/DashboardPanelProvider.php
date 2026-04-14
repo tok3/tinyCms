@@ -49,16 +49,22 @@ class DashboardPanelProvider extends PanelProvider
 
 
         $upsellFeatures = [
-            'image-alt-tags' => 'Alt-Texte (KI)',
-            'fixstern'       => 'Fixstern',
+            'image-alt-tags' => [
+                'label' => 'altStar',
+                'icon'  => 'icon-img-tag',
+            ],
+            'fixstern' => [
+                'label' => 'fixstern',
+                'icon'  => 'heroicon-o-sparkles',
+            ],
         ];
 
-        foreach ($upsellFeatures as $feature => $label) {
+        foreach ($upsellFeatures as $feature => $config) {
             if (! $tenant?->hasFeature($feature)) {
 
-                $items[] = NavigationItem::make($label)
+                $items[] = NavigationItem::make($config['label'])
                     ->url("#feature={$feature}")
-                    ->icon('heroicon-o-arrow-up-circle')
+                    ->icon($config['icon'])
                     ->group('Features')
                     ->sort(1000);
             }

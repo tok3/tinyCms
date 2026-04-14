@@ -9,8 +9,8 @@
         {{-- LEFT --}}
         <div style="padding:40px; display:flex; flex-direction:column; gap:18px;">
 
-            <h3 style="font-size:1.8rem; font-weight:700;">
-             ss   Alt-Texte? Läuft jetzt automatisch.
+            <h3 style="font-size:1.8rem; font-weight:700;">Alt-Texte? Läuft jetzt automatisch.
+
             </h3>
 
             <p>AltStar analysiert deine Bilder und erstellt automatisch sinnvolle Alt-Texte.

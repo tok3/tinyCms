@@ -43,7 +43,7 @@
             {{-- CTA --}}
             <div style="display:flex; gap:12px; margin-top:10px; flex-wrap:wrap;">
 
-                <a href="/dashboard/upgrade"
+                  <a href="{{ url('/dashboard/' . filament()->getTenant()->id . '/upgrade-page') }}"
                    style="
                         background:white;
                         color:black;

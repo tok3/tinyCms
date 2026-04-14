@@ -60,7 +60,6 @@ document.addEventListener('click', function (e) {
 
 /*dev : ?upsell=image-alt-tags öffenet modal zum stylen */
 
-/*
 document.addEventListener('DOMContentLoaded', function () {
 
     const params = new URLSearchParams(window.location.search);
@@ -80,4 +79,3 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 
- */
