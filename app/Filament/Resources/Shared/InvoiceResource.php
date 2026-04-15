@@ -464,6 +464,11 @@ class InvoiceResource extends BaseResource
                         default => 'Unbekannter Status',
                     })
                     ->alignCenter(),
+                Tables\Columns\TextColumn::make('issue_date')
+                    ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y'))
+                    ->label('Erstellt')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('due_date')
                     ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y'))
                     ->label('Fälligkeit')
