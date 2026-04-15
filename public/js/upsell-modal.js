@@ -59,23 +59,26 @@ document.addEventListener('click', function (e) {
 });
 
 /*dev : ?upsell=image-alt-tags öffenet modal zum stylen */
+/*
 
 document.addEventListener('DOMContentLoaded', function () {
 
     const params = new URLSearchParams(window.location.search);
-    const feature = params.get('upsell');
+    let feature = params.get('upsell');
 
     if (feature) {
         localStorage.setItem('upsell-dev', feature);
-        openUpsellModal(feature);
-        return;
+    } else {
+        feature = localStorage.getItem('upsell-dev');
     }
 
-    const saved = localStorage.getItem('upsell-dev');
-
-    if (saved) {
-        openUpsellModal(saved);
+    // FALLBACK (nur wenn wirklich nichts gesetzt ist)
+    if (!feature) {
+        feature = 'image-alt-tags'; // <-- hier dein Default ändern
     }
+
+    openUpsellModal(feature);
 
 });
+*/
 

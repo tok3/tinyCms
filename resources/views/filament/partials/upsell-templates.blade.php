@@ -16,4 +16,17 @@
 
     </div>
 
+    {{-- be. --}}
+    <div data-feature="barrierefreiheitserklaerung">
+
+        @include('filament.promos.a11y-declaration-upgrade')
+
+    </div>
+{{-- incluCert --}}
+    <div data-feature="inclucert">
+
+        @include('filament.promos.inclucert-upgrade')
+
+    </div>
+
 </div>

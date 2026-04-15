@@ -1,26 +1,30 @@
-<div data-feature="image-alt-tags">
+<div data-feature="inclucert">
 
     <div style="
         display:grid;
         grid-template-columns:1.2fr 1fr;
-        gap:0;
     ">
 
         {{-- LEFT --}}
-        <div style="padding:40px; display:flex; flex-direction:column; gap:18px;">
+        <div style="
+            padding:40px;
+            display:flex;
+            flex-direction:column;
+            gap:18px;
+        ">
 
-            <h3 style="font-size:1.8rem; font-weight:700;">
-                Alt-Texte automatisch erstellen
+            <h3 style="font-size:1.9rem; font-weight:700;">
+                Zeigen Sie Barrierefreiheit – nicht nur behaupten
             </h3>
 
             <p>
-                AltStar analysiert Ihre Bilder und erstellt automatisch passende Alt-Texte –
-                direkt auf Ihrer bestehenden Website.
+                InkluCert macht Ihren Fortschritt sichtbar und nachvollziehbar –
+                direkt für Nutzer, Kunden und Prüfer.
             </p>
 
             <p>
-                <strong>Keine Pflege. Kein Aufwand.</strong><br>
-                Ihre Inhalte werden barrierefrei – ohne manuelle Nacharbeit.
+                <strong>Aktivieren. Anzeigen. Vertrauen schaffen.</strong><br>
+                Ihr aktueller Stand wird transparent dargestellt – jederzeit abrufbar.
             </p>
 
             {{-- Benefits --}}
@@ -30,11 +34,12 @@
                 border-radius:10px;
                 line-height:1.6;
             ">
-                • Automatische Generierung von Alt-Texten für Ihre Bilder<br>
-                • Sofort bessere WCAG-Konformität<br>
-                • Kein Redaktionsaufwand für Ihr Team<br>
-                • Funktioniert auf bestehenden Seiten und Inhalten<br>
-                • Ideal für große Websites mit vielen Bildern
+                • Sichtbarer Nachweis Ihrer Barrierefreiheit<br>
+                • Aktueller Status statt statischer Erklärung<br>
+                • Darstellung von Fortschritten und Verbesserungen<br>
+                • Direkt verlinkbar und öffentlich zugänglich<br>
+                • Stärkt Vertrauen bei Nutzern und Auftraggebern<br>
+                • Perfekte Ergänzung zu Ihren WCAG-Maßnahmen
             </div>
 
             {{-- CTA --}}
@@ -49,10 +54,10 @@
                         font-weight:600;
                         text-decoration:none;
                    ">
-                    AltStar jetzt aktivieren
+                    InkluCert jetzt freischalten
                 </a>
 
-                <a href="https://aktion-barrierefrei.org/produkte/alt-star"
+                <a href="https://aktion-barrierefrei.org/produkte/firmament#incluCert-nachweis"
                    target="_blank"
                    style="
                         border:1px solid rgba(255,255,255,0.3);
@@ -70,22 +75,15 @@
 
         {{-- RIGHT --}}
         <div style="
-      background: linear-gradient(
-            155deg,
-            #010314 0%,
-            #02082a 15%,
-            #04124a 45%,
-            #02072e 70%,
-            #010314 100%
-    );
+            background: linear-gradient(135deg, #f5f9fd 0%, #f5f9fd 40%, #f5f9fd 75%, #f5f9fd 100%);
             display:flex;
             align-items:center;
             justify-content:center;
             padding:20px;
         ">
 
-            <img src="https://aktion-barrierefrei.org/storage/storage/1sgXyAIAugsvYhbUHBKcVMAgcdKR5PWBCZ4nBSiD.png"
-                 alt="AltStar Vorschau"
+            <img src="https://aktion-barrierefrei.org/storage/storage/0es97hR2q5b93b2A1FZkjosIe08qWbhU7ZGIpxf0.png"
+                 alt="InkluCert – Nachweis der digitalen Barrierefreiheit"
                  style="max-width:100%; border-radius:10px;">
 
         </div>

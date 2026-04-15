@@ -55,7 +55,15 @@ class DashboardPanelProvider extends PanelProvider
             ],
             'fixstern' => [
                 'label' => 'fixstern',
-                'icon'  => 'heroicon-o-sparkles',
+                'icon'  => 'fixstern-fi-icon',
+            ],
+            'barrierefreiheitserklaerung' => [
+                'label' => 'be. Barrierefreiheitserklaerung',
+                'icon'  => 'be-card-check',
+            ],
+            'inclucert' => [
+                'label' => 'incluCert',
+                'icon'  => 'inclu-cert-shield',
             ],
         ];
 

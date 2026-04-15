@@ -1,4 +1,4 @@
-<div data-feature="fixstern">
+<div data-feature="barrierefreiheitserklaerung">
 
     <div style="
         display:grid;
@@ -14,17 +14,17 @@
         ">
 
             <h3 style="font-size:1.9rem; font-weight:700;">
-                Barrierefreiheit sofort – ohne Umbau
+                Barrierefreiheitserklärung automatisch bereitstellen
             </h3>
 
             <p>
-                Fixstern entfernt Barrieren direkt auf Ihrer Website –
-                ohne Eingriff in Ihren bestehenden Code.
+                Stellen Sie eine vollständige Barrierefreiheitserklärung für Ihre Website bereit –
+                rechtssicher und immer aktuell.
             </p>
 
             <p>
-                <strong>Einbauen. Aktivieren. Fertig.</strong><br>
-                Ihre Website wird sofort besser nutzbar – für alle Besucher.
+                <strong>Freischalten. Einbinden. Fertig.</strong><br>
+                Ihre Erklärung wird automatisch gepflegt und bei Änderungen angepasst.
             </p>
 
             {{-- Benefits --}}
@@ -34,12 +34,11 @@
                 border-radius:10px;
                 line-height:1.6;
             ">
-                • Sofortige Verbesserung der Zugänglichkeit<br>
-                • Unterstützung für Screenreader und assistive Technologien<br>
-                • Inhalte in Leichter Sprache verfügbar<br>
-                • Vorlesefunktion für Texte auf Ihrer Website<br>
-                • Kein Eingriff in bestehende Systeme notwendig<br>
-                • Ergänzt Ihre bestehenden WCAG-Maßnahmen
+                • Rechtssichere Barrierefreiheitserklärung<br>
+                • Automatische Aktualisierung bei Änderungen<br>
+                • Inklusive Leichter Sprache<br>
+                • Integriertes Feedback-Formular<br>
+                • Direkt auf Ihrer Website einbindbar
             </div>
 
             {{-- CTA --}}
@@ -54,10 +53,10 @@
                         font-weight:600;
                         text-decoration:none;
                    ">
-                    Fixstern jetzt aktivieren
+                    Barrierefreiheitserklärung freischalten
                 </a>
 
-                <a href="https://aktion-barrierefrei.org/produkte/fixstern"
+                <a href="https://aktion-barrierefrei.org/produkte/barrierefreiheitserklaerung"
                    target="_blank"
                    style="
                         border:1px solid rgba(255,255,255,0.3);
@@ -71,20 +70,34 @@
 
             </div>
 
+            {{-- Micro --}}{{--
+            <div style="
+                font-size:0.8rem;
+                opacity:0.7;
+            ">
+                Freischaltung und Einrichtung erfolgen über Ihr Dashboard
+            </div>
+--}}
         </div>
 
         {{-- RIGHT --}}
         <div style="
-            background: linear-gradient(135deg, #1e3a8a, #312e81);
+            background: linear-gradient(
+                135deg,
+                #5f8fbf 0%,
+                #7eaad3 40%,
+                #bcd3ea 75%,
+                #f5f9fd 100%
+            );
             display:flex;
             align-items:center;
             justify-content:center;
-            padding:20px;
+            padding:30px;
         ">
 
-            <img src="https://aktion-barrierefrei.org/storage/storage/CANvyfzomkRgAO1IiGlVDhARE9Z2gHcJDaQYpGG3.png"
-                 alt="Fixstern Vorschau"
-                 style="max-width:100%; border-radius:10px;">
+            <img src="https://aktion-barrierefrei.org/storage/storage/head-mit-be.png"
+                 alt="Barrierefreiheitserklärung Vorschau"
+                 style="max-width:100%; border-radius:12px;">
 
         </div>
 
