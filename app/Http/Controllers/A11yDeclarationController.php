@@ -224,17 +224,63 @@ class A11yDeclarationController extends Controller
             ], 403);
         }
 
-        // optional: Bundesland-Label auch hier in die Daten hängen
-        if (! empty($data['declaration']->federal_state)) {
-            try {
-                $data['declaration']->federal_state_label = FederalState::from($data['declaration']->federal_state)->label();
-            } catch (\Throwable $e) {
-                $data['declaration']->federal_state_label = $data['declaration']->federal_state;
-            }
+
+
+        if($data['declaration']->federal_or_state_law === 0){
+            $data['declaration']->federal_or_state_law_name = 'Bundesrecht';
+        } else {
+            $data['declaration']->federal_or_state_law_name = 'Landesrecht';
         }
+        unset($data['declaration']->federal_or_state_law);
+        if (! empty($data['declaration']->federal_state) && $data['declaration']->federal_state !== 0) {
+            try {
+                $stateId = (int) $data['declaration']->federal_state;
+                $data['declaration']->federal_state_name = FederalState::tryFrom($stateId)?->label();
+                unset($data['declaration']->federal_state);
+            } catch (\Throwable $e) {
+                //unset($data['declaration']->federal_state); (do nothing)
+            }
+        } else {
+            unset($data['declaration']->federal_state);
+        }
+        if($data['declaration']->declaration_type === 0){
+            unset($data['declaration']->federal_or_state_law);
+            unset($data['declaration']->federal_state_name);
+            unset($data['declaration']->federal_or_state_law_name);
+        }
+
+        //unset unwanted data:
+        unset($data['company']->ulid);
+        unset($data['company']->id);
+        unset($data['company']->slug);
+        unset($data['company']->kd_nr);
+        unset($data['company']->leitweg_id);
+        unset($data['company']->source);
+        unset($data['company']->converted_at);
+        unset($data['company']->is_agency);
+        unset($data['company']->agency_discount_percent);
+        unset($data['company']->agency_company_id);
+        unset($data['company']->billing_via_agency);
+        unset($data['company']->billing_email_override);
+        unset($data['company']->vat_id);
+        unset($data['company']->logo_image);
+        unset($data['company']->logo_orig_filename);
+        unset($data['company']->extra_billing_information);
+        unset($data['company']->created_at);
+        unset($data['company']->updated_at);
+        unset($data['company']->deleted_at);
+        unset($data['company']->type);
+        unset($data['declaration']->id);
+        unset($data['declaration']->company_id);
+        unset($data['declaration']->declaration_type);
+        unset($data['declaration']->status);
+        unset($data['declaration']->category);
 
         return response()->json($data);
     }
+
+
+
 
     /**
      * Gemeinsame Datenbeschaffung für alle Varianten (statt getCompanyData / getBoardData)
