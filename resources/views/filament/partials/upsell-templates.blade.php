@@ -10,7 +10,7 @@
 
 
     {{-- FIXSTERN --}}
-    <div data-feature="fixstern">
+    <div data-feature="widget-support">
 
         @include('filament.promos.fixstern-upgrade')
 

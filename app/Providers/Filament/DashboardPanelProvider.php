@@ -53,7 +53,7 @@ class DashboardPanelProvider extends PanelProvider
                 'label' => 'altStar',
                 'icon'  => 'icon-img-tag',
             ],
-            'fixstern' => [
+            'widget-support' => [
                 'label' => 'fixstern',
                 'icon'  => 'fixstern-fi-icon',
             ],
