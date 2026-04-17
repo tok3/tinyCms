@@ -146,7 +146,7 @@ class DashboardPanelProvider extends PanelProvider
                 fn () => view('filament.partials.trial-data')
 
             )
-            ->renderHook(
+        ->renderHook(
                 'panels::page.end',
                 fn () => view('filament.partials.tour-button')
             )
@@ -164,7 +164,9 @@ class DashboardPanelProvider extends PanelProvider
             )
             ->renderHook(
                 'panels::body.end',
-                fn () => view('filament.partials.upsell-templates')
+                fn () => view('filament.partials.upsell-templates', [
+                    'tenant' => $tenant_id,
+                ])
             )
             ->navigationItems($items);
 
