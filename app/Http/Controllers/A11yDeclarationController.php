@@ -200,7 +200,10 @@ class A11yDeclarationController extends Controller
      */
     public function getAccessibilityDeclaration(Request $request)
     {
-        $company = Company::where('ulid', $request->ulid)->first();
+
+
+        //$company = Company::where('ulid', $request->ulid)->first();
+        $company = Company::where('slug', $request->slug)->first();
 
         $domain  = $request->domain; // später für Multi-Domain
 
