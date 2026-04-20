@@ -145,7 +145,7 @@
             Hinweis: Inhalte in Leichter Sprache werden nach dem Speichern automatisch generiert und können anschließend frei angepasst werden.
         </p>
         <p class="mt-1 text-xs text-gray-600">
-            Für Entwickler: <a class="underline" href="{{ route('a11y.declarationexport', ['slug' => $company->slug]) }}">JSON Download</a>
+            Für Entwickler: <a class="underline" target="_blank" href="{{ route('a11y.declarationexport', ['slug' => $company->slug]) }}">JSON Download</a>
         </p>
     </div>
 @endif
