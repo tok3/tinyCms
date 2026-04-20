@@ -274,8 +274,7 @@ class CompanyResource extends BaseResource
                                             ->collapsed()
                                             ->reorderable(true),
                                     ])
-                                    ->collapsed()
-                                    ->visible(fn() => auth()->user()?->is_admin),
+                                    ->collapsed(),
                             ]),
 
 

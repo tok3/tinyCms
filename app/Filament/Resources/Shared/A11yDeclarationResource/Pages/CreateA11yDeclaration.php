@@ -20,6 +20,14 @@ class CreateA11yDeclaration extends CreateRecord
             . '</div><div style="font-size:0.5em;font-weight:lighter;margin-top:-2.3em;margin-left:4.3em" class="text-gray-500">Die Barrierefreiheitserklärung</div>'
         );
     }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
     protected function afterCreate(): void
     {
         $state = $this->form->getState();
@@ -30,3 +38,5 @@ class CreateA11yDeclaration extends CreateRecord
         }
     }
 }
+
+

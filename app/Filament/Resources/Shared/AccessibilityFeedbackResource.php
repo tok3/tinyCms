@@ -91,7 +91,10 @@ class AccessibilityFeedbackResource extends BaseResource
                 Tables\Columns\TextColumn::make('company.name')
                     ->label('Kunde')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->visible(fn($record) => (auth()->user()?->is_admin ?? false)
+                    )
+                ,
 
                 Tables\Columns\TextColumn::make('first_name')
                     ->label('Vorname'),

@@ -185,7 +185,7 @@ class A11yDeclarationResource extends BaseResource
                 Forms\Components\Toggle::make('published')
                     ->label('Veröffentlichen')
                     ->inline(false)
-                    ->default(true)
+                    ->default(false)
                     ->live()
                     ->afterStateUpdated(function ($state, callable $set, callable $get, $livewire) {
                         if ($livewire instanceof EditRecord)
