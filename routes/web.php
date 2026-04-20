@@ -105,14 +105,17 @@ Route::post('/getAccessibilityDeclaration/', [AccessibilityDeclarationController
 use App\Http\Controllers\A11yDeclarationController;
 
 // NEU – A11y
+
+Route::get('/a11y/declarationexport/{slug}', [A11yDeclarationController::class, 'getAccessibilityDeclaration'])
+    ->name('a11y.declarationexport');
+
 Route::get('/a11y/declaration/{slug}/{domain?}', [A11yDeclarationController::class, 'showAccessibilityDeclaration'])
     ->name('a11y.declaration.show');
 
 Route::get('/a11y/declaration-ez/{slug}/{domain?}', [A11yDeclarationController::class, 'showAccessibilityDeclarationEz'])
     ->name('a11y.declaration-ez.show');
 
-Route::post('/a11y/declaration/export', [A11yDeclarationController::class, 'getAccessibilityDeclaration'])
-    ->name('a11y.declaration.export');
+
 
 Route::post('/a11y/declaration/issues-csv', [A11yDeclarationController::class, 'getAccessabilityDeclarationJson'])
     ->name('a11y.declaration.issues.csv');
