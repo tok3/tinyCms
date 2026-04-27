@@ -10,6 +10,7 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Table;
 use App\Filament\Resources\BaseResource;
 
@@ -132,9 +133,20 @@ class AccessibilityFeedbackResource extends BaseResource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+
                     Tables\Actions\BulkAction::make('mark_read')
                         ->label('Als gelesen markieren')
                         ->action(fn ($records) => $records->each->update(['is_read' => true])),
+
+                    BulkAction::make('bulk_delete')
+                        ->label('Delete Selected')
+                        ->icon('heroicon-o-trash')
+                        ->action(function ($records) {
+                            foreach ($records as $record) {
+                                $record->delete(); // Löscht alle ausgewählten einträge
+                            }
+                        }),
+
                 ]),
             ]);
     }

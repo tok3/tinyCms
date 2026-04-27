@@ -67,7 +67,6 @@
 <!-- \Google tag (gtag.js) -->
 
 <body>
-
 <x-partials.preloader/>
 <x-site-partials.headers.default-header navbarType="{{$navbarType}}"/>
 
