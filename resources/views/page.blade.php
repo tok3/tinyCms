@@ -32,8 +32,6 @@
     @endif
 
 
-
-
     {{-- @include('content-sections.countdown-timer')--}}
 
 

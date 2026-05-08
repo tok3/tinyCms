@@ -1,10 +1,5 @@
 <x-page-layout :pageinclucert="$pageinclucert">
-    <!--
-    @section('add-head')
-        <link rel="stylesheet" href="{{url('js/repeating-countdown-timer/css/style.css')}}">
 
-    @endsection
-    -->
 
 
 

@@ -12,9 +12,13 @@ class AccessibilityScoreService
     {
         // Basis-Query: NUR WCAG 2.1, mit gültigem scanned_at
         $baseQuery = DB::table('pa11y_statistics')
-            ->where('company_id', $company->id)
-            ->where('standard', '2.1')
-            ->whereNotNull('scanned_at');
+            ->join('pa11y_urls', function($join) {
+                $join->on('pa11y_urls.id', '=', 'pa11y_statistics.url_id')
+                    ->whereNull('pa11y_urls.deleted_at');
+            })
+            ->where('pa11y_statistics.company_id', $company->id)
+            ->where('pa11y_statistics.standard', '2.1')
+            ->whereNotNull('pa11y_statistics.scanned_at');
 
         // 1) Tages-Aggregation: Score pro Tag (nur 2.1)
         $rows = (clone $baseQuery)

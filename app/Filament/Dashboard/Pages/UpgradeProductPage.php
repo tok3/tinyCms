@@ -10,7 +10,7 @@ use App\Helpers\CompanyHelper;
 class UpgradeProductPage extends Page
 {
     protected static ?string $navigationIcon = 'upgrade';
-    protected static string $view = 'filament.pages.upgrade-product-page';
+    protected static string $view = 'filament.dashboard.pages.upgrade-product-page';
     protected static ?string $slug = 'upgrade-page';
 
 

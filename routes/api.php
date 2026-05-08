@@ -17,3 +17,10 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+
+// icluBadge
+use App\Http\Controllers\IncluCertController;
+Route::get('/inclucert/{ulid}', [IncluCertController::class, 'show']);
+
+Route::post('/inclucert/{ulid}/visit', [IncluCertController::class, 'recordVisit']);
