@@ -51,6 +51,12 @@ class ScriptController extends Controller
                 $tool = 'tts_ezspeak';
             } elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('eztext') == 1 && $company->hasFeature('ezspeak') == 0 && $company->hasFeature('screen-reader') == 1  ){
                 $tool = 'tts_eztext';
+            } elseif($company->hasFeature('eztext-only') == 1){
+                $tool = 'eztext_only';
+            } elseif($company->hasFeature('ezspeak-only') == 1){
+                $tool = 'ezspeak_only';
+            } elseif($company->hasFeature('eztext-ezspeak-only') == 1){
+                $tool = 'eztext_ezspeak_only';
             }
             //\Log::info($tool);
             if($ulid == '01JRT7ABK98TYXEXM62N11NHGR'){
