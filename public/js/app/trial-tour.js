@@ -17,7 +17,6 @@ function getCurrentPageKey() {
     return null;
 }
 
-
 // 🔥 INIT (AUTO + BUTTON SICHTBARKEIT)
 document.addEventListener('DOMContentLoaded', () => {
 
