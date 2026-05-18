@@ -1004,11 +1004,11 @@
     </div>
     <div class="badges">
 
-    <inclucert-badge class="badge" data-ulid="01JER4830K1Y3QDGRFDJ7ZN160" data-appearance="minimal" ></inclucert-badge>
+    <inclucert-badge class="badge" data-ulid="01JER4830K1Y3QDGRFDJ7ZN160" data-appearance="minimal"  data-pulse="true"></inclucert-badge>
     </div>
     <div class="badges">
 
-    <inclucert-badge class="badge" data-ulid="01JER4830K1Y3QDGRFDJ7ZN160" data-appearance="micro"></inclucert-badge>
+    <inclucert-badge class="badge" data-ulid="01JER4830K1Y3QDGRFDJ7ZN160" data-appearance="micro"  data-pulse="true"></inclucert-badge>
     </div>
 
     <inclucert-badge data-ulid="01JER4830K1Y3QDGRFDJ7ZN160" data-appearance="full" data-theme="stealth"></inclucert-badge>

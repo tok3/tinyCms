@@ -121,7 +121,6 @@
                 font-size: 10px;
                 font-weight: 700;
                 letter-spacing: 2px;
-                text-transform: uppercase;
                 padding: 3px 10px;
                 border-radius: 20px;
                 margin-bottom: 10px;
@@ -458,7 +457,7 @@
         {{-- Hero --}}
         <div class="ic-hero-banner">
             <div class="ic-hero-left">
-                <div class="ic-hero-label">IncluCert</div>
+                <div class="ic-hero-label"><b>Inclu</b>Cert</div>
                 <div class="ic-hero-title">Badge-Einbindung<br><span>für Ihre Website</span></div>
                 <div class="ic-hero-sub">
                     Wählen Sie ein Theme — alle Varianten werden live aktualisiert.<br>

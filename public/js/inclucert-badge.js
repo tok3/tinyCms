@@ -8,7 +8,7 @@
 //
 //   Schritt 1: Script EINMALIG im <head> oder vor </body> einbinden:
 //
-//     <script src="https://cdn.inclucert.com/badge/inclucert-badge.js" defer></script>
+//     <script src="https://aktion-barrierefrei.org/js/inclucert-badge.js" defer></script>
 //
 //   Schritt 2: Badge-Tag beliebig oft im Seiteninhalt platzieren:
 //
@@ -25,7 +25,12 @@
 //
 //   Verfügbare Themes für data-theme:
 //     default  → Navy/Blau mit Gold (Standard, wird verwendet wenn nicht angegeben)
+//     dark     → Alias für default, identisch
 //     stealth  → Dunkelgrau, nur Gold-Akzente bleiben, Trend-Farben dezent
+//     light    → Weiß/Hellgrau, dunkle Schrift, gedämpftes Gold
+//     mono     → Komplett Graustufen, kein Farbakzent
+//     auto     → Folgt prefers-color-scheme des OS (dark→default, light→light)
+//               Wechselt live wenn der Nutzer das OS-Theme ändert
 //
 //   Mehrere Badges auf einer Seite sind kein Problem — API-Requests werden
 //   pro ULID automatisch gecacht (nur ein Fetch pro ULID, egal wie viele Badges).
@@ -37,7 +42,7 @@
 //   oder jedem anderen WYSIWYG-Editor mit HTML-Einbettung einfach einfügen:
 //
 //     <script
-//       src="https://cdn.inclucert.com/badge/inclucert-badge.js"
+//       src="https://aktion-barrierefrei.org/js/inclucert-badge.js"
 //       data-ulid="DEINE-ULID-HIER"
 //       data-appearance="compact">
 //     </script>
@@ -48,7 +53,7 @@
 //   Optional: Badge in ein bestimmtes Element einsetzen statt an Script-Position:
 //
 //     <script
-//       src="https://cdn.inclucert.com/badge/inclucert-badge.js"
+//       src="https://aktion-barrierefrei.org/js/inclucert-badge.js"
 //       data-ulid="DEINE-ULID-HIER"
 //       data-appearance="full"
 //       data-target="#mein-badge-container">
@@ -65,7 +70,7 @@
 //
 //   Script einmalig im Footer (von Admin, einmalig):
 //
-//     <script src="https://cdn.inclucert.com/badge/inclucert-badge.js" defer></script>
+//     <script src="https://aktion-barrierefrei.org/js/inclucert-badge.js" defer></script>
 //
 //   Badge-Platzhalter im Content (vom Editor, kein Admin nötig):
 //
@@ -90,50 +95,112 @@
 //   data-appearance               full | compact | minimal | micro
 //   data-inclucert-appearance     Gleichwertig, nur für Weg 3 (div-Variante).
 //
-//   data-theme                    default | stealth  (Standard: default)
+//   data-theme                    default | dark | light | stealth | mono | auto
 //   data-inclucert-theme          Gleichwertig, nur für Weg 3 (div-Variante).
 //
 //   data-target                   CSS-Selektor. Badge wird in dieses Element
 //                                 eingefügt statt an die Script-Position.
 //                                 Nur für Weg 2 (<script data-ulid>).
+//                                 Beispiel: data-target="#footer-badge-wrap"
+//
+//   data-pulse                    Monitoring-Status als atmenden Dot anzeigen.
+//                                 Standard: aus. Mit "true" aktivieren.
+//                                 Beispiel: data-pulse="true"
+//   data-inclucert-pulse          Gleichwertig, nur für Weg 3 (div-Variante).
 //
 // ════════════════════════════════════════════════════════════════════════════
+// ℹ️  MONITORING-STATUS (Pulse-Dot)
+// ════════════════════════════════════════════════════════════════════════════
+//
+//   Mit data-pulse="true" zeigt das Badge einen dezenten atmenden Punkt der
+//   den aktuellen Monitoring-Status signalisiert:
+//
+//     🟢 grün (pulsierend)  → aktiv überwacht, letzter Scan ≤ 8 Tage
+//     🟡 amber (pulsierend) → Scan überfällig, letzter Scan 8–14 Tage
+//     ⚫ grau (statisch)    → inaktiv, letzter Scan > 14 Tage
+//
+//   Beispiel:
+//     <inclucert-badge
+//       data-ulid="DEINE-ULID-HIER"
+//       data-appearance="compact"
+//       data-pulse="true">
+//     </inclucert-badge>
+//
+// ════════════════════════════════════════════════════════════════════════════
+// ℹ️  BADGE IN BESTIMMTES ELEMENT EINSETZEN (data-target)
+// ════════════════════════════════════════════════════════════════════════════
+//
+//   Mit data-target kann das Badge in ein beliebiges Element auf der Seite
+//   eingefügt werden statt direkt an der Script-Position zu erscheinen.
+//   Nützlich wenn das Script im <head> oder Footer steht, das Badge aber
+//   an einer anderen Stelle erscheinen soll.
+//
+//   Schritt 1: Platzhalter-Element im HTML anlegen:
+//     <div id="mein-badge"></div>
+//
+//   Schritt 2: data-target im Script-Tag angeben:
+//     <script
+//       src="https://aktion-barrierefrei.org/js/inclucert-badge.js"
+//       data-ulid="DEINE-ULID-HIER"
+//       data-appearance="full"
+//       data-target="#mein-badge">
+//     </script>
+//
+//   data-target akzeptiert jeden CSS-Selektor:
+//     "#mein-badge"        → Element mit ID "mein-badge"
+//     ".footer-badge"      → Element mit Klasse "footer-badge"
+//     "footer .badge-wrap" → Element im Footer mit Klasse "badge-wrap"
+//
+// ════════════════════════════════════════════════════════════════════════════
+//
+// Monitoring-Status / Pulse-Dot:
+//   Das Badge zeigt einen dezenten pulsierenden Punkt der den Monitoring-
+//   Status signalisiert:
+//     🟢 grün   → aktiv überwacht (letzter Scan ≤ 8 Tage)
+//     🟡 amber  → Scan überfällig (letzter Scan 8–14 Tage)
+//     ⚫ grau   → inaktiv / kein Scan (> 14 Tage)
+//   Per data-pulse="true" kann der Dot deaktiviert werden.
 //
 // Technische Details:
 //   - API-Responses werden pro ULID gecacht (ein Fetch, beliebig viele Badges)
 //   - CSS wird nur einmal in den <head> injiziert, auch bei mehrfachem Laden
 //   - Alle drei Wege können auf derselben Seite gleichzeitig verwendet werden
+//   - Content Security Policy (CSP): falls Ihre Website eine strenge CSP hat,
+//     muss aktion-barrierefrei.org als erlaubte Script-Quelle eingetragen werden.
 //
 // ────────────────────────────────────────────────────────────────────────────
 
 (function () {
     'use strict';
 
-    const API_BASE = 'http://localhost:8004/api/inclucert';
+    const API_BASE   = 'http://localhost:8004/api/inclucert';
     const SHIELD_PATH = '/assets/img/produkte/inclu-cert-shield.svg';
 
-    // ── Einmalige Initialisierungen ───────────────────────────────────────────
-    // CSS nur einmal in den <head> injizieren
+    // ── CSS einmalig injizieren ───────────────────────────────────────────────
     if (!document.getElementById('akb-styles')) {
         const style = document.createElement('style');
         style.id = 'akb-styles';
         style.innerHTML = `
 
 /* ── Pulse Dot ───────────────────────────────────────────────────────────── */
+/* Nur Halo, kein ausgefüllter Dot — langsam atmend, sehr dezent             */
 @keyframes akb-breathe {
     0%, 100% { box-shadow: 0 0 0 0 var(--akb-pulse-color, rgba(76,217,100,.5)); opacity: .9; }
-    50%       { box-shadow: 0 0 0 3px var(--akb-pulse-color, rgba(76,217,100,0)); opacity: .6; }
+    50%       { box-shadow: 0 0 0 4px var(--akb-pulse-color, rgba(76,217,100,0)); opacity: .6; }
 }
+
 .akb-pulse {
     display: inline-block;
-    width: 4px; height: 4px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     flex-shrink: 0;
-    animation: akb-breathe 5s ease-in-out infinite;
+    animation: akb-breathe 3s ease-in-out infinite;
 }
+
 .akb-pulse-active  { background: #4cd964; --akb-pulse-color: rgba(76,217,100,.5); }
-.akb-pulse-overdue { background: #f5a623; --akb-pulse-color: rgba(245,166,35,.4); }
-.akb-pulse-inactive { background: #666; animation: none; opacity: .5; }
+.akb-pulse-overdue { background: #f5a623; --akb-pulse-color: rgba(245,166,35,.5); }
+.akb-pulse-inactive { background: #666; --akb-pulse-color: rgba(102,102,102,.3); animation: none; opacity: .5; }
 
 /* ── Full Badge ──────────────────────────────────────────────────────────── */
 .akb-badge {
@@ -221,7 +288,6 @@
     width:1px; height:20px; display:flex; align-items:center; justify-content:center;
     border-radius:50%; color:#fff; font-size:24px; cursor:pointer; opacity:1; z-index:10;
 }
-.akb-close:hover { background:rgba(255,255,255,.25); opacity:1; }
 
 /* ── Full / Panel Innenleben ─────────────────────────────────────────────── */
 .akb-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
@@ -231,6 +297,10 @@
 .akb-title-text { display:flex; flex-direction:column; }
 .akb-title { font-size:1.5em; font-weight:800; font-style:italic; line-height:1; }
 .akb-sub { font-size:11px; opacity:.7; white-space:nowrap; }
+
+/* STATUS label mit Pulse-Dot */
+.akb-label-row { display:flex; align-items:center; gap:5px; }
+
 .akb-qr-wrap { background:#fff; border-radius:7px; padding:6px; }
 .akb-qr { width:50px; display:block; }
 
@@ -292,7 +362,7 @@
 .akb-mini-sub { font-size:9px; opacity:.55; text-align:center; line-height:1.2; white-space:nowrap; }
 .akb-mini-qr-wrap { background:#fff; border-radius:8px; padding:6px; margin:10px 0 8px; }
 .akb-mini-qr { width:90px; display:block; }
-.akb-mini-score-row { display:flex; align-items:baseline; gap:6px; margin-bottom:8px; }
+.akb-mini-score-row { display:flex; align-items:baseline; gap:4px; margin-bottom:8px; }
 .akb-mini-score {
     font-size:1.9em; font-weight:800; line-height:1;
     background:linear-gradient(180deg,#f7d37a,#d4a62a);
@@ -303,6 +373,8 @@
 .akb-mini-trend.up   { color:#4cd964; }
 .akb-mini-trend.down { color:#ff5c5c; }
 .akb-mini-trend.flat { color:#aaa; }
+/* Pulse im minimal: neben dem Score */
+.akb-mini-score-row .akb-pulse { margin-left:4px; align-self:center; }
 .akb-mini-footer {
     width:calc(100% + 24px); margin-left:-12px;
     background:linear-gradient(180deg,#f0f0f0,#e4e4e4); color:#333;
@@ -328,7 +400,6 @@
 .akb-micro-trend.flat { color:#aaa; }
 
 /* ── stealth theme ───────────────────────────────────────────────────────── */
-/* Überschreibt nur Farben — alle Abstände, Größen, Animationen bleiben exakt */
 .akb-theme-stealth.akb-badge,
 .akb-theme-stealth.akb-strip,
 .akb-theme-stealth.akb-panel {
@@ -336,12 +407,10 @@
     color: #c8c8c8 !important;
     box-shadow: 0 8px 32px rgba(0,0,0,.6), 0 2px 8px rgba(0,0,0,.4);
 }
-/* Gold bleibt — alle anderen Akzentfarben werden grau */
 .akb-theme-stealth .akb-compact-icon,
 .akb-theme-stealth .akb-icon,
 .akb-theme-stealth .akb-mini-icon,
 .akb-theme-stealth .akb-micro-icon { color: #d4a62a; }
-
 .akb-theme-stealth .akb-compact-score,
 .akb-theme-stealth .akb-score,
 .akb-theme-stealth .akb-mini-score,
@@ -353,26 +422,13 @@
 .akb-theme-stealth .akb-score span,
 .akb-theme-stealth .akb-mini-score-max,
 .akb-theme-stealth .akb-micro-score span { -webkit-text-fill-color: #aaa; color: #aaa; }
-
-.akb-theme-stealth .akb-footer {
-    background: linear-gradient(180deg,#2e2e2e,#282828);
-    color: #aaa;
-    border-top: 1px solid rgba(255,255,255,.05);
-}
+.akb-theme-stealth .akb-footer { background: linear-gradient(180deg,#2e2e2e,#282828); color: #aaa; border-top: 1px solid rgba(255,255,255,.05); }
 .akb-theme-stealth .akb-footer strong { color: #d0d0d0; }
 .akb-theme-stealth .akb-footer-icon { color: #777; }
-
-.akb-theme-stealth .akb-mini-footer {
-    background: linear-gradient(180deg,#2e2e2e,#282828);
-    color: #aaa;
-    border-top: 1px solid rgba(255,255,255,.05);
-}
+.akb-theme-stealth .akb-mini-footer { background: linear-gradient(180deg,#2e2e2e,#282828); color: #aaa; border-top: 1px solid rgba(255,255,255,.05); }
 .akb-theme-stealth .akb-mini-footer strong { color: #d0d0d0; }
 .akb-theme-stealth .akb-mini-head { border-bottom: 1px solid rgba(255,255,255,.07); }
-
 .akb-theme-stealth .akb-main::after { background: rgba(255,255,255,.08); }
-
-/* Trend: dezentes Grau statt knalliges Grün/Rot */
 .akb-theme-stealth .akb-trend-icon,
 .akb-theme-stealth .akb-mini-trend.up,
 .akb-theme-stealth .akb-micro-trend.up   { color: #7aad7a; }
@@ -382,9 +438,100 @@
 .akb-theme-stealth .akb-status.flat .akb-trend-icon,
 .akb-theme-stealth .akb-mini-trend.flat,
 .akb-theme-stealth .akb-micro-trend.flat { color: #666; }
-
 .akb-theme-stealth .akb-toggle,
 .akb-theme-stealth .akb-toggle-dots { color: #aaa; }
+
+/* ── dark (Alias für default) ────────────────────────────────────────────── */
+.akb-theme-dark.akb-badge,
+.akb-theme-dark.akb-strip,
+.akb-theme-dark.akb-panel { /* inherits default styles */ }
+
+/* ── light theme ─────────────────────────────────────────────────────────── */
+.akb-theme-light.akb-badge,
+.akb-theme-light.akb-strip,
+.akb-theme-light.akb-panel {
+    background: linear-gradient(155deg,#f8f9fc 0%,#eef0f7 40%,#f4f5fb 100%) !important;
+    color: #1a1f36 !important;
+    box-shadow: 0 8px 32px rgba(100,120,180,.15), 0 2px 8px rgba(100,120,180,.08);
+}
+.akb-theme-light .akb-compact-icon,
+.akb-theme-light .akb-icon,
+.akb-theme-light .akb-mini-icon,
+.akb-theme-light .akb-micro-icon { color: #b87800; }
+.akb-theme-light .akb-compact-score,
+.akb-theme-light .akb-score,
+.akb-theme-light .akb-mini-score,
+.akb-theme-light .akb-micro-score { background: linear-gradient(180deg,#c8900a,#9a6800); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.akb-theme-light .akb-compact-score span,
+.akb-theme-light .akb-score span,
+.akb-theme-light .akb-mini-score-max,
+.akb-theme-light .akb-micro-score span { -webkit-text-fill-color: #555; color: #555; }
+.akb-theme-light .akb-compact-title { color: #1a1f36; }
+.akb-theme-light .akb-title { color: #1a1f36; }
+.akb-theme-light .akb-sub { color: rgba(26,31,54,.5); }
+.akb-theme-light .akb-label { color: rgba(26,31,54,.5); }
+.akb-theme-light .akb-status { color: #1a1f36; }
+.akb-theme-light .akb-mini-name { color: #1a1f36; }
+.akb-theme-light .akb-mini-sub { color: rgba(26,31,54,.45); }
+.akb-theme-light .akb-qr-wrap,
+.akb-theme-light .akb-mini-qr-wrap { background: #e8eaf2; }
+.akb-theme-light .akb-main::after { background: rgba(26,31,54,.12); }
+.akb-theme-light .akb-footer { background: linear-gradient(180deg,#e4e7f2,#d8dcee); color: #2a2f4a; border-top: 1px solid rgba(0,0,0,.08); }
+.akb-theme-light .akb-footer strong { color: #0d1020; }
+.akb-theme-light .akb-footer-icon { color: #555a7a; }
+.akb-theme-light .akb-mini-footer { background: linear-gradient(180deg,#e4e7f2,#d8dcee); color: #2a2f4a; border-top: 1px solid rgba(0,0,0,.08); }
+.akb-theme-light .akb-mini-footer strong { color: #0d1020; }
+.akb-theme-light .akb-mini-head { border-bottom: 1px solid rgba(26,31,54,.12); }
+.akb-theme-light .akb-trend-icon,
+.akb-theme-light .akb-mini-trend.up,
+.akb-theme-light .akb-micro-trend.up   { color: #1a9e3f; }
+.akb-theme-light .akb-status.down .akb-trend-icon,
+.akb-theme-light .akb-mini-trend.down,
+.akb-theme-light .akb-micro-trend.down { color: #d42b2b; }
+.akb-theme-light .akb-status.flat .akb-trend-icon,
+.akb-theme-light .akb-mini-trend.flat,
+.akb-theme-light .akb-micro-trend.flat { color: #888; }
+.akb-theme-light .akb-toggle,
+.akb-theme-light .akb-toggle-dots { color: #1a1f36; }
+
+/* ── mono theme ──────────────────────────────────────────────────────────── */
+.akb-theme-mono.akb-badge,
+.akb-theme-mono.akb-strip,
+.akb-theme-mono.akb-panel {
+    background: linear-gradient(155deg,#1a1a1a 0%,#222 40%,#1e1e1e 100%) !important;
+    color: #c0c0c0 !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,.6), 0 2px 8px rgba(0,0,0,.4);
+}
+.akb-theme-mono .akb-compact-icon,
+.akb-theme-mono .akb-icon,
+.akb-theme-mono .akb-mini-icon,
+.akb-theme-mono .akb-micro-icon { color: #909090; }
+.akb-theme-mono .akb-compact-score,
+.akb-theme-mono .akb-score,
+.akb-theme-mono .akb-mini-score,
+.akb-theme-mono .akb-micro-score { background: linear-gradient(180deg,#e0e0e0,#aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.akb-theme-mono .akb-compact-score span,
+.akb-theme-mono .akb-score span,
+.akb-theme-mono .akb-mini-score-max,
+.akb-theme-mono .akb-micro-score span { -webkit-text-fill-color: #888; color: #888; }
+.akb-theme-mono .akb-main::after { background: rgba(255,255,255,.07); }
+.akb-theme-mono .akb-footer { background: linear-gradient(180deg,#2a2a2a,#242424); color: #999; border-top: 1px solid rgba(255,255,255,.05); }
+.akb-theme-mono .akb-footer strong { color: #ccc; }
+.akb-theme-mono .akb-footer-icon { color: #666; }
+.akb-theme-mono .akb-mini-footer { background: linear-gradient(180deg,#2a2a2a,#242424); color: #999; border-top: 1px solid rgba(255,255,255,.05); }
+.akb-theme-mono .akb-mini-footer strong { color: #ccc; }
+.akb-theme-mono .akb-mini-head { border-bottom: 1px solid rgba(255,255,255,.07); }
+.akb-theme-mono .akb-trend-icon,
+.akb-theme-mono .akb-mini-trend.up,
+.akb-theme-mono .akb-micro-trend.up,
+.akb-theme-mono .akb-status.down .akb-trend-icon,
+.akb-theme-mono .akb-mini-trend.down,
+.akb-theme-mono .akb-micro-trend.down,
+.akb-theme-mono .akb-status.flat .akb-trend-icon,
+.akb-theme-mono .akb-mini-trend.flat,
+.akb-theme-mono .akb-micro-trend.flat { color: #777; }
+.akb-theme-mono .akb-toggle,
+.akb-theme-mono .akb-toggle-dots { color: #888; }
 
         `;
         document.head.appendChild(style);
@@ -398,9 +545,8 @@
     };
 
     // ── Caches ────────────────────────────────────────────────────────────────
-    // Pro ULID wird der API-Fetch nur einmal gemacht
-    const _dataCache   = {};   // ulid → Promise<data>
-    let   _shieldCache = null; // Promise<svgString>
+    const _dataCache   = {};
+    let   _shieldCache = null;
 
     function fetchData(ulid) {
         if (!_dataCache[ulid]) {
@@ -420,7 +566,6 @@
         return _shieldCache;
     }
 
-    // ── HTML-Helfer ───────────────────────────────────────────────────────────
     // ── Pulse-Dot Helper ──────────────────────────────────────────────────────
     function pulseHTML(monitoringStatus) {
         const cls = monitoringStatus === 'active'  ? 'akb-pulse-active'  :
@@ -429,6 +574,7 @@
         return `<span class="akb-pulse ${cls}"></span>`;
     }
 
+    // ── Full-View HTML ────────────────────────────────────────────────────────
     function fullViewHTML(data, trendKey, trendSymbol, withClose, noPulse) {
         const dot = noPulse ? '' : pulseHTML(data.monitoring_status);
         return `
@@ -437,7 +583,7 @@
                 <span class="akb-icon">${data._shield}</span>
                 <div class="akb-title-text">
                     <div class="akb-title"><b>Inclu</b>Cert</div>
-                    <div class="akb-sub">Aktiv Barrierefrei</div>
+                    <div class="akb-sub">Aktiv barrierefrei</div>
                 </div>
             </div>
             <div style="display:flex;align-items:flex-start;gap:4px;">
@@ -453,7 +599,9 @@
                 <div class="akb-score">${data.score}<span>/100</span></div>
             </div>
             <div class="akb-status-wrap">
-                <div class="akb-label" style="display:flex;align-items:center;justify-content:flex-end;gap:5px;">STATUS ${dot}</div>
+                <div class="akb-label">
+                    <span class="akb-label-row">${dot} STATUS</span>
+                </div>
                 <div class="akb-status ${trendKey}">
                     <div class="akb-status-line">
                         ${data.trend_label}
@@ -497,7 +645,6 @@
         const themeClass = (theme && theme !== 'default') ? ` akb-theme-${theme}` : '';
         const dot = noPulse ? '' : pulseHTML(data.monitoring_status);
 
-        // Trend berechnen
         let trendKey = 'flat';
         if (data.trend >  3) trendKey = 'up';
         if (data.trend < -3) trendKey = 'down';
@@ -518,6 +665,7 @@
                     <span class="akb-micro-icon">${shield}</span>
                     <div class="akb-micro-score">${data.score}<span>/100</span></div>
                     <span class="akb-micro-trend ${trendKey}">${trendSymbol}</span>
+                    ${dot}
                 </div>`;
             root.addEventListener('click', () => window.open(data.url, '_blank'));
 
@@ -529,7 +677,7 @@
                 <div class="akb-mini-head">
                     <span class="akb-mini-icon">${shield}</span>
                     <div class="akb-mini-name"><b>Inclu</b>Cert</div>
-                    <div class="akb-mini-sub">PoP Certificate</div>
+                    <div class="akb-mini-sub">Aktiv barrierefrei</div>
                 </div>
                 <div class="akb-mini-qr-wrap">
                     <img src="${data.qr}" class="akb-mini-qr" alt="QR-Code">
@@ -538,9 +686,10 @@
                     <span class="akb-mini-score">${data.score}</span>
                     <span class="akb-mini-score-max">/100</span>
                     <span class="akb-mini-trend ${trendKey}">${trendSymbol}</span>
+                    ${dot}
                 </div>
                 <div class="akb-mini-footer">
-                    <span>Aktuellen Nachweis</span>
+                    <span>Nachweis</span>
                     <strong>anzeigen →</strong>
                 </div>`;
             root.addEventListener('click', () => window.open(data.url, '_blank'));
@@ -558,7 +707,10 @@
                         <span class="akb-compact-icon">${shield}</span>
                         <div class="akb-compact-text">
                             <div class="akb-compact-title"><b>Inclu</b>Cert</div>
-                            <div class="akb-compact-score">${data.score}<span>/100</span>${dot ? ` <sup>${dot}</sup>` : ''}</div>
+                            <div style="display:flex;align-items:center;gap:5px;">
+                                <div class="akb-compact-score">${data.score}<span>/100</span></div>
+                                ${dot}
+                            </div>
                         </div>
                     </div>
                     <div class="akb-compact-right">
@@ -603,16 +755,22 @@
         }
 
         targetEl.replaceWith(root);
+
+        // Visit melden — URL ins Monitoring aufnehmen falls noch nicht drin
+        fetch(`${API_BASE}/${ulid}/visit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: window.location.href })
+        }).catch(() => {});
     }
 
     // ── Custom Element ────────────────────────────────────────────────────────
-    // <inclucert-badge data-ulid="..." data-appearance="..."></inclucert-badge>
     class IncluCertBadge extends HTMLElement {
         connectedCallback() {
             const ulid       = this.dataset.ulid;
             const appearance = this.dataset.appearance || 'full';
             const theme      = this.dataset.theme      || 'default';
-            const noPulse    = this.dataset.pulse !== 'true'; // default: off
+            const noPulse    = this.dataset.pulse !== "true";
             if (!ulid) {
                 console.warn('IncluCert: data-ulid fehlt');
                 return;
@@ -631,7 +789,7 @@
             const ulid       = el.dataset.inclucertUlid;
             const appearance = el.dataset.inclucertAppearance || 'full';
             const theme      = el.dataset.inclucertTheme      || 'default';
-            const noPulse    = el.dataset.inclucertPulse !== 'true'; // default: off
+            const noPulse    = el.dataset.inclucertPulse !== "true";
             if (ulid) renderBadge(ulid, appearance, theme, noPulse, el);
         });
     }
@@ -648,14 +806,14 @@
         const ulid       = self.dataset.ulid;
         const appearance = self.dataset.appearance || 'full';
         const theme      = self.dataset.theme      || 'default';
-        const noPulse    = self.dataset.pulse !== 'true'; // default: off
+        const noPulse    = self.dataset.pulse !== "true";
         const targetSel  = self.dataset.target;
 
         const placeholder = document.createElement('inclucert-badge');
         placeholder.dataset.ulid        = ulid;
         placeholder.dataset.appearance  = appearance;
         placeholder.dataset.theme       = theme;
-        if (!noPulse) placeholder.dataset.pulse = 'true';
+
 
         if (targetSel) {
             const targetEl = document.querySelector(targetSel);

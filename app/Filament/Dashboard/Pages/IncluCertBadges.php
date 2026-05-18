@@ -54,6 +54,7 @@ class IncluCertBadges extends Page
 
     public function getTitle(): string
     {
-        return 'IncluCert Badge-Einbindung';
+
+        return false;
     }
 }
