@@ -17,6 +17,7 @@ use App\Http\Controllers\ScriptController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\Pa11yUrlController;
 use App\Http\Controllers\InkluCertController;
+use App\Http\Controllers\IncluCertController;
 
 
 /*
@@ -126,6 +127,7 @@ Route::post('/a11y/declaration/issues-csv', [A11yDeclarationController::class, '
 Route::get('/incluCert', [InkluCertController::class, 'showInkluCertForm'])->name('inklucert.form');
 Route::post('/incluCert', [InkluCertController::class, 'checkInkluCert'])->name('inklucert.check');
 
+
 use App\Http\Controllers\PublishStatsController;
 //Route::get('/export/csv/{id}', [PublishStatsController::class, 'exportCsv'])->name('export.csv');
 Route::middleware(['auth', 'tenantcompany'])->group(function () {
@@ -186,7 +188,13 @@ Route::get('/public-check/progress', [PublicAccessibilityCheckController::class,
 
 Route::get('/documents/fixstern-integration/{ulid}', [PdfController::class, 'generateInstruction'])->name('download.instruction')->middleware(['auth']);
 
-Route::get('/documents/inclucert/{ulid}', [PdfController::class, 'generateCertificate'])->name('download.inclucert')->middleware(['auth']);
+//Route::get('/inclucert/{ulid}', [PdfController::class, 'generateCertificate'])->name('download.inclucert')->middleware(['auth']);
+Route::get('/inclucert/{ulid}/pdf', [PdfController::class, 'generateCertificate']);
+Route::get('/inclucert/{ulid}', [IncluCertController::class, 'show']);
+
+Route::get('/inclucert/{ulid}/image', [IncluCertController::class, 'certificateImage']);
+
+Route::get('/inclucert/{ulid}/urls', [IncluCertController::class, 'showUrls']);
 // -----------------------------------------------
 // pa11y - wcag
 

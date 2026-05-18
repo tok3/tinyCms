@@ -972,8 +972,71 @@
             }
 
         }
+
+
+        #footer-badge{
+            margin-top:3em;
+        }
+.badges{
+
+    margin:1em;
+    display:inline-block;
+}
+
+
     </style>
 
+<div id="testbg" class="bg-gradient-dark-night" style="width:200px; height:50px; padding:3em;">
+    <div class="akb-pulse" style=""></div>
+</div>
+
+    <!-- Einmal laden -->
+    <script src="{{url('/js/inclucert-badge.js')}}" defer></script>
+
+
+    <!-- Dann beliebig oft, überall auf der Seite -->
+    <div class="badges">
+    <inclucert-badge data-ulid="01JER4830K1Y3QDGRFDJ7ZN160" data-appearance="full" data-pulse="true"></inclucert-badge>
+    </div>
+    <div class="badges">
+
+    <inclucert-badge class="badge" data-ulid="01JER4830K1Y3QDGRFDJ7ZN160" data-appearance="compact" data-theme="mono"></inclucert-badge>
+    </div>
+    <div class="badges">
+
+    <inclucert-badge class="badge" data-ulid="01JER4830K1Y3QDGRFDJ7ZN160" data-appearance="minimal"  data-pulse="true"></inclucert-badge>
+    </div>
+    <div class="badges">
+
+    <inclucert-badge class="badge" data-ulid="01JER4830K1Y3QDGRFDJ7ZN160" data-appearance="micro"  data-pulse="true"></inclucert-badge>
+    </div>
+
+    <inclucert-badge data-ulid="01JER4830K1Y3QDGRFDJ7ZN160" data-appearance="full" data-theme="stealth"></inclucert-badge>
+
+    <div id="footer-badge" style="margin-left:2em; margin-bottom:1em; width:100px;"></div>
+    <div id="footer-badge-full" style="margin-left:2em; margin-bottom:1em; width:100px;"></div>
+
+    <script
+
+        src="{{url('/js/inclucert-badge.js')}}"
+
+        data-ulid="01JER4830K1Y3QDGRFDJ7ZN160"
+        data-appearance="full"
+
+        data-target="#footer-badge-full">
+
+    </script>
+
+    <script
+
+        src="{{url('/js/inclucert-badge.js')}}"
+
+        data-ulid="01JER4830K1Y3QDGRFDJ7ZN160"
+        data-appearance="compact"
+
+        data-target="#footer-badge">
+
+    </script>
 
     <section class="akb-platform bg-gradient-dark-night text-white no-hyphen">
 

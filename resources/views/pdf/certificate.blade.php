@@ -11,7 +11,7 @@
             ->generate($incluCertUrl)
     );
 @endphp
-        <!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
@@ -81,13 +81,21 @@
 
         .title {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 4px;
+            margin-top: 2px;
         }
-
         .title h1 {
-            font-size: 28pt;
-            letter-spacing: 3px;
-            margin: 0;
+            font-family: 'f25', sans-serif;
+            font-size: 24pt;
+            letter-spacing: 2px;
+            margin: 0 0 3px 0;
+            color: #111;
+        }
+        .title-sub {
+            font-family: 'departure', sans-serif;
+            font-size: 9pt;
+            color: #666;
+            letter-spacing: 1px;
         }
 
         .subtitle {
@@ -240,6 +248,14 @@
             font-size: 6pt;
             line-height: 1.05em;
         }
+        .divider
+        {
+            width:30%;
+            border:0;
+            border-top:1px solid grey;
+            margin-top: -28px;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -262,35 +278,58 @@
         </table>
     </div>
     {{-- QR-Code --}}
-
     <div class="title">
-        <h1>PoP Certificate</h1>
-        <sup>- Proof of Progress in Digital Accessibility -</sup>
+        <h1>Fortschrittsnachweis</h1>
+
+        <div class="title-sub">
+            Digitale Barrierefreiheit · {{ $standard ?? 'WCAG 2.1' }}
+        </div>
     </div>
 
     <div class="subtitle">
-        Nachweis über den aktuellen Stand der digitalen Barrierefreiheit
+        Dokumentierter Verlauf des kontinuierlichen Monitorings
     </div>
 
+<hr class="divider">
     <div class="company-block">
-        <div>Ausgestellt für</div>
-        <div class="company-name">{{ $company->name }}</div>
+
+        <div>
+            Ausgestellt für
+        </div>
+
+        <div class="company-name">
+            {{ $company->name }}
+        </div>
 
         @if($company->website_url ?? false)
-            <div class="company-meta">{{ $company->website_url }}</div>
+            <div class="company-meta">
+                {{ $company->website_url }}
+            </div>
         @endif
 
         <div class="subtitle">
-            Nachweis über den aktuellen Stand der digitalen Barrierefreiheit<br>
-            (Prüfstandard: {{ $standard ?? 'WCAG 2.1' }})
+
+            Die relevanten digitalen Angebote dieser Organisation
+            werden kontinuierlich überwacht<br> und im Hinblick auf
+            digitale Barrierefreiheit fortlaufend weiterentwickelt.
+
         </div>
 
         <div class="company-meta">
-            Beobachtungszeitraum (WCAG 2.1):
-            {{ $observationStart->format('d.m.Y') }} - {{ $observationEnd->format('d.m.Y') }}
-        </div>
-    </div>
 
+            Prüfstandard:
+            {{ $standard ?? 'WCAG 2.1' }}
+
+            &nbsp;&nbsp;·&nbsp;&nbsp;
+
+            Beobachtungszeitraum:
+            {{ $observationStart->format('d.m.Y') }}
+            -
+            {{ $observationEnd->format('d.m.Y') }}
+
+        </div>
+
+    </div>
     <div class="score-box">
         <div class="score-label">Aktueller Barrierefreiheits-Score</div>
         <div class="score-value">{{ $score }}/100</div>
@@ -309,21 +348,21 @@
             <th>Wert</th>
         </tr>
         <tr>
-            <td>Aktuell offene Fehler</td>
+            <td>Aktuell identifizierte Barrieren</td>
             <td>{!! str_replace(' ', '&nbsp;', str_pad($currentErrors, 5, ' ', STR_PAD_LEFT)) !!}</td>
         </tr>
         <tr>
-            <td>Netto behobene Fehler seit Beginn</td>
+            <td>Dokumentierte Verbesserungen seit Beginn</td>
 
             <td>{!! str_replace(' ', '&nbsp;', str_pad($resolvedTotal, 5, ' ', STR_PAD_LEFT)) !!}</td>
         </tr>
         <tr>
-            <td>Aktiv behobene Fehler im Beobachtungszeitraum</td>
+            <td>Aktiv reduzierte Barrieren im Beobachtungszeitraum</td>
 
             <td>{!! str_replace(' ', '&nbsp;', str_pad($activityFixedTotal, 5, ' ', STR_PAD_LEFT)) !!}</td>
         </tr>
         <tr>
-            <td>Neu eingeführte Fehler im Beobachtungszeitraum</td>
+            <td>Neu identifizierte Optimierungspotenziale</td>
 
             <td>{!! str_replace(' ', '&nbsp;', str_pad($activityIntroducedTotal, 5, ' ', STR_PAD_LEFT)) !!}</td>
         </tr>
@@ -341,21 +380,21 @@
 
 
 
-        <div class="footer">
-            <table class="footer-table">
-                <tr>
-                    <td>
-                        <img src="{{ public_path('assets/img/logo/logo.svg') }}" alt="Logo" style="width:12px !important;">
+    <div class="footer">
+        <table class="footer-table">
+            <tr>
+                <td>
+                    <img src="{{ public_path('assets/img/logo/logo.svg') }}" alt="Logo" style="width:12px !important;">
 
-                    </td>
-                    <td style="text-align:right;">
-                        Erstellt durch Aktion-Barrierefrei (https://aktion-barrierefrei.com)<br>
-                        Dieser Nachweis beschreibt den zum Ausstellungszeitpunkt vorliegenden Stand.<br>
-                        Aktuellen Stand über QR-Code abfragen.
-                    </td>
-                </tr>
-            </table>
-        </div>
+                </td>
+                <td style="text-align:right;">
+                    Erstellt durch Aktion-Barrierefrei (https://aktion-barrierefrei.org)<br>
+                    Dieser Nachweis reflektiert den Entwicklungsstand zum Ausstellungszeitpunkt.<br>
+                    Aktuellen Stand über QR-Code abrufen.
+                </td>
+            </tr>
+        </table>
+    </div>
 
 </div>
 </body>
