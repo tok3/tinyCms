@@ -17,6 +17,7 @@ use App\Http\Controllers\ScriptController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\Pa11yUrlController;
 use App\Http\Controllers\InkluCertController;
+use App\Http\Controllers\ImpersonationController;
 
 
 /*
@@ -85,6 +86,14 @@ Route::get('/dashboard/logout', function () {
 use App\Http\Controllers\CrawlController;
 //Route::post('/crawl/start', [CrawlController::class, 'startCrawl'])->name('crawl.start');
 Route::post('/start-crawl', [CrawlController::class, 'startCrawl'])->name('start.crawl');
+
+Route::get('/impersonation/{user}/start', [ImpersonationController::class, 'start'])
+    ->middleware(['auth', 'signed:relative'])
+    ->name('impersonation.start');
+
+Route::post('/impersonation/stop', [ImpersonationController::class, 'stop'])
+    ->middleware('auth')
+    ->name('impersonation.stop');
 
 
 // DEBUG: Preis-/Rabatt-Simulation (keine Seiteneffekte)
@@ -326,4 +335,3 @@ Route::get('/{segment1?}/{segment2?}/{slug?}', [PageController::class, 'getIndex
     ->where('segment1', '[^/]+') // Optional: Erlaubt alles außer einem Slash
     ->where('segment2', '[^/]+') // Optional: Erlaubt alles außer einem Slash
     ->name('page.show');
-

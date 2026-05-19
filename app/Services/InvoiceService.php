@@ -165,6 +165,7 @@ class InvoiceService
 
 
         \Storage::put("$pdfPath", $pdfContent);
+        $this->touchInvoiceFile(storage_path('app/' . $pdfPath), $invoice);
 
 
         // Optional: Rückgabe oder weitere Aktionen
@@ -202,10 +203,21 @@ class InvoiceService
         (new \horstoeko\zugferd\ZugferdDocumentPdfMerger($xmlData, $existingPdf))
             ->generateDocument()
             ->saveDocument($mergedPdf);
+        $this->touchInvoiceFile($mergedPdf, $invoice);
 
         unlink($existingPdf);
 
         return $mergedPdf;
+    }
+
+    private function touchInvoiceFile(string $path, Invoice $invoice): void
+    {
+        if (! file_exists($path)) {
+            return;
+        }
+
+        $timestamp = Carbon::parse($invoice->issue_date ?? now())->startOfDay()->timestamp;
+        @touch($path, $timestamp);
     }
     /**
      * Generiere eine Rechnungsnummer (einfache Implementierung, anpassbar).

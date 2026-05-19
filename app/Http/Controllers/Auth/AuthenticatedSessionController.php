@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use App\Support\ImpersonationManager;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -28,8 +29,15 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+        $request->session()->forget([
+            'url.intended',
+            'current_company_id',
+            ImpersonationManager::IMPERSONATOR_ID,
+            ImpersonationManager::IMPERSONATOR_NAME,
+            ImpersonationManager::IMPERSONATED_USER_ID,
+        ]);
 
-        return redirect()->intended(auth()->user()->getPanelUri());
+        return redirect()->to(auth()->user()->getPanelUri());
     }
 
     /**
@@ -43,6 +51,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/login');
     }
 }
