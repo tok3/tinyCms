@@ -18,7 +18,7 @@
             </h3>
 
             <p>
-                InkluCert macht Ihren Fortschritt sichtbar und nachvollziehbar –
+                incluCert macht Ihren Fortschritt sichtbar und nachvollziehbar –
                 direkt für Nutzer, Kunden und Prüfer.
             </p>
 
@@ -54,7 +54,7 @@
                         font-weight:600;
                         text-decoration:none;
                    ">
-                    InkluCert jetzt freischalten
+                    incluCert jetzt freischalten
                 </a>
 
                 <a href="https://aktion-barrierefrei.org/produkte/firmament#incluCert-nachweis"
@@ -83,7 +83,7 @@
         ">
 
             <img src="https://aktion-barrierefrei.org/storage/storage/0es97hR2q5b93b2A1FZkjosIe08qWbhU7ZGIpxf0.png"
-                 alt="InkluCert – Nachweis der digitalen Barrierefreiheit"
+                 alt="incluCert – Nachweis der digitalen Barrierefreiheit"
                  style="max-width:100%; border-radius:10px;">
 
         </div>
