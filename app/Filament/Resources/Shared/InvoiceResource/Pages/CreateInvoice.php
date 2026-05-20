@@ -162,21 +162,27 @@ USt-IdNr. des Kunden: <b>' . $data['vat_id'] . '</b>';
                 Repeater::make('items')
                     ->label('Rechnungspositionen')
                     ->schema([
-                        Grid::make(12)->schema([
+                        Grid::make(16)->schema([
                             Textarea::make('description')
                                 ->label('Beschreibung')
                                 ->required()
-                                ->columnSpan(8),
+                                ->columnSpan([
+                                    'default' => 16,
+                                    'lg' => 8,
+                                ]),
 
                             TextInput::make('quantity')
                                 ->label('Menge')
                                 ->numeric()
                                 ->default(1)
                                 ->required()
-                                ->columnSpan(2),
+                                ->columnSpan([
+                                    'default' => 16,
+                                    'lg' => 2,
+                                ]),
 
                             TextInput::make('line_total_amount')
-                                ->label('Einzelpreis (Netto in EUR)')
+                                ->label('Einzelpreis netto')
                                 ->numeric()
                                 ->rules([
                                     fn() => function (string $attribute, $value, \Closure $fail) {
@@ -188,7 +194,10 @@ USt-IdNr. des Kunden: <b>' . $data['vat_id'] . '</b>';
                                     },
                                 ])
                                 ->required()
-                                ->columnSpan(1),
+                                ->columnSpan([
+                                    'default' => 16,
+                                    'lg' => 3,
+                                ]),
 
                             TextInput::make('discount_percent')
                                 ->label('Rabatt %')
@@ -197,9 +206,13 @@ USt-IdNr. des Kunden: <b>' . $data['vat_id'] . '</b>';
                                 ->maxValue(100)
                                 ->default(0)
                                 ->suffix('%')
-                                ->columnSpan(1),
+                                ->columnSpan([
+                                    'default' => 16,
+                                    'lg' => 3,
+                                ]),
                         ]),
                     ])
+                    ->columnSpanFull()
                     ->minItems(1)
                     ->reorderable()
                     ->createItemButtonLabel('Position hinzufügen'),
