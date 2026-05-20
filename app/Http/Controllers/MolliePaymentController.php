@@ -182,6 +182,12 @@ class MolliePaymentController extends Controller
                 }
             }
 
+            $agencyCompany = $this->resolveAgencyDiscountCompany($company, $actingCompany);
+            if ($agencyCompany && (float)($agencyCompany->agency_discount_percent ?? 0) > 0) {
+                $agencyPct = (float)$agencyCompany->agency_discount_percent;
+                $productPriceDec = number_format(((float)$productPriceDec) * (1 - ($agencyPct / 100)), 2, '.', '');
+            }
+
             if ($hasValidMandate)
             {
                 $subscriptionData = [
@@ -220,7 +226,7 @@ class MolliePaymentController extends Controller
                 $couponCodeMeta = $metadata->coupon_code ?? null;
 
                 $pricingSnapshot = $product
-                    ? $this->buildPricingSnapshot($product, $interval, $couponCodeMeta, $actingCompany)
+                    ? $this->buildPricingSnapshot($product, $interval, $couponCodeMeta, $actingCompany, $company)
                     : ['items' => [], 'total_net' => 0.0, 'meta' => ['captured_at' => now()->toDateTimeString()]];
 
                 $additionalData['pricing_snapshot'] = $pricingSnapshot;
@@ -526,7 +532,7 @@ class MolliePaymentController extends Controller
 
     }
 
-    private function buildPricingSnapshot(\App\Models\Product $product, string $interval, ?string $couponCode, ?\App\Models\Company $actingCompany): array
+    private function buildPricingSnapshot(\App\Models\Product $product, string $interval, ?string $couponCode, ?\App\Models\Company $actingCompany, ?\App\Models\Company $billingCompany = null): array
     {
         $taxRate = (float)config('accounting.tax_rate', 19);
         $divisor = 1 + ($taxRate / 100);
@@ -571,11 +577,11 @@ class MolliePaymentController extends Controller
             }
         }
 
-        // Agency-Rabatt (nur wenn Käufer-Firma Agentur ist)
         $agencyPct = 0.0;
-        if ($actingCompany && (int)($actingCompany->is_agency ?? 0) === 1 && (float)($actingCompany->agency_discount_percent ?? 0) > 0)
+        $agencyCompany = $this->resolveAgencyDiscountCompany($billingCompany, $actingCompany);
+        if ($agencyCompany && (float)($agencyCompany->agency_discount_percent ?? 0) > 0)
         {
-            $agencyPct = (float)$actingCompany->agency_discount_percent;
+            $agencyPct = (float)$agencyCompany->agency_discount_percent;
         }
 
         $agencyDiscountGross = 0.00;
@@ -621,9 +627,21 @@ class MolliePaymentController extends Controller
             'meta' => [
                 'coupon_code' => $couponCode ?: null,
                 'agency_percent' => $agencyPct,
+                'agency_company_id' => $agencyCompany?->id,
                 'captured_at' => now()->toDateTimeString(),
             ],
         ];
+    }
+
+    private function resolveAgencyDiscountCompany(?\App\Models\Company $billingCompany, ?\App\Models\Company $actingCompany = null): ?\App\Models\Company
+    {
+        if ($billingCompany) {
+            $billingCompany->loadMissing('agency');
+
+            return $billingCompany->agencyBillingDiscountSource();
+        }
+
+        return $actingCompany?->isAgency() ? $actingCompany : null;
     }
 
     /**

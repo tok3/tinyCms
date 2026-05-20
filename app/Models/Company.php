@@ -163,6 +163,25 @@ class Company extends Model
     {
         return (float) ($this->agency_discount_percent ?? 0);
     }
+
+    public function billsViaAgency(): bool
+    {
+        return (bool) $this->billing_via_agency && ! empty($this->agency_company_id);
+    }
+
+    public function billingAgency(): ?self
+    {
+        if (! $this->billsViaAgency()) {
+            return null;
+        }
+
+        return $this->agency;
+    }
+
+    public function agencyBillingDiscountSource(): ?self
+    {
+        return $this->billingAgency();
+    }
     /**
      * @return int
      *

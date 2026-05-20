@@ -68,7 +68,7 @@ class InvoiceService
                 // Mandanten-Firma (der eigentliche Kunde am Vertrag)
                 $tenantCompany = $contract->contractable; // polymorph zu Company
                 if ($tenantCompany instanceof \App\Models\Company
-                    && (int)($tenantCompany->billing_by_agency ?? 0) === 1
+                    && (int)($tenantCompany->billing_via_agency ?? 0) === 1
                     && !empty($tenantCompany->agency_company_id)
                 ) {
                     // Rechnung an die Agency adressieren
@@ -341,7 +341,8 @@ class InvoiceService
             ? \horstoeko\zugferd\ZugferdProfiles::PROFILE_XRECHNUNG_3
             : \horstoeko\zugferd\ZugferdProfiles::PROFILE_XRECHNUNG;
 
-        $isCredit   = ((float)$get('total_gross', 0)) < 0;
+        $documentType = (string) $get('type', '');
+        $isCredit   = ((float)$get('total_gross', 0)) < 0 || $documentType === 'KR';
 
         $invType = $isCredit ? '381' : '380';
 

@@ -240,10 +240,10 @@ class CheckoutController extends MolliePaymentController
             $price = $cpCtrl->calculateTotalPrice($coupon->promotion, $orderedProduct, false) * 100 ?? null;
         }
 
-        $actingCompany = auth()->check() ? (auth()->user()->companies->first() ?? null) : null;
-        if ($actingCompany && (int)($actingCompany->is_agency ?? 0) === 1 && (float)($actingCompany->agency_discount_percent ?? 0) > 0)
+        $agencyCompany = $this->resolveAgencyDiscountCompany($company);
+        if ($agencyCompany && (float)($agencyCompany->agency_discount_percent ?? 0) > 0)
         {
-            $agencyPct = (float)$actingCompany->agency_discount_percent;
+            $agencyPct = (float)$agencyCompany->agency_discount_percent;
             $price = (int)round($price * (1 - ($agencyPct / 100)));
             if ($price < 1)
             {
@@ -263,7 +263,7 @@ class CheckoutController extends MolliePaymentController
             "company" => $request->input('company')['name'],
             "coupon_code" => $request->input('coupon_code') ?? '0',
             "company_id" => $request->input('company_id') ?? '0',
-            "acting_company_id" => auth()->check() ? optional(auth()->user()->companies->first())->id : null,
+            "acting_company_id" => $agencyCompany?->id,
         ];
 
         if ($couponCode)
@@ -370,11 +370,10 @@ class CheckoutController extends MolliePaymentController
         $agency_label = null;
         $agencyPct = 0.0;
 
-        // 1) Wenn eingeloggter User selbst eine Agentur ist -> dessen Rabatt nehmen
-        $actingCompany = auth()->check() ? (auth()->user()->companies[0] ?? null) : null;
-        if ($actingCompany && (int)($actingCompany->is_agency ?? 0) === 1 && (float)($actingCompany->agency_discount_percent ?? 0) > 0)
+        $agencyCompany = $this->resolveAgencyDiscountCompany($company);
+        if ($agencyCompany && (float)($agencyCompany->agency_discount_percent ?? 0) > 0)
         {
-            $agencyPct = (float)$actingCompany->agency_discount_percent;
+            $agencyPct = (float)$agencyCompany->agency_discount_percent;
         }
 
         if ($agencyPct > 0)
@@ -472,6 +471,7 @@ class CheckoutController extends MolliePaymentController
                 'meta' => [
                     'coupon_code' => $couponCode ?? null,      // wenn bekannt
                     'agency_percent' => $agencyPct ?? null,       // wenn angewendet
+                    'agency_company_id' => $agencyCompany?->id,
                     'captured_at' => now()->toDateTimeString()
                 ],
             ];
@@ -483,6 +483,17 @@ class CheckoutController extends MolliePaymentController
         $svc->createInvoice($invoiceData);
 
         $svc->sendInvoiceEmail();
+    }
+
+    private function resolveAgencyDiscountCompany(?\App\Models\Company $company): ?\App\Models\Company
+    {
+        if (! $company) {
+            return null;
+        }
+
+        $company->loadMissing('agency');
+
+        return $company->agencyBillingDiscountSource();
     }
 
     /**
