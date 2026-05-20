@@ -30,8 +30,35 @@ class CreateInvoice extends CreateRecord
 
         // Summen berechnen
         $netto = 0;
-        foreach ($data['items'] as $item) {
-            $netto += ($item['quantity'] ?? 1) * ($item['line_total_amount'] ?? 0);
+        $items = [];
+        foreach ($data['items'] as $index => $item) {
+            $quantity = (float) ($item['quantity'] ?? 1);
+            $amount = round((float) ($item['line_total_amount'] ?? 0), 2);
+            $discountPercent = round((float) ($item['discount_percent'] ?? 0), 2);
+
+            if ($index === 0 && $amount < 0) {
+                $amount = abs($amount);
+            }
+
+            $item['line_total_amount'] = $amount;
+            unset($item['discount_percent']);
+
+            $items[] = $item;
+            $netto += $quantity * $amount;
+
+            if ($discountPercent > 0) {
+                $discountAmount = round($quantity * $amount * ($discountPercent / 100), 2);
+
+                if ($discountAmount > 0) {
+                    $items[] = [
+                        'description' => 'Rabatt ' . rtrim(rtrim(number_format($discountPercent, 2, ',', ''), '0'), ',') . '% auf ' . ($item['description'] ?? 'Position'),
+                        'quantity' => 1,
+                        'line_total_amount' => -$discountAmount,
+                    ];
+
+                    $netto -= $discountAmount;
+                }
+            }
         }
 
         // Steuer prüfen
@@ -43,8 +70,9 @@ class CreateInvoice extends CreateRecord
 USt-IdNr. des Kunden: <b>' . $data['vat_id'] . '</b>';
         }
 
+        $netto = round($netto, 2);
         $tax = round($netto * ($taxRate / 100), 2);
-        $brutto = $netto + $tax;
+        $brutto = round($netto + $tax, 2);
 
         $data['total_net'] = $netto;
         $data['tax'] = $tax;
@@ -52,7 +80,7 @@ USt-IdNr. des Kunden: <b>' . $data['vat_id'] . '</b>';
         $data['tax_rate'] = $taxRate;
 
         $data['data'] = array_filter([
-            'items' => $data['items'],
+            'items' => $items,
             'noVat' => $data['noVat'] ?? null,
         ]);
 
@@ -69,12 +97,36 @@ USt-IdNr. des Kunden: <b>' . $data['vat_id'] . '</b>';
                     ->schema([
                         Select::make('company_id')
                             ->label('Firma')
-                            ->relationship(
-                                name: 'company',
-                                titleAttribute: 'name',
-                                modifyQueryUsing: fn ($query) => $query->select('id', 'name', 'kd_nr')
-                            )
-                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->name} ({$record->kd_nr})")
+                            ->searchable()
+                            ->preload()
+                            ->options(fn(): array => Company::query()
+                                ->orderBy('name')
+                                ->limit(50)
+                                ->get()
+                                ->mapWithKeys(fn(Company $company) => [
+                                    $company->id => static::formatCompanyOptionLabel($company),
+                                ])
+                                ->toArray())
+                            ->getSearchResultsUsing(fn(string $search): array => Company::query()
+                                ->where(function ($query) use ($search) {
+                                    $query
+                                        ->where('name', 'like', "%{$search}%")
+                                        ->orWhere('name_2', 'like', "%{$search}%")
+                                        ->orWhere('kd_nr', 'like', "%{$search}%")
+                                        ->orWhere('ort', 'like', "%{$search}%")
+                                        ->orWhere('plz', 'like', "%{$search}%")
+                                        ->orWhere('email', 'like', "%{$search}%");
+                                })
+                                ->orderBy('name')
+                                ->limit(50)
+                                ->get()
+                                ->mapWithKeys(fn(Company $company) => [
+                                    $company->id => static::formatCompanyOptionLabel($company),
+                                ])
+                                ->toArray())
+                            ->getOptionLabelUsing(fn($value): ?string => ($company = Company::find($value))
+                                ? static::formatCompanyOptionLabel($company)
+                                : null)
                             ->required(),
                         DatePicker::make('due_date')
                             ->label('Fällig am')
@@ -126,8 +178,26 @@ USt-IdNr. des Kunden: <b>' . $data['vat_id'] . '</b>';
                             TextInput::make('line_total_amount')
                                 ->label('Einzelpreis (Netto in EUR)')
                                 ->numeric()
+                                ->rules([
+                                    fn() => function (string $attribute, $value, \Closure $fail) {
+                                        preg_match('/items\.(\d+)\.line_total_amount/', $attribute, $matches);
+
+                                        if (($matches[1] ?? null) === '0' && (float) $value < 0) {
+                                            $fail('Die erste Rechnungsposition muss positiv sein.');
+                                        }
+                                    },
+                                ])
                                 ->required()
-                                ->columnSpan(2),
+                                ->columnSpan(1),
+
+                            TextInput::make('discount_percent')
+                                ->label('Rabatt %')
+                                ->numeric()
+                                ->minValue(0)
+                                ->maxValue(100)
+                                ->default(0)
+                                ->suffix('%')
+                                ->columnSpan(1),
                         ]),
                     ])
                     ->minItems(1)
@@ -153,6 +223,19 @@ USt-IdNr. des Kunden: <b>' . $data['vat_id'] . '</b>';
         }
 
         return $invoice;
+    }
+
+    protected static function formatCompanyOptionLabel(Company $company): string
+    {
+        return collect([
+            $company->kd_nr ? "Kd-Nr. {$company->kd_nr}" : null,
+            $company->name,
+            $company->name_2,
+            trim(($company->plz ? "{$company->plz} " : '') . ($company->ort ?? '')) ?: null,
+            $company->email,
+        ])
+            ->filter()
+            ->implode(' | ');
     }
 
 
