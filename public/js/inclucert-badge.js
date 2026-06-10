@@ -173,8 +173,17 @@
 (function () {
     'use strict';
 
-    const API_BASE   = 'http://localhost:8004/api/inclucert';
-    const SHIELD_PATH = '/assets/img/produkte/inclu-cert-shield.svg';
+  /*  const API_BASE   = 'http://localhost:8003/api/inclucert';
+    const SHIELD_PATH = '/assets/img/produkte/inclu-cert-shield.svg';*/
+
+    const scriptElement =
+        document.currentScript ||
+        document.querySelector('script[src*="inclucert-badge.js"]');
+
+    const scriptUrl = new URL(scriptElement.src);
+
+    const API_BASE = `${scriptUrl.origin}/api/inclucert`;
+    const SHIELD_PATH = `${scriptUrl.origin}/assets/img/produkte/inclu-cert-shield.svg`;
 
     // ── CSS einmalig injizieren ───────────────────────────────────────────────
     if (!document.getElementById('akb-styles')) {
