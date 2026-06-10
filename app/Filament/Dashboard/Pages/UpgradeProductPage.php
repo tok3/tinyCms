@@ -35,13 +35,7 @@ class UpgradeProductPage extends Page
     {
         return 60; // bei Produkte rein
     }
-    public static function shouldRegisterNavigation(): bool
 
-    {
-
-        dd('upgrade');
-
-    }
     public function mount(): void
     {
         //   if (\Auth::check() && !session()->has('cached_user')) {
