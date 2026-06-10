@@ -114,7 +114,7 @@ class DashboardPanelProvider extends PanelProvider
 
             // Manuelle Registrierung (zum Testen aktiv lassen)
             ->pages([
-                \App\Filament\Dashboard\Pages\TestDebug::class,      // erstmal nur die Test-Page
+                //\App\Filament\Dashboard\Pages\TestDebug::class,      // erstmal nur die Test-Page
                 \App\Filament\Dashboard\Pages\IncluCertBadges::class,
             ])
 
