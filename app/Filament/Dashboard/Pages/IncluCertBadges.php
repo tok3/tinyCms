@@ -19,6 +19,7 @@ class IncluCertBadges extends Page
 
     public static function shouldRegisterNavigation(): bool
     {
+        dd('inclucert');
         $tenant = Filament::getTenant();
 
         return $tenant?->hasFeature('inclucert') ?? false;
