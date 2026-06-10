@@ -7,7 +7,7 @@ use Filament\Pages\Page;
 
 class IncluCertBadges extends Page
 {
-    public static string $test = 'loaded';
+
     protected static ?string $navigationIcon = 'inclu-cert-shield';
     protected static string $view = 'filament.dashboard.pages.inclu-cert-badges';
     protected static ?string $slug = 'inclucert-badges';
