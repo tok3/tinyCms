@@ -19,8 +19,13 @@ class IncluCertBadges extends Page
 
     public static function shouldRegisterNavigation(): bool
     {
+        $tenantId = request()->segment(2);
 
-        $tenant = Filament::getTenant();
+        if (! $tenantId) {
+            return false;
+        }
+
+        $tenant = \App\Models\Company::find($tenantId);
 
         return $tenant?->hasFeature('inclucert') ?? false;
     }
