@@ -33,6 +33,7 @@ class ScriptController extends Controller
                 $tool =  'tts';
             }
             */
+
             $tool = 'standard'; // Default value
             if($company->hasFeature('leichte-sprache') == 1){
                 $tool = 'tts_eztext_ezspeak';
@@ -65,6 +66,11 @@ class ScriptController extends Controller
             if($ulid == '01JRSPY9VYFFM60FCSXX52BP8T'){
                 $tool = 'tts_eztext_ezspeak';
             }
+            if($ulid == '01JWXJ42G8GZVCMEN1CQMPSD49'){
+                //\Log::info('01JE6A5H2NQZCT4P9N3FEZG2CX');
+                $tool = 'futtermedicus';
+            }
+        //\Log::info($tool);
             /*
             if($ulid == '01JSPJB7M8358WNYBYKEF8E4B3' || $ulid == '01JSNNXB5HEDE3D26N51PQQ11A'){
                 $tool = 'pyr';
