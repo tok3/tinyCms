@@ -20,7 +20,7 @@ class IncluCertBadges extends Page
     {
         return \App\Models\Company::find(
 
-            request()->route('tenant')
+            609
 
         )?->hasFeature('inclucert') ?? false;
 
