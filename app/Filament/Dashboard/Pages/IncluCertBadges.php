@@ -20,7 +20,7 @@ class IncluCertBadges extends Page
     {
 
         $tenant = Filament::getTenant();
-        return $tenant?->hasFeature('inclucert') ?? false;
+        return $tenant?->hasFeature('incluCert') ?? false;
     }
 
     public static function getNavigationSort(): ?int
@@ -34,7 +34,7 @@ class IncluCertBadges extends Page
     {
         $tenant = Filament::getTenant();
 
-        if (!$tenant?->hasFeature('inclucert')) {
+        if (!$tenant?->hasFeature('incluCert')) {
             abort(403);
         }
 
