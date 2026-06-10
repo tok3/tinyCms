@@ -190,7 +190,6 @@
         const style = document.createElement('style');
         style.id = 'akb-styles';
         style.innerHTML = `
-
 /* ── Pulse Dot ───────────────────────────────────────────────────────────── */
 /* Nur Halo, kein ausgefüllter Dot — langsam atmend, sehr dezent             */
 @keyframes akb-breathe {
