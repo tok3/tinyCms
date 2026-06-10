@@ -112,6 +112,7 @@ class DashboardPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Dashboard/Pages'), for: 'App\\Filament\\Dashboard\\Pages')
             ->pages([
                 Pages\Dashboard::class,
+                \App\Filament\Dashboard\Pages\IncluCertBadges::class,
             ])
             ->resources([
 
