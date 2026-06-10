@@ -156,9 +156,9 @@ class Invoice extends Model
             $this->payment->subscription &&
             $this->payment->subscription->next_payment_date
         ) {
-            $paymentDate = $this->payment_date;
-            $nextPaymentDate = $this->payment->subscription->next_payment_date;
-            $lz = "$paymentDate bis $nextPaymentDate";
+            $paymentDate = Carbon::parse($this->payment_date ?? $this->issue_date ?? now());
+            $nextPaymentDate = Carbon::parse($this->payment->subscription->next_payment_date);
+            $lz = $paymentDate->format('d.m.Y') . ' bis ' . $nextPaymentDate->format('d.m.Y');
         }
 
         // 2. Falls $lz leer ist, berechne Zeitraum anhand Vertragsintervall

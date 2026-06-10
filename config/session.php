@@ -128,7 +128,9 @@ return [
 
     'cookie' => env(
         'SESSION_COOKIE',
-        Str::slug(env('APP_NAME', 'laravel'), '_').'_session'
+        env('APP_ENV') === 'local'
+            ? Str::slug(env('APP_NAME', 'laravel'), '_').'_local_session'
+            : Str::slug(env('APP_NAME', 'laravel'), '_').'_session'
     ),
 
     /*
@@ -168,8 +170,7 @@ return [
     |
     */
 
-    //'secure' => env('SESSION_SECURE_COOKIE', true),
-    'secure' => true,
+    'secure' => env('SESSION_SECURE_COOKIE', env('APP_ENV') !== 'local'),
     /*
     |--------------------------------------------------------------------------
     | HTTP Access Only
@@ -196,7 +197,7 @@ return [
     |
     */
 
-    'same_site' => 'none',
+    'same_site' => env('SESSION_SAME_SITE', env('APP_ENV') === 'local' ? 'lax' : 'none'),
 
     /*
     |--------------------------------------------------------------------------
@@ -209,7 +210,6 @@ return [
     |
     */
 
-    //'partitioned' => false,
-    'partitioned' => true,
+    'partitioned' => env('SESSION_PARTITIONED_COOKIE', env('APP_ENV') !== 'local'),
 
 ];

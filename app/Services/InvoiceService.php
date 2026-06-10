@@ -68,7 +68,7 @@ class InvoiceService
                 // Mandanten-Firma (der eigentliche Kunde am Vertrag)
                 $tenantCompany = $contract->contractable; // polymorph zu Company
                 if ($tenantCompany instanceof \App\Models\Company
-                    && (int)($tenantCompany->billing_by_agency ?? 0) === 1
+                    && (int)($tenantCompany->billing_via_agency ?? 0) === 1
                     && !empty($tenantCompany->agency_company_id)
                 ) {
                     // Rechnung an die Agency adressieren
@@ -165,6 +165,7 @@ class InvoiceService
 
 
         \Storage::put("$pdfPath", $pdfContent);
+        $this->touchInvoiceFile(storage_path('app/' . $pdfPath), $invoice);
 
 
         // Optional: Rückgabe oder weitere Aktionen
@@ -202,10 +203,21 @@ class InvoiceService
         (new \horstoeko\zugferd\ZugferdDocumentPdfMerger($xmlData, $existingPdf))
             ->generateDocument()
             ->saveDocument($mergedPdf);
+        $this->touchInvoiceFile($mergedPdf, $invoice);
 
         unlink($existingPdf);
 
         return $mergedPdf;
+    }
+
+    private function touchInvoiceFile(string $path, Invoice $invoice): void
+    {
+        if (! file_exists($path)) {
+            return;
+        }
+
+        $timestamp = Carbon::parse($invoice->issue_date ?? now())->startOfDay()->timestamp;
+        @touch($path, $timestamp);
     }
     /**
      * Generiere eine Rechnungsnummer (einfache Implementierung, anpassbar).
@@ -329,7 +341,8 @@ class InvoiceService
             ? \horstoeko\zugferd\ZugferdProfiles::PROFILE_XRECHNUNG_3
             : \horstoeko\zugferd\ZugferdProfiles::PROFILE_XRECHNUNG;
 
-        $isCredit   = ((float)$get('total_gross', 0)) < 0;
+        $documentType = (string) $get('type', '');
+        $isCredit   = ((float)$get('total_gross', 0)) < 0 || $documentType === 'KR';
 
         $invType = $isCredit ? '381' : '380';
 

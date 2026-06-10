@@ -97,7 +97,7 @@
 
                             <p class="pt-3 small text-body-tertiary">
                                 {{ __('Already registered?') }}
-                                <a href="{{ route('login') }}"
+                                <a href="{{ url('/login') }}"
                                 class="ms-2 fw-semibold link-underline">Sign in</a>
                             </p>
                         </div>

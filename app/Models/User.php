@@ -39,7 +39,12 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
 
         $tenant = Filament::getTenant();
 
-        if ($panel->getId() == 'admin' && !$this->is_admin)
+        if ($panel->getId() == 'admin' && ! $this->isAdmin())
+        {
+            return false;
+        }
+
+        if ($panel->getId() == 'dashboard' && $this->isAdmin())
         {
             return false;
         }
@@ -81,6 +86,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_admin' => 'boolean',
         'password' => 'hashed',
     ];
 
@@ -124,7 +130,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
      */
     public function isTrial(): bool
     {
-        $company = $this->companies()->first();
+        $company = $this->companies()->orderBy('name', 'ASC')->first();
 
         if (!$company) {
             return false;
@@ -138,7 +144,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
      */
     public function getPanelUri()
     {
-        if ($this->is_admin == 1) {
+        if ($this->isAdmin()) {
             return 'admin';
         }
 
@@ -149,8 +155,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
         }
 
 
-        // 👉 HIER DIE MAGIC
-        if ($this->isTrial()) {
+        if ($company->isTrial()) {
             return "dashboard/{$company->id}/firmament-urls";
         }
 

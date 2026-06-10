@@ -18,6 +18,7 @@ use App\Http\Controllers\PdfController;
 use App\Http\Controllers\Pa11yUrlController;
 use App\Http\Controllers\InkluCertController;
 use App\Http\Controllers\IncluCertController;
+use App\Http\Controllers\ImpersonationController;
 
 
 /*
@@ -87,6 +88,14 @@ use App\Http\Controllers\CrawlController;
 //Route::post('/crawl/start', [CrawlController::class, 'startCrawl'])->name('crawl.start');
 Route::post('/start-crawl', [CrawlController::class, 'startCrawl'])->name('start.crawl');
 
+Route::get('/impersonation/{user}/start', [ImpersonationController::class, 'start'])
+    ->middleware(['auth', 'signed:relative'])
+    ->name('impersonation.start');
+
+Route::post('/impersonation/stop', [ImpersonationController::class, 'stop'])
+    ->middleware('auth')
+    ->name('impersonation.stop');
+
 
 // DEBUG: Preis-/Rabatt-Simulation (keine Seiteneffekte)
 Route::get('/debug/pricing', [\App\Http\Controllers\CheckoutController::class, 'debugPricing'])
@@ -126,7 +135,6 @@ Route::post('/a11y/declaration/issues-csv', [A11yDeclarationController::class, '
 // routes/web.php (temporary test route)
 Route::get('/incluCert', [InkluCertController::class, 'showInkluCertForm'])->name('inklucert.form');
 Route::post('/incluCert', [InkluCertController::class, 'checkInkluCert'])->name('inklucert.check');
-
 
 use App\Http\Controllers\PublishStatsController;
 //Route::get('/export/csv/{id}', [PublishStatsController::class, 'exportCsv'])->name('export.csv');

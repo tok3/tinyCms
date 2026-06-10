@@ -3,8 +3,9 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Resources\Admin\MollieSubscriptionResource;
+use App\Http\Controllers\Auth\RedirectToCentralLoginController;
+use App\Http\Middleware\AuthenticateFilament;
 use Filament\Facades\Filament;
-use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages;
@@ -27,6 +28,7 @@ use Filament\MinimalTheme;
 use Filament\PluginServiceProvider;
 use Filament\Support\Assets\Js;
 use Filament\Support\Assets\Css;
+use Filament\View\PanelsRenderHook;
 
 class DashboardPanelProvider extends PanelProvider
 {
@@ -97,7 +99,7 @@ class DashboardPanelProvider extends PanelProvider
             ->path('dashboard')
             ->profile()
             ->tenant(Company::class)
-            ->login()
+            ->login(RedirectToCentralLoginController::class)
             ->plugin(new MinimalTheme())
             ->viteTheme(['resources/css/app.css', 'resources/css/filament/admin/theme.css'])
             ->colors(MinimalTheme::getColors())
@@ -132,7 +134,7 @@ class DashboardPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->authMiddleware([
-                Authenticate::class,
+                AuthenticateFilament::class,
             ])
             ->assets([
                 Js::make('shepherd', 'https://cdn.jsdelivr.net/npm/shepherd.js@11.2.0/dist/js/shepherd.min.js'),
@@ -145,6 +147,10 @@ class DashboardPanelProvider extends PanelProvider
                 'panels::body.end',
                 fn () => view('filament.partials.trial-data')
 
+            )
+            ->renderHook(
+                PanelsRenderHook::TOPBAR_END,
+                fn () => view('filament.partials.impersonation-stop')
             )
         ->renderHook(
                 'panels::page.end',

@@ -54,7 +54,7 @@ return [
             'plugins' => 'fullscreen code autoresize directionality emoticons link wordcount template',
             'toolbar' => 'fullscreen code | removeformat | bold italic | rtl ltr | link emoticons | template',
             'custom_configs' => [
-                'content_css'=>'/build/'.$manifest['resources/scss/tinyMCEtheme.scss']['file'],
+                'content_css' => $editorCss,
 
             ]
         ],

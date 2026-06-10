@@ -1,0 +1,94 @@
+/* WRAPPER */
+.ab-tour {
+    border-radius: 16px;
+    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 25px 80px rgba(0,0,0,0.18);
+    backdrop-filter: blur(8px);
+}
+
+/* CONTENT */
+.ab-tour .shepherd-content {
+    padding: 18px 20px;
+}
+
+/* HEADER */
+.ab-tour .shepherd-header {
+    background: transparent;
+    padding-bottom: 6px;
+}
+
+/* TITLE */
+.ab-tour .shepherd-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #111827;
+    letter-spacing: -0.01em;
+}
+
+/* TEXT */
+.ab-tour .shepherd-text {
+    font-size: 14px;
+    color: #4b5563;
+    line-height: 1.5;
+    margin-top: 4px;
+}
+
+/* FOOTER */
+.ab-tour .shepherd-footer {
+    margin-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+/* BUTTON BASE */
+.ab-tour .shepherd-button {
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+/* PRIMARY BUTTON */
+.ab-tour .shepherd-button-primary {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: white;
+    box-shadow: 0 6px 18px rgba(99,102,241,0.35);
+}
+
+.ab-tour .shepherd-button-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 25px rgba(99,102,241,0.45);
+}
+
+/* SECONDARY BUTTON */
+.ab-tour .shepherd-button-secondary {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.ab-tour .shepherd-button-secondary:hover {
+    background: #e5e7eb;
+}
+
+/* CLOSE ICON */
+.ab-tour .shepherd-cancel-icon {
+    color: #9ca3af;
+}
+
+.ab-tour .shepherd-cancel-icon:hover {
+    color: #111827;
+}
+
+/* ARROW */
+.ab-tour .shepherd-arrow:before {
+    background: white;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.ab-tour .shepherd-element {
+    padding: 8px;
+    background: transparent !important;
+}

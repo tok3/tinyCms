@@ -72,6 +72,16 @@
                                     @endif
                                 @endif
 
+                                @if(!empty($match['note']))
+                                    <div class="mt-2 rounded-md px-3 py-2 text-xs font-medium
+                                        {{ ($match['note_type'] ?? null) === 'danger' ? 'bg-red-50 text-red-700 border border-red-200' : '' }}
+                                        {{ ($match['note_type'] ?? null) === 'warning' ? 'bg-amber-50 text-amber-800 border border-amber-200' : '' }}
+                                        {{ ($match['note_type'] ?? null) === 'info' ? 'bg-blue-50 text-blue-700 border border-blue-200' : '' }}
+                                    ">
+                                        {{ $match['note'] }}
+                                    </div>
+                                @endif
+
                                 @if(!empty($match['suggested_invoice_ids']))
                                     @php $suggestions = \App\Models\Invoice::whereIn('id', $match['suggested_invoice_ids'])->get(); @endphp
                                     <div class="mt-3 text-sm border-l-4 border-amber-400 pl-3">

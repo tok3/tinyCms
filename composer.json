@@ -7,12 +7,6 @@
         "framework"
     ],
     "license": "MIT",
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "https://whizzy.dev/composer"
-        }
-    ],
     "files": [
         "app/Helpers/IconHelper.php",
         "app/Helpers/FormatHelper.php",
@@ -106,6 +100,9 @@
         }
     },
     "config": {
+        "audit": {
+            "block-insecure": false
+        },
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true,
@@ -115,5 +112,10 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [{
+        "name": "filament-themes",
+        "type": "composer",
+        "url": "https://filamentthemes.com/composer"
+    }]
 }

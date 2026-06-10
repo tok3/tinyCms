@@ -403,6 +403,29 @@ class InvoiceResource extends BaseResource
                     ->searchable()
                     ->sortable()
                     ->visible(fn() => auth()->user()->is_admin),
+                Tables\Columns\IconColumn::make('company_type')
+                    ->label('')
+                    ->state(fn(Invoice $record): bool => (bool) data_get($record->data, 'meta.billed_for_company_id'))
+                    ->icon(function (Invoice $record) {
+                        if (data_get($record->data, 'meta.billed_for_company_id'))
+                        {
+                            return 'icon-tenant';
+                        }
+
+                        return null;
+                    })
+                    ->color(function (Invoice $record) {
+                        if (data_get($record->data, 'meta.billed_for_company_id'))
+                        {
+                            return 'success';
+                        }
+
+                        return 'default';
+                    })
+                    ->falseIcon('heroicon-o-building-office-2')
+                    ->size('sm')
+                    ->grow(false)
+                    ->visible(fn() => auth()->user()->is_admin),
                 Tables\Columns\TextColumn::make('company.plz')
                     ->label('Plz')
                     ->searchable()

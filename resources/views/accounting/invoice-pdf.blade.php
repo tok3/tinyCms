@@ -179,6 +179,13 @@
 
 <body>
 
+@php
+    $documentLabel = match ($invoice->type) {
+        'KR' => 'Korrekturrechnung',
+        default => 'Rechnung',
+    };
+@endphp
+
 <div class="panel-body p-xl">
     <table class="head">
         <tr>
@@ -205,7 +212,7 @@
                     <span><strong>Datum:</strong> {{\Carbon\Carbon::parse($invoice['rg_date'])->formatLocalized('%d.%m.%Y')}}</span><br>
 
                     <span><strong>Kunden-Nr:</strong> {{$invoice['company']['kd_nr']}}</span><br>
-                    <span><strong>Rechnung Nr:</strong> {{$invoice['invoice_number']}}</span><br>
+                    <span><strong>{{ $documentLabel }} Nr:</strong> {{$invoice['invoice_number']}}</span><br>
                     <span><strong>Leistungszeitraum:</strong> {{$invoice['leistungszeitraum']}}</span><br>
 
                     <span><strong>Fälligkeit:</strong> {{\Carbon\Carbon::parse($invoice['due_date']) ->formatLocalized('%d.%m.%Y')}}</span>
@@ -293,6 +300,7 @@
         </div>
 
     @endif
+
     <div class="table-responsive m-t">
         <table id="leistungen" class="table table-striped leistungen">
             <thead>

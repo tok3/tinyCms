@@ -18,7 +18,7 @@
                     </p>
                     <div class="position-relative">
                         <div>
-                            <form method="POST" action="{{ route('login') }}" novalidate>
+                            <form method="POST" action="{{ url('/login') }}" novalidate>
                                 @csrf
                                 <div class="input-icon-group mb-3">
                                             <span class="input-icon">

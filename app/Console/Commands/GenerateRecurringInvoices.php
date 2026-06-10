@@ -101,8 +101,37 @@ class GenerateRecurringInvoices extends Command
                     $totalNet = round($totalNet, 2);
                 }
 
+                $agencyCompany = $company instanceof \App\Models\Company
+                    ? $company->loadMissing('agency')->agencyBillingDiscountSource()
+                    : null;
+                $snapshotMeta = is_array($snapshot['meta'] ?? null) ? $snapshot['meta'] : [];
+                $snapshotHasAgencyDiscount = (float) ($snapshotMeta['agency_percent'] ?? 0) > 0;
+                $agencyPct = (float) ($agencyCompany?->agency_discount_percent ?? 0);
+
+                if (! $snapshotHasAgencyDiscount && $agencyPct > 0) {
+                    $discountNet = round($totalNet * ($agencyPct / 100), 2);
+
+                    if ($discountNet > 0) {
+                        $items[] = [
+                            'id' => 'agency-discount',
+                            'description' => 'Agentur-Rabatt ' . rtrim(rtrim(number_format($agencyPct, 2, ',', ''), '0'), ',') . '%',
+                            'quantity' => 1,
+                            'line_total_amount' => -$discountNet,
+                        ];
+
+                        $totalNet = round($totalNet - $discountNet, 2);
+                        $snapshotMeta['agency_percent'] = $agencyPct;
+                        $snapshotMeta['agency_company_id'] = $agencyCompany->id;
+                    }
+                }
+
                 $tax        = round($totalNet * $taxRate / 100, 2);
                 $totalGross = round($totalNet + $tax, 2);
+
+                $invoiceData = ['items' => $items];
+                if (! empty($snapshotMeta)) {
+                    $invoiceData['meta'] = $snapshotMeta;
+                }
 
 // 4) Rechnung erzeugen – PDF nimmt die Items 1:1 aus 'data.items'
                 $svc = new \App\Services\InvoiceService();
@@ -118,7 +147,7 @@ class GenerateRecurringInvoices extends Command
                     'tax'               => $tax,
                     'tax_rate'          => $taxRate,
                     'status'            => 'sent',
-                    'data'              => ['items' => $items],
+                    'data'              => $invoiceData,
                 ]);
 
                 $this->info("✔ Rechnung erstellt.");

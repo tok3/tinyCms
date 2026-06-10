@@ -168,8 +168,10 @@ class ImportBankPayments extends Page
                 'Amount',
             ]);
 
-            // Negative oder leere Beträge komplett ignorieren (nicht anzeigen, nicht Rest-CSV)
-            if ($betragStr === '' || str_starts_with($betragStr, '-')) {
+            $betrag = $this->strToFloat($betragStr);
+
+            // Negative, Null- oder leere Beträge komplett ignorieren (nicht anzeigen, nicht Rest-CSV)
+            if ($betragStr === '' || $betrag <= 0) {
                 continue;
             }
 
@@ -201,7 +203,6 @@ class ImportBankPayments extends Page
                 'Name',
             ]);
 
-            $betrag = $this->strToFloat($betragStr);
             $detected = $this->detectInvoiceNumber($verwendungszweck);
 
             $match = [
@@ -216,6 +217,8 @@ class ImportBankPayments extends Page
                 'invoice_number' => $detected,
                 'perfect_match' => false,
                 'already_paid' => false,
+                'note' => null,
+                'note_type' => null,
                 'company_id' => null,
                 'suggested_invoice_ids' => [],
             ];
@@ -244,6 +247,7 @@ class ImportBankPayments extends Page
 
                         if ($invoice->status === 'paid') {
                             $match['already_paid'] = true;
+                            [$match['note'], $match['note_type']] = $this->buildAlreadyPaidNote($invoice, $buchungsdatum, $betrag);
                         } else {
                             $match['perfect_match'] = abs($betrag - $invoice->total_gross) < 0.01;
                         }
@@ -391,6 +395,57 @@ class ImportBankPayments extends Page
 
     private function strToFloat(string $str): float
     {
-        return (float) str_replace(['.', ','], ['', '.'], $str);
+        $clean = trim(str_replace("\xc2\xa0", ' ', $str));
+        $isNegative = str_contains($clean, '-');
+        $clean = preg_replace('/[^\d,\.]/', '', $clean) ?? '';
+
+        if ($clean === '') {
+            return 0.0;
+        }
+
+        if (str_contains($clean, ',')) {
+            $clean = str_replace('.', '', $clean);
+            $clean = str_replace(',', '.', $clean);
+        }
+
+        $amount = (float) $clean;
+
+        return $isNegative ? -1 * $amount : $amount;
+    }
+
+    private function buildAlreadyPaidNote(Invoice $invoice, string $bookingDate, float $amount): array
+    {
+        $amountMatches = abs($amount - (float) $invoice->total_gross) < 0.01;
+
+        if (! $invoice->payment_date || $bookingDate === '') {
+            return [
+                $amountMatches
+                    ? 'Rechnung ist bereits bezahlt. Bitte prüfen, ob es sich um eine Doppelzahlung oder einen alten Bankexport handelt.'
+                    : 'Rechnung ist bereits bezahlt, der Betrag weicht aber ab.',
+                'warning',
+            ];
+        }
+
+        try {
+            $booking = Carbon::createFromFormat('d.m.Y', $bookingDate)->startOfDay();
+            $paidAt = Carbon::parse($invoice->payment_date)->startOfDay();
+        } catch (\Throwable $e) {
+            return [
+                'Rechnung ist bereits bezahlt. Das Buchungsdatum konnte nicht sicher verglichen werden.',
+                'warning',
+            ];
+        }
+
+        if ($booking->greaterThan($paidAt) && $amountMatches) {
+            return [
+                'Mögliche Doppelzahlung: Zahlung liegt nach dem gespeicherten Zahlungsdatum der bereits bezahlten Rechnung.',
+                'danger',
+            ];
+        }
+
+        return [
+            'Wahrscheinlich alter Bankexport: diese Rechnung wurde bereits mit gleichem/älterem Zahlungsdatum verbucht.',
+            'info',
+        ];
     }
 }
