@@ -7,6 +7,7 @@ use Filament\Pages\Page;
 
 class IncluCertBadges extends Page
 {
+    public static string $test = 'loaded';
     protected static ?string $navigationIcon = 'inclu-cert-shield';
     protected static string $view = 'filament.dashboard.pages.inclu-cert-badges';
     protected static ?string $slug = 'inclucert-badges';
@@ -18,13 +19,11 @@ class IncluCertBadges extends Page
 
     public static function shouldRegisterNavigation(): bool
     {
-        return \App\Models\Company::find(
+        $tenant = Filament::getTenant();
 
-            609
-
-        )?->hasFeature('inclucert') ?? false;
-
+        return $tenant?->hasFeature('inclucert') ?? false;
     }
+
     public static function getNavigationSort(): ?int
     {
         return 70;
