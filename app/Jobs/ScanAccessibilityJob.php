@@ -59,22 +59,38 @@ class ScanAccessibilityJob implements ShouldQueue
         \Log::info("Finished scanning {$pa11yUrl->url} with WCAG 2.1.");
     }
 
+
       private function scanWithAxe($url, $includeWarnings)
     {
-        /*
+
+/*
         $processArgs = [
             'pa11y',
-            $url->url,
+            "'".$url->url."'",
             '--runner',
             'axe',
             '--reporter',
             'json',
         ];
-        */
+*/
 
+
+        $timeoutCommand = trim(shell_exec('command -v timeout')) ?: trim(shell_exec('command -v gtimeout'));
+        if (!$timeoutCommand) {
+            throw new \Exception('Weder timeout noch gtimeout gefunden.');
+        }
         $processArgs = [
+            'nice',
+            '-n',
+            '15',
+            escapeshellcmd($timeoutCommand),
+            '240s',
+            'cpulimit',
+            '-l',
+            '35',
+            '--',
             'pa11y',
-            "'".$url->url."'",
+            escapeshellarg($url->url),
             '--runner',
             'axe',
             '--reporter',
@@ -105,6 +121,8 @@ class ScanAccessibilityJob implements ShouldQueue
             return null; // Scan ist fehlgeschlagen
         }
     }
+
+
 
 
 
