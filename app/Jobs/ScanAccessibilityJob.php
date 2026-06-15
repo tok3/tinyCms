@@ -86,6 +86,7 @@ class ScanAccessibilityJob implements ShouldQueue
             escapeshellcmd($timeoutCommand),
             '240s',
             'cpulimit',
+            '-q',
             '-l',
             '35',
             '--',
