@@ -108,6 +108,7 @@ private function scanWithAxe($url, $includeWarnings)
         escapeshellcmd($timeoutCommand),
         '240s',
         'cpulimit',
+        '-q',
         '-l',
         '35',
         '--',
