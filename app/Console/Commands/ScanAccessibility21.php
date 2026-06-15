@@ -48,20 +48,16 @@ class ScanAccessibility21 extends Command
         $this->info('All URLs have been scanned.');
     }
 
+    /*
+    * before nice
     private function scanWithAxe($url, $includeWarnings)
     {
-        /*
-        $processArgs = [
-            'pa11y',
-            $url->url,
-            '--runner',
-            'axe',
-            '--reporter',
-            'json',
-        ];
-        */
+
 
         $processArgs = [
+            'nice', '-n', '15',
+            'timeout', '240s',
+            'cpulimit', '-l', '35', '--',
             'pa11y',
             "'".$url->url."'",
             '--runner',
@@ -94,7 +90,60 @@ class ScanAccessibility21 extends Command
             return null; // Scan ist fehlgeschlagen
         }
     }
+        */
 
+
+private function scanWithAxe($url, $includeWarnings)
+{
+    $timeoutCommand = trim(shell_exec('command -v timeout')) ?: trim(shell_exec('command -v gtimeout'));
+
+    if (!$timeoutCommand) {
+        throw new \Exception('Weder timeout noch gtimeout gefunden.');
+    }
+
+    $processArgs = [
+        'nice',
+        '-n',
+        '15',
+        escapeshellcmd($timeoutCommand),
+        '240s',
+        'cpulimit',
+        '-l',
+        '35',
+        '--',
+        'pa11y',
+        escapeshellarg($url->url),
+        '--runner',
+        'axe',
+        '--reporter',
+        'json',
+    ];
+
+    if ($includeWarnings) {
+        $processArgs[] = '--include-warnings';
+    }
+
+    $command = implode(' ', $processArgs);
+
+    $this->info("Executing: $command");
+
+    exec($command . ' 2>/tmp/pa11y-error.log', $outputLines, $exitCode);
+
+    $output = implode("\n", $outputLines);
+
+    if ($exitCode === 124) {
+        \Log::error("Timeout bei {$url->url}");
+        return null;
+    }
+
+    if (empty($output) || !$this->isValidJson($output)) {
+        $stderr = @file_get_contents('/tmp/pa11y-error.log');
+        \Log::error("Scan fehlgeschlagen bei {$url->url}. ExitCode: {$exitCode}. STDERR: " . $stderr);
+        return null;
+    }
+
+    return json_decode($output, true);
+}
 
 
     /**
