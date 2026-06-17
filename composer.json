@@ -7,12 +7,6 @@
         "framework"
     ],
     "license": "MIT",
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "https://whizzy.dev/composer"
-        }
-    ],
     "files": [
         "app/Helpers/IconHelper.php",
         "app/Helpers/FormatHelper.php",
@@ -56,7 +50,7 @@
         "spatie/laravel-menu": "^4.2",
         "spatie/laravel-sitemap": "^7.2",
         "spatie/laravel-tags": "*",
-        "spatie/pdf-to-image": "^2.3",
+        "spatie/pdf-to-image": "^3.2",
         "symfony/css-selector": "^6.4",
         "symfony/dom-crawler": "^6.4",
         "tecnickcom/tc-lib-pdf": "^8.0",
@@ -77,10 +71,7 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        },
-        "files": [
-            "app/Helpers/CurrentWcagStandardHelper.php"
-        ]
+        }
     },
     "autoload-dev": {
         "psr-4": {
@@ -109,6 +100,9 @@
         }
     },
     "config": {
+        "audit": {
+            "block-insecure": false
+        },
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true,
@@ -118,5 +112,10 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [{
+        "name": "filament-themes",
+        "type": "composer",
+        "url": "https://filamentthemes.com/composer"
+    }]
 }
