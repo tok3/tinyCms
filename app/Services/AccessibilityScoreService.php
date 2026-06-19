@@ -209,16 +209,12 @@ class AccessibilityScoreService
 
     private function getTotalPossibleIssueTypes(string $standard): int
     {
-        $cacheKey = "accessibility_total_types_{$standard}";
+        $likePattern = $standard === '2.1' ? '%WCAG 2.1%' : '%WCAG 2.2%';
 
-        return Cache::remember($cacheKey, now()->addHours(12), function () use ($standard) {
-            $likePattern = $standard === '2.1' ? '%WCAG 2.1%' : '%WCAG 2.2%';
-
-            return DB::table('accessibility_rules')
-                ->where('standards', 'like', $likePattern)
-                ->orWhere('standards', 'like', '%WCAG 2.0%')
-                ->count();
-        });
+        return DB::table('accessibility_rules')
+            ->where('standards', 'like', $likePattern)
+            ->orWhere('standards', 'like', '%WCAG 2.0%')
+            ->count();
     }
 
     private function groupIssuesByDayAndUrl($issueRows): array
