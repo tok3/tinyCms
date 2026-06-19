@@ -179,9 +179,11 @@ class AccessibilityScoreService
         $trendDiff = $last['score'] - $first['score'];
 
         $trendLabel = match (true) {
-            $trendDiff > 5  => 'stark verbessert',
+            //$trendDiff > 5  => 'stark verbessert',
+            $trendDiff > 5  => 'verbessert',
             $trendDiff > 3  => 'verbessert',
-            $trendDiff < -5 => 'stark verschlechtert',
+            //$trendDiff < -5 => 'stark verschlechtert',
+            $trendDiff < -5 => 'verschlechtert',
             $trendDiff < -3 => 'verschlechtert',
             default         => 'stabil'
         };
@@ -265,5 +267,6 @@ class AccessibilityScoreService
             $typeCode ?: 'no-type-code',
             $message ?: 'no-message',
         ])));
+
     }
 }
