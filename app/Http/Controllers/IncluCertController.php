@@ -6,6 +6,7 @@ use App\Models\Company;
 use App\Models\Pa11yUrl;
 use App\Services\AccessibilityScoreService;
 use App\Services\ScoreChartService;
+use Illuminate\Http\Request;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Barryvdh\DomPDF\Facade\Pdf;
 
