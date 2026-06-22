@@ -46,7 +46,7 @@ class DetermineScan extends Command
         // Start scanning & log results
         foreach ($companiesToScan as $company) {
             // Get the company's scan standard setting
-            $defaultStandard = $company->settings->default_standard ?? '2.1';
+            $defaultStandard = normalizeWcagStandard($company->settings?->default_standard ?? '2.1');
 
             // Get all URL IDs belonging to this company
             $urlIds = $company->pa11yUrls()->pluck('id')->toArray();
@@ -57,10 +57,16 @@ class DetermineScan extends Command
             }
 
             // Determine which scan command to use
-            $scanCommand = $defaultStandard === '2.0' ? 'scan:accessibility' : 'scan:accessibility-21';
+            $scanCommand = getWcagScanCommand($defaultStandard);
+            $arguments = ['urls' => $urlIds];
+
+            if ($scanCommand === 'scan:accessibility-22') {
+                $arguments['--standard'] = getWcagScanStandardOption($defaultStandard);
+                $arguments['--warnings'] = true;
+            }
 
             // Trigger the correct scan command
-            Artisan::call($scanCommand, ['urls' => $urlIds]);
+            Artisan::call($scanCommand, $arguments);
 
             // Update or Create Scan Log
             CompanyScanLog::updateOrCreate(

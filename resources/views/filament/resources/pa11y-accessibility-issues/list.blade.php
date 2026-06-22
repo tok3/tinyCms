@@ -1,6 +1,6 @@
 <x-filament::page>
 @php
-    $currentStandard = request()->route('standard', '2.1'); // Aktueller Standard
+    $currentStandard = normalizeWcagStandard(request()->route('standard', getCurrentWcagStandard(request('url_id')))); // Aktueller Standard
 @endphp
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>

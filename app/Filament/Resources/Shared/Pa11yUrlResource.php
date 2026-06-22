@@ -13,8 +13,10 @@ use App\Filament\Resources\Shared\Pa11yUrlResource\Pages;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\BulkAction;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 use App\Models\Company;
+use App\Models\CompanySetting;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Support\HtmlString;
 use App\Helpers\IconHelper;
@@ -70,6 +72,8 @@ class Pa11yUrlResource extends BaseResource
 
     public static function table(Tables\Table $table): Tables\Table
     {
+        $currentStandard = getCurrentWcagStandard(Filament::getTenant() ?? auth()->user()?->company ?? null);
+        $currentStandardLabel = getWcagStandardLabel($currentStandard);
 
 
         return $table
@@ -105,36 +109,46 @@ class Pa11yUrlResource extends BaseResource
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('error_count')
-                    ->label('Fehler (2.1)')
+                    ->label("Fehler ({$currentStandardLabel})")
                     ->sortable()
-                    ->badge(fn($record) => $record->error_count > 0 || $record->error_count < 0) // Kein Badge bei Success
-                    ->formatStateUsing(fn($record) =>
-                    ($record->error_count < 0)
-                        ? new HtmlString('<span title="Scan fehlgeschlagen">'.IconHelper::cross().' </span>') // ❌ Scan fehlgeschlagen
-                        : ($record->error_count == 0
-                        ? IconHelper::shieldCheck() // ✅ Nur Icon anzeigen, kein Badge
-                        : $record->error_count) // Zeigt die Zahl mit Badge an
-                    )
+                    ->badge(fn($record) => $record->error_count !== null && ($record->error_count > 0 || $record->error_count < 0)) // Kein Badge bei Success
+                    ->formatStateUsing(function ($record) {
+                        if ($record->error_count === null) {
+                            return null;
+                        }
+
+                        return ($record->error_count < 0)
+                            ? new HtmlString('<span title="Scan fehlgeschlagen">'.IconHelper::cross().' </span>') // ❌ Scan fehlgeschlagen
+                            : ($record->error_count == 0
+                                ? IconHelper::shieldCheck() // ✅ Nur Icon anzeigen, kein Badge
+                                : $record->error_count); // Zeigt die Zahl mit Badge an
+                    })
                     ->color(fn($record): string =>
-                    ($record->error_count < 0) ? 'gray' :
-                        ($record->error_count > 0 ? 'danger' : 'success')
+                    ($record->error_count === null) ? 'gray' :
+                        (($record->error_count < 0) ? 'gray' :
+                            ($record->error_count > 0 ? 'danger' : 'success'))
                     ),
 
 
                 Tables\Columns\TextColumn::make('warning_count')
-                    ->label('Warnungen (2.1)')
+                    ->label("Warnungen ({$currentStandardLabel})")
                     ->sortable()
-                    ->badge(fn($record) => $record->warning_count > 0 || $record->warning_count < 0) // Kein Badge bei Success
-                    ->formatStateUsing(fn($record) =>
-                    ($record->warning_count < 0)
-                        ? new HtmlString('<span title="Scan fehlgeschlagen">'.IconHelper::cross().' </span>') // ❌ Scan fehlgeschlagen
-                        : ($record->warning_count == 0
-                        ? IconHelper::shieldCheck() // ✅ Nur Icon anzeigen, kein Badge
-                        : $record->warning_count) // Zeigt die Zahl mit Badge an
-                    )
+                    ->badge(fn($record) => $record->warning_count !== null && ($record->warning_count > 0 || $record->warning_count < 0)) // Kein Badge bei Success
+                    ->formatStateUsing(function ($record) {
+                        if ($record->warning_count === null) {
+                            return null;
+                        }
+
+                        return ($record->warning_count < 0)
+                            ? new HtmlString('<span title="Scan fehlgeschlagen">'.IconHelper::cross().' </span>') // ❌ Scan fehlgeschlagen
+                            : ($record->warning_count == 0
+                                ? IconHelper::shieldCheck() // ✅ Nur Icon anzeigen, kein Badge
+                                : $record->warning_count); // Zeigt die Zahl mit Badge an
+                    })
                     ->color(fn($record): string =>
-                    ($record->warning_count < 0) ? 'gray' :
-                        ($record->warning_count > 0 ? 'warning' : 'success')
+                    ($record->warning_count === null) ? 'gray' :
+                        (($record->warning_count < 0) ? 'gray' :
+                            ($record->warning_count > 0 ? 'warning' : 'success'))
                     ),
 /*
                 Tables\Columns\TextColumn::make('error_count_20')
@@ -182,28 +196,30 @@ class Pa11yUrlResource extends BaseResource
                 Action::make('view_results')
                     ->label('Ansehen')
                     ->url(fn($record) => Pa11yAccessibilityIssueResource::getUrl('index', [
-                        'standard' => 'grouped/2.1',
+                        'standard' => getCurrentWcagStandard($record),
                         'url_id' => $record->id,
                     ]))
                     ->icon('heroicon-o-eye'),
 
                 Action::make('rescan21')
-                    ->label('Rescan (2.1)')
+                    ->label(fn($record) => 'Rescan (' . getWcagStandardLabel(getCurrentWcagStandard($record)) . ')')
                     ->icon('icon-refresh')
                     ->action(function ($record) {
-
-                        $includeNotices = true; // Notices aktivieren
-                        $includeWarnings = true; // Warnings aktivieren
+                        $standard = getCurrentWcagStandard($record);
 
                         \Log::info('Starting rescan for URL', ['url_id' => $record->id]);
 
-                        // Starte das Artisan-Kommando
-                        Artisan::call('scan:accessibility-21', [
-                            'urls' => [$record->id],      // URL-ID übergeben
-                            '--warnings' => $includeWarnings,
-                        ]);
+                        $command = getWcagScanCommand($standard);
+                        $arguments = ['urls' => [$record->id]];
 
-                        session()->flash('success', "Rescan initiated for {$record->url} (Standard: 2.1)");
+                        if ($command === 'scan:accessibility-22') {
+                            $arguments['--standard'] = getWcagScanStandardOption($standard);
+                            $arguments['--warnings'] = true;
+                        }
+
+                        Artisan::call($command, $arguments);
+
+                        session()->flash('success', "Rescan initiated for {$record->url} (Standard: {$standard})");
                     }),
                 /*Tables\Actions\Action::make('view_results')
                     ->label('View Results')
@@ -297,37 +313,85 @@ class Pa11yUrlResource extends BaseResource
 
     public static function getEloquentQuery(): Builder
     {
+        $currentStandard = getCurrentWcagStandard(Filament::getTenant() ?? auth()->user()?->company ?? null);
+        $company = Filament::getTenant() ?? auth()->user()?->company ?? null;
+        $showContrastErrors = $company
+            ? CompanySetting::where('company_id', $company->id)->first()
+            : null;
+        $excludeContrast = !($showContrastErrors?->contrast_errors == 1);
+
+        $issueCount = function (string $type) use ($currentStandard, $excludeContrast) {
+            $contrastFilter = $excludeContrast
+                ? " AND pai.code NOT IN ('color-contrast', 'color-contrast-enhanced')"
+                : '';
+
+            if ($currentStandard === '2.0') {
+                return DB::query()->selectRaw("
+                    CASE
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM pa11y_statistics ps
+                            WHERE ps.url_id = pa11y_urls.id
+                              AND ps.standard = '2.0'
+                        )
+                        THEN (
+                            SELECT COUNT(*)
+                            FROM pa11y_accessibility_issues pai
+                            WHERE pai.url_id = pa11y_urls.id
+                              AND pai.standard = '2.0'
+                              AND pai.type = '{$type}'
+                              AND pai.wcag_level IN ('A', 'AA', 'AAA')
+                              {$contrastFilter}
+                        )
+                        ELSE NULL
+                    END
+                ");
+            }
+
+            return DB::query()->selectRaw("
+                CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM pa11y_statistics ps
+                        WHERE ps.url_id = pa11y_urls.id
+                          AND ps.standard = '{$currentStandard}'
+                    )
+                    THEN (
+                        SELECT COUNT(*)
+                        FROM pa11y_accessibility_issues pai
+                        WHERE pai.url_id = pa11y_urls.id
+                          AND pai.standard = '{$currentStandard}'
+                          AND pai.type = '{$type}'
+                          {$contrastFilter}
+                    )
+                    ELSE NULL
+                END
+            ");
+        };
+
         return parent::getEloquentQuery()
             ->addSelect([
-                'error_count' => Pa11yStatistic::selectRaw('COALESCE(error_count, -1) as error_count')
-                    ->whereColumn('pa11y_statistics.url_id', 'pa11y_urls.id')
-                    ->where('standard', '2.1')
-                    ->latest('scanned_at')
-                    ->limit(1),
+                'error_count' => $currentStandard === '2.0'
+                    ? $issueCount('error')
+                    : Pa11yStatistic::selectRaw('COALESCE(error_count, -1) as error_count')
+                        ->whereColumn('pa11y_statistics.url_id', 'pa11y_urls.id')
+                        ->where('standard', $currentStandard)
+                        ->latest('scanned_at')
+                        ->limit(1),
 
-                'warning_count' => Pa11yStatistic::selectRaw('COALESCE(warning_count, -1) as warning_count')
-                    ->whereColumn('pa11y_statistics.url_id', 'pa11y_urls.id')
-                    ->where('standard', '2.1')
-                    ->latest('scanned_at')
-                    ->limit(1),
+                'warning_count' => $currentStandard === '2.0'
+                    ? $issueCount('warning')
+                    : Pa11yStatistic::selectRaw('COALESCE(warning_count, -1) as warning_count')
+                        ->whereColumn('pa11y_statistics.url_id', 'pa11y_urls.id')
+                        ->where('standard', $currentStandard)
+                        ->latest('scanned_at')
+                        ->limit(1),
 
-                'error_count_20' => Pa11yStatistic::select('error_count')
-                    ->whereColumn('pa11y_statistics.url_id', 'pa11y_urls.id')
-                    ->where('standard', '2.0')
-                    ->latest('scanned_at')
-                    ->limit(1),
+                'error_count_20' => $issueCount('error'),
 
-                'warning_count_20' => Pa11yStatistic::select('warning_count')
-                    ->whereColumn('pa11y_statistics.url_id', 'pa11y_urls.id')
-                    ->where('standard', '2.0')
-                    ->latest('scanned_at')
-                    ->limit(1),
+                'warning_count_20' => $issueCount('warning'),
 
-                'notice_count_20' => Pa11yStatistic::select('notice_count')
-                    ->whereColumn('pa11y_statistics.url_id', 'pa11y_urls.id')
-                    ->where('standard', '2.0')
-                    ->latest('scanned_at')
-                    ->limit(1),
+                'notice_count_20' => $issueCount('notice'),
             ]);
     }
 

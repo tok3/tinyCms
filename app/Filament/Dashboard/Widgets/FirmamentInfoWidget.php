@@ -18,6 +18,8 @@ class FirmamentInfoWidget extends Widget
     public function render(): \Illuminate\Contracts\View\View
     {
         $companyId = Filament::getTenant()->id;
+        $currentStandard = normalizeWcagStandard(getCurrentWcagStandard(Filament::getTenant() ?? auth()->user()?->company ?? null));
+        $chartStandard = in_array($currentStandard, ['2.1', '2.2'], true) ? $currentStandard : '2.1';
 
         // WCAG 2.0 Query
         $statisticsWCAG20 = Pa11yStatistic::selectRaw("
@@ -49,7 +51,7 @@ class FirmamentInfoWidget extends Widget
         ")
             ->where('scanned_at', '>=', now()->subDays(14))
             ->where('company_id', $companyId)
-            ->where('standard', '2.1')
+            ->where('standard', $chartStandard)
             ->groupBy('scan_date')
             ->orderBy('scan_date', 'asc')
             ->get();
@@ -64,6 +66,7 @@ class FirmamentInfoWidget extends Widget
             'firmamentLink' => $pa11yUrlIndex,
             'chartDataWCAG20' => $chartDataWCAG20,
             'chartDataWCAG21' => $chartDataWCAG21,
+            'currentStandardLabel' => getWcagStandardLabel($chartStandard),
         ]);
     }
 

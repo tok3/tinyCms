@@ -9,16 +9,18 @@ use Carbon\Carbon;
 class Pa11yChartWidget21 extends Component
 {
     public $urlId;
+    public $standard;
 
-    public function mount($urlId)
+    public function mount($urlId, $standard = '2.1')
     {
         $this->urlId = $urlId;
+        $this->standard = normalizeWcagStandard($standard);
     }
 
     public function render()
     {
         $statistics = Pa11yStatistic::where('url_id', $this->urlId)
-            ->where('standard', '2.1') // Nur WCAG 2.1-Daten
+            ->where('standard', $this->standard) // WCAG 2.1 / 2.2
             ->orderBy('scanned_at', 'asc') // Nach Datum aufsteigend sortieren
             ->get();
 

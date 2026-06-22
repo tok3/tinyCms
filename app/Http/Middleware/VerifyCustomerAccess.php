@@ -135,8 +135,7 @@ class VerifyCustomerAccess
             ]);
 
             // Artisan-Befehl im Hintergrund ausführen
-            $command = "php " . base_path('artisan') . " scan:accessibility-21 {$url->id} > /dev/null 2>&1 &";
-            shell_exec($command);
+            shell_exec(getWcagScanShellCommand($url->id, getCurrentWcagStandard($company)));
         }
     }
 

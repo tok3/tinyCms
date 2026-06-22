@@ -107,7 +107,7 @@ class IncluCertController extends Controller
             'activityIntroducedTotal' => $metrics['activity_introduced_total'],
             'activityValue' => $metrics['activity_value'],
             'chartImage' => $chartImage,
-            'standard' => 'WCAG 2.1',
+            'standard' => getWcagStandardLabel(getCurrentWcagStandard($company)),
         ];
 
         // PDF temporär generieren
@@ -145,7 +145,7 @@ class IncluCertController extends Controller
         $urls = \DB::table('pa11y_urls as u')
             ->leftJoin('pa11y_statistics as s', function ($join) {
                 $join->on('s.url_id', '=', 'u.id')
-                    ->where('s.standard', '=', '2.1');
+                    ->where('s.standard', '=', getCurrentWcagStandard($company));
             })
             ->where('u.company_id', $company->id)
             ->whereNull('u.deleted_at')
@@ -157,10 +157,10 @@ class IncluCertController extends Controller
             MAX(s.scanned_at) as last_scan,
             COUNT(DISTINCT DATE(s.scanned_at)) as scan_days,
             (SELECT error_count FROM pa11y_statistics
-             WHERE url_id = u.id AND standard = '2.1'
+             WHERE url_id = u.id AND standard = '" . getCurrentWcagStandard($company) . "'
              ORDER BY scanned_at DESC LIMIT 1) as current_errors,
             (SELECT error_count FROM pa11y_statistics
-             WHERE url_id = u.id AND standard = '2.1'
+             WHERE url_id = u.id AND standard = '" . getCurrentWcagStandard($company) . "'
              ORDER BY scanned_at ASC LIMIT 1) as first_errors
         ")
             ->groupBy('u.id', 'u.url', 'u.created_at')
@@ -252,8 +252,7 @@ class IncluCertController extends Controller
                         ]);
 
                         // Initialen Scan anstoßen
-                        $cmd = "php " . base_path('artisan') . " scan:accessibility-21 {$pa11yUrl->id} > /dev/null 2>&1 &";
-                        shell_exec($cmd);
+                        shell_exec(getWcagScanShellCommand($pa11yUrl->id, getCurrentWcagStandard($company)));
                     }
                 }
             }

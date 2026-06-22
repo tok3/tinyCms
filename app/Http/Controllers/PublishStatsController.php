@@ -186,11 +186,11 @@ class PublishStatsController extends Controller
 
         $showContrastErrors = CompanySetting::where('company_id', $urlinfo->company_id)->firstOrFail();
 
-        $standard = '2.1';
+        $standard = getCurrentWcagStandard($urlinfo);
 
         if($showContrastErrors->contrast_errors == 1){
             $query =  Pa11yAccessibilityIssue::query()
-                ->when($standard === '2.1', fn($query) => $query->with('accessibilityRule')) // Eager Loading nur für 2.1
+                ->when(in_array($standard, ['2.1', '2.2'], true), fn($query) => $query->with('accessibilityRule')) // Eager Loading für 2.1 / 2.2
                 ->when($id, fn($query) => $query->where('url_id', $id))
                 ->when($standard, fn($query) => $query->where('standard', $standard)) // Filter für den Standard
                 //->when($standard === '2.0', fn($query) => $query->whereIn('wcag_level', $selectedLevels)) // Nur für 2.0 Level berücksichtigen
@@ -201,7 +201,7 @@ class PublishStatsController extends Controller
             $query = Pa11yAccessibilityIssue::query()
                 ->where('code', '<>', 'color-contrast')
                 ->where('code', '<>', 'color-contrast-enhanced')
-                ->when($standard === '2.1', fn($query) => $query->with('accessibilityRule')) // Eager Loading nur für 2.1
+                ->when(in_array($standard, ['2.1', '2.2'], true), fn($query) => $query->with('accessibilityRule')) // Eager Loading für 2.1 / 2.2
                 ->when($id, fn($query) => $query->where('url_id', $id))
                 ->when($standard, fn($query) => $query->where('standard', $standard)) // Filter für den Standard
                 //->when($standard === '2.0', fn($query) => $query->whereIn('wcag_level', $selectedLevels)) // Nur für 2.0 Level berücksichtigen
@@ -293,7 +293,11 @@ class PublishStatsController extends Controller
 */
 
         //\Log::info($query); die();
-        $pdf = Pdf::loadView('pdf.legalgrouped', [
+        $view = $standard === '2.0'
+            ? 'pdf.legalgrouped-20'
+            : 'pdf.legalgrouped';
+
+        $pdf = Pdf::loadView($view, [
             'records' => $query,
             'url' => $url,
             'company' => $company,

@@ -1,6 +1,6 @@
 @php
     $queryES = request()->except(['standard']); // Alle Parameter außer `standard`
-    $currentStandard = request()->route('standard', '2.1'); // Aktueller Standard
+    $currentStandard = normalizeWcagStandard(request()->route('standard', getCurrentWcagStandard(request('url_id')))); // Aktueller Standard
 
     if(Route::currentRouteName() === 'filament.admin.resources.firmament-issues.grouped'){
         $grouped='grouped/' ;
@@ -13,7 +13,7 @@
 @php
     $query = request()->getQueryString() ? '?' . request()->getQueryString() : '';
     $currentRoute = Route::currentRouteName();
-    $currentStandard = request()->route('standard', '2.1');
+    $currentStandard = normalizeWcagStandard(request()->route('standard', getCurrentWcagStandard(request('url_id'))));
 
     $isGrouped = str_contains(request()->path(), 'grouped');
 @endphp
@@ -124,16 +124,16 @@
 
                             @php
                                 $query = request()->getQueryString() ? '?' . request()->getQueryString() : '';
-                                $currentStandard = request()->route('standard', '2.1');
+                                $currentStandard = normalizeWcagStandard(request()->route('standard', getCurrentWcagStandard(request('url_id'))));
                                 $isGrouped = str_contains(request()->path(), 'grouped');
                             @endphp
 
                                 <!-- Gruppiert -->
-                            <a href="{{ $currentStandard === '2.1' ? $slugGrouped . '/' . $currentStandard . $query : '#' }}"
+                            <a href="{{ in_array($currentStandard, ['2.1', '2.2'], true) ? $slugGrouped . '/' . $currentStandard . $query : '#' }}"
                                class="
        text-xs inline-flex items-center px-4 py-2 border border-gray-200 rounded-s-lg
        hover:bg-gray-100 hover:text-blue-700
-       {{ ($isGrouped && $currentStandard === '2.1')
+       {{ ($isGrouped && in_array($currentStandard, ['2.1', '2.2'], true))
             ? 'bg-gray-200 text-gray-900'
             : 'bg-white dark:text-white' }}
        {{ $currentStandard === '2.0' ? 'opacity-50 pointer-events-none cursor-not-allowed' : '' }}
@@ -185,6 +185,13 @@
                 WCAG 2.1
             </a>
 
+            <a href="{{ \App\Filament\Resources\Shared\Pa11yAccessibilityIssueResource::getUrl('index', [
+        'standard' => '2.2',
+    ]) . '?' . http_build_query(array_filter($queryES, fn($key) => $key !== 'print', ARRAY_FILTER_USE_KEY)) }}"
+               class="text-xs inline-flex items-center px-4 py-2 text-sm border border-dark font-medium {{ $currentStandard === '2.2' ? 'bg-blue-200' : 'bg-white dark:text-gray-700' }}">
+                WCAG 2.2
+            </a>
+
             <!-- WCAG 2.0 Tab -->
             <a href="{{ \App\Filament\Resources\Shared\Pa11yAccessibilityIssueResource::getUrl('index', [
         'standard' => '2.0',
@@ -194,7 +201,7 @@
             </a>
         </div>
 
-        @if(request()->route('standard', '2.1') === '2.0')
+        @if(request()->route('standard', getCurrentWcagStandard(request('url_id'))) === '2.0')
             @include('filament.resources.pa11y-accessibility-issues.partials.level_filters')
         @endif
 
@@ -248,9 +255,8 @@
             @if($currentStandard == "2.0")
                 @livewire('pa11y-chart-widget', ['urlId' => $this->fetchUrl()->id])
             @else
-                @livewire('pa11y-chart-widget-21', ['urlId' => $this->fetchUrl()->id])
+                @livewire('pa11y-chart-widget-21', ['urlId' => $this->fetchUrl()->id, 'standard' => $currentStandard])
             @endif
         </div>
     </div>
 </div>
-

@@ -44,6 +44,7 @@ class ScanAccessibility extends Command
         // Scannen der URLs und Levels
         foreach ($urls as $url)
         {
+            $scannedAt = now();
             $this->info("Scanning -> {$url->url}...");
 
             foreach ($levels as $level)
@@ -109,7 +110,7 @@ class ScanAccessibility extends Command
                 }
 
                 // Statistik berechnen und speichern
-                $this->updateStats($url, $level, $results);
+                $this->updateStats($url, $level, $results, $scannedAt);
             }
 
             // Letztes Prüfdatum aktualisieren
@@ -125,7 +126,7 @@ class ScanAccessibility extends Command
     /**
      * Statistik für den aktuellen Scan berechnen und speichern.
      */
-    private function updateStats(Pa11yUrl $url, string $level, array $results)
+    private function updateStats(Pa11yUrl $url, string $level, array $results, $scannedAt = null)
     {
         $urlinfo = Pa11yUrl::where('id', $url->id)->first();
         $showContrastErrors = CompanySetting::where('company_id', $urlinfo->company_id)->first();
@@ -172,7 +173,7 @@ class ScanAccessibility extends Command
             'error_count' => $totalErrors,
             'warning_count' => $totalWarnings,
             'notice_count' => $totalNotices,
-            'scanned_at' => now(),
+            'scanned_at' => $scannedAt ?? now(),
         ]);
 
         $this->info("New snapshot created for {$url->url} (Level: {$level}).");

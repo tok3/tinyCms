@@ -29,17 +29,16 @@ class Pa11yRescanButton extends Component
             return;
         }
 
-        if ($this->standard === '2.1') {
-            Artisan::call('scan:accessibility-21', [
-                'urls' => [$this->urlId],
-                '--warnings' => true,
-            ]);
-        } else {
-            Artisan::call('scan:accessibility', [
-                'urls' => [$this->urlId],
-                '--levels' => 'A,AA,AAA',
-            ]);
+        $standard = normalizeWcagStandard($this->standard);
+        $command = getWcagScanCommand($standard);
+        $arguments = ['urls' => [$this->urlId]];
+
+        if ($command === 'scan:accessibility-22') {
+            $arguments['--standard'] = getWcagScanStandardOption($standard);
+            $arguments['--warnings'] = true;
         }
+
+        Artisan::call($command, $arguments);
 
         session()->flash('success', "Rescan gestartet für {$url->url} (Standard: {$this->standard})");
 
