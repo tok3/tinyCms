@@ -16,7 +16,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('app:generate-recurring-invoices')->twiceDaily(8, 20);
         $schedule->command('sepa:mail-due')->dailyAt('06:00')->timezone('Europe/Berlin');
 
-        $schedule->command('determine:scan')->hourly();
+        //$schedule->command('determine:scan')->hourly();
         $schedule->command('backup:clean')->daily()->at('13:00');
         $schedule->command('backup:run')->daily()->at('13:30');
         $schedule->command('app:cleanup')->daily()->at('9:30');
