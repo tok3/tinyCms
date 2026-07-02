@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Services\AccessibilityFingerprintService;
+use App\Services\AccessibilitySnapshotReplicationService;
 use Illuminate\Console\Command;
 use App\Models\Pa11yUrl;
 use App\Models\Pa11yAccessibilityIssue;
@@ -12,7 +14,7 @@ class ScanAccessibility extends Command
 {
 
     // Signature mit den zusätzlichen Optionen: URLs, Levels, Notices und Warnings
-    protected $signature = 'scan:accessibility {urls?*} {--levels=A,AA,AAA} {--notices} {--no-notices} {--warnings} {--no-warnings}';
+    protected $signature = 'scan:accessibility {urls?*} {--levels=A,AA,AAA} {--notices} {--no-notices} {--warnings} {--no-warnings} {--skip-fingerprint : Skip fingerprint gate because determine:scan already handled it}';
     protected $description = 'Scan URLs for accessibility issues';
 
     public function handle()
@@ -46,6 +48,27 @@ class ScanAccessibility extends Command
         {
             $scannedAt = now();
             $this->info("Scanning -> {$url->url}...");
+            if (! $this->option('skip-fingerprint')) {
+                $fingerprint = app(AccessibilityFingerprintService::class)->captureForUrl($url, '2.0', [
+                    'scanner' => 'scan:accessibility',
+                    'scan_command' => 'scan:accessibility',
+                    'decision_action' => 'scan',
+                    'decision_reason' => 'manual_or_scheduled_scan',
+                ]);
+
+                if ($fingerprint->fingerprint_state === 'unchanged') {
+                    $replication = app(AccessibilitySnapshotReplicationService::class)
+                        ->replicateLatestSnapshot($url, '2.0');
+
+                    if (($replication['stats_copied'] ?? 0) > 0 || ($replication['issues_copied'] ?? 0) > 0) {
+                        $this->info("Fingerprint unchanged for {$url->url}; copied last snapshot instead of rescanning.");
+                        $url->update(['last_checked' => now()]);
+                        continue;
+                    }
+
+                    $this->warn("Fingerprint unchanged for {$url->url}, but no snapshot could be copied. Falling back to scan.");
+                }
+            }
 
             foreach ($levels as $level)
             {
@@ -106,6 +129,7 @@ class ScanAccessibility extends Command
                         'context' => $result['context'] ?? null,
                         'runner' => $result['runner'] ?? null,
                         'runnerExtras' => json_encode($result['runnerExtras'] ?? []),
+                        'standard' => '2.0',
                     ]);
                 }
 

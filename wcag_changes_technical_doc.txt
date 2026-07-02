@@ -1,0 +1,163 @@
+WCAG Migration - technische Zwischen-Doku
+
+Stand: 2026-06-29
+
+Ziel
+- Erweiterung des bestehenden WCAG-Systems um WCAG 2.2.
+- Reduktion des Scan-Aufwands durch eine serverseitige, konfigurierbare Entscheidungslogik.
+- Vorbereitung einer Fingerprint-basierten Skip-Strategie ohne JS-Hash als zentrales Konzept.
+
+Ausgangslage
+- Das Projekt hatte bereits Teile der WCAG-2.2-Logik, aber mehrere Aenderungen waren verloren gegangen oder nur teilweise vorhanden.
+- Die Scan-Commands, Filament-Ansichten und Exporte waren inkonsistent zwischen 2.0, 2.1 und 2.2.
+- Die bisherigen Scan-Ausloeser haben viele URLs zu oft bzw. zu breit gescannt.
+
+Wesentliche Aenderungen
+
+1. Standard-Handling
+- Ein Helper zentralisiert die Normalisierung des WCAG-Standards.
+- Der aktuelle Standard wird aus Company-Settings oder aus dem Kontext der URL ermittelt.
+- `default_standard` kann nun auch `2.2` enthalten.
+
+2. Scan-Kommandos
+- Es gibt getrennte Commands fuer unterschiedliche WCAG-Pfade.
+- `scan:accessibility` bleibt der Pfad fuer WCAG 2.0.
+- `scan:accessibility-22` dient fuer WCAG 2.1 und 2.2.
+- Die Auswahl des Commands geschieht ueber einen zentralen Helper, statt in mehreren Klassen verteilt.
+
+3. UI / Filament
+- CompanyResource:
+  - Dropdown fuer `default_standard` um WCAG 2.2 erweitert.
+- Pa11yUrlResource / Issue-Views:
+  - Gruppierte Ansichten und Labels wurden an WCAG 2.2 angepasst.
+  - Die Sichtbarkeit von Gruppierungslinks haengt vom Standard ab.
+- Dashboard Widgets:
+  - Statistiken und Labels wurden teilweise auf den aktuellen Standard bezogen.
+
+4. PDF / Export
+- Export-Ansichten wurden robuster gegen fehlende Werte gemacht.
+- Es gibt separate Behandlung fuer WCAG 2.0 und Standards mit reduziertem/anderem Statistik-Schema.
+
+5. Scan-Stabilitaet
+- pa11y/axe wurden im 2.2-Pfad so angepasst, dass Browser-Executable, Launch-Args und JSON-Ausgabe robuster behandelt werden.
+- Fehler bei leeren, ungueltigen oder fehlenden CLI-Ausgaben werden nicht mehr ungefiltert weitergereicht.
+- Lokal wird Google Chrome bevorzugt, bevor auf Chromium zurueckgefallen wird.
+- Die temporaeren pa11y-Konfigurationen werden als JavaScript-Modul geschrieben (`module.exports = ...`), weil pa11y 9.x JSON-Dateien ueber `require()` laden kann.
+- Browser-Startfehler werden mit einem Auszug der tatsaechlichen CLI-Ausgabe geloggt.
+
+Neue Architektur fuer Scan-Reduktion
+
+6. Fingerprint-Datenmodell
+- Neue Tabelle: `pa11y_url_fingerprints`
+- Neues Modell: `Pa11yUrlFingerprint`
+- Gespeichert werden sollen:
+  - `company_id`
+  - `url_id`
+  - `standard`
+  - `fingerprint`
+  - `fingerprint_state`
+  - `fingerprint_source`
+  - `fingerprint_scan_date`
+  - Scan-Fenster
+  - Entscheidungsmetadata
+
+7. Decision Service
+- Neues Service-Objekt: `AccessibilityScanDecisionService`
+- Aufgabe:
+  - Fingerprint-Kontext fuer eine URL laden
+  - Vorherigen Zustand beruecksichtigen
+  - Regeln aus einer Config auswerten
+  - eine Aktion zurueckgeben, z. B. `scan` oder `skip`
+- Die Entscheidung ist bewusst datengetrieben und nicht hart im Command codiert.
+
+8. Decision Matrix
+- Neue Config-Datei: `config/accessibility_scan.php`
+- Enthaltet:
+  - Default-Werte fuer Fingerprint-Logik
+  - Matrix mit Regeln
+  - Default-Entscheidung, wenn keine Regel zutrifft
+- Vorteil:
+  - Scan-Verhalten kann spaeter angepasst werden, ohne die Business-Logik in vielen Klassen zu aendern.
+
+9. URL-Observer
+- Beim Loeschen oder Aendern einer URL werden jetzt auch zugehoerige Fingerprint-Daten entfernt.
+- Das verhindert verwaiste Entscheidungsdaten und haelt die Historie konsistent.
+
+10. Integration von determine:scan
+- `determine:scan` nutzt jetzt pro URL die Decision Service-Logik.
+- Ergebnis:
+  - URLs mit `skip` werden nicht mehr an den Scan-Command gegeben.
+  - URLs mit `scan` werden gesammelt und dann weitergereicht.
+- Damit ist die erste Gatekeeper-Schicht vor dem eigentlichen Scan entstanden.
+
+10a. Lauf-Sperre fuer determine:scan
+- `determine:scan` laeuft jetzt mit einem Cache-Lock, damit sich keine parallelen Prozesse stapeln.
+- Standardverhalten: Wenn bereits ein Lauf aktiv ist, startet kein zweiter Lauf.
+- Das Verhalten ist konfigurierbar ueber `config/accessibility_scan.php`:
+  - `lock_behavior` = `skip` oder `wait`
+  - `wait_seconds` = maximale Wartezeit, falls `wait` aktiv ist
+- Der Lock wird im `finally`-Block wieder freigegeben, damit auch bei Fehlern keine Dauerblockade entsteht.
+- Eine harte Kill-Strategie ist nicht implementiert, weil ein "nicht parallel starten" hier die sichere und ausreichende Variante ist.
+
+11. Fingerprint-Persistierung
+- Vor jedem Scan wird jetzt ein serverseitiger HTML-Fingerprint erzeugt und als eigener Datensatz gespeichert.
+- Die Persistierung laeuft ueber `AccessibilityFingerprintService`.
+- Der Service holt die Zielseite per HTTP, normalisiert das HTML und bildet daraus einen SHA-256-Hash.
+- Zur Normalisierung werden u. a. Script-/Style-/Template-Bloecke entfernt, dynamische Attribute bereinigt und Cachebusting-Noise in URL-Attributen reduziert.
+- Bei Fetch-Fehlern, nicht auswertbarem HTML oder anderen Problemen wird dennoch ein Datensatz mit `fingerprint_state = undeterminable` gespeichert.
+- Dadurch entsteht eine Historie, die die Decision-Matrix beim naechsten Lauf verwenden kann.
+
+12. Snapshot-Kopie bei unveraendertem Fingerprint
+- Wenn der neu ermittelte Fingerprint mit dem vorherigen Fingerprint uebereinstimmt, wird der teure Scan nicht erneut gestartet.
+- Stattdessen kopiert `AccessibilitySnapshotReplicationService` den letzten gueltigen Datensatz aus:
+  - `pa11y_accessibility_issues`
+  - `pa11y_statistics`
+- Die Kopie erhaelt neue Zeitstempel, damit ein frischer Snapshot in der Historie entsteht, obwohl die Inhalte identisch sind.
+- Fuer WCAG 2.0 werden die Level `A`, `AA` und `AAA` separat geklont.
+- Fuer WCAG 2.1 und 2.2 wird der letzte Issue-Block des jeweiligen Standards repliziert, weil diese Datensaetze in der Regel kein `wcag_level` verwenden.
+- Bei `determine:scan` passiert diese Kopie jetzt vor dem eigentlichen Scan-Command.
+- Wenn kein kopierbarer Snapshot vorhanden ist, wird kontrolliert auf einen echten Scan zurueckgefallen.
+
+13. Browser-Auswahl fuer pa11y/axe
+- Die Browser-Auswahl ist bewusst konfigurierbar gehalten, damit lokale Chrome-/Chromium-Probleme den Server nicht wieder beeinflussen.
+- Staerkster Override:
+  - `A11Y_BROWSER_PATH=/absoluter/pfad/zum/browser`
+- Empfohlene Server-Absicherung, falls Chromium dort stabil eingerichtet ist:
+  - `A11Y_BROWSER_PATH=/usr/bin/chromium-browser`
+  - alternativ `A11Y_BROWSER_PREFERENCE=chromium`
+- Fuer lokale macOS-Tests kann Chrome bevorzugt oder explizit gesetzt werden:
+  - `A11Y_BROWSER_PREFERENCE=chrome`
+  - `A11Y_BROWSER_PATH=/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`
+- Auto-Modus:
+  - macOS bevorzugt Chrome vor Chromium.
+  - Linux bevorzugt Chromium vor Chrome, damit bestehende Chromium-Setups auf Servern nicht versehentlich umgangen werden.
+- Das temporaere Browser-Profil kann bei Bedarf abgeschaltet werden:
+  - `A11Y_BROWSER_TEMP_PROFILE=false`
+- Damit sind die letzten Browser-Anpassungen ohne Code-Revert rueckgaengig bzw. pro Umgebung steuerbar.
+
+Aktueller Stand des Datenflusses
+- Company wird faellig -> `determine:scan`
+- `determine:scan` erzeugt pro URL zuerst einen frischen serverseitigen Fingerprint.
+- `AccessibilityScanDecisionService` liest danach diesen aktuellen Fingerprint-Zustand und den vorherigen Datensatz.
+- Auf Basis der Matrix wird entschieden:
+  - `scan` => URL wird an den Scan-Command weitergegeben
+  - `skip` => letzter Snapshot wird kopiert und der schwere Scan wird nicht gestartet
+- Die Scan-Commands erhalten aus `determine:scan` die Option `--skip-fingerprint`.
+- Dadurch wird verhindert, dass der frisch gespeicherte Fingerprint im Scan-Command direkt noch einmal erzeugt wird.
+- Manuelle Aufrufe der Scan-Commands ohne `--skip-fingerprint` behalten den bisherigen Fingerprint-/Snapshot-Fallback.
+
+Noch offen
+- Die Matrix sollte nach den ersten realen Daten feinjustiert werden.
+- Weitere Scan-Einstiege sollten auf die gleiche Decision-Schicht umgestellt werden:
+  - manuelle Rescans
+  - Jobs
+  - ggf. Follow-up- oder Batch-Commands
+
+Empfohlene naechste Schritte
+1. `ScanAccessibilityJob` auf dieselbe Decision-Logik umstellen.
+2. Default-Regeln in `config/accessibility_scan.php` anhand realer Daten verfeinern.
+3. Optional: Admin-UI fuer Matrix-Parameter oder Debug-Ausgabe der Entscheidung hinzufuegen.
+
+Hinweis
+- Der alte JS-Hash-Ansatz ist nicht die Zielarchitektur.
+- Wenn Client-Hints gebraucht werden, dann spaeter nur als optionale Zusatzinformation, nicht als Hauptentscheidung.

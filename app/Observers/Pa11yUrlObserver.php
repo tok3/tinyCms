@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Pa11yUrl;
+use App\Models\Pa11yUrlFingerprint;
 use App\Models\Pa11yStatistic;
 class Pa11yUrlObserver
 {
@@ -13,6 +14,7 @@ class Pa11yUrlObserver
     public function deleting(Pa11yUrl $url)
     {
         Pa11yStatistic::where('url_id', $url->id)->delete();
+        Pa11yUrlFingerprint::where('url_id', $url->id)->delete();
     }
 
     /**
@@ -22,6 +24,7 @@ class Pa11yUrlObserver
     {
         if ($url->isDirty('url')) {
             Pa11yStatistic::where('url_id', $url->id)->delete();
+            Pa11yUrlFingerprint::where('url_id', $url->id)->delete();
         }
     }
 
