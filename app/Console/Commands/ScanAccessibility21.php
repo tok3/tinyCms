@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Services\AccessibilityFingerprintService;
+use App\Services\AccessibilitySnapshotReplicationService;
 use Illuminate\Console\Command;
 use App\Models\Pa11yUrl;
 use App\Models\Pa11yAccessibilityIssue;
@@ -21,7 +23,7 @@ use App\Models\CompanySetting;
  */
 class ScanAccessibility21 extends Command
 {
-    protected $signature = 'scan:accessibility-21 {urls?*} {--warnings}';
+    protected $signature = 'scan:accessibility-21 {urls?*} {--warnings} {--skip-fingerprint : Skip fingerprint gate because determine:scan already handled it}';
     protected $description = 'Scan URLs for accessibility issues using WCAG 2.1 (axe runner)';
 
     public function handle()
@@ -31,6 +33,27 @@ class ScanAccessibility21 extends Command
 
         foreach ($urls as $url) {
             $this->info("Scanning {$url->url} with WCAG 2.1 standard...");
+            if (! $this->option('skip-fingerprint')) {
+                $fingerprint = app(AccessibilityFingerprintService::class)->captureForUrl($url, '2.1', [
+                    'scanner' => 'scan:accessibility-21',
+                    'scan_command' => 'scan:accessibility-21',
+                    'decision_action' => 'scan',
+                    'decision_reason' => 'manual_or_scheduled_scan',
+                ]);
+
+                if ($fingerprint->fingerprint_state === 'unchanged') {
+                    $replication = app(AccessibilitySnapshotReplicationService::class)
+                        ->replicateLatestSnapshot($url, '2.1');
+
+                    if (($replication['stats_copied'] ?? 0) > 0 || ($replication['issues_copied'] ?? 0) > 0) {
+                        $this->info("Fingerprint unchanged for {$url->url}; copied last snapshot instead of rescanning.");
+                        $url->update(['last_checked' => now()]);
+                        continue;
+                    }
+
+                    $this->warn("Fingerprint unchanged for {$url->url}, but no snapshot could be copied. Falling back to scan.");
+                }
+            }
 
             $this->deleteOldIssues($url->id);
             $results = $this->scanWithAxe($url, $includeWarnings);
@@ -48,20 +71,16 @@ class ScanAccessibility21 extends Command
         $this->info('All URLs have been scanned.');
     }
 
+    /*
+    * before nice
     private function scanWithAxe($url, $includeWarnings)
     {
-        /*
-        $processArgs = [
-            'pa11y',
-            $url->url,
-            '--runner',
-            'axe',
-            '--reporter',
-            'json',
-        ];
-        */
+
 
         $processArgs = [
+            'nice', '-n', '15',
+            'timeout', '240s',
+            'cpulimit', '-l', '35', '--',
             'pa11y',
             "'".$url->url."'",
             '--runner',
@@ -94,7 +113,194 @@ class ScanAccessibility21 extends Command
             return null; // Scan ist fehlgeschlagen
         }
     }
+        */
 
+
+private function scanWithAxe($url, $includeWarnings)
+{
+    $timeoutCommand = trim(shell_exec('command -v timeout')) ?: trim(shell_exec('command -v gtimeout'));
+    $browserPath = $this->resolvePa11yBrowserPath();
+    $chromeArgs = $this->resolvePa11yChromeArgs();
+    $configPath = $this->buildPa11yConfigFile($browserPath, $chromeArgs);
+
+    if (!$timeoutCommand) {
+        throw new \Exception('Weder timeout noch gtimeout gefunden.');
+    }
+
+    $processArgs = [
+        'nice',
+        '-n',
+        '15',
+        escapeshellcmd($timeoutCommand),
+        '240s',
+        'cpulimit',
+        '-q',
+        '-l',
+        '35',
+        '--',
+        'pa11y',
+        escapeshellarg($url->url),
+        '--runner',
+        'axe',
+        '--reporter',
+        'json',
+    ];
+
+    if ($configPath) {
+        $processArgs[] = '--config';
+        $processArgs[] = escapeshellarg($configPath);
+    }
+
+    if ($includeWarnings) {
+        $processArgs[] = '--include-warnings';
+    }
+
+    $command = implode(' ', [
+        'PUPPETEER_EXECUTABLE_PATH=' . escapeshellarg($browserPath),
+        'CHROME_PATH=' . escapeshellarg($browserPath),
+        'PA11Y_CHROME_PATH=' . escapeshellarg($browserPath),
+        'PA11Y_CHROME_ARGS=' . escapeshellarg(implode(',', $chromeArgs)),
+        implode(' ', $processArgs),
+    ]);
+
+    $this->info("Executing: $command");
+
+    try {
+        exec($command . ' 2>/tmp/pa11y-error.log', $outputLines, $exitCode);
+    } finally {
+        if ($configPath && is_file($configPath)) {
+            @unlink($configPath);
+        }
+    }
+
+    $output = implode("\n", $outputLines);
+
+    if ($exitCode === 124) {
+        \Log::error("Timeout bei {$url->url}");
+        return null;
+    }
+
+    if (empty($output) || !$this->isValidJson($output)) {
+        $stderr = @file_get_contents('/tmp/pa11y-error.log');
+        \Log::error("Scan fehlgeschlagen bei {$url->url}. ExitCode: {$exitCode}. STDOUT: " . substr($output, 0, 700) . " STDERR: " . substr((string) $stderr, 0, 700));
+        return null;
+    }
+
+    return json_decode($output, true);
+}
+
+    private function resolvePa11yBrowserPath(): string
+    {
+        $configPath = config('accessibility_scan.browser.path');
+        if (is_string($configPath) && $configPath !== '' && is_file($configPath)) {
+            return $configPath;
+        }
+
+        $envPath = getenv('PA11Y_CHROME_PATH');
+        if (is_string($envPath) && $envPath !== '' && is_file($envPath)) {
+            return $envPath;
+        }
+
+        $candidates = $this->browserCandidates((string) config('accessibility_scan.browser.preference', 'auto'));
+
+        foreach ($candidates as $candidate) {
+            if (str_starts_with($candidate, '/')) {
+                if (is_file($candidate)) {
+                    return $candidate;
+                }
+                continue;
+            }
+
+            $resolved = trim((string) shell_exec('command -v ' . escapeshellarg($candidate)));
+            if ($resolved !== '') {
+                return $resolved;
+            }
+        }
+
+        return 'google-chrome';
+    }
+
+    private function browserCandidates(string $preference): array
+    {
+        $preference = strtolower(trim($preference));
+
+        $chromeCandidates = [
+            '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+            '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
+            'google-chrome',
+            'google-chrome-stable',
+            '/usr/bin/google-chrome',
+            '/usr/bin/google-chrome-stable',
+        ];
+
+        $chromiumCandidates = [
+            'chromium-browser',
+            'chromium',
+            '/usr/bin/chromium-browser',
+            '/usr/bin/chromium',
+            '/snap/bin/chromium',
+            '/opt/homebrew/bin/chromium',
+        ];
+
+        return match ($preference) {
+            'chrome' => array_merge($chromeCandidates, $chromiumCandidates),
+            'chromium' => array_merge($chromiumCandidates, $chromeCandidates),
+            default => PHP_OS_FAMILY === 'Darwin'
+                ? array_merge($chromeCandidates, $chromiumCandidates)
+                : array_merge($chromiumCandidates, $chromeCandidates),
+        };
+    }
+
+    private function resolvePa11yChromeArgs(): array
+    {
+        $envArgs = getenv('PA11Y_CHROME_ARGS');
+        if (is_string($envArgs) && trim($envArgs) !== '') {
+            return array_values(array_filter(array_map('trim', explode(',', $envArgs))));
+        }
+
+        return array_values(array_filter(config('accessibility_scan.browser.args', [])));
+    }
+
+    private function buildPa11yConfigFile(string $browserPath, array $chromeArgs): ?string
+    {
+        $userDataDir = false;
+        if ((bool) config('accessibility_scan.browser.use_temp_profile', true)) {
+            $userDataDir = tempnam(sys_get_temp_dir(), 'pa11y-profile-');
+            if ($userDataDir !== false) {
+                @unlink($userDataDir);
+                @mkdir($userDataDir, 0700, true);
+            }
+        }
+
+        $config = [
+            'chromeLaunchConfig' => [
+                'executablePath' => $browserPath,
+                'ignoreHTTPSErrors' => true,
+            ],
+        ];
+
+        if ($userDataDir !== false && is_dir($userDataDir)) {
+            $config['chromeLaunchConfig']['userDataDir'] = $userDataDir;
+        }
+
+        if (!empty($chromeArgs)) {
+            $config['chromeLaunchConfig']['args'] = array_values($chromeArgs);
+        }
+
+        $path = tempnam(sys_get_temp_dir(), 'pa11y-config-');
+        if ($path === false) {
+            return null;
+        }
+
+        $json = json_encode($config, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+        $contents = $json === false ? false : 'module.exports = ' . $json . ';' . PHP_EOL;
+        if ($contents === false || file_put_contents($path, $contents) === false) {
+            @unlink($path);
+            return null;
+        }
+
+        return $path;
+    }
 
 
     /**

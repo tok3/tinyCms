@@ -1,0 +1,50 @@
+WCAG Aenderungen - grobe Zusammenfassung
+
+Stand: 2026-07-01
+
+1. WCAG 2.2 / Standard-Auswahl
+- WCAG 2.2 wurde in den Standard-Optionen ergaenzt.
+- Die Helper-Funktionen zur Normalisierung und Auswertung des aktuellen WCAG-Standards sind zentralisiert.
+- Das Projekt kann je nach Company-Setting zwischen 2.0, 2.1 und 2.2 unterscheiden.
+
+2. Scan-Kommandos
+- Es gibt getrennte Scan-Pfade fuer WCAG 2.0, 2.1 und 2.2.
+- Der Scan fuer WCAG 2.2 nutzt eine eigene Command-Variante.
+- Die Logik wurde so angepasst, dass der korrekte Scan-Command anhand des Standards gewaehlt wird.
+
+3. UI / Filament
+- Das Dropdown fuer den Default-Standard in den Company-Einstellungen wurde um WCAG 2.2 erweitert.
+- Die URL- und Issue-Ansichten wurden an WCAG 2.2 angepasst.
+- Gruppierte Ansichten und Labels wurden entsprechend erweitert.
+
+4. PDF / Export
+- PDF-Ansichten wurden fuer WCAG 2.0 und die neue Standardlogik angepasst.
+- Null-Werte und fehlende Daten wurden in Teilen robuster behandelt.
+
+5. Fehlerbehebungen im Scan-Stack
+- Mehrere Probleme mit pa11y und axe CLI wurden durch explizite Browser-/Chrome-Pfade und passende Startparameter entschärft.
+- Fehler durch leere oder ungueltige Scan-Ausgaben wurden robuster abgefangen.
+- WCAG-2.0/2.1/2.2-spezifische Statistik- und Issue-Logik wurde nachgezogen.
+
+6. Neue Fingerprint-Architektur
+- Eine neue Tabelle fuer URL-Fingerprints wurde angelegt.
+- Ein eigenes Modell fuer URL-Fingerprints wurde erstellt.
+- Eine generische Entscheidungslogik wurde als Service zentralisiert.
+- Eine konfigurierbare Decision-Matrix wurde in einer Config-Datei angelegt.
+- Die URL-Observer loeschen Fingerprint-Daten mit, wenn eine URL entfernt oder geaendert wird.
+
+7. Determine-Scan Integration
+- `determine:scan` wurde auf die neue Entscheidungslogik umgestellt.
+- Pro URL wird vor dem eigentlichen Scan ein frischer serverseitiger Fingerprint erzeugt.
+- Danach entscheidet die Decision-Matrix, ob ein Scan wirklich noetig ist.
+- Bei unveraendertem Fingerprint wird der letzte Datenpunkt aus Statistik- und Issue-Tabellen kopiert.
+- Nur URLs mit `scan`-Entscheidung werden an den eigentlichen Scan-Command uebergeben.
+- Die Scan-Commands unterstuetzen dafuer `--skip-fingerprint`, damit `determine:scan` nicht doppelt fingerprintet.
+
+8. Offene Naechste Schritte
+- Die Decision-Matrix kann danach weiter verfeinert werden.
+- Weitere Scan-Trigger sollten schrittweise auf die gleiche Logik umgestellt werden.
+
+9. Hinweise
+- Die aktuelle Architektur ist bewusst so gebaut, dass Regeln spaeter ueber Konfiguration anpassbar sind.
+- Der alte JS-Hash-Ansatz ist fuer die neue Zielarchitektur nicht mehr vorgesehen.

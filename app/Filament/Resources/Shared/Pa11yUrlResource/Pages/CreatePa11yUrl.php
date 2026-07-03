@@ -43,9 +43,9 @@ class CreatePa11yUrl extends CreateRecord
     {
         $url = $this->record;
         $company = $url->company;
+        $standard = getCurrentWcagStandard($company);
 
         // sofort scannen
-        $command = "php " . base_path('artisan') . " scan:accessibility-21 {$url->id} > /dev/null 2>&1 &";
-        shell_exec($command);
+        shell_exec(getWcagScanShellCommand($url->id, $standard));
     }
 }

@@ -134,8 +134,7 @@ class TrialController extends Controller
         ]);
 
         // 9) Scan sofort im Hintergrund starten
-        $cmd = "php " . base_path('artisan') . " scan:accessibility-21 {$pa11y->id} > /dev/null 2>&1 &";
-        shell_exec($cmd);
+        shell_exec(getWcagScanShellCommand($pa11y->id, getCurrentWcagStandard($company)));
 
         // 10) Breeze-Verify-Link signiert erstellen (48h gültig)
         // Achtung: Standard-Route 'verification.verify' hat 'auth' + 'signed' Middleware.

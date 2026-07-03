@@ -14,7 +14,7 @@
             <ul class="flex border-b">
                 <li class="-mb-px mr-1">
                     <a href="#" id="tab-2-1" class="bg-white inline-block py-2 px-4 text-blue-500 font-semibold border-l border-t border-r border-blue-500 rounded-t">
-                        WCAG 2.1
+                        {{ $currentStandardLabel }}
                     </a>
                 </li>
                 @if ($chartDataWCAG20 !== null)
@@ -27,7 +27,7 @@
             </ul>
         </div>
 
-        <!-- Canvas für WCAG 2.1 -->
+        <!-- Canvas für den aktuellen WCAG-Standard -->
         <div id="content-2-1" class="mt-2">
             <canvas id="wcag21Chart"></canvas>
         </div>
@@ -80,7 +80,7 @@
                     };
                 }
 
-                // WCAG 2.1 Chart erstellen
+                // Aktuellen Standard-Chart erstellen
                 const ctx21 = document.getElementById('wcag21Chart').getContext('2d');
                 new Chart(ctx21, createChartConfig(statisticsWCAG21));
 

@@ -327,7 +327,10 @@ Route::post('/accessibility-declaration/{company}/feedback', [
 
 // -----------------------------------------------
 
-Route::get('/{slug}', [PageController::class, 'getIndex'])->name('frontend');
+Route::get('/{slug}', [PageController::class, 'getIndex'])
+    ->where('slug', '^(?!dashboard(?:/|$))[^/]+$')
+    ->name('frontend');
+
 Route::get('/', [PageController::class, 'getIndex'])->name('home');
 
 Route::post('/product-card/contact', [ProductCardContactController::class, 'send'])
@@ -336,10 +339,7 @@ Route::post('/product-card/contact', [ProductCardContactController::class, 'send
 
 
 //Route::get('/home/impressum-page', [PageController::class, 'getIndex'])->name('page.show2');
-// Definieren der Route
-Route::get('/{segment1?}/{segment2?}/{slug?}', [PageController::class, 'getIndex'])
-    ->where('slug', '[^/]+') // Erlaubt alles außer einem Slash
-    ->where('segment1', '[^/]+') // Optional: Erlaubt alles außer einem Slash
-    ->where('segment2', '[^/]+') // Optional: Erlaubt alles außer einem Slash
-    ->name('page.show');
 
+Route::get('/{path}', [PageController::class, 'getIndex'])
+    ->where('path', '^(?!dashboard(?:/|$)).+')
+    ->name('page.show');

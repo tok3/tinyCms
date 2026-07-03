@@ -57,6 +57,11 @@ class Pa11yUrl extends Model
         return $this->hasMany(Pa11yStatistic::class, 'url_id');
     }
 
+    public function fingerprints()
+    {
+        return $this->hasMany(Pa11yUrlFingerprint::class, 'url_id');
+    }
+
     /**
      * @return array
      */

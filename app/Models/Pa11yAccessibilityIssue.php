@@ -33,11 +33,11 @@ class Pa11yAccessibilityIssue extends Model
     public function getTranslatedMessageAttribute()
     {
         $msg = $this->issue;
-        if ($this->standard == '2.1')
+        if (in_array($this->standard, ['2.1', '2.2'], true))
         {
             $axeExtra = json_decode($this->runnerExtras);
 
-            $msg = $axeExtra->help;
+            $msg = $axeExtra->help ?? $msg;
         }
 
         return MessageTranslationService::translate($msg, 'de_DE');
@@ -57,7 +57,9 @@ class Pa11yAccessibilityIssue extends Model
      */
     public function getWcagLinksAttribute(): array
     {
-        $baseUrl = 'https://www.w3.org/WAI/WCAG21/Techniques/';
+        $baseUrl = $this->standard === '2.2'
+            ? 'https://www.w3.org/WAI/WCAG22/Techniques/'
+            : 'https://www.w3.org/WAI/WCAG21/Techniques/';
         $prefixes = [
             'F' => 'failures/',
             'H' => 'html/',
@@ -94,7 +96,9 @@ class Pa11yAccessibilityIssue extends Model
             // Erfolgskriterien (z. B. 2.4.6)
             if (preg_match('/^\d+\.\d+\.\d+$/', $code))
             {
-                $links[] = "https://www.w3.org/WAI/WCAG21/Understanding/" . str_replace('.', '-', $code) . ".html";
+                $links[] = ($this->standard === '2.2'
+                    ? 'https://www.w3.org/WAI/WCAG22/Understanding/'
+                    : 'https://www.w3.org/WAI/WCAG21/Understanding/') . str_replace('.', '-', $code) . ".html";
             }
             else
             {

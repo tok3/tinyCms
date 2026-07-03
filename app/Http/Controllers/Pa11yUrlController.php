@@ -13,9 +13,16 @@ class Pa11yUrlController extends Controller
     public function rescan(Pa11yUrl $url)
     {
         // Übergebe die URL-ID als Argument
-        Artisan::call('scan:accessibility', [
-            'url' => $url->id
-        ]);
+        $standard = getCurrentWcagStandard($url);
+        $command = getWcagScanCommand($standard);
+        $arguments = ['urls' => [$url->id]];
+
+        if ($command === 'scan:accessibility-22') {
+            $arguments['--standard'] = getWcagScanStandardOption($standard);
+            $arguments['--warnings'] = true;
+        }
+
+        Artisan::call($command, $arguments);
 
         // Optional: Ausgabe des Kommando-Outputs zur Fehlersuche oder zum Debugging
         $output = Artisan::output();
@@ -35,12 +42,19 @@ class Pa11yUrlController extends Controller
 
         // Hole alle URLs, die der Firma des Nutzers zugeordnet sind
         $urls = $user->company->pa11yUrls;
+        $standard = getCurrentWcagStandard($user->company);
+        $command = getWcagScanCommand($standard);
+        $arguments = ['urls' => []];
+
+        if ($command === 'scan:accessibility-22') {
+            $arguments['--standard'] = getWcagScanStandardOption($standard);
+            $arguments['--warnings'] = true;
+        }
 
         // Starte den Scan für jede URL
         foreach ($urls as $url) {
-            Artisan::call('scan:accessibility', [
-                'url' => $url->id
-            ]);
+            $arguments['urls'] = [$url->id];
+            Artisan::call($command, $arguments);
         }
 
         // Optional: Ausgabe des Kommando-Outputs an den Benutzer

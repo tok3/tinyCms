@@ -353,6 +353,7 @@ class CompanyResource extends BaseResource
                                             ->options([
                                                 '2.0' => 'WCAG 2.0',
                                                 '2.1' => 'WCAG 2.1',
+                                                '2.2' => 'WCAG 2.2',
                                             ])
                                             ->default('2.1')
                                             ->reactive(),
@@ -408,17 +409,10 @@ class CompanyResource extends BaseResource
                                             ]),
 
                                     ]),
-
+/*
                                 Forms\Components\Fieldset::make('Altstar Typ ')
                                     ->relationship('settings', CompanySetting::class)
                                         ->schema([
-                                            /*Forms\Components\Select::make('altstar_type')
-                                            ->label('Altstar')
-                                            ->options([
-                                                0 => 'Nur leere img-Tags bearbeiten',
-                                                1 => 'Alle img-Tags bearbeiten',
-                                            ])
-                                            ->default(0)*/
                                             Forms\Components\Toggle::make('altstar_type')
                                                     ->label('Altstar override')
                                                     ->default(false)
@@ -431,7 +425,21 @@ class CompanyResource extends BaseResource
                                             })
 
                                     ]),
-
+*/
+                                Forms\Components\Fieldset::make('Altstar Typ')
+                                    ->relationship('settings', CompanySetting::class)
+                                    ->visible(function ($livewire) {
+                                        $company = $livewire->record;
+                                        return $company->features()
+                                            ->whereIn('slug', ['image-alt-tags-all', 'image-alt-tags'])
+                                            ->exists();
+                                    })
+                                    ->schema([
+                                        Forms\Components\Toggle::make('altstar_type')
+                                            ->label('Altstar override')
+                                            ->default(false)
+                                            ->helperText('Bestehende Bildbeschreibungen werden überschrieben.'),
+                                    ]),
 
                                 Forms\Components\Fieldset::make('Barrierefreiheitserklärung ')
                                     ->relationship('settings', CompanySetting::class)

@@ -35,7 +35,34 @@ class PageController extends Controller
      */
     public function getIndex(Request $request, $segment1 = null, $segment2 = null, $slug = null)
     {
+        //\Log::info('PageController hit: ' . $request->path());
 
+        // Dashboard-Routen gehören ausschließlich ins Filament-Panel.
+        if ($request->is('dashboard') || $request->is('dashboard/*')) {
+            abort(404);
+        }
+
+        $routePath = $request->route('path');
+        $routeSlug = $request->route('slug');
+
+        // Mehrteilige Frontend-URLs kommen über die `path`-Route rein.
+        if (is_string($routePath) && $routePath !== '') {
+            $parts = array_values(array_filter(explode('/', trim($routePath, '/'))));
+
+            $segment1 = $parts[0] ?? null;
+            $segment2 = $parts[1] ?? null;
+            $slug = $parts[2] ?? null;
+        } elseif (is_string($routeSlug) && $routeSlug !== '') {
+            $segment1 = $routeSlug;
+            $segment2 = null;
+            $slug = null;
+        } elseif (is_null($segment1) && is_null($segment2) && is_null($slug)) {
+            $parts = array_values(array_filter(explode('/', trim($request->path(), '/'))));
+
+            $segment1 = $parts[0] ?? null;
+            $segment2 = $parts[1] ?? null;
+            $slug = $parts[2] ?? null;
+        }
 
         if (is_null($slug))
         {

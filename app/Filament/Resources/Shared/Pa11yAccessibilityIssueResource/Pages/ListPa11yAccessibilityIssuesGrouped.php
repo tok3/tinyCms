@@ -31,9 +31,11 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
     {
         $standard = $this->getStandard();
 
-        return $standard === '2.1'
-            ? 'filament.resources.pa11y-accessibility-issues.list-grouped-21'
-            : 'filament.resources.pa11y-accessibility-issues.list-grouped';
+        return match ($standard) {
+            '2.1' => 'filament.resources.pa11y-accessibility-issues.list-grouped-21',
+            '2.2' => 'filament.resources.pa11y-accessibility-issues.list-grouped-22',
+            default => 'filament.resources.pa11y-accessibility-issues.list-grouped',
+        };
     }
 
     public function mount(): void
@@ -83,7 +85,7 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
         $showContrastErrors = CompanySetting::where('company_id', $urlinfo->company_id)->first();
         if($showContrastErrors->contrast_errors == 1){
             return Pa11yAccessibilityIssue::query()
-                ->when($standard === '2.1', fn($query) => $query->with('accessibilityRule')) // Eager Loading nur für 2.1
+                ->when(in_array($standard, ['2.1', '2.2'], true), fn($query) => $query->with('accessibilityRule')) // Eager Loading für 2.1 / 2.2
                 ->when(request('url_id'), fn($query) => $query->where('url_id', request('url_id')))
                 ->when($standard, fn($query) => $query->where('standard', $standard)) // Filter für den Standard
                 ->when($standard === '2.0', fn($query) => $query->whereIn('wcag_level', $selectedLevels)) // Nur für 2.0 Level berücksichtigen
@@ -92,7 +94,7 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
             return Pa11yAccessibilityIssue::query()
                 ->where('code', '<>', 'color-contrast')
                 ->where('code', '<>', 'color-contrast-enhanced')
-                ->when($standard === '2.1', fn($query) => $query->with('accessibilityRule')) // Eager Loading nur für 2.1
+                ->when(in_array($standard, ['2.1', '2.2'], true), fn($query) => $query->with('accessibilityRule')) // Eager Loading für 2.1 / 2.2
                 ->when(request('url_id'), fn($query) => $query->where('url_id', request('url_id')))
                 ->when($standard, fn($query) => $query->where('standard', $standard)) // Filter für den Standard
                 ->when($standard === '2.0', fn($query) => $query->whereIn('wcag_level', $selectedLevels)) // Nur für 2.0 Level berücksichtigen
@@ -222,35 +224,35 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
         $urlinfo = Pa11yUrl::where('id', request('url_id'))->first();
         $showContrastErrors = CompanySetting::where('company_id', $urlinfo->company_id)->first();
 
-        if ($standard === '2.1') {
+        if (in_array($standard, ['2.1', '2.2'], true)) {
             if($showContrastErrors->contrast_errors == 1){
-                // Zählung für 2.1
+                // Zählung für 2.1 / 2.2
                 $url->error_count = $url->accessibilityIssues()
                     ->where('type', 'error')
-                    ->where('standard', '2.1')
+                    ->where('standard', $standard)
                     ->count();
 
                 $url->warning_count = $url->accessibilityIssues()
                     ->where('type', 'warning')
-                    ->where('standard', '2.1')
+                    ->where('standard', $standard)
                     ->count();
             } else {
-                // Zählung für 2.1
+                // Zählung für 2.1 / 2.2
                 $url->error_count = $url->accessibilityIssues()
                     ->where('type', 'error')
                     ->where('code', '<>', 'color-contrast')
                     ->where('code', '<>', 'color-contrast-enhanced')
-                    ->where('standard', '2.1')
+                    ->where('standard', $standard)
                     ->count();
 
                 $url->warning_count = $url->accessibilityIssues()
                     ->where('type', 'warning')
                     ->where('code', '<>', 'color-contrast')
                     ->where('code', '<>', 'color-contrast-enhanced')
-                    ->where('standard', '2.1')
+                    ->where('standard', $standard)
                     ->count();
             }
-            // Notices gibt es in 2.1 nicht
+            // Notices werden in der UI weiterhin nicht separat angezeigt
             $url->notice_count = 0;
         } else {
             // Zählung für 2.0 mit Level-Filter
@@ -314,7 +316,7 @@ class ListPa11yAccessibilityIssuesGrouped extends Page
     }
     protected function getStandard(): string
     {
-        return request()->route('standard', '2.1'); // Standard ist 2.1
+        return normalizeWcagStandard(request()->route('standard', getCurrentWcagStandard(request('url_id')))); // Standard aus Route oder Company
     }
 
     protected function getViewData(): array

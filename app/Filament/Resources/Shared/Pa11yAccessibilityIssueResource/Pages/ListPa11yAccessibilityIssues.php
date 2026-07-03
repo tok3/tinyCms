@@ -64,7 +64,7 @@ class ListPa11yAccessibilityIssues extends Page
             return Pa11yAccessibilityIssue::query()
                 ->when(request('url_id'), fn($query) => $query->where('url_id', request('url_id')))
                 ->when($standard === '2.0', fn($query) => $query->whereIn('wcag_level', $wcagLevels)) // Filter für 2.0
-                ->when($standard === '2.1', fn($query) => $query->where('standard', '2.1')) // Filter für 2.1
+                ->when(in_array($standard, ['2.1', '2.2'], true), fn($query) => $query->where('standard', $standard)) // Filter für 2.1 / 2.2
                 ->when(in_array(request('type'), ['error', 'warning', 'notice']), fn($query) => $query->where('type', request('type')));
         } else {
             return Pa11yAccessibilityIssue::query()
@@ -72,7 +72,7 @@ class ListPa11yAccessibilityIssues extends Page
                 ->where('code', '<>', 'color-contrast-enhanced')
                 ->when(request('url_id'), fn($query) => $query->where('url_id', request('url_id')))
                 ->when($standard === '2.0', fn($query) => $query->whereIn('wcag_level', $wcagLevels)) // Filter für 2.0
-                ->when($standard === '2.1', fn($query) => $query->where('standard', '2.1')) // Filter für 2.1
+                ->when(in_array($standard, ['2.1', '2.2'], true), fn($query) => $query->where('standard', $standard)) // Filter für 2.1 / 2.2
                 ->when(in_array(request('type'), ['error', 'warning', 'notice']), fn($query) => $query->where('type', request('type')));
         }
     }
@@ -118,34 +118,34 @@ class ListPa11yAccessibilityIssues extends Page
         $urlinfo = Pa11yUrl::where('id', request('url_id'))->first();
         $showContrastErrors = CompanySetting::where('company_id', $urlinfo->company_id)->first();
 
-        if ($standard === '2.1') {
+        if (in_array($standard, ['2.1', '2.2'], true)) {
 
 
             if($showContrastErrors->contrast_errors == 1){
-                // Zählung für 2.1
+                // Zählung für 2.1 / 2.2
                 $url->error_count = $url->accessibilityIssues()
                     ->where('type', 'error')
-                    ->where('standard', '2.1')
+                    ->where('standard', $standard)
                     ->count();
 
                     $url->warning_count = $url->accessibilityIssues()
                     ->where('type', 'warning')
-                    ->where('standard', '2.1')
+                    ->where('standard', $standard)
                     ->count();
             } else {
-                // Zählung für 2.1
+                // Zählung für 2.1 / 2.2
                 $url->error_count = $url->accessibilityIssues()
                     ->where('type', 'error')
                     ->where('code', '<>', 'color-contrast')
                     ->where('code', '<>', 'color-contrast-enhanced')
-                    ->where('standard', '2.1')
+                    ->where('standard', $standard)
                     ->count();
 
                 $url->warning_count = $url->accessibilityIssues()
                     ->where('type', 'warning')
                     ->where('code', '<>', 'color-contrast')
                     ->where('code', '<>', 'color-contrast-enhanced')
-                    ->where('standard', '2.1')
+                    ->where('standard', $standard)
                     ->count();
             }
 
@@ -237,7 +237,7 @@ return $records;
 
     protected function getStandard(): string
     {
-        return request()->route('standard', '2.1'); // Standard ist 2.1
+        return normalizeWcagStandard(request()->route('standard', getCurrentWcagStandard(request('url_id')))); // Standard aus Route oder Company
     }
 
 }

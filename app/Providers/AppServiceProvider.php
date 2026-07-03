@@ -26,6 +26,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $helperPath = app_path('Helpers/CurrentWcagStandardHelper.php');
+        if (is_file($helperPath)) {
+            require_once $helperPath;
+        }
 
 
 

@@ -258,20 +258,25 @@
                 <!-- One-column table with one issue per page -->
                 <table class="issue-table">
                     @foreach ($records as $code => $issues)
+                        @php
+                            $firstIssue = $issues->first();
+                            $rule = $firstIssue->accessibilityRule ?? null;
+                            $mergedHtml = $rule?->merged_html ?? [];
+                        @endphp
                         <tr>
                             <td colspan="2">
                                 <div class="issue-group bg-white dark:bg-gray-800 border-l-4 shadow p-4 rounded mb-4
-                                    @if ($issues->first()->type === 'error') border-red-500 dark:border-red-700
-                                    @elseif ($issues->first()->type === 'warning') border-yellow-500 dark:border-yellow-600
+                                    @if ($firstIssue->type === 'error') border-red-500 dark:border-red-700
+                                    @elseif ($firstIssue->type === 'warning') border-yellow-500 dark:border-yellow-600
                                     @else border-blue-500 dark:border-blue-600 @endif">
                                     <div class="flex items-center mb-2">
                                         <span
                                             class="text-sm font-bold uppercase flex items-center
-                                            @if ($issues->first()->type === 'error') text-red-500 dark:text-red-300
-                                            @elseif ($issues->first()->type === 'warning') text-yellow-500 dark:text-yellow-300
+                                            @if ($firstIssue->type === 'error') text-red-500 dark:text-red-300
+                                            @elseif ($firstIssue->type === 'warning') text-yellow-500 dark:text-yellow-300
                                             @else text-blue-500 dark:text-blue-300 @endif">
 
-                                            @if ($issues->first()->type === 'notice')
+                                            @if ($firstIssue->type === 'notice')
                                                 <img style="margin-top: 3px;"
                                                     src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('assets/img/notice.png'))) }}"
                                                     alt="notice" class="w-6 h-6 text-gray-800 dark:text-white" />
@@ -305,14 +310,14 @@
                                             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">
                                                 Beschreibung</h3>
 
-                                                {!! $issues->first()->accessibilityRule->merged_html['description'] ?? 'Not specified' !!}
+                                                {!! $mergedHtml['description'] ?? 'Not specified' !!}
 
 
                                             <!-- Warum ist das Wichtig -->
                                             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Warum ist
                                                 das Wichtig</h3>
 
-                                                {!! $issues->first()->accessibilityRule->merged_html['why_important'] ?? 'Not specified' !!}
+                                                {!! $mergedHtml['why_important'] ?? 'Not specified' !!}
 
                                         </div>
                                     </div>
@@ -325,19 +330,19 @@
                                             <div class="space-y-2 mb-2 text-sm text-gray-600 dark:text-gray-400" style="margin-bottom: 15px;">
                                                 <strong>Impact:</strong>
                                                 <span
-                                                    style="font-family: 'OCR A', monospace;">{{ $issues->first()->accessibilityRule->impact }}</span>
+                                                    style="font-family: 'OCR A', monospace;">{{ $rule?->impact ?? 'N/A' }}</span>
                                             </div>
                                             <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2 dark:bg-gray-700">
-                                                @if ($issues->first()->accessibilityRule->impact == 'Minor')
+                                                @if ($rule?->impact == 'Minor')
                                                     <div class="bg-blue-200 h-2.5 rounded-full dark:bg-gray-300"
                                                         style="width: 25%"></div>
-                                                @elseif($issues->first()->accessibilityRule->impact == 'Moderate')
+                                                @elseif($rule?->impact == 'Moderate')
                                                     <div class="bg-orange-300 h-2.5 rounded-full dark:bg-gray-300"
                                                         style="width: 45%"></div>
-                                                @elseif($issues->first()->accessibilityRule->impact == 'Serious')
+                                                @elseif($rule?->impact == 'Serious')
                                                     <div class="bg-orange-600 h-2.5 rounded-full dark:bg-gray-300"
                                                         style="width: 65%"></div>
-                                                @elseif($issues->first()->accessibilityRule->impact == 'Critical')
+                                                @elseif($rule?->impact == 'Critical')
                                                     <div class="bg-red-600 h-2.5 rounded-full dark:bg-gray-300"
                                                         style="width: 95%"></div>
                                                 @endif
@@ -346,19 +351,19 @@
                                             <div class="space-y-2 mb-2 text-sm text-gray-600 dark:text-gray-400" style="margin-bottom: 15px;">
                                                 <strong>Issue:</strong>
                                                 <span
-                                                    style="font-family: 'OCR A', monospace;">{{ $issues->first()->accessibilityRule->issue_type }}</span>
+                                                    style="font-family: 'OCR A', monospace;">{{ $rule?->issue_type ?? 'N/A' }}</span>
                                             </div>
 
                                             <div class="space-y-2 mb-2 text-sm text-gray-600 dark:text-gray-400" style="margin-bottom: 15px;">
                                                 <strong>Code:</strong>
                                                 <span
-                                                style="font-family: 'OCR A', monospace;">{{ $issues->first()->accessibilityRule->description }}</span>
+                                                style="font-family: 'OCR A', monospace;">{{ $rule?->description ?? 'N/A' }}</span>
                                             </div>
 
                                             <div class="space-y-2 mb-2 text-sm text-gray-600 dark:text-gray-400" style="margin-bottom: 15px;">
                                                     <strong>Tags:</strong>
                                                     <span
-                                                style="font-family: 'OCR A', monospace;">{!! $issues->first()->accessibilityRule->tags !!}</span>
+                                                style="font-family: 'OCR A', monospace;">{!! $rule?->tags ?? 'N/A' !!}</span>
                                             </div>
 
                                             <hr class="mb-4 mt-4">
@@ -368,7 +373,7 @@
                                                 <strong>Disabilities</strong>
                                             </div>
                                             <ul style="list-style-type: none">
-                                                @foreach (json_decode($issues->first()->accessibilityRule->disabilities) as $disability)
+                                                @foreach (json_decode($rule?->disabilities ?? '[]') ?: [] as $disability)
                                                     @if ($disability == 'Blind')
                                                         <!-- Sighted Keyboard Users -->
                                                         <li class="flex items-center space-x-2">

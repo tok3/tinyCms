@@ -109,11 +109,16 @@ class DashboardPanelProvider extends PanelProvider
             ->sidebarWidth('15rem')
             ->discoverResources(in: app_path('Filament/Resources/User'), for: 'App\\Filament\\Resources\\User')
             ->discoverResources(in: app_path('Filament/Resources/Shared'), for: 'App\\Filament\\Resources\\Shared')
+
             ->discoverPages(in: app_path('Filament/Dashboard/Pages'), for: 'App\\Filament\\Dashboard\\Pages')
+
+            // Manuelle Registrierung (zum Testen aktiv lassen)
             ->pages([
                 Pages\Dashboard::class,
+                //\App\Filament\Dashboard\Pages\TestDebug::class,      // erstmal nur die Test-Page
                 \App\Filament\Dashboard\Pages\IncluCertBadges::class,
             ])
+
             ->resources([
 
                 MollieSubscriptionResource::class,
