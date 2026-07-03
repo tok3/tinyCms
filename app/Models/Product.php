@@ -11,11 +11,12 @@ class Product extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name', 'description', 'info', 'invoice_text', 'price', 'currency', 'payment_type', 'lz', 'interval', 'sequence', 'active', 'visible', 'upgrade', 'excluded_feature_ids', 'feature_visibility_mode', 'trial_period_days'
+        'name', 'description', 'info', 'invoice_text', 'price', 'currency', 'payment_type', 'lz', 'interval', 'sequence', 'active', 'visible', 'upgrade', 'type', 'is_package', 'excluded_feature_ids', 'feature_visibility_mode', 'trial_period_days'
     ];
 
     protected $casts = [
         'excluded_feature_ids' => 'array',
+        'upgrade' => 'boolean',
         'is_package' => 'boolean', // falls noch da
     ];
 
@@ -29,6 +30,13 @@ class Product extends Model
             if (empty($model->invoice_text))
             {
                 $model->invoice_text = $model->description;
+            }
+
+            if ($model->type === 'upgrade')
+            {
+                $model->upgrade = true;
+                $model->visible = false;
+                $model->is_package = false;
             }
 
         });
@@ -65,6 +73,14 @@ class Product extends Model
     public function prices()
     {
         return $this->hasMany(ProductPrice::class)->orderBy('sort');
+    }
+
+    public function scopeUpgradeProducts($query)
+    {
+        return $query->where(function ($query) {
+            $query->where('upgrade', true)
+                ->orWhere('type', 'upgrade');
+        });
     }
 
     /**
@@ -107,7 +123,7 @@ class Product extends Model
 
     public function isVisibleForCompany(?\App\Models\Company $company): bool
     {
-        if (!$this->upgrade)
+        if (!$this->upgrade && $this->type !== 'upgrade')
         {
             return false;
         }

@@ -7,7 +7,7 @@ use Filament\Pages\Page;
 use App\Models\Product;
 use App\Helpers\CompanyHelper;
 
-class UpgradeProductPage extends Page
+class UpgradeProductPage extends page
 {
     protected static ?string $navigationIcon = 'upgrade';
     protected static string $view = 'filament.dashboard.pages.upgrade-product-page';
@@ -85,7 +85,8 @@ class UpgradeProductPage extends Page
         else
         {
             // Bisheriges Verhalten (Upgrade-Produkte + Visibility-Check)
-            $this->products = Product::where('upgrade', 1)
+            $this->products = Product::query()
+                ->upgradeProducts()
                 ->get()
                 ->filter(fn($product) => $product->isVisibleForCompany($company));
         }

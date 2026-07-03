@@ -467,7 +467,8 @@ class CompanyResource extends BaseResource
                                             return null;
                                         }
 
-                                        $products = Product::where('upgrade', 1)
+                                        $products = Product::query()
+                                            ->upgradeProducts()
                                             ->get()
                                             ->filter(fn($product) => $product->isVisibleForCompany($record));
 
