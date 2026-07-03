@@ -26,6 +26,7 @@ class CrawlController extends Controller
         // Node.js server URL
         $nodeServerUrl = env('NODE_CRAWLER_URL', 'http://localhost:4000/start-crawl');
         $company = Company::where('id', $validated['id'])->first();
+        \Log::info($company->max_urls);
 
         $maxPages = $request->input('maxPages')
             ?? $company->max_urls;
