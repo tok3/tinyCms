@@ -189,28 +189,37 @@ class Company extends Model
      */
     public function getMaxUrlsAttribute(): int
     {
-        $features = [
-            'max-url-1' => 1,
-            'max-url-10' => 10,
-            'max-url-50' => 50,
-            'max-url-100' => 100,
-            'max-url-500' => 500,
-            'max-url-1500' => 1500,
-            'max-url-10k' => 10000,
-            'max-url-15k' => 15000,
-            'max-url-100k' => 100000,
-        ];
-
         $maxLimit = 5; // Fallback-Wert (Standard)
 
-        foreach ($features as $feature => $limit) {
-            if ($this->hasFeature($feature) && $limit > $maxLimit) {
-                $maxLimit = $limit;
-            }
-        }
+        $this->features()
+            ->where('slug', 'like', 'max-url-%')
+            ->pluck('slug')
+            ->each(function (string $slug) use (&$maxLimit) {
+                $limit = $this->parseMaxUrlFeatureSlug($slug);
+
+                if ($limit !== null && $limit > $maxLimit) {
+                    $maxLimit = $limit;
+                }
+            });
 
         return $maxLimit;
     }
+
+    private function parseMaxUrlFeatureSlug(string $slug): ?int
+    {
+        if (!preg_match('/^max-url-(\d+)(k?)$/', $slug, $matches)) {
+            return null;
+        }
+
+        $limit = (int) $matches[1];
+
+        if ($matches[2] === 'k') {
+            $limit *= 1000;
+        }
+
+        return $limit;
+    }
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
