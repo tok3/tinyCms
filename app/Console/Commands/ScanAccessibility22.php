@@ -9,6 +9,7 @@ use App\Models\Pa11yUrl;
 use App\Models\Pa11yAccessibilityIssue;
 use App\Models\Pa11yStatistic;
 use App\Models\CompanySetting;
+use Illuminate\Support\Facades\File;
 
 /**
  * Accessibility Scan Command
@@ -17,6 +18,8 @@ use App\Models\CompanySetting;
  */
 class ScanAccessibility22 extends Command
 {
+    private array $pa11yTempProfiles = [];
+
     protected $signature = 'scan:accessibility-22
         {urls?*}
         {--standard=21 : WCAG Version (21 oder 22)}
@@ -240,6 +243,8 @@ class ScanAccessibility22 extends Command
             if ($configPath && is_file($configPath)) {
                 @unlink($configPath);
             }
+
+            $this->cleanupPa11yTempProfiles();
         }
     }
 
@@ -323,6 +328,7 @@ class ScanAccessibility22 extends Command
             if ($userDataDir !== false) {
                 @unlink($userDataDir);
                 @mkdir($userDataDir, 0700, true);
+                $this->pa11yTempProfiles[] = $userDataDir;
             }
         }
 
@@ -354,6 +360,38 @@ class ScanAccessibility22 extends Command
         }
 
         return $path;
+    }
+
+    private function cleanupPa11yTempProfiles(): void
+    {
+        foreach (array_unique($this->pa11yTempProfiles) as $profilePath) {
+            if (! $this->isOwnPa11yTempProfile($profilePath)) {
+                continue;
+            }
+
+            try {
+                File::deleteDirectory($profilePath);
+            } catch (\Throwable $exception) {
+                \Log::warning('Could not delete pa11y temp profile.', [
+                    'path' => $profilePath,
+                    'message' => $exception->getMessage(),
+                ]);
+            }
+        }
+
+        $this->pa11yTempProfiles = [];
+    }
+
+    private function isOwnPa11yTempProfile(string $profilePath): bool
+    {
+        $tempDir = realpath(sys_get_temp_dir());
+        $profileRealPath = realpath($profilePath);
+
+        return $tempDir !== false
+            && $profileRealPath !== false
+            && dirname($profileRealPath) === $tempDir
+            && str_starts_with(basename($profileRealPath), 'pa11y-profile-')
+            && is_dir($profileRealPath);
     }
 
     private function isValidJson(string $string): bool
