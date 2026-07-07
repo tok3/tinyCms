@@ -13,6 +13,8 @@ class ScriptController extends Controller
 {
     private const WIDGET_CACHE_MAX_AGE = 86400;
     private const WIDGET_CACHE_STALE_WHILE_REVALIDATE = 604800;
+    private const WIDGET_CSS_CACHE_MAX_AGE = 31536000;
+    private const WIDGET_CSS_CACHE_STALE_WHILE_REVALIDATE = 604800;
     private const WIDGET_ICON_NAMES = [
         'help',
         'hide-help',
@@ -242,7 +244,15 @@ JS;
         // Liefere das CSS aus
         $response = Response::make($mergedCss, 200, ['Content-Type' => 'text/css']);
 
-        return $this->withWidgetCacheHeaders($request, $response, $mergedCss, filemtime($cssPath) ?: null);
+        return $this->withWidgetCacheHeaders(
+            $request,
+            $response,
+            $mergedCss,
+            filemtime($cssPath) ?: null,
+            self::WIDGET_CSS_CACHE_MAX_AGE,
+            self::WIDGET_CSS_CACHE_STALE_WHILE_REVALIDATE,
+            true
+        );
     }
 
     private function buildWidgetIconSprite(): ?string
@@ -321,13 +331,27 @@ JS;
         return $lastModified;
     }
 
-    private function withWidgetCacheHeaders(Request $request, $response, string $content, ?int $lastModified = null)
+    private function withWidgetCacheHeaders(
+        Request $request,
+        $response,
+        string $content,
+        ?int $lastModified = null,
+        ?int $maxAge = null,
+        ?int $staleWhileRevalidate = null,
+        bool $immutable = false
+    )
     {
+        $maxAge ??= self::WIDGET_CACHE_MAX_AGE;
+        $staleWhileRevalidate ??= self::WIDGET_CACHE_STALE_WHILE_REVALIDATE;
+
         $response->setPublic();
-        $response->setMaxAge(self::WIDGET_CACHE_MAX_AGE);
-        $response->setSharedMaxAge(self::WIDGET_CACHE_MAX_AGE);
+        $response->setMaxAge($maxAge);
+        $response->setSharedMaxAge($maxAge);
         $response->setEtag(hash('sha256', $content));
-        $response->headers->addCacheControlDirective('stale-while-revalidate', self::WIDGET_CACHE_STALE_WHILE_REVALIDATE);
+        $response->headers->addCacheControlDirective('stale-while-revalidate', $staleWhileRevalidate);
+        if ($immutable) {
+            $response->headers->addCacheControlDirective('immutable');
+        }
         $response->headers->set('Vary', 'Accept-Encoding');
 
         if ($lastModified !== null) {
