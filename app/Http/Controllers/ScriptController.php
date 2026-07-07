@@ -11,6 +11,9 @@ use App\Models\CompanyFeature;
 
 class ScriptController extends Controller
 {
+    private const WIDGET_CACHE_MAX_AGE = 86400;
+    private const WIDGET_CACHE_STALE_WHILE_REVALIDATE = 604800;
+
     public function serveScript(Request $request, $ulid, $tool)
     {
 
@@ -134,10 +137,13 @@ class ScriptController extends Controller
         $scriptTemplate = Storage::get($scriptPath);
         // UUID einfügen, falls nötig
         $customScript = str_replace('{{ulid}}', $ulid, $scriptTemplate);
+        $lastModified = Storage::lastModified($scriptPath);
 
         // Header setzen und das JavaScript ausliefern
-        return response($customScript, 200)
+        $response = response($customScript, 200)
             ->header('Content-Type', 'application/javascript');
+
+        return $this->withWidgetCacheHeaders($request, $response, $customScript, $lastModified ?: null);
     }
 
     // Liefert das CSS aus
@@ -187,6 +193,26 @@ class ScriptController extends Controller
         $mergedCss = $baseCss . "\n\n/* Custom Styles */\n" . $customCss;
 
         // Liefere das CSS aus
-        return Response::make($mergedCss, 200, ['Content-Type' => 'text/css']);
+        $response = Response::make($mergedCss, 200, ['Content-Type' => 'text/css']);
+
+        return $this->withWidgetCacheHeaders($request, $response, $mergedCss, filemtime($cssPath) ?: null);
+    }
+
+    private function withWidgetCacheHeaders(Request $request, $response, string $content, ?int $lastModified = null)
+    {
+        $response->setPublic();
+        $response->setMaxAge(self::WIDGET_CACHE_MAX_AGE);
+        $response->setSharedMaxAge(self::WIDGET_CACHE_MAX_AGE);
+        $response->setEtag(hash('sha256', $content));
+        $response->headers->addCacheControlDirective('stale-while-revalidate', self::WIDGET_CACHE_STALE_WHILE_REVALIDATE);
+        $response->headers->set('Vary', 'Accept-Encoding');
+
+        if ($lastModified !== null) {
+            $response->setLastModified(new \DateTimeImmutable('@' . $lastModified));
+        }
+
+        $response->isNotModified($request);
+
+        return $response;
     }
 }
