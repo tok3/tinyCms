@@ -13,6 +13,24 @@ class ScriptController extends Controller
 {
     private const WIDGET_CACHE_MAX_AGE = 86400;
     private const WIDGET_CACHE_STALE_WHILE_REVALIDATE = 604800;
+    private const WIDGET_ICON_NAMES = [
+        'help',
+        'hide-help',
+        'scroll-down',
+        'scroll-up',
+        'go-to-top',
+        'go-to-bottom',
+        'tab',
+        'tab-back',
+        'show-numbers',
+        'number',
+        'hide-numbers',
+        'clear-input',
+        'enter',
+        'reload',
+        'stop',
+        'exit',
+    ];
 
     public function serveScript(Request $request, $ulid, $tool)
     {
@@ -137,6 +155,7 @@ class ScriptController extends Controller
         $scriptTemplate = Storage::get($scriptPath);
         // UUID einfügen, falls nötig
         $customScript = str_replace('{{ulid}}', $ulid, $scriptTemplate);
+        $customScript = $this->injectWidgetIconSpriteLoader($customScript);
         $lastModified = Storage::lastModified($scriptPath);
 
         // Header setzen und das JavaScript ausliefern
@@ -144,6 +163,34 @@ class ScriptController extends Controller
             ->header('Content-Type', 'application/javascript');
 
         return $this->withWidgetCacheHeaders($request, $response, $customScript, $lastModified ?: null);
+    }
+
+    public function serveIconSprite(Request $request)
+    {
+        $sprite = $this->buildWidgetIconSprite();
+        if ($sprite === null) {
+            return response('Icon sprite not found', 404);
+        }
+
+        $lastModified = $this->getWidgetIconSpriteLastModified();
+        $response = response($sprite, 200)
+            ->header('Content-Type', 'image/svg+xml; charset=UTF-8')
+            ->header('Access-Control-Allow-Origin', '*');
+
+        return $this->withWidgetCacheHeaders($request, $response, $sprite, $lastModified);
+    }
+
+    private function injectWidgetIconSpriteLoader(string $script): string
+    {
+        if (!str_contains($script, 'ini-bf-voice-navigation-svg')) {
+            return $script;
+        }
+
+        $loader = <<<'JS'
+(()=>{if(window.__iniBfIconSpriteLoading)return;window.__iniBfIconSpriteLoading=!0;const s=document.currentScript,u=new URL("/service/fixstern-icons.svg",s&&s.src?s.src:window.location.href).href,i=t=>{if(!t||document.getElementById("ini-bf-icon-sprite"))return;const e=document.createElement("div");e.id="ini-bf-icon-sprite";e.setAttribute("aria-hidden","true");e.style.display="none";e.innerHTML=t;(document.body||document.documentElement).prepend(e)};fetch(u,{mode:"cors",credentials:"omit"}).then(t=>t.ok?t.text():null).then(t=>{document.body?i(t):document.addEventListener("DOMContentLoaded",()=>i(t),{once:!0})}).catch(()=>{})})();
+JS;
+
+        return $loader . $script;
     }
 
     // Liefert das CSS aus
@@ -196,6 +243,82 @@ class ScriptController extends Controller
         $response = Response::make($mergedCss, 200, ['Content-Type' => 'text/css']);
 
         return $this->withWidgetCacheHeaders($request, $response, $mergedCss, filemtime($cssPath) ?: null);
+    }
+
+    private function buildWidgetIconSprite(): ?string
+    {
+        $symbols = [];
+
+        foreach (self::WIDGET_ICON_NAMES as $iconName) {
+            $path = public_path("assets/css/svgs/{$iconName}.svg");
+            if (!file_exists($path)) {
+                continue;
+            }
+
+            $symbol = $this->svgFileToSymbol($path, $iconName);
+            if ($symbol !== null) {
+                $symbols[] = $symbol;
+            }
+        }
+
+        if (empty($symbols)) {
+            return null;
+        }
+
+        return '<svg xmlns="http://www.w3.org/2000/svg" style="display:none">' . "\n"
+            . implode("\n", $symbols)
+            . "\n</svg>\n";
+    }
+
+    private function svgFileToSymbol(string $path, string $iconName): ?string
+    {
+        $svg = file_get_contents($path);
+        if ($svg === false) {
+            return null;
+        }
+
+        $svg = preg_replace('/<\?xml.*?\?>/s', '', $svg);
+        $svg = preg_replace('/<!--.*?-->/s', '', $svg);
+        $viewBox = '0 0 512 512';
+
+        if (preg_match('/<svg\b[^>]*\bviewBox=(["\'])(.*?)\1/is', $svg, $viewBoxMatch)) {
+            $viewBox = trim($viewBoxMatch[2]);
+        }
+
+        if (!preg_match('/<svg\b[^>]*>(.*)<\/svg>/is', $svg, $contentMatch)) {
+            return null;
+        }
+
+        $content = trim($contentMatch[1]);
+        if ($content === '') {
+            return null;
+        }
+
+        return sprintf(
+            '<symbol id="%s" viewBox="%s">%s</symbol>',
+            htmlspecialchars($iconName, ENT_QUOTES, 'UTF-8'),
+            htmlspecialchars($viewBox, ENT_QUOTES, 'UTF-8'),
+            $content
+        );
+    }
+
+    private function getWidgetIconSpriteLastModified(): ?int
+    {
+        $lastModified = null;
+
+        foreach (self::WIDGET_ICON_NAMES as $iconName) {
+            $path = public_path("assets/css/svgs/{$iconName}.svg");
+            if (!file_exists($path)) {
+                continue;
+            }
+
+            $mtime = filemtime($path);
+            if ($mtime !== false) {
+                $lastModified = max($lastModified ?? $mtime, $mtime);
+            }
+        }
+
+        return $lastModified;
     }
 
     private function withWidgetCacheHeaders(Request $request, $response, string $content, ?int $lastModified = null)
