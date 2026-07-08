@@ -115,14 +115,14 @@ class FixsternController extends Controller
         $data = $request->validate([
             'ulid' => 'required|string|max:32',
             'urls' => 'required|array|max:100',
-            'urls.*' => 'required|url|max:2048',
+            'urls.*' => 'required|url|max:2047',
             'lang' => 'required|string|in:en,de,fr,it,da,pl', // Ensure lang is validated
         ]);
 
 
 
 
-        $urls = $data['urls'];
+        $urls = array_values(array_unique($data['urls']));
         $ulid = $data['ulid'];
         $lang = $data['lang'];
         $company = Company::where('ulid', $ulid)->first();
@@ -133,13 +133,41 @@ class FixsternController extends Controller
             ], 404);
         }
         $descriptions = [];
+        $newImages = [];
+        $now = now();
 
-        // Generate descriptions (placeholder logic)
+        $imagesByUrl = Imagetag::withTrashed()
+            ->where('ulid', $ulid)
+            ->where('lang', $lang)
+            ->whereIn('url', $urls)
+            ->get()
+            ->keyBy('url');
+
+        $pseudo = 'Bild Beschriftung ';
+        switch($lang){
+            case 'en':
+                $pseudo = 'Image description ';
+                break;
+            case 'fr':
+                $pseudo = 'Description de l\'image ';
+                break;
+            case 'it':
+                $pseudo = 'Descrizione dell\'immagine ';
+                break;
+            case 'da':
+                $pseudo = 'Beskrivelse af billedet ';
+                break;
+            case 'pl':
+                $pseudo = 'Opis obrazu ';
+                break;
+            default:
+                $pseudo = 'Bild Beschriftung ';
+                break;
+        }
+
         foreach ($urls as $url) {
-            // Replace with real image recognition API call if needed
-            $img = Imagetag::withTrashed()->where('ulid', $ulid)->where('url', $url)->where('lang', $lang)->first();
-            //\Log::info($img);
-            //\Log::info($url);
+            $img = $imagesByUrl->get($url);
+
             if($img && $img->description != ''){
                 $descriptions[] = [
                     'url' => $url,
@@ -148,46 +176,24 @@ class FixsternController extends Controller
 
             } else if($img && $img->description == ''){
                 continue;
-                $descriptions[] = [
-                    'url' => $url,
-                    'description' => 'Bild Beschriftung '.$url,
-                ];
             } else {
-                // save empty imagetag entry
-                //\Log::info("save empty imagetag entry".$url);
-                $pseudo = 'Bild Beschriftung ';
-                switch($lang){
-                    case 'en':
-                        $pseudo = 'Image description ';
-                        break;
-                    case 'fr':
-                        $pseudo = 'Description de l\'image ';
-                        break;
-                    case 'it':
-                        $pseudo = 'Descrizione dell\'immagine ';
-                        break;
-                    case 'da':
-                        $pseudo = 'Beskrivelse af billedet ';
-                        break;
-                    case 'pl':
-                        $pseudo = 'Opis obrazu ';
-                        break;
-                    default:
-                        $pseudo = 'Bild Beschriftung ';
-                        break;
-                }
+                $newImages[] = [
+                    'ulid' => $ulid,
+                    'url' => $url,
+                    'lang' => $lang,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
 
-
-                $img = new Imagetag();
-                $img->ulid = $ulid;
-                $img->url = $url;
-                $img->lang = $lang;
-                $img->save();
                 $descriptions[] = [
                     'url' => $url,
                     'description' => $pseudo.$url,
                 ];
             }
+        }
+
+        if ($newImages !== []) {
+            Imagetag::insert($newImages);
         }
 
         // Return JSON response
