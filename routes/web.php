@@ -161,8 +161,8 @@ Route::middleware(['auth', 'compurl'])->group(function () {
 
 
 use App\Http\Controllers\FixsternController;
-Route::post('/eztext', [FixsternController::class, 'eztext']);
-Route::post('/imageDescription', [FixsternController::class, 'imageDescription']);
+Route::post('/eztext', [FixsternController::class, 'eztext'])->middleware('throttle:fixstern-eztext');
+Route::post('/imageDescription', [FixsternController::class, 'imageDescription'])->middleware('throttle:fixstern-image-description');
 
 use App\Http\Controllers\TestController;
 

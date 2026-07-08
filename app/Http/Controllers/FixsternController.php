@@ -113,17 +113,18 @@ class FixsternController extends Controller
         //\Log::info($request);
         // Validate the request
         $data = $request->validate([
-            'urls' => 'required|array',
-            'urls.*' => 'required|url',
+            'ulid' => 'required|string|max:32',
+            'urls' => 'required|array|max:100',
+            'urls.*' => 'required|url|max:2048',
             'lang' => 'required|string|in:en,de,fr,it,da,pl', // Ensure lang is validated
         ]);
 
 
 
 
-        $urls = $request->input('urls');
-        $ulid = $request->input('ulid');
-        $lang = $request->input('lang') ?? 'de';
+        $urls = $data['urls'];
+        $ulid = $data['ulid'];
+        $lang = $data['lang'];
         $company = Company::where('ulid', $ulid)->first();
         if (!$company) {
             return response()->json([
@@ -165,7 +166,7 @@ class FixsternController extends Controller
                     case 'it':
                         $pseudo = 'Descrizione dell\'immagine ';
                         break;
-                    case 'dk':
+                    case 'da':
                         $pseudo = 'Beskrivelse af billedet ';
                         break;
                     case 'pl':
