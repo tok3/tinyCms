@@ -13,7 +13,6 @@ use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\ReferrerController;
 use App\Http\Controllers\CouponController;
 use Illuminate\Http\Request;
-use App\Http\Controllers\ScriptController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\Pa11yUrlController;
 use App\Http\Controllers\InkluCertController;
@@ -164,16 +163,6 @@ Route::middleware(['auth', 'compurl'])->group(function () {
 use App\Http\Controllers\FixsternController;
 Route::post('/eztext', [FixsternController::class, 'eztext']);
 Route::post('/imageDescription', [FixsternController::class, 'imageDescription']);
-
-Route::get('/service/{ulid}/{tool}.js', [ScriptController::class, 'serveScript'])
-    ->name('serveScript')
-    ->middleware('service');
-
-Route::get('/service/fixstern-icons.svg', [ScriptController::class, 'serveIconSprite'])
-    ->name('serve.icons');
-
-Route::get('/service/{tool}.css', [ScriptController::class, 'serveCss'])
-    ->name('serve.css');
 
 use App\Http\Controllers\TestController;
 
