@@ -177,6 +177,8 @@ class AccessibilityScoreService
         $first = $daily[0];
         $last = $daily[count($daily) - 1];
         $trendDiff = $last['score'] - $first['score'];
+        $resolvedTotal = max(0, $first['total_errors'] - $last['total_errors']);
+        $newTotal = max(0, $last['total_errors'] - $first['total_errors']);
 
         $trendLabel = match (true) {
             //$trendDiff > 5  => 'stark verbessert',
@@ -199,9 +201,14 @@ class AccessibilityScoreService
 
             'current_errors'    => $last['total_errors'],
             'start_errors'      => $first['total_errors'],
+            'current_urls'      => $last['urls_scanned'],
+            'start_urls'        => $first['urls_scanned'],
+            'resolved_total'    => $resolvedTotal,
+            'new_total'         => $newTotal,
 
             'activity_fixed_total'      => $activityFixedTotal,
             'activity_introduced_total' => $activityIntroducedTotal,
+            'activity_value'            => $activityFixedTotal - $activityIntroducedTotal,
 
             'daily' => $daily,
         ];
