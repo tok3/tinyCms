@@ -142,10 +142,12 @@ class IncluCertController extends Controller
         }
 
         // URLs mit Statistiken laden
+        $standard = getCurrentWcagStandard($company);
+
         $urls = \DB::table('pa11y_urls as u')
-            ->leftJoin('pa11y_statistics as s', function ($join) {
+            ->leftJoin('pa11y_statistics as s', function ($join) use ($standard) {
                 $join->on('s.url_id', '=', 'u.id')
-                    ->where('s.standard', '=', getCurrentWcagStandard($company));
+                    ->where('s.standard', '=', $standard);
             })
             ->where('u.company_id', $company->id)
             ->whereNull('u.deleted_at')
@@ -157,10 +159,10 @@ class IncluCertController extends Controller
             MAX(s.scanned_at) as last_scan,
             COUNT(DISTINCT DATE(s.scanned_at)) as scan_days,
             (SELECT error_count FROM pa11y_statistics
-             WHERE url_id = u.id AND standard = '" . getCurrentWcagStandard($company) . "'
+             WHERE url_id = u.id AND standard = '" . $standard . "'
              ORDER BY scanned_at DESC LIMIT 1) as current_errors,
             (SELECT error_count FROM pa11y_statistics
-             WHERE url_id = u.id AND standard = '" . getCurrentWcagStandard($company) . "'
+             WHERE url_id = u.id AND standard = '" . $standard . "'
              ORDER BY scanned_at ASC LIMIT 1) as first_errors
         ")
             ->groupBy('u.id', 'u.url', 'u.created_at')
