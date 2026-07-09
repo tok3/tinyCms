@@ -37,7 +37,8 @@ class VerifyCustomerAccess
 
         // HTTP-Referer aus dem Request
         $httpReferrer = $request->header('referer');
-
+    /*
+    //RAUS wegen Plattenplatz (hatte 49GB gefressen)
         \Log::build(['driver' => 'single', 'path' => storage_path('logs/referers.log')])
             ->info('Incoming request', [
                 'company_id' => $company_id,
@@ -49,7 +50,7 @@ class VerifyCustomerAccess
                 'uri'        => $request->getRequestUri(),
                 'server'     => $request->server->all(),
             ]);
-
+    */
         if ($httpReferrer) {
             // Settings holen
             $settings     = $customer->settings; // relationship('settings', CompanySetting::class)
@@ -117,7 +118,7 @@ class VerifyCustomerAccess
 
         // Falls die Firma bereits max URLs hat, keine weitere speichern
         if ($urlCount >= $company->max_urls) {
-            \Log::info("Company {$company->id} hat bereits {$company->max_urls} URLs. Keine weitere URL wird gespeichert.");
+            // \Log::info("Company {$company->id} hat bereits {$company->max_urls} URLs. Keine weitere URL wird gespeichert.");
             return;
         }
 

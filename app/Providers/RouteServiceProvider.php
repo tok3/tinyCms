@@ -28,10 +28,30 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 
+        RateLimiter::for('fixstern-image-description', function (Request $request) {
+            $ulid = (string) $request->input('ulid', 'unknown');
+
+            return [
+                Limit::perMinute(240)->by($request->ip() . '|' . $ulid),
+                Limit::perMinute(2000)->by($ulid),
+            ];
+        });
+
+        RateLimiter::for('fixstern-eztext', function (Request $request) {
+            $ulid = (string) $request->input('ulid', 'unknown');
+
+            return [
+                Limit::perMinute(100)->by($request->ip() . '|' . $ulid),
+                Limit::perMinute(800)->by($ulid),
+            ];
+        });
+
         $this->routes(function () {
             Route::middleware('api')
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));
+
+            Route::group([], base_path('routes/service.php'));
 
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
