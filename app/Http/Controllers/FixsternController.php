@@ -136,8 +136,8 @@ class FixsternController extends Controller
         $newImages = [];
         $now = now();
 
-        //$imagesByUrl = Imagetag::withTrashed()
-        $imagesByUrl = Imagetag::where('ulid', $ulid)
+        $imagesByUrl = Imagetag::withTrashed()
+            ->where('ulid', $ulid)
             ->where('lang', $lang)
             ->whereIn('url', $urls)
             ->get()
