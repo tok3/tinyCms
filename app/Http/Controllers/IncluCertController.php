@@ -36,8 +36,8 @@ class IncluCertController extends Controller
             ->first();
 
         $wcagStd = $compSettings->default_standard ?? '2.1';
-        \Log::info('IncluCertController - wcagStd: ' . $compSettings->default_standard);
-        \Log::info('company-id '. $company->id);
+        //\Log::info('IncluCertController - wcagStd: ' . $compSettings->default_standard);
+        //\Log::info('company-id '. $company->id);
         if (!in_array($wcagStd, ['2.1', '2.2'])) {
             $wcagStd = '2.1';
 

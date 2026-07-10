@@ -47,7 +47,7 @@ class IncluCertBadges extends Page
 
         $metrics = app(\App\Services\AccessibilityScoreService::class)
             ->getCompanyMetrics($tenant);
-
+        \Log::info('IncluCertBadges metrics'. json_encode($metrics));
         if ($metrics) {
             $this->ulid   = $tenant->ulid;
             $this->isDemo = false;
