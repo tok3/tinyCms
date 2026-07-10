@@ -115,7 +115,7 @@ class FixsternController extends Controller
         $data = $request->validate([
             'ulid' => 'required|string|max:32',
             'urls' => 'required|array|max:100',
-            'urls.*' => 'required|url|max:2047',
+            'urls.*' => 'required|url|max:255',
             'lang' => 'required|string|in:en,de,fr,it,da,pl', // Ensure lang is validated
         ]);
 
