@@ -1,3 +1,5 @@
+@props(['product', 'interval', 'price', 'coupon' => null, 'company' => null])
+
 @php
     $modalityTexts = [
         'daily' => 'pro Tag</br>bei monatlicher Zahlung',
@@ -5,6 +7,8 @@
         'monthly' => 'pro Monat</br>bei monatlicher Zahlung',
         'one_time' => 'Einmalzahlung',
     ];
+
+    $checkoutUserEmail = auth()->user()?->email ?? session()->get('cached_user.email', '');
 @endphp
 
 
@@ -29,13 +33,13 @@
         <div class="col-sm-6 mb-4">
 
 
-            @php($company = session()->get('cached_user')['tenant'])
+            @php($company = $company ?? session()->get('cached_user.tenant'))
 
 
             @if ($company && $company->contracts()->doesntExist())
 
                 <input type="hidden" name="firstContract" value="1">
-                <input type="hidden" name="user[email]" value="{{\Auth::user()->email}}">
+                <input type="hidden" name="user[email]" value="{{ $checkoutUserEmail }}">
                 <fieldset>
 
                     <div class="row" style="font-size: 16px;">
@@ -111,9 +115,9 @@
                     @endif
                 </fieldset>
 
-            @else
+            @elseif($company)
                 <input type="hidden" id="compName" name="company[name]" value="">
-                <input type="hidden" name="user[email]" value="{{\Auth::user()->email}}">
+                <input type="hidden" name="user[email]" value="{{ $checkoutUserEmail }}">
                 <div class="h6 d mb-2"> {{ $company->billing_via_agency ? '' : 'Rechnungsempfänger' }}</div>
                 <div id="customer-name"></div><br>
                 {!!   $company->billing_via_agency ? '<strong>Kunde / Projektname / Domain</strong>' : '' !!}
@@ -124,6 +128,10 @@
                 <div id="customer-email"></div>
 
                 <div id="company-email"></div>
+            @else
+                <div class="alert alert-warning">
+                    Für diese Bestellung konnte kein Mandant ermittelt werden. Bitte öffnen Sie das Upgrade erneut aus dem Dashboard.
+                </div>
             @endif
 
         </div>

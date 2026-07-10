@@ -60,7 +60,9 @@
 
                 <form action="{{ route('checkout.plan')}}" id="checkout" method="POST">
                     @php
-                        $cachedUser = session('cached_user');
+                        $cachedUser = $cachedUser ?? session('cached_user', []);
+                        $cachedCompany = data_get($cachedUser, 'company', []);
+                        $companyId = data_get($cachedCompany, 'id');
 
                     @endphp
 
@@ -76,13 +78,16 @@
                         <input type="hidden" name="product_id" value="{{ session('product_id') }}">
                     @endif
 
-                    <input type="hidden" name="company_id" value="{{$cachedUser['company']['id']}}">
+                    @if($companyId)
+                        <input type="hidden" name="company_id" value="{{ $companyId }}">
+                    @endif
 
                     <x-site-partials.checkout.summary-upgrade
                         :product="$product"
                         :interval="$interval"
                         :price="$price"
                         :coupon="$coupon"
+                        :company="$company ?? null"
                     />
 
                     <button type="button" id="upgrade" class="btn btn-primary mb-2 me-1 " style="float:right;">Jetzt kostenpflichtig bestellen</button>
@@ -134,10 +139,10 @@
 
                 $('#compName').val  ("{{ $cachedUser['name'] ?? '' }}");
                 $('#customer-name').text("{{ $cachedUser['name'] ?? '' }}");
-                $('#company-name').text("{{ $cachedUser['company']['name'] ?? '' }}");
-                $('#customer-address').text("{{ $cachedUser['company']['str'] ?? '' }}");
-                $('#customer-plz-ort').text("{{ $cachedUser['company']['plz'] ?? '' }} {{ $cachedUser['company']['ort'] ?? '' }}");
-                $('#company-email').text("{{ $cachedUser['company']['email'] ?? '' }}");
+                $('#company-name').text("{{ data_get($cachedCompany, 'name', '') }}");
+                $('#customer-address').text("{{ data_get($cachedCompany, 'str', '') }}");
+                $('#customer-plz-ort').text("{{ data_get($cachedCompany, 'plz', '') }} {{ data_get($cachedCompany, 'ort', '') }}");
+                $('#company-email').text("{{ data_get($cachedCompany, 'email', '') }}");
 
                 let fullName = "{{ $cachedUser['name'] ?? '' }}".trim();
 
@@ -156,7 +161,7 @@
                 $('#vorname').val(vorname);
                 $('#name').val(nachname);
 
-                let compName = "{{ $cachedUser['company']['name'] ?? '' }}";
+                let compName = "{{ data_get($cachedCompany, 'name', '') }}";
 
                 // Wenn der Name mit "Trial-" + Zahl beginnt → leeren
                 if (/^Trial-\d+$/i.test(compName)) {
@@ -164,10 +169,10 @@
                 }
 
                 $('#compName').val(compName);
-                $('#str').val("{{ $cachedUser['company']['str'] ?? '' }}");
-                $('#plz').val("{{ $cachedUser['company']['plz'] ?? '' }}");
-                $('#ort').val("{{ $cachedUser['company']['ort'] ?? '' }}");
-                $('#compEmail').val("{{ $cachedUser['company']['email'] ?? '' }}");
+                $('#str').val("{{ data_get($cachedCompany, 'str', '') }}");
+                $('#plz').val("{{ data_get($cachedCompany, 'plz', '') }}");
+                $('#ort').val("{{ data_get($cachedCompany, 'ort', '') }}");
+                $('#compEmail').val("{{ data_get($cachedCompany, 'email', '') }}");
 
             });
 

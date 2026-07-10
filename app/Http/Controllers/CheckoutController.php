@@ -171,9 +171,9 @@ class CheckoutController extends MolliePaymentController
             if (auth()->check())
             {
 
-                if (isset(session()->get('cached_user')['tenant']))
+                if ($tenant = data_get(session('cached_user'), 'tenant'))
                 {
-                    \App\Helpers\CompanyHelper::setCurrentCompany(session()->get('cached_user')['tenant']);
+                    \App\Helpers\CompanyHelper::setCurrentCompany($tenant);
                 }
 
                 $company = \App\Helpers\CompanyHelper::currentCompany() ?? auth()->user()->companies->first();
@@ -552,12 +552,33 @@ class CheckoutController extends MolliePaymentController
 
         session()->put('selectedProductSelection', "{$product->id}:{$interval}");
 
+        $user = $request->user();
+        $company = CompanyHelper::currentCompany();
+
+        $cachedUser = [
+            'name' => $user?->name,
+            'email' => $user?->email,
+            'company' => [
+                'id' => $company?->id,
+                'name' => $company?->name,
+                'str' => $company?->str,
+                'plz' => $company?->plz,
+                'ort' => $company?->ort,
+                'email' => $company?->email,
+            ],
+            'tenant' => $company,
+        ];
+
+        session()->put('cached_user', $cachedUser);
+
         // Weitergabe an View
         return view('checkout-upgrade', [
             'product' => $product,
             'interval' => $interval,
             'price' => $priceFormatted,
             'coupon' => $couponCode,
+            'cachedUser' => $cachedUser,
+            'company' => $company,
             // ggf. weitere Variablen wie Trial-Ends, etc.
         ]);
     }
