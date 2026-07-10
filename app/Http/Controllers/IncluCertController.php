@@ -38,8 +38,9 @@ class IncluCertController extends Controller
         $wcagStd = $compSettings->default_standard ?? '2.1';
         if (!in_array($wcagStd, ['2.1', '2.2'])) {
             $wcagStd = '2.1';
+            \Log::info('IncluCertController - wcagStd not in array: ' . $wcagStd);
         }
-
+        \Log::info('IncluCertController - wcagStd: ' . $wcagStd);
         $metrics = $scoreService->getCompanyMetrics($company);
 
         if (!$metrics)
