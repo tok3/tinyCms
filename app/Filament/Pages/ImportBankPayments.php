@@ -58,7 +58,10 @@ class ImportBankPayments extends Page
                 ->with('error', 'Keine Daten zum Verarbeiten gefunden. Bitte laden Sie die CSV erneut hoch.');
         }
 
-        $pay = $request->input('pay', []);     // [invoice_id => buchungsdatum als String "d.m.Y"]
+        // Die Auswahl wird nach Zeilennummer übermittelt. Eine Rechnung kann in
+        // einem Kontoauszug mehrfach vorkommen; invoice_id als Array-Key würde
+        // solche Zeilen überschreiben.
+        $pay = (array) $request->input('pay', []); // [row_number => buchungsdatum als String "d.m.Y"]
         // remove[] kommt aus HTML immer als Strings; wir normalisieren auf Strings,
         // damit der Strict-Vergleich in in_array() zuverlässig funktioniert.
         $remove = array_map('strval', (array) $request->input('remove', [])); // Array von row_number (Strings)
@@ -76,12 +79,31 @@ class ImportBankPayments extends Page
             }
 
             // 2. Wenn Rechnung markiert zum Bezahlen → eintragen
-            if ($match['invoice_id'] && isset($pay[$match['invoice_id']])) {
+            if ($match['invoice_id'] && array_key_exists($rowNumber, $pay)) {
                 $invoice = Invoice::find($match['invoice_id']);
 
-                if ($invoice && $invoice->status === 'sent') {
-                    $dateStr = $pay[$match['invoice_id']]; // z.B. "19.12.2025"
-                    $paymentDate = Carbon::createFromFormat('d.m.Y', $dateStr)->format('Y-m-d');
+                // Die Auswahl im Import ist eine bewusste manuelle Bestätigung.
+                // Deshalb darf der Rechnungsbetrag abweichen. Bereits bezahlte
+                // und stornierte Rechnungen bleiben aus Sicherheitsgründen
+                // unverändert.
+                if ($invoice && !in_array($invoice->status, ['paid', 'canceled'], true)) {
+                    $dateStr = trim((string) $pay[$rowNumber]); // z.B. "19.12.2025"
+
+                    try {
+                        $paymentDate = Carbon::createFromFormat('d.m.Y', $dateStr)->format('Y-m-d');
+                    } catch (\Throwable $e) {
+                        // Keine Rechnung ohne gültiges Zahlungsdatum verbuchen.
+                        // Die Zeile bleibt dadurch im Rest-CSV und kann korrigiert
+                        // erneut importiert werden.
+                        $paymentDate = null;
+                    }
+
+                    if ($paymentDate === null) {
+                        if (isset($originalRecords[$originalIndex])) {
+                            $unprocessedRows[] = $originalRecords[$originalIndex];
+                        }
+                        continue;
+                    }
 
                     $invoice->update([
                         'status' => 'paid',
@@ -187,6 +209,7 @@ class ImportBankPayments extends Page
             $rawDate = $this->getCsvValue($record, [
                 'Buchungstag',
                 'Buchungsdatum',
+                'Buchung',
                 'Datum',
                 'Valuta',
                 'Value date',

@@ -29,6 +29,18 @@ class EditInvoice extends EditRecord
         return auth()->check() && auth()->user()->is_admin;
     }
 
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // Absicherung beim Speichern: Auch wenn das Livewire-Event des
+        // DatePickers im Browser nicht ausgeführt wurde, bleibt der Status
+        // bei einem Zahlungseingang korrekt.
+        if (filled($data['payment_date'] ?? null)) {
+            $data['status'] = 'paid';
+        }
+
+        return $data;
+    }
+
     protected function getHeaderActions(): array
     {
         $record = $this->record;

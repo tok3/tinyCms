@@ -128,9 +128,9 @@
                             </td>
                             <td class="px-4 py-3 text-center">
                                 @if($match['perfect_match'] && !($match['already_paid'] ?? false))
-                                    <input type="checkbox" name="pay[{{ $match['invoice_id'] }}]" value="{{ $match['buchungsdatum'] }}" checked>
+                                    <input type="checkbox" name="pay[{{ $match['row_number'] }}]" value="{{ $match['buchungsdatum'] }}" checked>
                                 @elseif($match['invoice_id'] && !($match['already_paid'] ?? false))
-                                    <input type="checkbox" name="pay[{{ $match['invoice_id'] }}]" value="{{ $match['buchungsdatum'] }}">
+                                    <input type="checkbox" name="pay[{{ $match['row_number'] }}]" value="{{ $match['buchungsdatum'] }}">
                                 @else
                                     —
                                 @endif

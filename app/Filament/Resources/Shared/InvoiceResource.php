@@ -19,6 +19,8 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ViewField;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Forms\Components\Placeholder;
 use App\Forms\Components\InfoBox;
 use App\Helpers\CompanyHelper;
@@ -193,21 +195,10 @@ class InvoiceResource extends BaseResource
                     Group::make([
                         DatePicker::make('payment_date')
                             ->label('Zahlungseingang')
-                            ->reactive() // macht das Feld „Livewire-reaktiv“
-                            ->afterStateUpdated(function (string $state, callable $set) {
-                                // $state ist der neue Carbon-/Date-String
-                                // hier entscheiden wir, welche Option ausgewählt wird
-                                $date = \Carbon\Carbon::parse($state);
-
-                                if ($date->isPast())
-                                {
-                                    // wenn Datum in der Vergangenheit → Option "abgelaufen"
-                                    $set('status', 'done');
-                                }
-                                else
-                                {
-                                    // sonst → Option "pending"
-                                    $set('status', 'done');
+                            ->live()
+                            ->afterStateUpdated(function (Set $set, $state): void {
+                                if (filled($state)) {
+                                    $set('status', 'paid');
                                 }
                             }),
 
@@ -219,8 +210,13 @@ class InvoiceResource extends BaseResource
                                 'paid' => 'Bezahlt',
                                 'canceled' => 'Storniert',
                             ])
-                            // optional: damit Live-Updates direkt im UI zu sehen sind
-                            ->reactive(),
+                            ->native() // <- ohne das aktualisiert sich das JS-Select nicht live
+                            ->afterStateHydrated(function (Select $component, Get $get): void {
+                                if (filled($get('payment_date'))) {
+                                    $component->state('paid');
+                                }
+                            })
+                            ->live(),
                     ])->columns(3)
                         ->label('Rechnungsinformationen'),
                 ]),
