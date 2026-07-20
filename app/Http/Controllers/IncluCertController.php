@@ -9,6 +9,7 @@ use App\Services\ScoreChartService;
 use Illuminate\Http\Request;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
 
 class IncluCertController extends Controller
 {
@@ -29,6 +30,19 @@ class IncluCertController extends Controller
             abort(404);
         }
 
+
+        $compSettings = DB::table('company_settings')
+            ->where('company_id', $company->id)
+            ->first();
+
+        $wcagStd = $compSettings->default_standard ?? '2.1';
+        //\Log::info('IncluCertController - wcagStd: ' . $compSettings->default_standard);
+        //\Log::info('company-id '. $company->id);
+        if (!in_array($wcagStd, ['2.1', '2.2'])) {
+            $wcagStd = '2.1';
+
+        }
+        //\Log::info('IncluCertController - wcagStd: ' . $wcagStd);
         $metrics = $scoreService->getCompanyMetrics($company);
 
         if (!$metrics)
@@ -64,6 +78,7 @@ class IncluCertController extends Controller
                 'url' => $incluCertUrl,
                 'qr' => 'data:image/svg+xml;base64,' . $qrSvg,
                 'monitoring_status' => $monitoringStatus,
+                'wcagStd' => $wcagStd,
             ]);
         }
 

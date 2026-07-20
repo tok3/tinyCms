@@ -632,7 +632,7 @@
                     <span class="akb-footer-icon">${ICONS.shield}</span>
                     <span>Standard</span>
                 </div>
-                <strong>WCAG 2.1</strong>
+                <strong>WCAG ${data.wcagStd}</strong>
             </div>
             <div>
                 <div class="akb-footer-line">
