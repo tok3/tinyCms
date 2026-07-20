@@ -190,7 +190,6 @@ class InvoiceResource extends BaseResource
                         }),
                 ])->label('Zusätzliche Informationen'),
 
-
                 Card::make([
                     Group::make([
                         DatePicker::make('payment_date')
