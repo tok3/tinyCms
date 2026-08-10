@@ -499,7 +499,56 @@ class InvoiceResource extends BaseResource
                     ->sortable(),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Status')
+                    ->options([
+                        'draft' => 'Entwurf',
+                        'sent' => 'Gesendet',
+                        'paid' => 'Bezahlt',
+                        'canceled' => 'Storniert',
+                    ]),
+                Tables\Filters\Filter::make('date_range')
+                    ->label('Datumsbereich')
+                    ->form([
+                        Select::make('date_type')
+                            ->label('Datum bezieht sich auf')
+                            ->options([
+                                'issue_date' => 'Erstellt',
+                                'due_date' => 'Fälligkeit',
+                                'payment_date' => 'Zahlungseingang',
+                            ])
+                            ->default('due_date')
+                            ->required(),
+                        \Filament\Forms\Components\Grid::make(2)
+                            ->schema([
+                                DatePicker::make('from')
+                                    ->label('Von')
+                                    ->native(false)
+                                    ->displayFormat('d.m.y')
+                                    ->format('Y-m-d')
+                                    ->suffixIcon('heroicon-m-calendar-days'),
+                                DatePicker::make('until')
+                                    ->label('Bis')
+                                    ->native(false)
+                                    ->displayFormat('d.m.y')
+                                    ->format('Y-m-d')
+                                    ->suffixIcon('heroicon-m-calendar-days'),
+                            ]),
+                    ])
+                    ->query(function ($query, array $data) {
+                        $dateColumn = match ($data['date_type'] ?? 'due_date') {
+                            'issue_date', 'due_date', 'payment_date' => $data['date_type'],
+                            default => 'due_date',
+                        };
+
+                        if (filled($data['from'] ?? null)) {
+                            $query->whereDate($dateColumn, '>=', $data['from']);
+                        }
+
+                        if (filled($data['until'] ?? null)) {
+                            $query->whereDate($dateColumn, '<=', $data['until']);
+                        }
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()->visible(fn() => auth()->user()->is_admin == 1),
