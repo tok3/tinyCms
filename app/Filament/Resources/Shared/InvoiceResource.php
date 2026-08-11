@@ -551,7 +551,7 @@ class InvoiceResource extends BaseResource
                                             ->icon('heroicon-m-calendar-days')
                                             ->tooltip('Kalender öffnen')
                                             ->livewireClickHandlerEnabled(false)
-                                            ->alpineClickHandler('$refs.button.click()')
+                                            ->alpineClickHandler('$el.closest(\'.fi-input-wrp\').querySelector(\'.fi-fo-date-time-picker button\').click()')
                                     ),
                                 DatePicker::make('until')
                                     ->label('Bis')
@@ -563,7 +563,7 @@ class InvoiceResource extends BaseResource
                                             ->icon('heroicon-m-calendar-days')
                                             ->tooltip('Kalender öffnen')
                                             ->livewireClickHandlerEnabled(false)
-                                            ->alpineClickHandler('$refs.button.click()')
+                                            ->alpineClickHandler('$el.closest(\'.fi-input-wrp\').querySelector(\'.fi-fo-date-time-picker button\').click()')
                                     ),
                             ]),
                     ])
