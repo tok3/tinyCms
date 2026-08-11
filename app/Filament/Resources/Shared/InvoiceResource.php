@@ -506,7 +506,27 @@ class InvoiceResource extends BaseResource
                         'sent' => 'Gesendet',
                         'paid' => 'Bezahlt',
                         'canceled' => 'Storniert',
-                    ]),
+                        'overdue' => 'Überfällig',
+                    ])
+                    ->query(function ($query, array $data) {
+                        $selectedStatus = $data['value'] ?? null;
+
+                        if ($selectedStatus === 'overdue') {
+                            return $query
+                                ->whereNotNull('due_date')
+                                ->whereDate('due_date', '<', today())
+                                ->whereNull('payment_date')
+                                ->where(function ($query) {
+                                    $query->whereNull('status')
+                                        ->orWhere('status', '!=', 'paid');
+                                });
+                        }
+
+                        return $query->when(
+                            filled($selectedStatus),
+                            fn ($query) => $query->where('status', $selectedStatus)
+                        );
+                    }),
                 Tables\Filters\Filter::make('date_range')
                     ->label('Datumsbereich')
                     ->form([
@@ -526,13 +546,25 @@ class InvoiceResource extends BaseResource
                                     ->native(false)
                                     ->displayFormat('d.m.y')
                                     ->format('Y-m-d')
-                                    ->suffixIcon('heroicon-m-calendar-days'),
+                                    ->suffixAction(
+                                        \Filament\Forms\Components\Actions\Action::make('open_from_date_picker')
+                                            ->icon('heroicon-m-calendar-days')
+                                            ->tooltip('Kalender öffnen')
+                                            ->livewireClickHandlerEnabled(false)
+                                            ->alpineClickHandler('$refs.button.click()')
+                                    ),
                                 DatePicker::make('until')
                                     ->label('Bis')
                                     ->native(false)
                                     ->displayFormat('d.m.y')
                                     ->format('Y-m-d')
-                                    ->suffixIcon('heroicon-m-calendar-days'),
+                                    ->suffixAction(
+                                        \Filament\Forms\Components\Actions\Action::make('open_until_date_picker')
+                                            ->icon('heroicon-m-calendar-days')
+                                            ->tooltip('Kalender öffnen')
+                                            ->livewireClickHandlerEnabled(false)
+                                            ->alpineClickHandler('$refs.button.click()')
+                                    ),
                             ]),
                     ])
                     ->query(function ($query, array $data) {
