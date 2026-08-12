@@ -12,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Contracts\HasTable;
 use Filament\Forms\Components\Card;
 use Filament\Forms\Components\Group;
 use Filament\Forms\Components\TextInput;
@@ -21,9 +22,9 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ViewField;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Maatwebsite\Excel\Excel;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Maatwebsite\Excel\Excel;
 use Filament\Forms\Components\Placeholder;
 use App\Forms\Components\InfoBox;
 use App\Helpers\CompanyHelper;
@@ -502,14 +503,78 @@ class InvoiceResource extends BaseResource
                     ->sortable(),
             ])
             ->headerActions([
-                ExportAction::make('exportInvoicesCsv')
-                    ->label('Gefilterte Rechnungen als CSV')
+                Action::make('exportInvoicesCsv')
+                    ->label('CSV (UTF-8)')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('gray')
+                    ->visible(function (HasTable $livewire): bool {
+                        $filters = $livewire->tableFilters ?? [];
+
+                        return filled(data_get($filters, 'status.value'))
+                            || filled(data_get($filters, 'date_range.from'))
+                            || filled(data_get($filters, 'date_range.until'));
+                    })
+                    ->action(function (HasTable $livewire) {
+                        $records = $livewire->getFilteredTableQuery()
+                            ->with('company')
+                            ->get();
+
+                        $quote = static fn ($value): string => '"' . str_replace('"', '""', (string) ($value ?? '')) . '"';
+                        $line = static fn (array $values): string => implode(';', array_map($quote, $values)) . "\r\n";
+                        $formatDate = static fn ($value): string => blank($value)
+                            ? ''
+                            : Carbon::parse($value)->format('d.m.Y');
+
+                        return response()->streamDownload(
+                            static function () use ($records, $line, $formatDate): void {
+                                // The BOM must be the first bytes so Windows Excel
+                                // reliably recognizes the following content as UTF-8.
+                                echo "\xEF\xBB\xBF";
+                                echo "sep=;\r\n";
+                                echo $line([
+                                    'id', 'Kd-Nr.', 'Rg-Nr', 'Rechnung für', 'Firma', 'Plz', 'Ort',
+                                    'Betrag', 'Status', 'Erstellt', 'Fälligkeit', 'Zahlungsdatum',
+                                ]);
+
+                                foreach ($records as $record) {
+                                    echo $line([
+                                        $record->id,
+                                        $record->company?->kd_nr,
+                                        $record->invoice_number,
+                                        data_get($record->data, 'meta.billed_for_company_name') ?: '-',
+                                        $record->company?->name,
+                                        $record->company?->plz,
+                                        $record->company?->ort,
+                                        number_format((float) $record->total_gross, 2, ',', '.'),
+                                        $record->status,
+                                        $formatDate($record->issue_date),
+                                        $formatDate($record->due_date),
+                                        $formatDate($record->payment_date),
+                                    ]);
+                                }
+                            },
+                            'rechnungen_excel_utf8_' . now()->format('Y-m-d_His') . '.csv',
+                            [
+                                'Content-Type' => 'text/csv; charset=UTF-8',
+                                'Cache-Control' => 'no-store, no-cache, must-revalidate',
+                            ],
+                        );
+                    }),
+                ExportAction::make('exportInvoicesExcel')
+                    ->label('Excel (.xlsx)')
+                    ->icon('heroicon-o-table-cells')
+                    ->color('gray')
+                    ->visible(function (HasTable $livewire): bool {
+                        $filters = $livewire->tableFilters ?? [];
+
+                        return filled(data_get($filters, 'status.value'))
+                            || filled(data_get($filters, 'date_range.from'))
+                            || filled(data_get($filters, 'date_range.until'));
+                    })
                     ->exports([
-                        ExcelExport::make('invoices_csv')
+                        ExcelExport::make('invoices_xlsx')
                             ->fromTable()
-                            ->withWriterType(Excel::CSV)
+                            ->withWriterType(Excel::XLSX)
                             ->withFilename(fn () => 'rechnungen_' . now()->format('Y-m-d_His')),
                     ]),
             ])
