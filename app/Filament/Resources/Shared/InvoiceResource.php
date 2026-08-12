@@ -21,6 +21,9 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ViewField;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Maatwebsite\Excel\Excel;
 use Filament\Forms\Components\Placeholder;
 use App\Forms\Components\InfoBox;
 use App\Helpers\CompanyHelper;
@@ -497,6 +500,18 @@ class InvoiceResource extends BaseResource
                     ->label('Zahlungsdatum')
                     ->searchable()
                     ->sortable(),
+            ])
+            ->headerActions([
+                ExportAction::make('exportInvoicesCsv')
+                    ->label('Gefilterte Rechnungen als CSV')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('gray')
+                    ->exports([
+                        ExcelExport::make('invoices_csv')
+                            ->fromTable()
+                            ->withWriterType(Excel::CSV)
+                            ->withFilename(fn () => 'rechnungen_' . now()->format('Y-m-d_His')),
+                    ]),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
