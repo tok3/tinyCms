@@ -107,7 +107,7 @@
                     @if($declaration->customer_privacy_declaration_url != '')
                     <a class="link-primary link-underline-primary" href="{{ $declaration->customer_privacy_declaration_url }}" target="_blank" rel="noopener noreferrer">Datenschutzhinweise {{ $company->name }}</a><br><br>
                     @endif
-                    <a class="link-primary link-underline-primary" href="https://aktion-barrierefrei.org/datenschutzerklaerung" target="_blank" rel="noopener noreferrer">Datenschutzerklärung des Dienstleisters Aktion-Barrierefrei</a><br><br>
+                    <a class="link-primary link-underline-primary" href="https://aktion-barrierefrei.org/privacy" target="_blank" rel="noopener noreferrer">Datenschutzerklärung des Dienstleisters Aktion-Barrierefrei</a><br><br>
                 </div>
             <div class="form-check mb-3">
                 <input
