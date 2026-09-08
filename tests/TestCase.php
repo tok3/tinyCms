@@ -17,10 +17,12 @@ abstract class TestCase extends BaseTestCase
         // Laravel Event Dispatcher deaktivieren
         Event::fake();
 
-        // Sluggable-Service für Tests mocken
-        Mockery::mock('alias:Cviebrock\EloquentSluggable\Services\SlugService')
-            ->shouldReceive('createSlug')
-            ->andReturn('test-slug');
+        // Sluggable-Service für Tests mocken, solange die Klasse noch nicht autoloaded ist.
+        if (! class_exists(\Cviebrock\EloquentSluggable\Services\SlugService::class, false)) {
+            Mockery::mock('alias:Cviebrock\EloquentSluggable\Services\SlugService')
+                ->shouldReceive('createSlug')
+                ->andReturn('test-slug');
+        }
     }
 
 }

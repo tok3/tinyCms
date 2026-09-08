@@ -98,7 +98,7 @@ it('does not let a busy referrer lock block javascript delivery', function () {
     Storage::put('scripts/standard.js', 'console.log("standard");');
 
     $company = makeWidgetReferrerCompany();
-    $lock = Cache::lock('widget-referrer-company:' . $company->ulid, 10);
+    $lock = Cache::lock('referrer-recording-company:' . $company->ulid, 10);
     $lock->get();
 
     try {
