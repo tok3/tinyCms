@@ -2,13 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Jobs\ProcessWidgetReferrerJob;
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
-use App\Models\Referrer;
-use App\Models\Pa11yUrl;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class VerifyCustomerAccess
@@ -37,171 +34,62 @@ class VerifyCustomerAccess
 
         // HTTP-Referer aus dem Request
         $httpReferrer = $request->header('referer');
-    /*
-    //RAUS wegen Plattenplatz (hatte 49GB gefressen)
-        \Log::build(['driver' => 'single', 'path' => storage_path('logs/referers.log')])
-            ->info('Incoming request', [
-                'company_id' => $company_id,
-                'referer'    => $request->header('referer'),
-                'origin'     => $request->header('origin'),
-                'host'       => $request->header('host'),
-                'user_agent' => $request->header('user-agent'),
-                'ip'         => $request->ip(),
-                'uri'        => $request->getRequestUri(),
-                'server'     => $request->server->all(),
-            ]);
-    */
+
         if ($httpReferrer) {
-            // Settings holen
-            $settings     = $customer->settings; // relationship('settings', CompanySetting::class)
-            $validDomains = $this->explodeValidDomains($settings->valid_domains ?? null); // -> array normalisierter Root-Domains
-            $excludeQuery = (bool) ($settings->exclude_query_string_urls ?? true);
-
-            // Root-Domain des Referrers bestimmen (z. B. example.com)
-            $refRoot = $this->parseRootDomain($httpReferrer);
-            /*if($customer->id == 503){
-
-                \Log::info($httpReferrer);
-                \Log::info($request->headers->all());
-            }*/
-
-            if ($refRoot) {
-                // Wenn valid_domains gesetzt sind → Whitelist erzwingen
-                $isAllowed = empty($validDomains) || in_array($refRoot, $validDomains, true);
-
-                if ($isAllowed) {
-                    // URL für DB normalisieren (https, Host lower, path, Query je nach Setting; #fragment wird verworfen)
-                    $refForDb = $this->normalizeUrl($httpReferrer, $excludeQuery);
-
-                    if ($refForDb) {
-                        // Lock pro (ulid, url) → verhindert Race-Conditions
-                        $lockKey = 'ref:'.$company_id.':'.sha1($refForDb);
-                        Cache::lock($lockKey, 5)->block(5, function () use ($company_id, $refForDb, $customer) {
-
-                            // Idempotent speichern
-                            $ref = Referrer::firstOrCreate(
-                                ['ulid' => $company_id, 'referrer' => $refForDb],
-                                ['count' => 0]
-                            );
-
-                            if ($ref->wasRecentlyCreated) {
-                                // Erstanlage → Scan anstoßen
-                                $this->createPa11yUrlAndScan($customer, $refForDb);
-                            } else {
-                                // Bereits vorhanden → nur Count erhöhen
-                                $ref->increment('count');
-                            }
-                        });
-                    }
-                }
-                // else: Domain nicht auf Whitelist → nichts speichern/scannen
-            }
+            $this->dispatchReferrerProcessingAfterResponse(
+                companyUlid: $company_id,
+                httpReferrer: $httpReferrer,
+                tool: $tool,
+                ip: $request->ip(),
+            );
         }
 
         return $next($request);
     }
 
-    /**
-     * Speichert die URL und startet den Scan für die neue URL.
-     *
-     * @param string $company_id
-     * @param string $httpReferrer
-     * @return void
-     */
-
-    private function createPa11yUrlAndScan($company, string $referrer): void
+    private function dispatchReferrerProcessingAfterResponse(
+        string $companyUlid,
+        string $httpReferrer,
+        ?string $tool,
+        ?string $ip,
+    ): void
     {
+        $connection = config('queue.default');
+        $driver = config("queue.connections.{$connection}.driver");
 
+        if (in_array($driver, ['sync', 'null'], true)) {
+            Log::warning('Widget referrer processing skipped because queue driver is not asynchronous.', [
+                'queue_connection' => $connection,
+                'queue_driver' => $driver,
+                'company_ulid' => $companyUlid,
+                'tool' => $tool,
+                'ip' => $ip,
+            ]);
 
-        // Prüfen, wie viele URLs die Firma bereits hat
-        $urlCount = Pa11yUrl::where('company_id', $company->id)->count();
-
-        // Falls die Firma bereits max URLs hat, keine weitere speichern
-        if ($urlCount >= $company->max_urls) {
-            // \Log::info("Company {$company->id} hat bereits {$company->max_urls} URLs. Keine weitere URL wird gespeichert.");
             return;
         }
 
-        // Überprüfen, ob die URL bereits existiert
-        $existingUrl = Pa11yUrl::where('company_id', $company->id)
-            ->where('url', $referrer)
-            ->first();
+        $eventUuid = (string) Str::uuid();
 
-        // Wenn die URL nicht existiert, erstelle sie
-        if (!$existingUrl) {
-            // Pa11yUrl erstellen
-            $url = Pa11yUrl::create([
-                'company_id' => $company->id,
-                'url' => $referrer,
-            ]);
-
-            // Artisan-Befehl im Hintergrund ausführen
-            shell_exec(getWcagScanShellCommand($url->id, getCurrentWcagStandard($company)));
-        }
+        app()->terminating(function () use ($eventUuid, $companyUlid, $httpReferrer, $tool, $ip) {
+            try {
+                ProcessWidgetReferrerJob::dispatch(
+                    $eventUuid,
+                    $companyUlid,
+                    $httpReferrer,
+                    $tool,
+                    $ip,
+                );
+            } catch (\Throwable $exception) {
+                Log::error('Widget referrer processing could not be queued.', [
+                    'event_uuid' => $eventUuid,
+                    'company_ulid' => $companyUlid,
+                    'tool' => $tool,
+                    'ip' => $ip,
+                    'exception' => $exception::class,
+                    'message' => $exception->getMessage(),
+                ]);
+            }
+        });
     }
-
-    private function parseRootDomain(?string $input): ?string
-    {
-        if (empty($input)) return null;
-
-        // Scheme sicherstellen, damit parse_url stabil ist
-        if (!preg_match('~^https?://~i', $input)) {
-            $input = 'https://' . ltrim($input);
-        }
-
-        $parts = parse_url($input);
-        if (!isset($parts['host'])) return null;
-
-        // IDN → ASCII (falls intl vorhanden), lowercase
-        $host = mb_strtolower($parts['host']);
-        if (function_exists('idn_to_ascii')) {
-            $ascii = idn_to_ascii($host, IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46);
-            if ($ascii) $host = $ascii;
-        }
-
-        // "www." weg
-        $host = preg_replace('~^www\.~i', '', $host);
-
-        // sehr einfache Root-Domain (letzte 2 Labels). Achtung: co.uk & Co. → später ggf. Domain-Parser nutzen.
-        $labels = explode('.', $host);
-        if (count($labels) >= 2) {
-            $root = implode('.', array_slice($labels, -2));
-        } else {
-            $root = $host;
-        }
-
-        return $root;
-    }
-
-    private function normalizeUrl(string $url, bool $excludeQuery): ?string
-    {
-        if (!preg_match('~^https?://~i', $url)) {
-            $url = 'https://' . ltrim($url);
-        }
-        $parts = parse_url($url);
-        if (!isset($parts['host'])) return null;
-
-        $scheme = 'https';
-        $host   = mb_strtolower($parts['host']);
-        $path   = $parts['path'] ?? '/';
-
-        // Query ggf. verwerfen
-        $query  = ($excludeQuery ? '' : (isset($parts['query']) ? '?' . $parts['query'] : ''));
-        // Fragmente ignorieren
-        return $scheme . '://' . $host . $path . $query;
-    }
-
-    private function explodeValidDomains(?string $raw): array
-    {
-        if (!$raw) return [];
-        // Komma ODER Zeilenumbrüche
-        $items = preg_split('/[\s,]+/', $raw, -1, PREG_SPLIT_NO_EMPTY);
-        $roots = [];
-        foreach ($items as $i) {
-            $root = $this->parseRootDomain($i);
-            if ($root) $roots[$root] = true; // unique via key
-        }
-        return array_keys($roots);
-    }
-
 }

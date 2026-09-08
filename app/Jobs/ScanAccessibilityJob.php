@@ -18,17 +18,19 @@ class ScanAccessibilityJob implements ShouldQueue
     public $timeout = 300;
 
     protected int $pa11yUrlId;
+    protected ?string $standard;
 
-    public function __construct(int $pa11yUrlId)
+    public function __construct(int $pa11yUrlId, ?string $standard = null)
     {
         $this->pa11yUrlId = $pa11yUrlId;
+        $this->standard = $standard ? normalizeWcagStandard($standard) : null;
         $this->onQueue('accessibility');
     }
 
     public function handle(): void
     {
         $pa11yUrl = Pa11yUrl::findOrFail($this->pa11yUrlId);
-        $standard = getCurrentWcagStandard($pa11yUrl);
+        $standard = $this->standard ?? getCurrentWcagStandard($pa11yUrl);
         $command = getWcagScanCommand($standard);
         $arguments = [
             'urls' => [$pa11yUrl->id],
