@@ -1,0 +1,9 @@
+Chrome 150.0.7871.114-1 backup made before upgrading on 2026-09-11.
+Repacked from installed files, verified against dpkg MD5 checksums.
+
+Rollback package command:
+sudo apt-get install --allow-downgrades --allow-change-held-packages /opt/akb/browser-backups/chrome-150.0.7871.114/google-chrome-stable_150.0.7871.114-1_amd64_repacked.deb
+sudo apt-mark hold google-chrome-stable
+
+Standalone browser binary:
+/opt/akb/browser-backups/chrome-150.0.7871.114/package-root/opt/google/chrome/chrome
