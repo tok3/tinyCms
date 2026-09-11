@@ -2,10 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Pa11yUrlFingerprint;
-use App\Services\AccessibilityFingerprintService;
-use App\Services\AccessibilityScanDecisionService;
-use App\Services\AccessibilitySnapshotReplicationService;
 use Illuminate\Console\Command;
 use App\Models\Company;
 use App\Models\CompanyScanLog;
@@ -48,10 +44,6 @@ class DetermineScan extends Command
         }
 
         $this->info("📢 Scanning " . count($companiesToScan) . " companies.");
-        $decisionService = app(AccessibilityScanDecisionService::class);
-        $fingerprintService = app(AccessibilityFingerprintService::class);
-        $replicationService = app(AccessibilitySnapshotReplicationService::class);
-
         // Start scanning & log results
         foreach ($companiesToScan as $company) {
             // Get the company's scan standard setting
@@ -65,68 +57,10 @@ class DetermineScan extends Command
                 continue;
             }
 
-            $plannedUrlIds = [];
-            $skippedUrls = [];
-
-            foreach ($urls as $url) {
-                $fingerprint = $fingerprintService->captureForUrl($url, $defaultStandard, [
-                    'scanner' => 'determine:scan',
-                    'scan_command' => $scanCommand,
-                    'decision_action' => 'pending',
-                    'decision_reason' => 'determine_scan_fingerprint',
-                    'notes' => 'Pre-scan fingerprint gate',
-                ]);
-
-                $decision = $decisionService->decideForUrl($url, $defaultStandard);
-                $action = $decision['action'] ?? 'scan';
-                $reason = $decision['reason'] ?? 'no_reason';
-                $this->recordFingerprintDecision($fingerprint, $decision);
-
-                if ($action === 'scan') {
-                    $plannedUrlIds[] = $url->id;
-                    continue;
-                }
-
-                $replication = $replicationService->replicateLatestSnapshot($url, $defaultStandard);
-                if (($replication['stats_copied'] ?? 0) === 0 && ($replication['issues_copied'] ?? 0) === 0) {
-                    $plannedUrlIds[] = $url->id;
-                    $this->warn("Fingerprint unchanged for URL {$url->id} ({$url->url}), but no snapshot could be copied. Falling back to scan.");
-                    continue;
-                }
-
-                $url->update(['last_checked' => now()]);
-                $skippedUrls[] = [
-                    'url_id' => $url->id,
-                    'url' => $url->url,
-                    'reason' => $reason,
-                    'rule' => $decision['matched_rule'] ?? null,
-                    'stats_copied' => $replication['stats_copied'] ?? 0,
-                    'issues_copied' => $replication['issues_copied'] ?? 0,
-                ];
-            }
-
-            if (!empty($skippedUrls)) {
-                foreach ($skippedUrls as $skippedUrl) {
-                    $this->info("↩️ Skipping URL {$skippedUrl['url_id']} ({$skippedUrl['url']}) - {$skippedUrl['reason']}" . ($skippedUrl['rule'] ? " [{$skippedUrl['rule']}]" : '') . " | copied stats={$skippedUrl['stats_copied']}, issues={$skippedUrl['issues_copied']}");
-                }
-            }
-
-            if (empty($plannedUrlIds)) {
-                $this->info("✅ Company ID {$company->id}: all URLs skipped by decision matrix.");
-
-                CompanyScanLog::updateOrCreate(
-                    ['company_id' => $company->id, 'scan_type' => 'full'],
-                    ['scanned_at' => now()]
-                );
-
-                continue;
-            }
-
-            // Determine which scan command to use
-            $arguments = [
-                'urls' => $plannedUrlIds,
-                '--skip-fingerprint' => true,
-            ];
+            // Each command checks the fingerprint under its per-URL lock immediately
+            // before scanning. Planning must never make an unfinished scan reusable.
+            $plannedUrlIds = $urls->pluck('id')->all();
+            $arguments = ['urls' => $plannedUrlIds];
 
             if ($scanCommand === 'scan:accessibility-22') {
                 $arguments['--standard'] = getWcagScanStandardOption($defaultStandard);
@@ -181,19 +115,4 @@ class DetermineScan extends Command
         return $latestFullScan->scanned_at->lte(now()->subDays($intervalDays));
     }
 
-    private function recordFingerprintDecision(Pa11yUrlFingerprint $fingerprint, array $decision): void
-    {
-        $context = $fingerprint->decision_context ?? [];
-        $context['decision'] = [
-            'action' => $decision['action'] ?? 'scan',
-            'reason' => $decision['reason'] ?? 'no_reason',
-            'matched_rule' => $decision['matched_rule'] ?? null,
-        ];
-
-        $fingerprint->update([
-            'decision_action' => $decision['action'] ?? 'scan',
-            'decision_reason' => $decision['reason'] ?? 'no_reason',
-            'decision_context' => $context,
-        ]);
-    }
 }

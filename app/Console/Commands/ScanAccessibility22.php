@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Illuminate\Support\Facades\Cache;
 use App\Services\AccessibilityFingerprintService;
 use App\Services\AccessibilitySnapshotReplicationService;
 use Illuminate\Console\Command;
@@ -25,7 +26,7 @@ class ScanAccessibility22 extends Command
         {urls?*}
         {--standard=21 : WCAG Version (21 oder 22)}
         {--warnings : Warnings bei WCAG 2.1 einbeziehen}
-        {--skip-fingerprint : Skip fingerprint gate because determine:scan already handled it}';
+        {--skip-fingerprint : Compatibility option; completed-result validation always runs}';
 
     protected $description = 'Scan URLs for accessibility issues (WCAG 2.1 mit pa11y | WCAG 2.2 mit axe-core)';
 
@@ -45,56 +46,57 @@ class ScanAccessibility22 extends Command
         foreach ($urls as $url) {
             $this->info("Scanning {$url->url} with WCAG {$standard}...");
             $normalizedStandard = $standard === '22' ? '2.2' : '2.1';
-            if (! $this->option('skip-fingerprint')) {
+            $lock = Cache::lock('accessibility-scan:url:' . $url->id, 3600);
+            $lock->block(5);
+            try {
+                $snapshots = app(AccessibilitySnapshotReplicationService::class);
+                $scanOptions = $snapshots->options($url, 'scan:accessibility-22', ['warnings' => $this->option('warnings') !== null]);
                 $fingerprint = app(AccessibilityFingerprintService::class)->captureForUrl($url, $normalizedStandard, [
                     'scanner' => 'scan:accessibility-22',
                     'scan_command' => 'scan:accessibility-22',
                     'decision_action' => 'scan',
-                    'decision_reason' => 'manual_or_scheduled_scan',
-                    'notes' => 'Standard option: ' . $standard,
+                    'decision_reason' => 'no_completed_matching_scan',
                 ]);
-
-                if ($fingerprint->fingerprint_state === 'unchanged') {
-                    $replication = app(AccessibilitySnapshotReplicationService::class)
-                        ->replicateLatestSnapshot($url, $normalizedStandard);
-
-                    if (($replication['stats_copied'] ?? 0) > 0 || ($replication['issues_copied'] ?? 0) > 0) {
-                        $this->info("Fingerprint unchanged for {$url->url}; copied last snapshot instead of rescanning.");
-                        $url->update(['last_checked' => now()]);
-                        continue;
-                    }
-
-                    $this->warn("Fingerprint unchanged for {$url->url}, but no snapshot could be copied. Falling back to scan.");
+                $replication = $snapshots->replicateLatestSnapshot($url, $normalizedStandard, $fingerprint, $scanOptions);
+                if ($replication['stats_copied'] > 0) {
+                    $url->update(['last_checked' => now()]);
+                    $this->info("Reused completed scan for {$url->url}.");
+                    continue;
                 }
+
+                $this->deleteOldIssues($url->id, $standard);
+
+                if ($standard === '22') {
+                    // Kombinierter Scan für WCAG 2.2
+                    $results1 = $this->scanWithAxeCore($url);
+
+                    $includeWarnings = $this->option('warnings') !== null;
+                    $results2 = $this->scanWithPa11y($url, $includeWarnings);
+                    // A failed subscan must not be recorded as a successful WCAG 2.2 scan.
+                    $results = $results1 === null || $results2 === null
+                        ? null
+                        : array_merge($results1, $results2);
+
+                } else {
+                    // WCAG 2.1 bleibt bei pa11y
+                    $includeWarnings = $this->option('warnings') !== null;
+                    $results = $this->scanWithPa11y($url, $includeWarnings);
+                }
+
+                if ($results !== null) {
+                    $this->storeResults($url, $results, $standard);
+                }
+
+                $this->updateStats($url, $results, $standard);
+                if ($results !== null) {
+                    $snapshots->recordCompletedScan($url, $fingerprint, $scanOptions, ['combined']);
+                }
+
+                $url->update(['last_checked' => now()]);
+                $this->info("Finished scanning {$url->url} with WCAG {$standard}.");
+            } finally {
+                $lock->release();
             }
-
-            $this->deleteOldIssues($url->id, $standard);
-
-            if ($standard === '22') {
-                // Kombinierter Scan für WCAG 2.2
-                $results1 = $this->scanWithAxeCore($url);
-
-                $includeWarnings = $this->option('warnings') !== null;
-                $results2 = $this->scanWithPa11y($url, $includeWarnings);
-                // A failed subscan must not be recorded as a successful WCAG 2.2 scan.
-                $results = $results1 === null || $results2 === null
-                    ? null
-                    : array_merge($results1, $results2);
-
-            } else {
-                // WCAG 2.1 bleibt bei pa11y
-                $includeWarnings = $this->option('warnings') !== null;
-                $results = $this->scanWithPa11y($url, $includeWarnings);
-            }
-
-            if ($results !== null) {
-                $this->storeResults($url, $results, $standard);
-            }
-
-            $this->updateStats($url, $results, $standard);
-
-            $url->update(['last_checked' => now()]);
-            $this->info("Finished scanning {$url->url} with WCAG {$standard}.");
         }
 
         $this->info('All URLs have been scanned.');
