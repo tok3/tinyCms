@@ -20,8 +20,11 @@ class ImageDescription extends Command
 
     public function handle()
     {
-        // Ensure temp directory exists
-        Storage::disk('local')->makeDirectory('temp');
+        return app(\App\Services\SharedTemporaryDirectory::class)->run(fn () => $this->describeImages());
+    }
+
+    private function describeImages()
+    {
 
         $images = DB::table('imagetags')
             ->whereNull('description')

@@ -26,6 +26,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->bind(
+            \Spatie\Backup\Commands\BackupCommand::class,
+            \App\Backup\BackupCommand::class
+        );
+
         $helperPath = app_path('Helpers/CurrentWcagStandardHelper.php');
         if (is_file($helperPath)) {
             require_once $helperPath;

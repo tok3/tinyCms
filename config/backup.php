@@ -33,6 +33,7 @@ return [
                     storage_path('app/crawled_sites'),
                     storage_path('app/inklucert-temp'),
                     storage_path('app/images'),
+                    storage_path('app/temp'),
                     storage_path('backup-temp'),
                     base_path('bootstrap/cache'),
                 ],
