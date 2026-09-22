@@ -17,10 +17,7 @@ class FooterNavigationComposer
 
     public function compose(View $view)
     {
-        $menuItems = MenuItem::whereNull('parent_id')
-            ->where('type','footer')
-            ->orderBy('order')
-            ->get();
+        $menuItems = MenuItem::navigationTree('footer');
 
         $menu = ''; // Initialisieren Sie die Menüvariable als leeren String
 

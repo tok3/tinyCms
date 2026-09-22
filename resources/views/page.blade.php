@@ -41,8 +41,8 @@
 
     @push('scripts')
 
-        <script src="{{url('js/repeating-countdown-timer/js/app.js')}}?t={{time()}}"></script>
-            <script src="{{url('js/wcag-check.js')}}?t={{time()}}"></script>
+        <script src="{{url('js/repeating-countdown-timer/js/app.js')}}?v={{ \App\Support\AssetVersion::for('js/repeating-countdown-timer/js/app.js') }}"></script>
+            <script src="{{url('js/wcag-check.js')}}?v={{ \App\Support\AssetVersion::for('js/wcag-check.js') }}"></script>
 
 
         <script type="module">

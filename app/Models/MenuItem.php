@@ -5,6 +5,7 @@ namespace App\Models;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Collection;
 use URL;
 
 
@@ -102,6 +103,35 @@ class MenuItem extends Model
         $topLevelItems = self::with('children')->whereNull('parent_id')->orderBy('order')->get();
 
         return $topLevelItems;
+    }
+
+    public static function navigationTree(string $type): Collection
+    {
+        $items = self::query()
+            ->whereNull('parent_id')
+            ->where('type', $type)
+            ->orderBy('order')
+            ->with([
+                'page:id,slug',
+                'children.page:id,slug',
+                'children.children.page:id,slug',
+            ])
+            ->get();
+
+        self::linkLoadedParents($items);
+
+        return $items;
+    }
+
+    private static function linkLoadedParents(Collection $items, ?self $parent = null): void
+    {
+        foreach ($items as $item) {
+            $item->setRelation('parent', $parent);
+
+            if ($item->relationLoaded('children')) {
+                self::linkLoadedParents($item->children, $item);
+            }
+        }
     }
 
     /**

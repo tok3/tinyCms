@@ -16,11 +16,7 @@ class TopNavigationComposer
 
     public function compose(View $view)
     {
-        $menuItems = MenuItem::whereNull('parent_id')
-            ->orderBy('order')
-            ->where('type','header')
-            ->with('children')
-            ->get();
+        $menuItems = MenuItem::navigationTree('header');
 
 
 
