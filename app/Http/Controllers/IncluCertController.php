@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ProcessIncluCertVisitJob;
 use App\Models\Company;
-use App\Models\Pa11yUrl;
 use App\Services\AccessibilityScoreService;
 use App\Services\ScoreChartService;
 use Illuminate\Http\Request;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class IncluCertController extends Controller
 {
@@ -241,45 +243,57 @@ class IncluCertController extends Controller
             return response()->json(['status' => 'invalid'], 200);
         }
 
-        // Lock gegen Race-Conditions
-        $lockKey = 'inclucert_visit:' . $ulid . ':' . sha1($normalized);
-        \Cache::lock($lockKey, 5)->block(5, function () use ($company, $normalized) {
-
-            $ref = \App\Models\Referrer::firstOrCreate(
-                ['ulid' => $company->ulid, 'referrer' => $normalized],
-                ['count' => 0]
-            );
-
-            if ($ref->wasRecentlyCreated)
-            {
-                // Neue URL → ins Monitoring aufnehmen wenn Kontingent verfügbar
-                $urlCount = \App\Models\Pa11yUrl::where('company_id', $company->id)->count();
-
-                if ($urlCount < $company->max_urls)
-                {
-                    $existing = \App\Models\Pa11yUrl::where('company_id', $company->id)
-                        ->where('url', $normalized)
-                        ->first();
-
-                    if (!$existing)
-                    {
-                        $pa11yUrl = \App\Models\Pa11yUrl::create([
-                            'company_id' => $company->id,
-                            'url' => $normalized,
-                        ]);
-
-                        // Initialen Scan anstoßen
-                        shell_exec(getWcagScanShellCommand($pa11yUrl->id, getCurrentWcagStandard($company)));
-                    }
-                }
-            }
-            else
-            {
-                $ref->increment('count');
-            }
-        });
+        $this->dispatchVisitProcessingAfterResponse(
+            companyUlid: $company->ulid,
+            normalizedUrl: $normalized,
+            ip: $request->ip(),
+        );
 
         return response()->json(['status' => 'ok'], 200);
+    }
+
+    private function dispatchVisitProcessingAfterResponse(
+        string $companyUlid,
+        string $normalizedUrl,
+        ?string $ip,
+    ): void
+    {
+        $connection = config('queue.default');
+        $driver = config("queue.connections.{$connection}.driver");
+
+        if (in_array($driver, ['sync', 'null'], true)) {
+            Log::warning('IncluCert visit referrer processing skipped because queue driver is not asynchronous.', [
+                'queue_connection' => $connection,
+                'queue_driver' => $driver,
+                'company_ulid' => $companyUlid,
+                'url' => $normalizedUrl,
+                'ip' => $ip,
+            ]);
+
+            return;
+        }
+
+        $eventUuid = (string) Str::uuid();
+
+        app()->terminating(function () use ($eventUuid, $companyUlid, $normalizedUrl, $ip) {
+            try {
+                ProcessIncluCertVisitJob::dispatch(
+                    $eventUuid,
+                    $companyUlid,
+                    $normalizedUrl,
+                    $ip,
+                );
+            } catch (\Throwable $exception) {
+                Log::error('IncluCert visit referrer processing could not be queued.', [
+                    'event_uuid' => $eventUuid,
+                    'company_ulid' => $companyUlid,
+                    'url' => $normalizedUrl,
+                    'ip' => $ip,
+                    'exception' => $exception::class,
+                    'message' => $exception->getMessage(),
+                ]);
+            }
+        });
     }
 
     private function normalizeUrl(string $url): ?string

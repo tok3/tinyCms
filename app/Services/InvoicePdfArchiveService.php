@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Invoice;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 use ZipArchive;
 
@@ -13,11 +12,15 @@ class InvoicePdfArchiveService
 {
     public function createArchive(Collection $invoices, string $label): string
     {
+        return app(SharedTemporaryDirectory::class)->run(fn () => $this->buildArchive($invoices, $label));
+    }
+
+    private function buildArchive(Collection $invoices, string $label): string
+    {
         if ($invoices->isEmpty()) {
             throw new RuntimeException('Keine Rechnungen für den Export gefunden.');
         }
 
-        Storage::disk('local')->makeDirectory('temp');
 
         $zipPath = storage_path('app/temp/' . $label . '.zip');
         $zip = new ZipArchive();

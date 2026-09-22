@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Illuminate\Support\Facades\Cache;
 use App\Services\AccessibilityFingerprintService;
 use App\Services\AccessibilitySnapshotReplicationService;
 use Illuminate\Console\Command;
@@ -14,7 +15,7 @@ class ScanAccessibility extends Command
 {
 
     // Signature mit den zusätzlichen Optionen: URLs, Levels, Notices und Warnings
-    protected $signature = 'scan:accessibility {urls?*} {--levels=A,AA,AAA} {--notices} {--no-notices} {--warnings} {--no-warnings} {--skip-fingerprint : Skip fingerprint gate because determine:scan already handled it}';
+    protected $signature = 'scan:accessibility {urls?*} {--levels=A,AA,AAA} {--notices} {--no-notices} {--warnings} {--no-warnings} {--skip-fingerprint : Compatibility option; completed-result validation always runs}';
     protected $description = 'Scan URLs for accessibility issues';
 
     public function handle()
@@ -48,103 +49,109 @@ class ScanAccessibility extends Command
         {
             $scannedAt = now();
             $this->info("Scanning -> {$url->url}...");
-            if (! $this->option('skip-fingerprint')) {
+            $lock = Cache::lock('accessibility-scan:url:' . $url->id, 3600);
+            $lock->block(5);
+            try {
+                $snapshots = app(AccessibilitySnapshotReplicationService::class);
+                $scanOptions = $snapshots->options($url, 'scan:accessibility', ['levels' => $levels, 'warnings' => $includeWarnings, 'notices' => $includeNotices]);
                 $fingerprint = app(AccessibilityFingerprintService::class)->captureForUrl($url, '2.0', [
                     'scanner' => 'scan:accessibility',
                     'scan_command' => 'scan:accessibility',
                     'decision_action' => 'scan',
-                    'decision_reason' => 'manual_or_scheduled_scan',
+                    'decision_reason' => 'no_completed_matching_scan',
                 ]);
-
-                if ($fingerprint->fingerprint_state === 'unchanged') {
-                    $replication = app(AccessibilitySnapshotReplicationService::class)
-                        ->replicateLatestSnapshot($url, '2.0');
-
-                    if (($replication['stats_copied'] ?? 0) > 0 || ($replication['issues_copied'] ?? 0) > 0) {
-                        $this->info("Fingerprint unchanged for {$url->url}; copied last snapshot instead of rescanning.");
-                        $url->update(['last_checked' => now()]);
-                        continue;
-                    }
-
-                    $this->warn("Fingerprint unchanged for {$url->url}, but no snapshot could be copied. Falling back to scan.");
-                }
-            }
-
-            foreach ($levels as $level)
-            {
-                $this->info("Scanning {$url->url} for Level {$level}...");
-
-                // Befehl zusammenstellen
-                $processArgs = [
-                    'pa11y', // Pa11y-Befehl mit dem absoluten Pfad
-                    $url->url, // Die zu scannende URL
-                    '--reporter', 'json', // JSON-Ausgabe
-                    '--standard', "WCAG2{$level}"  // WCAG Level (z.B. A, AA, AAA)
-                ];
-
-                if ($includeNotices)
-                {
-                    $processArgs[] = '--include-notices';
-                }
-
-                if ($includeWarnings)
-                {
-                    $processArgs[] = '--include-warnings';
-                }
-
-                $command = implode(' ', $processArgs);
-//               $command = 'PATH=/usr/bin:' . getenv('PATH') . ' /usr/bin/pa11y ' . $url->url . ' --reporter json --standard WCAG2' . $level;
-//                $output = shell_exec($command . ' 2>&1'); // Fehler und Standardausgabe zusammen
-//                \Log::info('pa11y output: ' . $output);
-                $output = shell_exec($command);
-                // Ergebnisse parsen
-                $results = json_decode($output, true);
-
-                $jsonLength = strlen($output);
-                \Log::info('JSON result length:', [$jsonLength]);
-
-
-                if (empty($results))
-                {
-                    $this->error("No results for {$url->url} (Level: {$level})");
+                $replication = $snapshots->replicateLatestSnapshot($url, '2.0', $fingerprint, $scanOptions);
+                if ($replication['stats_copied'] > 0) {
+                    $url->update(['last_checked' => now()]);
+                    $this->info("Reused completed scan for {$url->url}.");
                     continue;
                 }
 
-                // Alte Probleme für dieses Level löschen
-                $url->accessibilityIssues()
-                    ->where('wcag_level', $level)
-                    ->delete();
-
-                // Speichern der neuen Probleme
-                foreach ($results as $result)
+                $allPartsSucceeded = true;
+                foreach ($levels as $level)
                 {
-                    Pa11yAccessibilityIssue::create([
-                        'url_id' => $url->id,
-                        'issue' => $result['message'] ?? null,
-                        'selector' => $result['selector'] ?? null,
-                        'wcag_level' => $level,
-                        'code' => $result['code'] ?? null,
-                        'type' => $result['type'] ?? null,
-                        'typeCode' => $result['typeCode'] ?? null,
-                        'context' => $result['context'] ?? null,
-                        'runner' => $result['runner'] ?? null,
-                        'runnerExtras' => json_encode($result['runnerExtras'] ?? []),
-                        'standard' => '2.0',
-                    ]);
+                    $this->info("Scanning {$url->url} for Level {$level}...");
+
+                    // Befehl zusammenstellen
+                    $processArgs = [
+                        'pa11y', // Pa11y-Befehl mit dem absoluten Pfad
+                        $url->url, // Die zu scannende URL
+                        '--reporter', 'json', // JSON-Ausgabe
+                        '--standard', "WCAG2{$level}"  // WCAG Level (z.B. A, AA, AAA)
+                    ];
+
+                    if ($includeNotices)
+                    {
+                        $processArgs[] = '--include-notices';
+                    }
+
+                    if ($includeWarnings)
+                    {
+                        $processArgs[] = '--include-warnings';
+                    }
+
+                    $command = implode(' ', $processArgs);
+    //               $command = 'PATH=/usr/bin:' . getenv('PATH') . ' /usr/bin/pa11y ' . $url->url . ' --reporter json --standard WCAG2' . $level;
+    //                $output = shell_exec($command . ' 2>&1'); // Fehler und Standardausgabe zusammen
+    //                \Log::info('pa11y output: ' . $output);
+                    $output = shell_exec($command);
+                    // Ergebnisse parsen
+                    $results = json_decode($output, true);
+
+                    $jsonLength = strlen($output);
+                    \Log::info('JSON result length:', [$jsonLength]);
+
+
+                    if (! is_array($results) || json_last_error() !== JSON_ERROR_NONE)
+                    {
+                        $allPartsSucceeded = false;
+                        $this->error("No results for {$url->url} (Level: {$level})");
+                        continue;
+                    }
+
+                    // Alte Probleme für dieses Level löschen
+                    $url->accessibilityIssues()
+                        ->where('wcag_level', $level)
+                        ->where('standard', '2.0')
+                        ->delete();
+
+                    // Speichern der neuen Probleme
+                    foreach ($results as $result)
+                    {
+                        Pa11yAccessibilityIssue::create([
+                            'url_id' => $url->id,
+                            'issue' => $result['message'] ?? null,
+                            'selector' => $result['selector'] ?? null,
+                            'wcag_level' => $level,
+                            'code' => $result['code'] ?? null,
+                            'type' => $result['type'] ?? null,
+                            'typeCode' => $result['typeCode'] ?? null,
+                            'context' => $result['context'] ?? null,
+                            'runner' => $result['runner'] ?? null,
+                            'runnerExtras' => json_encode($result['runnerExtras'] ?? []),
+                            'standard' => '2.0',
+                        ]);
+                    }
+
+                    // Statistik berechnen und speichern
+                    $this->updateStats($url, $level, $results, $scannedAt);
                 }
 
-                // Statistik berechnen und speichern
-                $this->updateStats($url, $level, $results, $scannedAt);
-            }
+                if ($allPartsSucceeded) {
+                    $snapshots->recordCompletedScan($url, $fingerprint, $scanOptions, $levels);
+                }
 
-            // Letztes Prüfdatum aktualisieren
-            $url->update(['last_checked' => now()]);
-            $this->info("Finished scanning {$url->url}");
+                // Letztes Prüfdatum aktualisieren
+                $url->update(['last_checked' => now()]);
+                $this->info("Finished scanning {$url->url}");
+            } finally {
+                $lock->release();
+            }
         }
 
         $this->info('All URLs have been scanned.');
 
-        return $jsonLength;
+        return 0;
     }
 
     /**

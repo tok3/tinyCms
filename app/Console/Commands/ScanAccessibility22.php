@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Illuminate\Support\Facades\Cache;
 use App\Services\AccessibilityFingerprintService;
 use App\Services\AccessibilitySnapshotReplicationService;
 use Illuminate\Console\Command;
@@ -10,6 +11,7 @@ use App\Models\Pa11yAccessibilityIssue;
 use App\Models\Pa11yStatistic;
 use App\Models\CompanySetting;
 use Illuminate\Support\Facades\File;
+use Symfony\Component\Process\Process;
 
 /**
  * Accessibility Scan Command
@@ -24,9 +26,9 @@ class ScanAccessibility22 extends Command
         {urls?*}
         {--standard=21 : WCAG Version (21 oder 22)}
         {--warnings : Warnings bei WCAG 2.1 einbeziehen}
-        {--skip-fingerprint : Skip fingerprint gate because determine:scan already handled it}';
+        {--skip-fingerprint : Compatibility option; completed-result validation always runs}';
 
-    protected $description = 'Scan URLs for accessibility issues (WCAG 2.1 mit pa11y | WCAG 2.2 mit axe CLI)';
+    protected $description = 'Scan URLs for accessibility issues (WCAG 2.1 mit pa11y | WCAG 2.2 mit axe-core)';
 
     public function handle()
     {
@@ -44,115 +46,96 @@ class ScanAccessibility22 extends Command
         foreach ($urls as $url) {
             $this->info("Scanning {$url->url} with WCAG {$standard}...");
             $normalizedStandard = $standard === '22' ? '2.2' : '2.1';
-            if (! $this->option('skip-fingerprint')) {
+            $lock = Cache::lock('accessibility-scan:url:' . $url->id, 3600);
+            $lock->block(5);
+            try {
+                $snapshots = app(AccessibilitySnapshotReplicationService::class);
+                $scanOptions = $snapshots->options($url, 'scan:accessibility-22', ['warnings' => $this->option('warnings') !== null]);
                 $fingerprint = app(AccessibilityFingerprintService::class)->captureForUrl($url, $normalizedStandard, [
                     'scanner' => 'scan:accessibility-22',
                     'scan_command' => 'scan:accessibility-22',
                     'decision_action' => 'scan',
-                    'decision_reason' => 'manual_or_scheduled_scan',
-                    'notes' => 'Standard option: ' . $standard,
+                    'decision_reason' => 'no_completed_matching_scan',
                 ]);
-
-                if ($fingerprint->fingerprint_state === 'unchanged') {
-                    $replication = app(AccessibilitySnapshotReplicationService::class)
-                        ->replicateLatestSnapshot($url, $normalizedStandard);
-
-                    if (($replication['stats_copied'] ?? 0) > 0 || ($replication['issues_copied'] ?? 0) > 0) {
-                        $this->info("Fingerprint unchanged for {$url->url}; copied last snapshot instead of rescanning.");
-                        $url->update(['last_checked' => now()]);
-                        continue;
-                    }
-
-                    $this->warn("Fingerprint unchanged for {$url->url}, but no snapshot could be copied. Falling back to scan.");
-                }
-            }
-
-            $this->deleteOldIssues($url->id, $standard);
-
-            if ($standard === '22') {
-                // Kombinierter Scan für WCAG 2.2
-                $results1 = $this->scanWithAxeCliCombined($url) ?? [];
-
-                $includeWarnings = $this->option('warnings') !== null;
-                $results2 = $this->scanWithPa11y($url, $includeWarnings) ?? [];
-                $results = array_merge($results1, $results2);
-
-                if (empty($results1) && empty($results2)) {
-                    $results = null;
+                $replication = $snapshots->replicateLatestSnapshot($url, $normalizedStandard, $fingerprint, $scanOptions);
+                if ($replication['stats_copied'] > 0) {
+                    $url->update(['last_checked' => now()]);
+                    $this->info("Reused completed scan for {$url->url}.");
+                    continue;
                 }
 
-            } else {
-                // WCAG 2.1 bleibt bei pa11y
-                $includeWarnings = $this->option('warnings') !== null;
-                $results = $this->scanWithPa11y($url, $includeWarnings);
+                $this->deleteOldIssues($url->id, $standard);
+
+                if ($standard === '22') {
+                    // Kombinierter Scan für WCAG 2.2
+                    $results1 = $this->scanWithAxeCore($url);
+
+                    $includeWarnings = $this->option('warnings') !== null;
+                    $results2 = $this->scanWithPa11y($url, $includeWarnings);
+                    // A failed subscan must not be recorded as a successful WCAG 2.2 scan.
+                    $results = $results1 === null || $results2 === null
+                        ? null
+                        : array_merge($results1, $results2);
+
+                } else {
+                    // WCAG 2.1 bleibt bei pa11y
+                    $includeWarnings = $this->option('warnings') !== null;
+                    $results = $this->scanWithPa11y($url, $includeWarnings);
+                }
+
+                if ($results !== null) {
+                    $this->storeResults($url, $results, $standard);
+                }
+
+                $this->updateStats($url, $results, $standard);
+                if ($results !== null) {
+                    $snapshots->recordCompletedScan($url, $fingerprint, $scanOptions, ['combined']);
+                }
+
+                $url->update(['last_checked' => now()]);
+                $this->info("Finished scanning {$url->url} with WCAG {$standard}.");
+            } finally {
+                $lock->release();
             }
-
-            if ($results !== null) {
-                $this->storeResults($url, $results, $standard);
-            }
-
-            $this->updateStats($url, $results, $standard);
-
-            $url->update(['last_checked' => now()]);
-            $this->info("Finished scanning {$url->url} with WCAG {$standard}.");
         }
 
         $this->info('All URLs have been scanned.');
     }
 
     // ====================== WCAG 2.2 – Kombinierter axe Scan ======================
-    private function scanWithAxeCliCombined($url)
+    private function scanWithAxeCore($url)
     {
-        $this->info("Scanning {$url->url} with axe CLI (wcag21aa + wcag22aa)...");
+        $this->info("Scanning {$url->url} with axe-core (wcag22aa)...");
 
-        $browserPath = $this->resolvePa11yBrowserPath();
-        $chromeOptions = getenv('AXE_CHROME_OPTIONS');
-        if ($chromeOptions === false || $chromeOptions === '') {
-            $chromeOptions = implode(',', array_map(
-                fn (string $arg) => ltrim($arg, '-'),
-                $this->resolvePa11yChromeArgs()
-            ));
+        $chromeArgs = $this->resolvePa11yChromeArgs();
+        $configuredOptions = getenv('AXE_CHROME_OPTIONS');
+        if (is_string($configuredOptions) && $configuredOptions !== '') {
+            $chromeArgs = array_map(
+                fn (string $arg) => '--' . ltrim(trim($arg), '-'),
+                array_filter(explode(',', $configuredOptions), fn ($arg) => trim($arg) !== '')
+            );
         }
-
-        $parts = [
-            'axe',
-            escapeshellarg($url->url),
-            '--tags',
-            'wcag22aa',
-            '--stdout',
-            '--timeout',
-            '180',
-            '--browser',
-            'chrome',
-        ];
-
-        if ($chromeOptions !== '') {
-            $parts[] = '--chrome-options=' . escapeshellarg($chromeOptions);
-        }
-
-        $command = implode(' ', $parts);
-        $command = implode(' ', [
-            'PUPPETEER_EXECUTABLE_PATH=' . escapeshellarg($browserPath),
-            'CHROME_PATH=' . escapeshellarg($browserPath),
-            $command,
-        ]);
-
-        $this->info("Executing: $command");
 
         try {
-            $output = shell_exec($command . ' 2>&1');
+            $process = new Process([
+                'node',
+                base_path('scripts/scan-wcag22.cjs'),
+                $url->url,
+                $this->resolvePa11yBrowserPath(),
+                json_encode(array_values($chromeArgs), JSON_THROW_ON_ERROR),
+            ], base_path());
+            $process->setTimeout(180);
+            $process->mustRun();
 
-            if (empty($output) || !$this->isValidJson($output)) {
-                $this->error("Axe Output: " . substr($output ?? '', 0, 700));
-                throw new \Exception("Axe CLI hat keine gültige JSON-Ausgabe geliefert");
+            $fullResults = json_decode($process->getOutput(), true, 512, JSON_THROW_ON_ERROR);
+            if (!is_array($fullResults) || !isset($fullResults['violations']) || !is_array($fullResults['violations'])) {
+                throw new \RuntimeException('axe-core hat keine gültigen Scan-Ergebnisse geliefert.');
             }
-
-            $fullResults = json_decode($output, true);
-            $violations = $fullResults[0]['violations'] ?? $fullResults['violations'] ?? [];
+            $violations = $fullResults['violations'];
 
             return $this->normalizeAxeResults($violations);
         } catch (\Exception $e) {
-            \Log::error("Axe CLI Scan-Fehler bei {$url->url}: " . $e->getMessage());
+            \Log::error("Axe Scan-Fehler bei {$url->url}: " . $e->getMessage());
             return null;
         }
     }
@@ -167,7 +150,11 @@ class ScanAccessibility22 extends Command
 
         foreach ($violations as $violation) {
             foreach ($violation['nodes'] as $node) {
-                $selector = $node['selector'][0] ?? $node['selector'] ?? '';
+                // axe-core uses target; nested targets identify frames or shadow roots.
+                $target = $node['target'] ?? $node['selector'] ?? [];
+                $selector = is_array($target)
+                    ? (count($target) === 1 && is_string($target[0]) ? $target[0] : json_encode($target))
+                    : (string) $target;
 
                 // Einfache Deduplizierung
                 $key = $violation['id'] . '|' . $selector;

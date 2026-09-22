@@ -333,7 +333,9 @@ class CompanyResource extends BaseResource
                                                         if ($state === 'daily')
                                                         {
                                                             $company = $livewire->record;
-                                                            $hasFeature = $company->features()->where('slug', 'scan-daily')->exists();
+                                                            $hasFeature = $company
+                                                                ? $company->features()->where('slug', 'scan-daily')->exists()
+                                                                : false;
                                                             if (!$hasFeature)
                                                             {
                                                                 Notification::make()
@@ -430,6 +432,12 @@ class CompanyResource extends BaseResource
                                     ->relationship('settings', CompanySetting::class)
                                     ->visible(function ($livewire) {
                                         $company = $livewire->record;
+
+                                        if (!$company)
+                                        {
+                                            return false;
+                                        }
+
                                         return $company->features()
                                             ->whereIn('slug', ['image-alt-tags-all', 'image-alt-tags'])
                                             ->exists();

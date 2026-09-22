@@ -17,8 +17,11 @@ class ProcessImages extends Command
 
     public function handle()
     {
-        // Ensure temp directory exists
-        Storage::disk('local')->makeDirectory('temp');
+        return app(\App\Services\SharedTemporaryDirectory::class)->run(fn () => $this->processImages());
+    }
+
+    private function processImages()
+    {
 
         // Fetch images where hash is null
         $images = DB::table('imagetags')

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Illuminate\Support\Facades\Cache;
 use App\Services\AccessibilityFingerprintService;
 use App\Services\AccessibilitySnapshotReplicationService;
 use Illuminate\Console\Command;
@@ -24,7 +25,7 @@ use Illuminate\Support\Facades\File;
  */
 class ScanAccessibility21 extends Command
 {
-    protected $signature = 'scan:accessibility-21 {urls?*} {--warnings} {--skip-fingerprint : Skip fingerprint gate because determine:scan already handled it}';
+    protected $signature = 'scan:accessibility-21 {urls?*} {--warnings} {--skip-fingerprint : Compatibility option; completed-result validation always runs}';
     protected $description = 'Scan URLs for accessibility issues using WCAG 2.1 (axe runner)';
     private array $pa11yTempProfiles = [];
 
@@ -35,39 +36,41 @@ class ScanAccessibility21 extends Command
 
         foreach ($urls as $url) {
             $this->info("Scanning {$url->url} with WCAG 2.1 standard...");
-            if (! $this->option('skip-fingerprint')) {
+            $lock = Cache::lock('accessibility-scan:url:' . $url->id, 3600);
+            $lock->block(5);
+            try {
+                $snapshots = app(AccessibilitySnapshotReplicationService::class);
+                $scanOptions = $snapshots->options($url, 'scan:accessibility-21', ['warnings' => $includeWarnings]);
                 $fingerprint = app(AccessibilityFingerprintService::class)->captureForUrl($url, '2.1', [
                     'scanner' => 'scan:accessibility-21',
                     'scan_command' => 'scan:accessibility-21',
                     'decision_action' => 'scan',
-                    'decision_reason' => 'manual_or_scheduled_scan',
+                    'decision_reason' => 'no_completed_matching_scan',
                 ]);
-
-                if ($fingerprint->fingerprint_state === 'unchanged') {
-                    $replication = app(AccessibilitySnapshotReplicationService::class)
-                        ->replicateLatestSnapshot($url, '2.1');
-
-                    if (($replication['stats_copied'] ?? 0) > 0 || ($replication['issues_copied'] ?? 0) > 0) {
-                        $this->info("Fingerprint unchanged for {$url->url}; copied last snapshot instead of rescanning.");
-                        $url->update(['last_checked' => now()]);
-                        continue;
-                    }
-
-                    $this->warn("Fingerprint unchanged for {$url->url}, but no snapshot could be copied. Falling back to scan.");
+                $replication = $snapshots->replicateLatestSnapshot($url, '2.1', $fingerprint, $scanOptions);
+                if ($replication['stats_copied'] > 0) {
+                    $url->update(['last_checked' => now()]);
+                    $this->info("Reused completed scan for {$url->url}.");
+                    continue;
                 }
+
+                $this->deleteOldIssues($url->id);
+                $results = $this->scanWithAxe($url, $includeWarnings);
+
+                if ($results !== null) {
+
+                    $this->storeResults($url, $results);
+                }
+                $this->updateStats($url, $results);
+                if ($results !== null) {
+                    $snapshots->recordCompletedScan($url, $fingerprint, $scanOptions, ['combined']);
+                }
+
+                $url->update(['last_checked' => now()]);
+                $this->info("Finished scanning {$url->url} with WCAG 2.1.");
+            } finally {
+                $lock->release();
             }
-
-            $this->deleteOldIssues($url->id);
-            $results = $this->scanWithAxe($url, $includeWarnings);
-
-            if ($results !== null) {
-
-                $this->storeResults($url, $results);
-            }
-            $this->updateStats($url, $results);
-
-            $url->update(['last_checked' => now()]);
-            $this->info("Finished scanning {$url->url} with WCAG 2.1.");
         }
 
         $this->info('All URLs have been scanned.');

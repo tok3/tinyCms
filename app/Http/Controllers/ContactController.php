@@ -1,6 +1,5 @@
 <?php namespace App\Http\Controllers;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 
 class ContactController extends Controller
@@ -16,11 +15,11 @@ class ContactController extends Controller
     {
 
 
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email',
-            'message' => 'required',
-            'terms' => 'required',
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:150', 'not_regex:/[\r\n\x00-\x1F\x7F]/'],
+            'email' => ['required', 'string', 'max:254', 'email:rfc', 'not_regex:/[\r\n\x00-\x1F\x7F]/'],
+            'message' => ['required', 'string', 'max:5000'],
+            'terms' => ['required'],
         ]);
 
 /*        $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
@@ -32,10 +31,16 @@ class ContactController extends Controller
             return back()->with('error', 'CAPTCHA-Überprüfung fehlgeschlagen. Bitte versuchen Sie es erneut.');
         }*/
 
-        // Hier E-Mail senden
-        Mail::raw('Nachricht: ' . $request->message, function ($mail) use ($request) {
+        $fromAddress = config('mail.from.address');
+        $fromName = config('mail.from.name', config('app.name'));
+        $body = "Name: {$data['name']}\n"
+            . "E-Mail: {$data['email']}\n\n"
+            . "Nachricht:\n{$data['message']}";
+
+        Mail::raw($body, function ($mail) use ($data, $fromAddress, $fromName) {
             $mail->to('maildropr@eq3w.de') // Setzen Sie die Ziel-E-Mail-Adresse
-            ->from($request->email)
+                ->from($fromAddress, $fromName)
+                ->replyTo($data['email'], $data['name'])
                 ->subject('Kontaktformular Nachricht');
         });
 
