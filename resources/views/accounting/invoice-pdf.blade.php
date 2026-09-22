@@ -242,10 +242,11 @@
                     <address class="xx-small text-right">
                         <strong>Bankverbindung:</strong><br>
 
+                        {{ config('accounting.company_details.name') }}<br>
                         Hypovereinsbank<br>
 
-                        IBAN DE43 7952 0070 0032 9269 83<br>
-                        Swift (BIC) HYVE DEMM 407<br>
+                        IBAN {{ config('accounting.company_details.bank.iban') }}<br>
+                        Swift (BIC) {{ config('accounting.company_details.bank.bic') }}<br>
                     </address>
                 </div>
             </td>
