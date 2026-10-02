@@ -1,0 +1,391 @@
+$atlas-navy: #091543;
+$atlas-yellow: #f6e636;
+$atlas-ink: #07102f;
+
+.accessibility-atlas-tab-slot {
+    position: relative;
+    z-index: 10;
+    height: 0;
+    pointer-events: none;
+}
+
+.accessibility-atlas-tab {
+    position: absolute;
+    top: 1.35rem;
+    right: clamp(1rem, 4vw, 4rem);
+    display: inline-flex;
+    align-items: center;
+    gap: .8rem;
+    width: min(17.5rem, calc(100vw - 2rem));
+    min-height: 5.25rem;
+    padding: .8rem 1rem;
+    color: $atlas-ink;
+    background: $atlas-yellow;
+    border: 2px solid rgba($atlas-ink, .12);
+    border-radius: 1.2rem 1.2rem .3rem 1.2rem;
+    box-shadow: 0 1rem 2.4rem rgba(2, 8, 35, .28);
+    text-decoration: none;
+    transform: rotate(-1.5deg);
+    transform-origin: top right;
+    transition: transform .2s ease, box-shadow .2s ease;
+    pointer-events: auto;
+
+    &::after {
+        content: "";
+        position: absolute;
+        right: 1.3rem;
+        bottom: -1.15rem;
+        width: 2.2rem;
+        height: 1.4rem;
+        background: $atlas-yellow;
+        clip-path: polygon(0 0, 100% 0, 72% 100%);
+    }
+
+    &:hover {
+        color: $atlas-ink;
+        box-shadow: 0 1.25rem 2.8rem rgba(2, 8, 35, .36);
+        transform: rotate(0) translateY(-.2rem);
+    }
+
+    &:focus-visible {
+        color: $atlas-ink;
+        outline: 4px solid #fff;
+        outline-offset: 4px;
+    }
+}
+
+.accessibility-atlas-tab__icon {
+    display: grid;
+    flex: 0 0 3.5rem;
+    width: 3.5rem;
+    height: 3.5rem;
+    place-items: center;
+    border: 2px solid rgba($atlas-ink, .2);
+    border-radius: 50%;
+
+    img {
+        width: 2.85rem;
+        height: 2.85rem;
+    }
+}
+
+.accessibility-atlas-tab__copy {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    line-height: 1.18;
+
+    strong {
+        font-size: 1.02rem;
+        font-weight: 700;
+    }
+
+    span {
+        margin-top: .25rem;
+        font-size: .78rem;
+        font-weight: 600;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+    }
+}
+
+.accessibility-atlas-tab__arrow {
+    flex: 0 0 auto;
+    font-size: 1.45rem;
+    font-weight: 700;
+}
+
+.accessibility-atlas-page {
+    color: $atlas-ink;
+    background: #f6f7fb;
+}
+
+.accessibility-atlas-hero {
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+    background:
+        radial-gradient(circle at 85% 36%, rgba(82, 143, 240, .2) 0, rgba(82, 143, 240, 0) 28%),
+        $atlas-navy;
+
+    &::before,
+    &::after {
+        content: "";
+        position: absolute;
+        border: 1px dashed rgba(246, 230, 54, .22);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    &::before {
+        top: -14rem;
+        right: -12rem;
+        width: 38rem;
+        height: 38rem;
+    }
+
+    &::after {
+        top: 1rem;
+        right: -5rem;
+        width: 22rem;
+        height: 22rem;
+    }
+}
+
+.accessibility-atlas-hero__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(15rem, .6fr);
+    gap: clamp(3rem, 8vw, 8rem);
+    align-items: center;
+    min-height: 37rem;
+    padding-top: clamp(5rem, 9vw, 8rem);
+    padding-bottom: clamp(7rem, 12vw, 10rem);
+}
+
+.accessibility-atlas-eyebrow,
+.accessibility-atlas-kicker {
+    margin-bottom: 1.25rem;
+    color: $atlas-yellow;
+    font-size: .82rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.accessibility-atlas-eyebrow span {
+    margin-right: .45rem;
+}
+
+.accessibility-atlas-hero__copy {
+    max-width: 48rem;
+
+    h1 {
+        max-width: 44rem;
+        margin-bottom: 1.5rem;
+        color: #fff;
+        font-size: clamp(2.45rem, 5.8vw, 5rem);
+        font-weight: 700;
+        line-height: 1.02;
+        letter-spacing: -.045em;
+    }
+}
+
+.accessibility-atlas-hero__lead {
+    max-width: 43rem;
+    margin: 0;
+    color: rgba(255, 255, 255, .78);
+    font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+    line-height: 1.7;
+}
+
+.accessibility-atlas-marker {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: min(18rem, 100%);
+    aspect-ratio: 1 / 1.08;
+    padding: 2.4rem 1.8rem 3rem;
+    color: $atlas-ink;
+    background: $atlas-yellow;
+    border-radius: 50% 50% 48% 48%;
+    box-shadow: 0 2rem 5rem rgba(0, 0, 0, .25);
+    text-align: center;
+    transform: rotate(2deg);
+
+    &::after {
+        content: "";
+        position: absolute;
+        bottom: -2rem;
+        left: 50%;
+        width: 4rem;
+        height: 3.5rem;
+        background: $atlas-yellow;
+        clip-path: polygon(0 0, 100% 0, 50% 100%);
+        transform: translateX(-50%);
+    }
+
+    strong {
+        margin-top: .9rem;
+        font-size: 1rem;
+        line-height: 1.35;
+    }
+}
+
+.accessibility-atlas-marker__ring {
+    display: grid;
+    width: 6.25rem;
+    height: 6.25rem;
+    place-items: center;
+    border: 2px solid rgba($atlas-ink, .2);
+    border-radius: 50%;
+
+    img {
+        width: 5rem;
+    }
+}
+
+.accessibility-atlas-content {
+    position: relative;
+    z-index: 2;
+    padding-bottom: clamp(5rem, 9vw, 8rem);
+}
+
+.accessibility-atlas-steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: 58rem;
+    margin: -3.25rem auto 3rem;
+    padding: 0;
+    background: #fff;
+    border: 1px solid rgba($atlas-navy, .08);
+    border-radius: 1.25rem;
+    box-shadow: 0 1.5rem 4rem rgba($atlas-navy, .1);
+    list-style: none;
+
+    li {
+        display: flex;
+        gap: .75rem;
+        align-items: center;
+        min-height: 6.5rem;
+        padding: 1.25rem;
+
+        & + li {
+            border-left: 1px solid rgba($atlas-navy, .1);
+        }
+    }
+
+    span {
+        display: grid;
+        flex: 0 0 2.4rem;
+        width: 2.4rem;
+        height: 2.4rem;
+        place-items: center;
+        color: $atlas-ink;
+        background: $atlas-yellow;
+        border-radius: 50%;
+        font-weight: 700;
+    }
+
+    strong {
+        font-size: .93rem;
+        line-height: 1.35;
+    }
+}
+
+.accessibility-atlas-form-card {
+    max-width: 58rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 5vw, 4rem);
+    background: #fff;
+    border: 1px solid rgba($atlas-navy, .08);
+    border-radius: 1.5rem;
+    box-shadow: 0 1rem 3.5rem rgba($atlas-navy, .08);
+}
+
+.accessibility-atlas-form-card__intro {
+    max-width: 43rem;
+
+    h2 {
+        margin-bottom: 1rem;
+        color: $atlas-navy;
+        font-size: clamp(1.9rem, 4vw, 3rem);
+        letter-spacing: -.035em;
+    }
+
+    p:last-child {
+        margin-bottom: 0;
+        color: #434064;
+        font-size: 1.05rem;
+        line-height: 1.7;
+    }
+}
+
+.accessibility-atlas-kicker {
+    color: #596400;
+}
+
+@media (max-width: 767.98px) {
+    .accessibility-atlas-tab-slot {
+        height: auto;
+        padding: .85rem 1rem 1.35rem;
+        background: $atlas-navy;
+    }
+
+    .accessibility-atlas-tab {
+        position: relative;
+        top: auto;
+        right: auto;
+        width: 100%;
+        min-height: 4.75rem;
+        margin: 0 auto;
+        transform: none;
+
+        &::after {
+            right: 1.5rem;
+            bottom: -.85rem;
+            height: 1rem;
+        }
+    }
+
+    .accessibility-atlas-tab__icon {
+        flex-basis: 3rem;
+        width: 3rem;
+        height: 3rem;
+
+        img {
+            width: 2.4rem;
+            height: 2.4rem;
+        }
+    }
+
+    .accessibility-atlas-hero__inner {
+        grid-template-columns: 1fr;
+        gap: 3.5rem;
+        min-height: auto;
+        padding-top: 4.5rem;
+        padding-bottom: 8rem;
+    }
+
+    .accessibility-atlas-marker {
+        width: 12.5rem;
+        margin: 0 auto;
+        padding: 1.5rem 1rem 2rem;
+
+        strong {
+            font-size: .82rem;
+        }
+    }
+
+    .accessibility-atlas-marker__ring {
+        width: 4.5rem;
+        height: 4.5rem;
+
+        img {
+            width: 3.6rem;
+        }
+    }
+
+    .accessibility-atlas-steps {
+        grid-template-columns: 1fr;
+        margin-top: -3rem;
+
+        li {
+            min-height: auto;
+
+            & + li {
+                border-top: 1px solid rgba($atlas-navy, .1);
+                border-left: 0;
+            }
+        }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .accessibility-atlas-tab {
+        transition: none;
+    }
+}

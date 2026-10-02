@@ -35,6 +35,13 @@
     {{-- @include('content-sections.countdown-timer')--}}
 
 
+    @if($page->slug === '/')
+        <div class="accessibility-atlas-tab-slot">
+            <x-accessibility-atlas-tab />
+        </div>
+    @endif
+
+
     {!! $content !!}
 
 

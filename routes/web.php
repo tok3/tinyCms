@@ -312,11 +312,17 @@ Route::get('/magic-login/{token}', MagicLoginController::class)
 // -----------------------------------------------
 
 use App\Http\Controllers\AccessibilityFeedbackController;
+use App\Http\Controllers\AccessibilityAtlasContributionController;
 
 Route::post('/accessibility-declaration/{company}/feedback', [
     AccessibilityFeedbackController::class,
     'store',
 ])->name('accessibility-feedback.store');
+
+Route::get('/barrierefreiheitsatlas/beitrag', [
+    AccessibilityAtlasContributionController::class,
+    'create',
+])->name('accessibility-atlas.contribute');
 
 // -----------------------------------------------
 
