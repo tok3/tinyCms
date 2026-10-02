@@ -36,7 +36,8 @@ class AccessibilityAtlasContributionTest extends TestCase
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('Ich bin betroffen');
+            ->assertSee('Ich bin betroffen')
+            ->assertSee('aria-label="Ich bin betroffen – Barriere melden und zum Barrierefreiheitsatlas beitragen"', false);
 
         $this->get('/test-unterseite')
             ->assertOk()
@@ -98,6 +99,27 @@ class AccessibilityAtlasContributionTest extends TestCase
         Mail::assertSent(AccessibilityAtlasContributionMail::class, function (AccessibilityAtlasContributionMail $mail): bool {
             return empty($mail->replyTo);
         });
+    }
+
+    public function test_plain_text_email_preserves_urls_and_report_text_verbatim(): void
+    {
+        $mail = new AccessibilityAtlasContributionMail([
+            'page_url' => 'https://example.org/search?a=1&b=2',
+            'body' => 'Der Link "Hilfe & Kontakt" zeigt <keinen Inhalt>.',
+            'expected_help' => 'Ein Hinweis mit A & B.',
+            'email' => '',
+            'submitted_at' => now(),
+        ]);
+        $content = $mail->content();
+
+        $rendered = view($content->text, $content->with)->render();
+
+        $this->assertStringContainsString('https://example.org/search?a=1&b=2', $rendered);
+        $this->assertStringContainsString('Der Link "Hilfe & Kontakt" zeigt <keinen Inhalt>.', $rendered);
+        $this->assertStringContainsString('Ein Hinweis mit A & B.', $rendered);
+        $this->assertStringNotContainsString('&amp;', $rendered);
+        $this->assertStringNotContainsString('&quot;', $rendered);
+        $this->assertStringNotContainsString('&lt;', $rendered);
     }
 
     public function test_required_contribution_fields_are_validated_before_sending(): void

@@ -1,7 +1,7 @@
 <a
     class="accessibility-atlas-tab"
     href="{{ route('accessibility-atlas.contribute') }}"
-    aria-label="Digitale Barriere zum Barrierefreiheitsatlas beitragen"
+    aria-label="Ich bin betroffen – Barriere melden und zum Barrierefreiheitsatlas beitragen"
 >
     <span class="accessibility-atlas-tab__icon" aria-hidden="true">
         <img src="{{ asset('assets/img/barrierefreiheitsatlas-globe.svg') }}" alt="">
