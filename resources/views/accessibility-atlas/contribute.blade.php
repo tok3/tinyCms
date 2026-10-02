@@ -15,9 +15,21 @@
                 </div>
 
                 <div class="accessibility-atlas-marker" aria-hidden="true">
-                    <span class="accessibility-atlas-marker__ring">
-                        <img src="{{ asset('assets/img/barrierefreiheitsatlas-globe.svg') }}" alt="">
-                    </span>
+                    <div class="accessibility-atlas-marker__emblem">
+                        <svg class="accessibility-atlas-marker__title" viewBox="0 0 220 108">
+                            <defs>
+                                <path id="webverbesserer-arc" d="M 20 94 A 90 82 0 0 1 200 94" />
+                            </defs>
+                            <text>
+                                <textPath href="#webverbesserer-arc" startOffset="50%" text-anchor="middle">
+                                    WEBVERBESSERER
+                                </textPath>
+                            </text>
+                        </svg>
+                        <span class="accessibility-atlas-marker__ring">
+                            <img src="{{ asset('assets/img/barrierefreiheitsatlas-globe.svg') }}" alt="">
+                        </span>
+                    </div>
                     <strong>Jeder Hinweis<br>macht Barrieren<br>sichtbarer.</strong>
                 </div>
             </div>

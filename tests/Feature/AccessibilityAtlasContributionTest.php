@@ -29,6 +29,13 @@ class AccessibilityAtlasContributionTest extends TestCase
             ->assertSee('Barrierefreiheitsatlas im Web');
     }
 
+    public function test_atlas_marker_calls_contributors_web_improvers(): void
+    {
+        $this->get(route('accessibility-atlas.contribute'))
+            ->assertOk()
+            ->assertSee('WEBVERBESSERER');
+    }
+
     public function test_atlas_tab_is_only_visible_on_the_homepage(): void
     {
         $this->createPage('/', 'Startseite', '00000000-0000-0000-0000-000000000101');
