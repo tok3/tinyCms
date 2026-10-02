@@ -31,13 +31,10 @@
                             </text>
                         </svg>
                         <img
-                            class="accessibility-atlas-marker__branches"
-                            src="{{ asset('assets/img/barrierefreiheitsatlas-laurel.svg') }}"
+                            class="accessibility-atlas-marker__signet"
+                            src="{{ asset('assets/img/webverbesserer.svg') }}"
                             alt=""
                         >
-                        <span class="accessibility-atlas-marker__ring">
-                            <img src="{{ asset('assets/img/barrierefreiheitsatlas-globe.svg') }}" alt="">
-                        </span>
                     </div>
                     <strong aria-hidden="true">Jeder Hinweis<br>macht Barrieren<br>sichtbarer.</strong>
                 </div>

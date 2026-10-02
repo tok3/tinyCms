@@ -38,7 +38,8 @@ class AccessibilityAtlasContributionTest extends TestCase
             ->assertSee(
                 'aria-label="Webverbesserer-Signet mit Globus und Lorbeerzweigen: Jeder Hinweis macht Barrieren sichtbarer."',
                 false,
-            );
+            )
+            ->assertSee('assets/img/webverbesserer.svg', false);
     }
 
     public function test_atlas_tab_is_only_visible_on_the_homepage(): void
