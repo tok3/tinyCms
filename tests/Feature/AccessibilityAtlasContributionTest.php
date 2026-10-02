@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Mail\AccessibilityAtlasContributionMail;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use RuntimeException;
 use Tests\TestCase;
 
 class AccessibilityAtlasContributionTest extends TestCase
@@ -187,6 +189,73 @@ class AccessibilityAtlasContributionTest extends TestCase
             ->assertSessionHasInput('body', 'Die Navigation ist nur mit einer Maus bedienbar.');
 
         Mail::assertNothingSent();
+    }
+
+    public function test_honeypot_submission_mimics_success_without_sending_mail(): void
+    {
+        Mail::fake();
+
+        $this->post(route('accessibility-atlas.store'), $this->validPayload([
+            'website' => 'https://bot.example',
+        ]))
+            ->assertRedirect(route('accessibility-atlas.contribute'))
+            ->assertSessionHas('accessibility_atlas_sent', true);
+
+        Mail::assertNothingSent();
+    }
+
+    public function test_eleventh_submission_within_one_minute_is_rate_limited(): void
+    {
+        Mail::fake();
+
+        foreach (range(1, 10) as $attempt) {
+            $this->post(route('accessibility-atlas.store'), $this->validPayload())
+                ->assertRedirect(route('accessibility-atlas.contribute'));
+        }
+
+        $this->post(route('accessibility-atlas.store'), $this->validPayload())
+            ->assertTooManyRequests();
+
+        Mail::assertSentCount(10);
+    }
+
+    public function test_mail_failure_returns_a_safe_message_and_preserves_input(): void
+    {
+        $technicalMessage = 'SMTP password rejected by transport';
+
+        Mail::shouldReceive('to')
+            ->once()
+            ->with(config('mail.accessibility_atlas_recipient'))
+            ->andReturnSelf();
+        Mail::shouldReceive('send')
+            ->once()
+            ->andThrow(new RuntimeException($technicalMessage));
+        Log::spy();
+
+        $response = $this->from(route('accessibility-atlas.contribute'))
+            ->post(route('accessibility-atlas.store'), $this->validPayload());
+
+        $response
+            ->assertRedirect(route('accessibility-atlas.contribute'))
+            ->assertSessionHas('accessibility_atlas_error')
+            ->assertSessionMissing('accessibility_atlas_sent')
+            ->assertSessionHasInput('page_url', 'https://example.org/barriere')
+            ->assertSessionHasInput('body', 'Die Navigation ist nur mit einer Maus bedienbar.');
+
+        $this->get(route('accessibility-atlas.contribute'))
+            ->assertOk()
+            ->assertSee('role="alert"', false)
+            ->assertSee('Dein Beitrag konnte gerade nicht gesendet werden.')
+            ->assertSee('mailto:info@aktion-barrierefrei.org', false)
+            ->assertDontSee($technicalMessage);
+
+        Log::shouldHaveReceived('error')
+            ->once()
+            ->withArgs(function (string $message, array $context) use ($technicalMessage): bool {
+                return $message === 'Accessibility atlas contribution delivery failed'
+                    && ($context['exception'] ?? null) instanceof RuntimeException
+                    && $context['exception']->getMessage() === $technicalMessage;
+            });
     }
 
     private function createPage(string $slug, string $title, string $externalId): void

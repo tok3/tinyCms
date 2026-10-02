@@ -58,6 +58,14 @@
                             </p>
                         </div>
 
+                        @if(session('accessibility_atlas_error'))
+                            <div class="accessibility-atlas-error" role="alert">
+                                <strong>Senden gerade nicht möglich</strong>
+                                <p>{{ session('accessibility_atlas_error') }}</p>
+                                <a href="mailto:info@aktion-barrierefrei.org">Direkt an info@aktion-barrierefrei.org schreiben</a>
+                            </div>
+                        @endif
+
                         <form class="accessibility-atlas-form" method="POST" action="{{ route('accessibility-atlas.store') }}">
                             @csrf
 

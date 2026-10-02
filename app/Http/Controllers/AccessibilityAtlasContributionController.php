@@ -6,7 +6,10 @@ use App\Http\Requests\AccessibilityAtlasContributionRequest;
 use App\Mail\AccessibilityAtlasContributionMail;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 class AccessibilityAtlasContributionController extends Controller
 {
@@ -30,12 +33,34 @@ class AccessibilityAtlasContributionController extends Controller
 
     public function store(AccessibilityAtlasContributionRequest $request): RedirectResponse
     {
-        $contribution = array_merge($request->validated(), [
+        $validated = $request->validated();
+
+        if ($request->filled('website')) {
+            return redirect()
+                ->route('accessibility-atlas.contribute')
+                ->with('accessibility_atlas_sent', true);
+        }
+
+        $contribution = array_merge($validated, [
             'submitted_at' => now(),
         ]);
 
-        Mail::to(config('mail.accessibility_atlas_recipient'))
-            ->send(new AccessibilityAtlasContributionMail($contribution));
+        try {
+            Mail::to(config('mail.accessibility_atlas_recipient'))
+                ->send(new AccessibilityAtlasContributionMail($contribution));
+        } catch (Throwable $exception) {
+            Log::error('Accessibility atlas contribution delivery failed', [
+                'exception' => $exception,
+            ]);
+
+            return redirect()
+                ->route('accessibility-atlas.contribute')
+                ->withInput(Arr::except($validated, ['website']))
+                ->with(
+                    'accessibility_atlas_error',
+                    'Dein Beitrag konnte gerade nicht gesendet werden. Bitte versuche es später noch einmal oder schreibe uns direkt an info@aktion-barrierefrei.org.'
+                );
+        }
 
         return redirect()
             ->route('accessibility-atlas.contribute')

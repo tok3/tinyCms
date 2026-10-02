@@ -7,7 +7,7 @@
                     <div class="dropup d-table" style="padding:0 !important;margin:0 !important;">
 
 
-                        <img src="{{ URL::asset('assets/img/IHK-AB-1.png') }}"  alt="ihk-aschaffenburg" >
+                        <img class="img-fluid" src="{{ URL::asset('assets/img/IHK-AB-1.png') }}" alt="ihk-aschaffenburg">
 
 
 
