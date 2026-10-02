@@ -242,7 +242,7 @@ $atlas-ink: #07102f;
 
 .accessibility-atlas-marker__signet {
     position: absolute;
-    top: 3.15rem;
+    bottom: 0;
     left: 50%;
     z-index: 2;
     width: 14.2rem;
@@ -614,7 +614,6 @@ $atlas-ink: #07102f;
     }
 
     .accessibility-atlas-marker__signet {
-        top: 2.3rem;
         width: 10.2rem;
     }
 
