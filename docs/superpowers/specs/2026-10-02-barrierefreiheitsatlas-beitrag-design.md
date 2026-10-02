@@ -19,7 +19,7 @@ Die Lasche enthält:
 - den ergänzenden Text „Barriere melden“;
 - ein sichtbares Pfeilsignal für den Link.
 
-Gelb wird als kontrastreiche Aktionsfarbe verwendet; Text und Fokusdarstellung müssen mindestens WCAG AA erfüllen. Die Form lehnt sich mit weichen Radien, klarer Typografie und einer zurückhaltenden Bewegung an die bestehende Gestaltung an. Die Bewegung wird bei `prefers-reduced-motion: reduce` deaktiviert.
+Ein klares Signalgelb wird als kontrastreiche Aktionsfarbe verwendet; Text und Fokusdarstellung müssen mindestens WCAG AA erfüllen. Die Form lehnt sich mit weichen Radien, klarer Typografie und einer zurückhaltenden Bewegung an die bestehende Gestaltung an. Die Bewegung wird bei `prefers-reduced-motion: reduce` deaktiviert.
 
 Auf großen Bildschirmen sitzt die Lasche rechts im Übergang von Navigation zu Hero. Auf kleinen Bildschirmen wird sie als kompakter, nahezu vollbreiter CTA am oberen Rand des Hero-Inhalts dargestellt. Sie darf weder Navigation noch Inhalt verdecken und bleibt ohne horizontales Scrollen nutzbar.
 
@@ -29,7 +29,7 @@ Der vollständige Linktext und ein aussagekräftiges `aria-label` machen Ziel un
 
 Die neue öffentliche Seite liegt unter `/barrierefreiheitsatlas/beitrag` und verwendet denselben Header, Footer, dieselbe Typografie und dieselben Grundfarben wie die Website.
 
-Der Kopfbereich verbindet einen dunkelblauen Hintergrund mit gelben Akzenten und einer größeren Atlas-/Globus-Illustration. Die Seite beginnt mit:
+Der Kopfbereich greift das sehr dunkle Marineblau des Startseiten-Heros auf und verbindet es mit klaren gelben Akzenten und einer größeren Atlas-/Globus-Illustration. Die Seite beginnt mit:
 
 - Kennzeichnung: „Barrierefreiheitsatlas im Web“
 - Überschrift: „Hilf uns, das Web zugänglicher zu machen.“
@@ -90,12 +90,15 @@ Bei erfolgreicher Übergabe an Laravel Mail wird ein Session-Flag gesetzt und pe
 
 Die Komponente für die Startseiten-Lasche und die Beitragsseite erhalten einen kleinen, klar benannten SCSS-Bereich im bestehenden Vite-Bundle. Das Globusmotiv wird als lokale, leichtgewichtige SVG-Datei angelegt und in beiden Ansichten wiederverwendet. Für das Feature werden keine neuen JavaScript- oder Drittanbieter-Abhängigkeiten eingeführt.
 
-Die Gestaltung verwendet vorhandene Markenwerte als Basis:
+Die Gestaltung orientiert sich an der vom Nutzer bereitgestellten Startseiten-Referenz. Die Referenzfarben wurden direkt aus dem Screenshot aufgenommen:
 
-- Primärblau: `#1121c2`
-- Aktionsgelb: `#feaf2c`
-- dunkle Flächen: bestehende dunkle Theme-Farben
+- Hero-Marineblau: `#091543`
+- Signalgelb: `#f6e636`
+- Text auf Signalgelb: sehr dunkles Marineblau beziehungsweise nahezu Schwarz, abhängig vom geprüften Kontrast
+- helle und dunkle Flächen: bestehende Theme-Farben
 - Schrift: bestehende Poppins-Konfiguration
+
+Das vorhandene Theme-Gelb `#feaf2c` wird für dieses Feature nicht verwendet, da es in diesem Kontext zu orange wirkt. Die Atlas-Lasche soll farblich so eindeutig und leuchtend wirken wie der gelbe Störer in der bereitgestellten Referenz, ohne dessen fremde Typografie oder Inhalte zu übernehmen.
 
 Das Ergebnis muss bei 320 Pixel Breite, üblichen Tabletbreiten und Desktopdarstellung funktionieren. Vergrößerung bis 200 Prozent, Tastaturbedienung, sichtbare Fokuszustände, Fehlermeldungen und Kontraste werden berücksichtigt.
 
