@@ -29,11 +29,13 @@ class AccessibilityAtlasContributionTest extends TestCase
             ->assertSee('Barrierefreiheitsatlas im Web');
     }
 
-    public function test_atlas_marker_calls_contributors_web_improvers(): void
+    public function test_atlas_marker_exposes_the_web_improver_message_as_a_named_image(): void
     {
         $this->get(route('accessibility-atlas.contribute'))
             ->assertOk()
-            ->assertSee('WEBVERBESSERER');
+            ->assertSee('WEBVERBESSERER')
+            ->assertSee('role="img"', false)
+            ->assertSee('aria-label="Webverbesserer-Signet: Jeder Hinweis macht Barrieren sichtbarer."', false);
     }
 
     public function test_atlas_tab_is_only_visible_on_the_homepage(): void

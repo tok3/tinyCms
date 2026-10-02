@@ -218,25 +218,44 @@ $atlas-ink: #07102f;
 
 .accessibility-atlas-marker__emblem {
     position: relative;
-    width: min(14rem, 100%);
-    height: 8.75rem;
+    width: min(15.25rem, 100%);
+    height: 9.35rem;
 }
 
 .accessibility-atlas-marker__title {
     position: absolute;
     inset: 0 auto auto 0;
     width: 100%;
-    height: 6.75rem;
+    height: 6.8rem;
     overflow: visible;
     fill: $atlas-ink;
     font-family: inherit;
-    font-size: 1rem;
+    font-size: 1.15rem;
     font-weight: 700;
-    letter-spacing: .08em;
+    letter-spacing: .075em;
 
     path {
         fill: none;
     }
+}
+
+.accessibility-atlas-marker__branches {
+    position: absolute;
+    right: 0;
+    bottom: .1rem;
+    left: 0;
+    width: 100%;
+    height: 7.75rem;
+    overflow: visible;
+    fill: $atlas-ink;
+    opacity: .92;
+}
+
+.accessibility-atlas-marker__stem {
+    fill: none;
+    stroke: $atlas-ink;
+    stroke-linecap: round;
+    stroke-width: 1.6;
 }
 
 .accessibility-atlas-marker__ring {
@@ -245,15 +264,13 @@ $atlas-ink: #07102f;
     bottom: 0;
     left: 0;
     display: grid;
-    width: 6.25rem;
-    height: 6.25rem;
+    width: 7.5rem;
+    height: 7.5rem;
     margin: 0 auto;
     place-items: center;
-    border: 2px solid rgba($atlas-ink, .2);
-    border-radius: 50%;
 
     img {
-        width: 5rem;
+        width: 7rem;
     }
 }
 
@@ -609,22 +626,27 @@ $atlas-ink: #07102f;
     }
 
     .accessibility-atlas-marker__emblem {
-        width: 10.75rem;
-        height: 7rem;
+        width: 11rem;
+        height: 7.4rem;
     }
 
     .accessibility-atlas-marker__title {
-        height: 5.25rem;
-        font-size: .9rem;
-        letter-spacing: .06em;
+        height: 5.4rem;
+        font-size: 1rem;
+        letter-spacing: .055em;
+    }
+
+    .accessibility-atlas-marker__branches {
+        bottom: 0;
+        height: 5.8rem;
     }
 
     .accessibility-atlas-marker__ring {
-        width: 4.5rem;
-        height: 4.5rem;
+        width: 5.5rem;
+        height: 5.5rem;
 
         img {
-            width: 3.6rem;
+            width: 5.1rem;
         }
     }
 
