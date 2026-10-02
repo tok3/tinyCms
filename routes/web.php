@@ -324,6 +324,11 @@ Route::get('/barrierefreiheitsatlas/beitrag', [
     'create',
 ])->name('accessibility-atlas.contribute');
 
+Route::post('/barrierefreiheitsatlas/beitrag', [
+    AccessibilityAtlasContributionController::class,
+    'store',
+])->middleware('throttle:10,1')->name('accessibility-atlas.store');
+
 // -----------------------------------------------
 
 Route::get('/{slug}', [PageController::class, 'getIndex'])

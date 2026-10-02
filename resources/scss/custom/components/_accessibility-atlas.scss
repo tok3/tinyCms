@@ -308,6 +308,198 @@ $atlas-ink: #07102f;
     color: #596400;
 }
 
+.accessibility-atlas-form {
+    position: relative;
+    margin-top: 2.75rem;
+}
+
+.accessibility-atlas-honeypot {
+    position: absolute !important;
+    left: -10000px !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+}
+
+.accessibility-atlas-field {
+    margin-bottom: 1.75rem;
+
+    > label {
+        display: block;
+        margin-bottom: .35rem;
+        color: $atlas-navy;
+        font-size: 1rem;
+        font-weight: 700;
+
+        > span:not(.visually-hidden) {
+            color: #5a6174;
+            font-size: .82rem;
+            font-weight: 500;
+        }
+    }
+
+    .form-control {
+        min-height: 3.5rem;
+        padding: .85rem 1rem;
+        color: $atlas-ink;
+        background: #fff;
+        border: 2px solid #d7dbe6;
+        border-radius: .75rem;
+
+        &:focus {
+            border-color: $atlas-navy;
+            box-shadow: 0 0 0 .25rem rgba(246, 230, 54, .48);
+        }
+
+        &.is-invalid:focus {
+            box-shadow: 0 0 0 .25rem rgba(220, 53, 69, .18);
+        }
+    }
+
+    textarea.form-control {
+        min-height: auto;
+        resize: vertical;
+    }
+}
+
+.accessibility-atlas-field__help {
+    margin-bottom: .65rem;
+    color: #5a6174;
+    font-size: .9rem;
+    line-height: 1.55;
+}
+
+.accessibility-atlas-privacy {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: .8rem;
+    align-items: start;
+    margin: 2rem 0;
+    padding: 1.15rem;
+    background: #f5f6fa;
+    border-radius: .85rem;
+
+    .form-check-input {
+        width: 1.35rem;
+        height: 1.35rem;
+        margin: .1rem 0 0;
+        border: 2px solid #798099;
+
+        &:focus {
+            border-color: $atlas-navy;
+            box-shadow: 0 0 0 .25rem rgba(246, 230, 54, .48);
+        }
+
+        &:checked {
+            background-color: $atlas-navy;
+            border-color: $atlas-navy;
+        }
+    }
+
+    label {
+        color: #3f4558;
+        font-size: .88rem;
+        line-height: 1.6;
+    }
+}
+
+.accessibility-atlas-form__footer {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+
+    p {
+        margin: 0;
+        color: #666d80;
+        font-size: .82rem;
+    }
+}
+
+.accessibility-atlas-submit {
+    display: inline-flex;
+    gap: .75rem;
+    align-items: center;
+    justify-content: center;
+    min-height: 3.5rem;
+    padding: .85rem 1.35rem;
+    color: $atlas-ink;
+    background: $atlas-yellow;
+    border: 2px solid $atlas-yellow;
+    border-radius: .75rem;
+    box-shadow: 0 .75rem 1.75rem rgba($atlas-navy, .14);
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform .2s ease, box-shadow .2s ease;
+
+    &:hover {
+        color: $atlas-ink;
+        box-shadow: 0 1rem 2rem rgba($atlas-navy, .2);
+        transform: translateY(-2px);
+    }
+
+    &:focus-visible {
+        color: $atlas-ink;
+        outline: 3px solid $atlas-navy;
+        outline-offset: 3px;
+    }
+}
+
+.accessibility-atlas-success {
+    max-width: 46rem;
+    padding: clamp(1rem, 3vw, 2rem);
+
+    h2 {
+        margin-bottom: 1rem;
+        color: $atlas-navy;
+        font-size: clamp(2rem, 4vw, 3.3rem);
+        letter-spacing: -.035em;
+    }
+
+    > p:not(.accessibility-atlas-kicker) {
+        color: #434a60;
+        font-size: 1.1rem;
+        line-height: 1.75;
+    }
+
+    &:focus-visible {
+        outline: 3px solid $atlas-navy;
+        outline-offset: .5rem;
+    }
+}
+
+.accessibility-atlas-success__icon {
+    display: grid;
+    width: 4rem;
+    height: 4rem;
+    margin-bottom: 1.5rem;
+    place-items: center;
+    color: $atlas-ink;
+    background: $atlas-yellow;
+    border-radius: 50%;
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.accessibility-atlas-success__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    align-items: center;
+    margin-top: 2rem;
+}
+
+.accessibility-atlas-secondary-link {
+    color: $atlas-navy;
+    font-weight: 700;
+    text-underline-offset: .25rem;
+
+    &:focus-visible {
+        outline: 3px solid $atlas-yellow;
+        outline-offset: 3px;
+    }
+}
+
 @media (max-width: 767.98px) {
     .accessibility-atlas-tab-slot {
         height: auto;
@@ -382,10 +574,20 @@ $atlas-ink: #07102f;
             }
         }
     }
+
+    .accessibility-atlas-form__footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .accessibility-atlas-submit {
+        width: 100%;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .accessibility-atlas-tab {
+    .accessibility-atlas-tab,
+    .accessibility-atlas-submit {
         transition: none;
     }
 }

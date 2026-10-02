@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AccessibilityAtlasContributionRequest;
+use App\Mail\AccessibilityAtlasContributionMail;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Mail;
 
 class AccessibilityAtlasContributionController extends Controller
 {
@@ -22,5 +26,19 @@ class AccessibilityAtlasContributionController extends Controller
         ], JSON_THROW_ON_ERROR);
 
         return view('accessibility-atlas.contribute', compact('pageMeta'));
+    }
+
+    public function store(AccessibilityAtlasContributionRequest $request): RedirectResponse
+    {
+        $contribution = array_merge($request->validated(), [
+            'submitted_at' => now(),
+        ]);
+
+        Mail::to(config('mail.accessibility_atlas_recipient'))
+            ->send(new AccessibilityAtlasContributionMail($contribution));
+
+        return redirect()
+            ->route('accessibility-atlas.contribute')
+            ->with('accessibility_atlas_sent', true);
     }
 }

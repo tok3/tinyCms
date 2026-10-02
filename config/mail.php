@@ -112,6 +112,11 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    'accessibility_atlas_recipient' => env(
+        'ACCESSIBILITY_ATLAS_RECIPIENT',
+        'info@aktion-barrierefrei.org'
+    ),
+
     /*
     |--------------------------------------------------------------------------
     | Markdown Mail Settings
