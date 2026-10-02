@@ -17,7 +17,7 @@
                 <div
                     class="accessibility-atlas-marker"
                     role="img"
-                    aria-label="Webverbesserer-Signet: Jeder Hinweis macht Barrieren sichtbarer."
+                    aria-label="Webverbesserer-Signet mit Globus und Lorbeerzweigen: Jeder Hinweis macht Barrieren sichtbarer."
                 >
                     <div class="accessibility-atlas-marker__emblem" aria-hidden="true">
                         <svg class="accessibility-atlas-marker__title" viewBox="0 0 220 108">
@@ -30,24 +30,11 @@
                                 </textPath>
                             </text>
                         </svg>
-                        <svg class="accessibility-atlas-marker__branches" viewBox="0 0 240 124">
-                            <g class="accessibility-atlas-marker__branch">
-                                <path class="accessibility-atlas-marker__stem" d="M 52 112 C 33 92 30 64 43 34" />
-                                <path d="M 41 93 C 31 92 26 85 29 77 C 38 79 43 85 41 93 Z" />
-                                <path d="M 35 78 C 36 68 43 63 51 65 C 50 73 44 79 35 78 Z" />
-                                <path d="M 35 63 C 27 59 26 51 31 45 C 39 49 41 56 35 63 Z" />
-                                <path d="M 39 50 C 41 40 48 36 56 39 C 54 47 48 51 39 50 Z" />
-                                <path d="M 44 38 C 41 30 46 23 54 22 C 58 29 53 36 44 38 Z" />
-                            </g>
-                            <g transform="translate(240 0) scale(-1 1)">
-                                <path class="accessibility-atlas-marker__stem" d="M 52 112 C 33 92 30 64 43 34" />
-                                <path d="M 41 93 C 31 92 26 85 29 77 C 38 79 43 85 41 93 Z" />
-                                <path d="M 35 78 C 36 68 43 63 51 65 C 50 73 44 79 35 78 Z" />
-                                <path d="M 35 63 C 27 59 26 51 31 45 C 39 49 41 56 35 63 Z" />
-                                <path d="M 39 50 C 41 40 48 36 56 39 C 54 47 48 51 39 50 Z" />
-                                <path d="M 44 38 C 41 30 46 23 54 22 C 58 29 53 36 44 38 Z" />
-                            </g>
-                        </svg>
+                        <img
+                            class="accessibility-atlas-marker__branches"
+                            src="{{ asset('assets/img/barrierefreiheitsatlas-laurel.svg') }}"
+                            alt=""
+                        >
                         <span class="accessibility-atlas-marker__ring">
                             <img src="{{ asset('assets/img/barrierefreiheitsatlas-globe.svg') }}" alt="">
                         </span>

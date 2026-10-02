@@ -35,7 +35,10 @@ class AccessibilityAtlasContributionTest extends TestCase
             ->assertOk()
             ->assertSee('WEBVERBESSERER')
             ->assertSee('role="img"', false)
-            ->assertSee('aria-label="Webverbesserer-Signet: Jeder Hinweis macht Barrieren sichtbarer."', false);
+            ->assertSee(
+                'aria-label="Webverbesserer-Signet mit Globus und Lorbeerzweigen: Jeder Hinweis macht Barrieren sichtbarer."',
+                false,
+            );
     }
 
     public function test_atlas_tab_is_only_visible_on_the_homepage(): void
