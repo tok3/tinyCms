@@ -17,7 +17,7 @@
                 <div
                     class="accessibility-atlas-marker"
                     role="img"
-                    aria-label="Webverbesserer-Signet mit Globus und Lorbeerzweigen: Jeder Hinweis macht Barrieren sichtbarer."
+                    aria-label="Webverbesserer-Signet mit Globus und Lorbeerzweigen: Jeder Hinweis macht das Web barrierefreier."
                 >
                     <div class="accessibility-atlas-marker__emblem" aria-hidden="true">
                         <svg class="accessibility-atlas-marker__title" viewBox="0 0 220 108">
@@ -36,7 +36,7 @@
                             alt=""
                         >
                     </div>
-                    <strong aria-hidden="true">Jeder Hinweis<br>macht Barrieren<br>sichtbarer.</strong>
+                    <strong aria-hidden="true">Jeder Hinweis<br>macht das Web<br>barrierefreier.</strong>
                 </div>
             </div>
         </section>
