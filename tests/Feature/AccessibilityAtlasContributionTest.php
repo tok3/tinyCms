@@ -36,10 +36,10 @@ class AccessibilityAtlasContributionTest extends TestCase
             ->assertSee('WEBVERBESSERER')
             ->assertSee('role="img"', false)
             ->assertSee(
-                'aria-label="Webverbesserer-Signet mit Globus und Lorbeerzweigen: Jeder Hinweis macht das Web barrierefreier."',
+                'aria-label="Webverbesserer-Signet mit Globus und Lorbeerzweigen: Jeder Hinweis macht das Web zugänglicher."',
                 false,
             )
-            ->assertSee('Jeder Hinweis<br>macht das Web<br>barrierefreier.', false)
+            ->assertSee('Jeder Hinweis<br>macht das Web<br>zugänglicher.', false)
             ->assertSee('assets/img/webverbesserer.svg', false);
     }
 
