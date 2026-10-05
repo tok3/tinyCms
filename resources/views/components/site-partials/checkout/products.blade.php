@@ -246,6 +246,7 @@
                 $plan = $price->interval;
                 $formattedPrice = number_format($price->price / 100, 2, ',', '.');
                 $trialHint = $product->trial_period_days > 0 ? $product->trial_period_days . ' Tage kostenlos Testen' : '';
+                $isPackage = ($product->is_package ?? false) || ($product->type ?? null) === 'package';
             @endphp
 
             <div class="container py-3 py-lg-3 plan" data-plan="{{ $plan }}">
@@ -258,7 +259,9 @@
                         </div>
 
                         <div class="col-lg-3 col-md-4 col-12 text-center text-md-start">
-                            <h6>Kombi-Paket</h6>
+                            @if($isPackage)
+                                <h6>Kombi-Paket</h6>
+                            @endif
                             <h3 class="display-5" data-aos="zoom-in-up" data-aos-delay="100">
                                 {{ $product->name }}
                             </h3>
