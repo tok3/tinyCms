@@ -9,6 +9,8 @@ use Spatie\Image\Image;
 use Spatie\Image\Enums\Fit;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Symfony\Component\Console\Formatter\OutputFormatter;
 
 class ProcessImages extends Command
 {
@@ -38,24 +40,16 @@ class ProcessImages extends Command
         $this->info("Processing {$images->count()} images...");
 
         foreach ($images as $image) {
+            $originalTempPath = null;
+            $resizedTempPath = null;
             try {
-                // Download the image
-                //$response = Http::timeout(10)->get($image->url);
+                $response = Http::withHeaders([
+                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                ])->timeout(10)->get($image->url);
 
-               $response = Http::withHeaders([
-    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-])->timeout(10)->get($image->url);
-    if (!$response->successful()) {
-    throw new \RuntimeException("HTTP {$response->status()}: ".$response->body());
-}
-
-
-                if ($response->failed()) {
-                    $now = now()->toDateTimeString();
-                    DB::table('imagetags')
-                        ->where('id', $image->id)
-                        ->update(['deleted_at' => $now]);
-                    throw new \Exception("Failed to download image from {$image->url}");
+                if (!$response->successful()) {
+                    // Error pages can be huge HTML documents. Never format them as console output.
+                    throw new \RuntimeException("HTTP {$response->status()} while downloading image");
                 }
 
                 $imageContent = $response->body();
@@ -158,8 +152,9 @@ class ProcessImages extends Command
                 $this->info("Processed image ID {$image->id} (Hash: {$hash}, Format: {$extension})");
 
             } catch (\Exception $e) {
-                Log::error("Error processing image ID {$image->id}: {$e->getMessage()}");
-                $this->error("Failed to process image ID {$image->id}: {$e->getMessage()}");
+                $message = Str::limit($e->getMessage(), 500);
+                Log::error("Error processing image ID {$image->id}: {$message}");
+                $this->error(OutputFormatter::escape("Failed to process image ID {$image->id}: {$message}"));
 
                 $now = now()->toDateTimeString();
                 DB::table('imagetags')
