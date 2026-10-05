@@ -21,7 +21,15 @@ class Kernel extends ConsoleKernel
         $schedule->command('backup:run')->daily()->at('13:30');
         $schedule->command('app:cleanup')->daily()->at('9:30');
         $schedule->command('app:image-description')->everyThreeMinutes();
-        $schedule->command('app:processImages')->everyThreeMinutes();
+        // Keep the lock outside the cache: it is released even after a forced exit.
+        // Bound wall-clock time as well as CPU time, including stuck native image code.
+        $schedule->exec('/usr/bin/flock --nonblock --conflict-exit-code 0 '
+            .escapeshellarg(storage_path('framework/process-images.lock'))
+            .' /usr/bin/timeout --signal=TERM --kill-after=10s 300s '
+            .escapeshellarg(PHP_BINARY).' '.escapeshellarg(base_path('artisan'))
+            .' app:processImages')
+            ->name('app:processImages')
+            ->everyThreeMinutes();
         $schedule->command('crawl:process')->everyThreeMinutes();
 
         // Verify Reminder (Aktivierung)
