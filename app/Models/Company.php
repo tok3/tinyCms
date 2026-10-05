@@ -180,6 +180,10 @@ class Company extends Model
 
     public function agencyBillingDiscountSource(): ?self
     {
+        if ($this->isAgency()) {
+            return $this;
+        }
+
         return $this->billingAgency();
     }
     /**
