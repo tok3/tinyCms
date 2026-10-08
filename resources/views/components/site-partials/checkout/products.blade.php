@@ -384,6 +384,20 @@
             </div>
         @endforeach
     @endforeach
+
+    <div class="row justify-content-center mt-4 mb-5">
+        <div class="col-lg-9">
+            <div class="bg-body border rounded-3 shadow-sm px-4 py-3 text-center">
+                <p class="mb-1 fw-semibold">Sie benötigen ein individuelles Paket oder haben Fragen zu Anpassungen?</p>
+                <p class="mb-0">
+                    Wir beraten Sie gerne jederzeit unter
+                    <a href="tel:+4960211307128" class="fw-semibold">06021-130 712-8</a>
+                    oder per E-Mail an
+                    <a href="mailto:info@aktion-barrierefrei.org" class="fw-semibold">info@aktion-barrierefrei.org</a>.
+                </p>
+            </div>
+        </div>
+    </div>
 </div>
 
 @push('scripts')
