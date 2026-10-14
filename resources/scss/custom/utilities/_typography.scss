@@ -26,6 +26,13 @@ html,body{
 a {
     transition: $transition-base;
 }
+
+main p a:not(.btn):not(.nav-link),
+main li a:not(.btn):not(.nav-link) {
+    text-decoration: underline;
+    text-decoration-thickness: max(1px, .08em);
+    text-underline-offset: .16em;
+}
 //Headings
 h1,
 .h1,

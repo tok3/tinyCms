@@ -4,7 +4,8 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
-        "test:atlas-marker": "node tests/Browser/accessibility-atlas-marker.cjs"
+        "test:atlas-marker": "node tests/Browser/accessibility-atlas-marker.cjs",
+        "test:theme-accessibility": "node --test tests/Browser/theme-accessibility-css.cjs"
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.7",
