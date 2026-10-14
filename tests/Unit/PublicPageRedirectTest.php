@@ -12,7 +12,7 @@ class PublicPageRedirectTest extends TestCase
 
         self::assertMatchesRegularExpression(
             <<<'REGEX'
-            /Route::redirect\(\s*'\/barrierefreie-websites-fur-soziale-trager',\s*'\/barrierefreie-websites-fuer-soziale-trager',\s*301\s*\);/
+            /Route::redirect\(\s*'\/barrierefreie-websites-fur-soziale-trager',\s*'\/barrierefreie-websites-fuer-soziale-traeger',\s*301\s*\);/
             REGEX,
             $routes,
         );
