@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\SitemapUrlPolicy;
 use Illuminate\Http\Request;
 
 use App\Models\Page;
@@ -191,13 +192,20 @@ class PageController extends Controller
     }
 
 
-    public function sitemap()
+    public function sitemap(SitemapUrlPolicy $policy)
     {
         $path = public_path('sitemap.xml');
-        SitemapGenerator::create('https://aktion-barrierefrei.org')->writeToFile($path);
+        $this->sitemapGenerator($policy)->writeToFile($path);
 
         // Redirect back to the previous page with a success message
         return redirect()->back()->with('success', 'Sitemap generated successfully!');
+    }
+
+    protected function sitemapGenerator(SitemapUrlPolicy $policy): SitemapGenerator
+    {
+        return SitemapGenerator::create('https://aktion-barrierefrei.org')
+            ->shouldCrawl([$policy, 'shouldCrawl'])
+            ->hasCrawled([$policy, 'toSitemapUrl']);
     }
 
     /**
