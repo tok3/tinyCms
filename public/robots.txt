@@ -3,7 +3,7 @@ User-agent: *
 Disallow:
 
 # Sitemap-Informationen (sehr wichtig für Suchmaschinen)
-Sitemap: https://aktion-barrierefrei.de/sitemap.xml
+Sitemap: https://aktion-barrierefrei.org/sitemap.xml
 
 # Crawl-Delay (optional, um Serverbelastung zu reduzieren, falls nötig)
 # Crawl-Delay: 10
