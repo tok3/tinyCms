@@ -10,8 +10,10 @@ class SitemapUrlPolicy
 {
     private const EXCLUDED_FIRST_SEGMENTS = [
         'admin',
+        'confirm-password',
         'dash',
         'dashboard',
+        'email',
         'forgot-password',
         'login',
         'logout',
@@ -19,6 +21,8 @@ class SitemapUrlPolicy
         'profile',
         'register',
         'reset-password',
+        'verify-email',
+        'verify-token-expired',
     ];
 
     public function shouldCrawl(UriInterface $url): bool
