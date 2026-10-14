@@ -16,7 +16,7 @@ class="container mb-50">
             <{{ $levelHeadingTag }} class="mb-4">{!! $data['heading'] !!}</{{ $levelHeadingTag }}>
 
             @if(!empty($data['heading2']))
-                <{{ $levelHeading2Tag }} class="mb-4">{!! $data['heading2'] !!}</{{ $levelHeading2Tag }}>
+                <p class="mb-4 {{ $levelHeading2Tag }}">{!! $data['heading2'] !!}</p>
             @endif
 
             <p class="lead mb-4 dropcap">

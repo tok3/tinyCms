@@ -6,7 +6,7 @@
 
     }
 
-    .swiper-container h2{
+    .swiper-container .swiper-hero-copy{
         color:{{$data['text_color']}};
     }
     .swiper-pagination-progress
@@ -43,9 +43,9 @@
                             <div class="col-xl-8 col-lg-10 mx-auto text-center">
                                 <ul class="carousel-layers list-unstyled mb-0" style="widht:100% !important;">
                                     <li data-carousel-layer="fade-start">
-                                        <h2 class="display-3 mb-4 mb-lg-7">
+                                        <p class="swiper-hero-copy display-3 mb-4 mb-lg-7">
                                             {{ $slide['text'] ?? '' }}
-                                        </h2>
+                                        </p>
                                     </li>
                                     @if($slide['buttonText'] !="")
                                         <li data-carousel-layer="fade-start">

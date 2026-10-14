@@ -331,6 +331,8 @@ Route::post('/barrierefreiheitsatlas/beitrag', [
 
 // -----------------------------------------------
 
+Route::redirect('/barrierefreie-websites-fur-soziale-trager', '/barrierefreie-websites-fuer-soziale-trager', 301);
+
 Route::get('/{slug}', [PageController::class, 'getIndex'])
     ->where('slug', '^(?!dashboard(?:/|$))[^/]+$')
     ->name('frontend');

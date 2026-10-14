@@ -23,7 +23,7 @@ class ContentSectionMarkupTest extends TestCase
         ]);
 
         self::assertStringContainsString('<h1 class="mb-4">Primary heading</h1>', $html);
-        self::assertStringContainsString('<h3 class="mb-4">Secondary heading</h3>', $html);
+        self::assertStringContainsString('<p class="mb-4 h3">Secondary heading</p>', $html);
         self::assertStringNotContainsString('role="heading"', $html);
     }
 
@@ -42,9 +42,18 @@ class ContentSectionMarkupTest extends TestCase
         ]);
 
         self::assertStringContainsString('<h1 class="mb-4">Safe primary heading</h1>', $html);
-        self::assertStringContainsString('<h2 class="mb-4">Safe secondary heading</h2>', $html);
+        self::assertStringContainsString('<p class="mb-4 h2">Safe secondary heading</p>', $html);
         self::assertStringNotContainsString('<script', $html);
         self::assertStringNotContainsString('<iframe', $html);
+    }
+
+    public function test_swiper_slide_copy_is_not_part_of_the_heading_outline(): void
+    {
+        $template = file_get_contents(dirname(__DIR__, 2).'/resources/views/content-sections/swiper.blade.php');
+
+        self::assertStringContainsString('<p class="swiper-hero-copy display-3 mb-4 mb-lg-7">', $template);
+        self::assertStringNotContainsString('<h2 class="display-3 mb-4 mb-lg-7">', $template);
+        self::assertStringContainsString('.swiper-container .swiper-hero-copy', $template);
     }
 
     public function test_blockquote_section_uses_a_container_and_typographic_quotes(): void
