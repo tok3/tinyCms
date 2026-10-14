@@ -5,41 +5,28 @@ class="container mb-50">
          style="@if(isset($data['margin_bottom']) && $data['margin_bottom'] != 0)margin-bottom:{{$data['margin_bottom']}}!important;@endif @if(isset($data['margin_top']) && $data['margin_top'] != "")margin-top:{{$data['margin_top']}} !important;@endif">
         <div class="col-xl-9 mx-auto">
             @php
-                $levelHeadingTag = $data['levelHeading'] ?? 'h1'; // Standardwert ist h4, falls nicht gesetzt
-                $levelHeading2Tag = $data['levelHeading2'] ?? 'h2'; // Standardwert ist h4, falls nicht gesetzt
+                $allowedHeadingTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+                $levelHeadingTag = in_array($data['levelHeading'] ?? null, $allowedHeadingTags, true)
+                    ? $data['levelHeading']
+                    : 'h1';
+                $levelHeading2Tag = in_array($data['levelHeading2'] ?? null, $allowedHeadingTags, true)
+                    ? $data['levelHeading2']
+                    : 'h2';
             @endphp
-            @if(isset($realHtags) && $realHtags == true)
+            <{{ $levelHeadingTag }} class="mb-4">{!! $data['heading'] !!}</{{ $levelHeadingTag }}>
 
+            @if(!empty($data['heading2']))
+                <{{ $levelHeading2Tag }} class="mb-4">{!! $data['heading2'] !!}</{{ $levelHeading2Tag }}>
+            @endif
 
+            <p class="lead mb-4 dropcap">
+                {!! $data['teaser'] !!}
+            </p>
 
-                <{{ $levelHeadingTag }} class="mb-4">{!! $data['heading'] !!}</{{ $levelHeadingTag }}>
+            <p class="mb-5">
+                {!! $data['text'] !!}
+            </p>
 
-        @if(!empty($data['heading2']))
-            <{{ $levelHeading2Tag }} class="mb-4">{!! $data['heading2'] !!}</{{ $levelHeading2Tag }}>
-        @endif
-
-    @else
-
-
-        <div  role="heading" class="mb-4 {{ $levelHeadingTag }} ">{!! $data['heading'] !!}</div>
-
-@if(!empty($data['heading2']))
-    <div  role="heading" class="mb-4 {{ $levelHeading2Tag }}">{!! $data['heading2'] !!}</div>
-@endif
-
-
-
-
-    @endif
-
-    <p class="lead mb-4 dropcap">
-        {!! $data['teaser'] !!}
-    </p>
-
-    <p class="mb-5">
-        {!! $data['text'] !!}
-    </p>
-
-</div>
-</div>
+        </div>
+    </div>
 </div>

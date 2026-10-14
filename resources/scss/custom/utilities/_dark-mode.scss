@@ -19,6 +19,21 @@ html[data-bs-theme=dark] {
             content: "\ee4e";
         }
     }
+
+    main .btn-outline-dark {
+        --bs-btn-color: #FAFAFE;
+        --bs-btn-border-color: #FAFAFE;
+        --bs-btn-hover-color: #080713;
+        --bs-btn-hover-bg: #FAFAFE;
+        --bs-btn-hover-border-color: #FAFAFE;
+        --bs-btn-active-color: #080713;
+        --bs-btn-active-bg: #FAFAFE;
+        --bs-btn-active-border-color: #FAFAFE;
+    }
+
+    main .dropcap::first-letter {
+        color: #8A94FF;
+    }
 }
 
 html[data-bs-theme=auto] {
