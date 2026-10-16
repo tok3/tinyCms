@@ -56,12 +56,28 @@ class IncluCertProductPageTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertSee('Ein sichtbares Zeichen für kontinuierliche Verbesserung')
-            ->assertSee('Was im Hintergrund passiert')
-            ->assertSee('Was IncluCert zeigt – und was nicht')
-            ->assertSee('IncluCert kennenlernen')
+            ->assertSee('Fortschritt sichtbar machen')
+            ->assertSee('Regelmäßig prüfen. Entwicklung dokumentieren. Nachweis teilen.')
+            ->assertSee('Vier Badge-Varianten')
+            ->assertSee('Was automatische Prüfungen nicht zeigen')
+            ->assertSee('Häufige Fragen zu IncluCert')
+            ->assertSee('/inclucert/01JER4830K1Y3QDGRFDJ7ZN160', false)
+            ->assertSee('/inclucert/01JER4830K1Y3QDGRFDJ7ZN160/pdf', false)
+            ->assertSee('data-appearance="full"', false)
+            ->assertSee('data-appearance="compact"', false)
+            ->assertSee('data-appearance="minimal"', false)
+            ->assertSee('data-appearance="micro"', false)
             ->assertSee('<inclucert-badge', false);
 
-        self::assertSame(1, substr_count($response->getContent(), '<h1'));
+        $content = $response->getContent();
+        preg_match('/<main[^>]*>(.*)<\/main>/si', $content, $mainMatch);
+        $main = $mainMatch[1] ?? '';
+
+        self::assertNotSame('', $main);
+        self::assertSame(1, substr_count($main, '<h1'));
+
+        foreach (['Gespräch vereinbaren', 'echte Barrierefreiheit', 'rechtssicher', 'Abmahnung'] as $forbiddenClaim) {
+            self::assertStringNotContainsStringIgnoringCase($forbiddenClaim, $main);
+        }
     }
 }
