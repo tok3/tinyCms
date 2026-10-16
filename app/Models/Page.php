@@ -39,6 +39,8 @@ class Page extends Model
     ];
 
     protected $casts = [
+        'published' => 'boolean',
+        'navbar_type' => 'integer',
         'blocks' => 'array',
         'meta' => 'json',
         'meta_og' => 'json',
