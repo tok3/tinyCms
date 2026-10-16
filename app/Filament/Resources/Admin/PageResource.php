@@ -262,6 +262,70 @@ class   PageResource extends Resource
                                             ,
                                             //-------------------------------------
 
+                                            Forms\Components\Builder\Block::make('inclucert-teaser')
+                                                ->label(function (?array $state): string {
+                                                    $heading = trim(strip_tags((string) ($state['heading'] ?? '')));
+
+                                                    return $heading === '' ? 'IncluCert' : 'IncluCert: '.\Str::limit($heading, 50);
+                                                })
+                                                ->schema([
+                                                    Select::make('mode')
+                                                        ->label('Darstellung')
+                                                        ->options([
+                                                            'feature' => 'Große Produktdarstellung',
+                                                            'teaser' => 'Kompakter Hinweis',
+                                                        ])
+                                                        ->default('teaser')
+                                                        ->required()
+                                                        ->columnSpan(4),
+                                                    TextInput::make('heading')
+                                                        ->label('Überschrift')
+                                                        ->required()
+                                                        ->columnSpan(8),
+                                                    RichEditor::make('body')
+                                                        ->label('Erklärender Text')
+                                                        ->columnSpanFull(),
+                                                    TextInput::make('badge_ulid')
+                                                        ->label('IncluCert ULID')
+                                                        ->helperText('Nur mit gültiger ULID wird ein echtes Badge geladen.')
+                                                        ->maxLength(26)
+                                                        ->columnSpan(4),
+                                                    Select::make('badge_appearance')
+                                                        ->label('Badge-Variante')
+                                                        ->options([
+                                                            'full' => 'Vollständig',
+                                                            'compact' => 'Kompakt',
+                                                            'minimal' => 'Minimal',
+                                                            'micro' => 'Mikro',
+                                                        ])
+                                                        ->default('compact')
+                                                        ->required()
+                                                        ->columnSpan(4),
+                                                    Select::make('badge_theme')
+                                                        ->label('Badge-Theme')
+                                                        ->options([
+                                                            'default' => 'Standard',
+                                                            'dark' => 'Dunkel',
+                                                            'stealth' => 'Dezent dunkel',
+                                                            'light' => 'Hell',
+                                                            'mono' => 'Monochrom',
+                                                            'auto' => 'Automatisch',
+                                                        ])
+                                                        ->default('auto')
+                                                        ->required()
+                                                        ->columnSpan(4),
+                                                    TextInput::make('button_text')
+                                                        ->label('Buttontext')
+                                                        ->columnSpan(4),
+                                                    TextInput::make('button_url')
+                                                        ->label('Buttonziel')
+                                                        ->helperText('Interner Pfad ab / oder vollständige HTTPS-Adresse.')
+                                                        ->columnSpan(8),
+                                                ])
+                                                ->columns(12),
+
+                                            //-------------------------------------
+
                                             Forms\Components\Builder\Block::make('blockquote')
                                                 ->schema([
                                                     Forms\Components\Textarea::make('quote')

@@ -1,0 +1,51 @@
+.inclucert-presentation {
+    overflow-wrap: anywhere;
+
+    &--teaser {
+        background-color: var(--bs-tertiary-bg);
+        border-block: 1px solid var(--bs-border-color);
+    }
+
+    &__body {
+        max-width: 48rem;
+
+        > :last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    &__badge {
+        display: flex;
+        min-width: 0;
+        max-width: 100%;
+        justify-content: flex-start;
+        align-items: center;
+
+        inclucert-badge {
+            display: block;
+            max-width: 100%;
+        }
+    }
+
+    .btn:focus-visible {
+        outline: 3px solid rgba(var(--bs-primary-rgb), .35);
+        outline-offset: 3px;
+    }
+}
+
+@include media-breakpoint-up(lg) {
+    .inclucert-presentation__badge {
+        justify-content: flex-end;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .inclucert-presentation,
+    .inclucert-presentation *,
+    .inclucert-presentation inclucert-badge {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+}
