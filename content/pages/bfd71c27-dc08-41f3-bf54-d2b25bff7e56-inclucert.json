@@ -1,0 +1,94 @@
+{
+    "schema_version": 1,
+    "source": "local-product-draft",
+    "exported_at": "2026-10-16T11:30:00+00:00",
+    "base_fingerprint": null,
+    "page": {
+        "blocks": [
+            {
+                "data": {
+                    "badge_appearance": "full",
+                    "badge_theme": "auto",
+                    "badge_ulid": "01JER4830K1Y3QDGRFDJ7ZN160",
+                    "body": "<p>IncluCert macht sichtbar, dass eine Website regelmäßig technisch geprüft wird und Verbesserungen nicht dem Zufall überlassen bleiben. Das Badge führt zum aktuell dokumentierten Stand.</p>",
+                    "button_text": "IncluCert kennenlernen",
+                    "button_url": "https://calendar.google.com/calendar/appointments/schedules/AcZssZ002z7FSLxfqDLL47QcSvPz_XZbGC-2uwnyJso0MjsOmuNK9FDuwO_HG3uJKMpsWoLqfOBefBw9?gv=true",
+                    "heading": "IncluCert: Barrierefreiheit sichtbar weiterentwickeln",
+                    "mode": "feature"
+                },
+                "type": "inclucert-teaser"
+            },
+            {
+                "data": {
+                    "heading": "Ein sichtbares Zeichen für kontinuierliche Verbesserung",
+                    "heading2": "",
+                    "levelHeading": "h2",
+                    "levelHeading2": "h3",
+                    "teaser": "Viele Organisationen arbeiten an digitaler Barrierefreiheit, ohne dass Besucher diesen Prozess erkennen können.",
+                    "text": "IncluCert verbindet die laufende technische Beobachtung mit einem öffentlich sichtbaren Nachweis. Wer das Badge öffnet, sieht den dokumentierten Stand und erkennt: Diese Website wird nicht einmalig abgehakt, sondern weiterentwickelt."
+                },
+                "type": "text"
+            },
+            {
+                "data": {
+                    "heading": "Was im Hintergrund passiert",
+                    "heading2": "",
+                    "levelHeading": "h2",
+                    "levelHeading2": "h3",
+                    "teaser": "Die hinterlegte Website wird regelmäßig automatisiert auf technisch erkennbare Barrieren geprüft.",
+                    "text": "Die Ergebnisse werden gesammelt und über die Zeit vergleichbar gemacht. Verantwortliche sehen, wo Handlungsbedarf besteht und ob Korrekturen Wirkung zeigen. So entsteht aus einzelnen Prüfungen ein nachvollziehbarer Verbesserungsprozess."
+                },
+                "type": "text"
+            },
+            {
+                "data": {
+                    "heading": "Was IncluCert zeigt – und was nicht",
+                    "heading2": "",
+                    "levelHeading": "h2",
+                    "levelHeading2": "h3",
+                    "teaser": "IncluCert zeigt regelmäßige technische Prüfung, den dokumentierten Stand und die Bereitschaft zur kontinuierlichen Verbesserung.",
+                    "text": "Automatische Tests erkennen viele wichtige technische Probleme, aber nicht jede Barriere und nicht jede Nutzungssituation. IncluCert ist deshalb weder ein Zertifikat für vollständige Barrierefreiheit noch ein Ersatz für manuelle Prüfungen und die Perspektive von Menschen mit Behinderungen."
+                },
+                "type": "text"
+            },
+            {
+                "data": {
+                    "badge_appearance": "compact",
+                    "badge_theme": "auto",
+                    "badge_ulid": null,
+                    "body": "<p>Sie möchten IncluCert auf Ihrer Website einsetzen oder wissen, wie regelmäßige Prüfung, Barrierefreiheitserklärung und öffentlicher Nachweis zusammenspielen? Wir zeigen Ihnen den passenden Einstieg für Ihre Website.</p>",
+                    "button_text": "Gespräch vereinbaren",
+                    "button_url": "https://calendar.google.com/calendar/appointments/schedules/AcZssZ002z7FSLxfqDLL47QcSvPz_XZbGC-2uwnyJso0MjsOmuNK9FDuwO_HG3uJKMpsWoLqfOBefBw9?gv=true",
+                    "heading": "IncluCert kennenlernen",
+                    "mode": "teaser"
+                },
+                "type": "inclucert-teaser"
+            }
+        ],
+        "custom_footer_code": null,
+        "custom_head_code": null,
+        "external_id": "bfd71c27-dc08-41f3-bf54-d2b25bff7e56",
+        "meta": {
+            "description": "IncluCert macht regelmäßige technische Prüfungen und die kontinuierliche Verbesserung digitaler Barrierefreiheit öffentlich sichtbar.",
+            "title": "IncluCert – Barrierefreiheit sichtbar weiterentwickeln"
+        },
+        "meta_og": {
+            "description": "IncluCert macht regelmäßige technische Prüfungen und die kontinuierliche Verbesserung digitaler Barrierefreiheit öffentlich sichtbar.",
+            "title": "IncluCert – Barrierefreiheit sichtbar weiterentwickeln"
+        },
+        "meta_twitter": {
+            "description": "IncluCert macht regelmäßige technische Prüfungen und die kontinuierliche Verbesserung digitaler Barrierefreiheit öffentlich sichtbar.",
+            "title": "IncluCert – Barrierefreiheit sichtbar weiterentwickeln"
+        },
+        "navbar_type": 1,
+        "published": false,
+        "schema_json": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"SoftwareApplication\",\n  \"@id\": \"https://aktion-barrierefrei.org/produkte/inclucert/#software\",\n  \"name\": \"IncluCert\",\n  \"applicationCategory\": \"BusinessApplication\",\n  \"operatingSystem\": \"Web\",\n  \"url\": \"https://aktion-barrierefrei.org/produkte/inclucert\",\n  \"description\": \"IncluCert dokumentiert regelmäßige technische Prüfungen und macht die kontinuierliche Verbesserung digitaler Barrierefreiheit sichtbar.\",\n  \"provider\": {\n    \"@type\": \"Organization\",\n    \"@id\": \"https://aktion-barrierefrei.org/#organization\"\n  },\n  \"featureList\": [\n    \"Regelmäßige automatisierte Prüfung\",\n    \"Dokumentation des aktuellen technischen Stands\",\n    \"Öffentlich einbindbares Badge\",\n    \"Nachvollziehbare Entwicklung über die Zeit\"\n  ]\n}",
+        "slug": "inclucert",
+        "tags": [
+            "Barrierefreiheit",
+            "IncluCert",
+            "Monitoring"
+        ],
+        "title": "IncluCert – Barrierefreiheit sichtbar weiterentwickeln"
+    }
+}
