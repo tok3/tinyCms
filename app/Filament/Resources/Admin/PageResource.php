@@ -314,6 +314,11 @@ class   PageResource extends Resource
                                                         ->default('auto')
                                                         ->required()
                                                         ->columnSpan(4),
+                                                    Toggle::make('badge_theme_cycle')
+                                                        ->label('Stealth, Hell und Monochrom durchwechseln')
+                                                        ->helperText('Nur für eine ruhige Vorschau auf der Produktseite; bei reduzierter Bewegung bleibt das gewählte Theme stehen.')
+                                                        ->default(false)
+                                                        ->columnSpanFull(),
                                                     TextInput::make('button_text')
                                                         ->label('Buttontext')
                                                         ->columnSpan(4),

@@ -22,6 +22,8 @@ class IncluCertCmsBlockTest extends TestCase
         self::assertStringContainsString('<h1', $html);
         self::assertStringContainsString('IncluCert sichtbar machen', $html);
         self::assertStringContainsString('inclucert-presentation--feature', $html);
+        self::assertStringContainsString('bg-gradient-dark-night', $html);
+        self::assertStringContainsString('text-white-75', $html);
     }
 
     public function test_teaser_mode_renders_an_h2_without_an_h1(): void
@@ -80,6 +82,19 @@ class IncluCertCmsBlockTest extends TestCase
         self::assertSame(1, substr_count($html, 'src="'.asset('js/inclucert-badge.js').'"'));
     }
 
+    public function test_optional_badge_theme_cycle_is_rendered_only_when_enabled(): void
+    {
+        $static = $this->renderComponent();
+        $cycling = $this->renderComponent([
+            'badgeTheme' => 'stealth',
+            'badgeThemeCycle' => true,
+        ]);
+
+        self::assertStringNotContainsString('data-theme-cycle', $static);
+        self::assertStringContainsString('data-theme="stealth"', $cycling);
+        self::assertStringContainsString('data-theme-cycle="stealth,light,mono"', $cycling);
+    }
+
     public function test_button_requires_text_and_a_safe_internal_or_https_url(): void
     {
         $unsafe = $this->renderComponent([
@@ -107,6 +122,7 @@ class IncluCertCmsBlockTest extends TestCase
                 'badge_ulid' => self::ULID,
                 'badge_appearance' => 'micro',
                 'badge_theme' => 'light',
+                'badge_theme_cycle' => true,
                 'button_text' => 'Details',
                 'button_url' => '/produkte/inclucert',
             ],
@@ -115,6 +131,7 @@ class IncluCertCmsBlockTest extends TestCase
         self::assertStringContainsString('Im CMS gepflegt', $html);
         self::assertStringContainsString('data-appearance="micro"', $html);
         self::assertStringContainsString('data-theme="light"', $html);
+        self::assertStringContainsString('data-theme-cycle="stealth,light,mono"', $html);
         self::assertStringContainsString("Block::make('inclucert-teaser')", File::get(app_path('Filament/Resources/Admin/PageResource.php')));
     }
 
@@ -127,6 +144,7 @@ class IncluCertCmsBlockTest extends TestCase
             'badgeUlid' => self::ULID,
             'badgeAppearance' => 'compact',
             'badgeTheme' => 'auto',
+            'badgeThemeCycle' => false,
             'buttonText' => null,
             'buttonUrl' => null,
         ], $overrides))->render();

@@ -5,6 +5,7 @@
     'badgeUlid' => null,
     'badgeAppearance' => 'compact',
     'badgeTheme' => 'auto',
+    'badgeThemeCycle' => false,
     'buttonText' => null,
     'buttonUrl' => null,
 ])
@@ -27,18 +28,27 @@
     $hasButton = $resolvedButtonText !== '' && ($isInternalButtonUrl || $isHttpsButtonUrl);
 @endphp
 
-<section class="inclucert-presentation inclucert-presentation--{{ $resolvedMode }} py-9 py-lg-11 overflow-hidden">
-    <div class="container">
+<section @class([
+    'inclucert-presentation',
+    'inclucert-presentation--'.$resolvedMode,
+    'overflow-hidden',
+    'bg-gradient-dark-night text-white no-hyphen' => $resolvedMode === 'feature',
+])>
+    <div class="container py-9 py-lg-11">
         <div class="row align-items-center g-6 g-lg-9">
             <div class="{{ $hasBadge ? 'col-lg-7' : 'col-lg-9' }}">
                 @if ($resolvedMode === 'feature')
-                    <h1 class="display-4 mb-4">{{ $resolvedHeading }}</h1>
+                    <h1 class="display-4 mb-4 text-white">{{ $resolvedHeading }}</h1>
                 @else
                     <h2 class="display-6 mb-4">{{ $resolvedHeading }}</h2>
                 @endif
 
                 @if (trim((string) $body) !== '')
-                    <div class="inclucert-presentation__body lead text-body-secondary">
+                    <div @class([
+                        'inclucert-presentation__body lead',
+                        'text-white-75' => $resolvedMode === 'feature',
+                        'text-body-secondary' => $resolvedMode !== 'feature',
+                    ])>
                         {!! $body !!}
                     </div>
                 @endif
@@ -57,6 +67,7 @@
                             data-ulid="{{ $badgeUlid }}"
                             data-appearance="{{ $resolvedAppearance }}"
                             data-theme="{{ $resolvedTheme }}"
+                            @if ($badgeThemeCycle) data-theme-cycle="stealth,light,mono" @endif
                             data-pulse="true"
                             aria-label="IncluCert-Nachweis ansehen"
                         ></inclucert-badge>

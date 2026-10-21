@@ -97,6 +97,7 @@
 //
 //   data-theme                    default | dark | light | stealth | mono | auto
 //   data-inclucert-theme          Gleichwertig, nur für Weg 3 (div-Variante).
+//   data-theme-cycle              Optional: kommagetrennte Theme-Folge für Demos.
 //
 //   data-target                   CSS-Selektor. Badge wird in dieses Element
 //                                 eingefügt statt an die Script-Position.
@@ -541,6 +542,17 @@
 .akb-theme-mono .akb-toggle,
 .akb-theme-mono .akb-toggle-dots { color: #888; }
 
+.akb-theme-cycle {
+    transition: opacity 180ms ease-out;
+}
+.akb-theme-cycle.akb-theme-cycle-switching {
+    opacity: .72;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .akb-theme-cycle { transition: none; }
+}
+
         `;
         document.head.appendChild(style);
     }
@@ -580,6 +592,55 @@
             monitoringStatus === 'overdue' ? 'akb-pulse-overdue' :
                 'akb-pulse-inactive';
         return `<span class="akb-pulse ${cls}"></span>`;
+    }
+
+    function startThemeCycle(root, rawThemes) {
+        const allowedThemes = ['default', 'dark', 'stealth', 'light', 'mono'];
+        const themes = [...new Set(String(rawThemes || '')
+            .split(',')
+            .map(theme => theme.trim())
+            .filter(theme => allowedThemes.includes(theme)))];
+
+        if (themes.length < 2) return;
+
+        const themedElements = [root, ...root.querySelectorAll('.akb-strip, .akb-panel')];
+        const themeClasses = allowedThemes.map(theme => `akb-theme-${theme}`);
+        const applyTheme = theme => themedElements.forEach(element => {
+            element.classList.remove(...themeClasses);
+            if (theme !== 'default') element.classList.add(`akb-theme-${theme}`);
+        });
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+        let currentIndex = 0;
+        let intervalId = null;
+        let paused = false;
+
+        root.classList.add('akb-theme-cycle');
+        applyTheme(themes[currentIndex]);
+
+        const stop = () => {
+            if (intervalId !== null) window.clearInterval(intervalId);
+            intervalId = null;
+        };
+        const advance = () => {
+            if (paused || document.hidden) return;
+            root.classList.add('akb-theme-cycle-switching');
+            window.setTimeout(() => {
+                currentIndex = (currentIndex + 1) % themes.length;
+                applyTheme(themes[currentIndex]);
+                root.classList.remove('akb-theme-cycle-switching');
+            }, 180);
+        };
+        const start = () => {
+            stop();
+            if (!reducedMotion.matches) intervalId = window.setInterval(advance, 4800);
+        };
+
+        root.addEventListener('pointerenter', () => { paused = true; });
+        root.addEventListener('pointerleave', () => { paused = false; });
+        root.addEventListener('focusin', () => { paused = true; });
+        root.addEventListener('focusout', () => { paused = false; });
+        reducedMotion.addEventListener('change', start);
+        start();
     }
 
     // ── Full-View HTML ────────────────────────────────────────────────────────
@@ -762,7 +823,9 @@
             root.addEventListener('click', () => window.open(data.url, '_blank'));
         }
 
+        const themeCycle = targetEl.dataset.themeCycle;
         targetEl.replaceWith(root);
+        if (themeCycle) startThemeCycle(root, themeCycle);
 
         // Visit melden — URL ins Monitoring aufnehmen falls noch nicht drin
         fetch(`${API_BASE}/${ulid}/visit`, {

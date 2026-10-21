@@ -8,7 +8,8 @@
             {
                 "data": {
                     "badge_appearance": "full",
-                    "badge_theme": "auto",
+                    "badge_theme": "stealth",
+                    "badge_theme_cycle": true,
                     "badge_ulid": "01JER4830K1Y3QDGRFDJ7ZN160",
                     "body": "<p>IncluCert verbindet regelmäßige technische Website-Prüfungen mit einem öffentlichen Fortschrittsnachweis. Das Badge zeigt: Diese Website wird beobachtet, Ergebnisse werden dokumentiert und Verbesserungen bleiben nachvollziehbar.</p>",
                     "button_text": "Echten Fortschrittsnachweis ansehen",
@@ -39,7 +40,7 @@
             {
                 "data": {
                     "badge_appearance": "compact",
-                    "badge_theme": "auto",
+                    "badge_theme": "stealth",
                     "badge_ulid": "01JER4830K1Y3QDGRFDJ7ZN160",
                     "body": "<p>Die kompakte Variante zeigt Wert, QR-Code und direkten Zugang zum öffentlichen Fortschrittsnachweis auf wenig Raum.</p>",
                     "button_text": "",
@@ -52,7 +53,7 @@
             {
                 "data": {
                     "badge_appearance": "minimal",
-                    "badge_theme": "auto",
+                    "badge_theme": "light",
                     "badge_ulid": "01JER4830K1Y3QDGRFDJ7ZN160",
                     "body": "<p>Die minimale Variante stellt Badge, QR-Code und Nachweis als eigenständiges Element dar – passend für einen Vertrauens- oder Transparenzbereich.</p>",
                     "button_text": "",
@@ -65,7 +66,7 @@
             {
                 "data": {
                     "badge_appearance": "micro",
-                    "badge_theme": "auto",
+                    "badge_theme": "mono",
                     "badge_ulid": "01JER4830K1Y3QDGRFDJ7ZN160",
                     "body": "<p>Die kleinste Variante passt in den Footer oder an das Ende der gehosteten Barrierefreiheitserklärung und führt trotzdem direkt zum Nachweis.</p>",
                     "button_text": "",
