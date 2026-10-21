@@ -101,17 +101,6 @@ final class CmsPageTransferService
         $matchCount = $pages->count();
         $incomingFingerprint = $snapshot->contentFingerprint();
 
-        if ($matchCount === 0) {
-            return new CmsPageComparison(
-                status: 'create',
-                externalId: $pageData['external_id'],
-                baseFingerprint: $snapshot->baseFingerprint(),
-                currentFingerprint: null,
-                incomingFingerprint: $incomingFingerprint,
-                matchingPages: 0,
-            );
-        }
-
         if ($matchCount > 1) {
             return new CmsPageComparison(
                 status: 'ambiguous',
@@ -120,6 +109,38 @@ final class CmsPageTransferService
                 currentFingerprint: null,
                 incomingFingerprint: $incomingFingerprint,
                 matchingPages: $matchCount,
+            );
+        }
+
+        $slugQuery = Page::query()
+            ->where('slug', $pageData['slug'])
+            ->where('external_id', '!=', $pageData['external_id']);
+
+        if ($lock) {
+            $slugQuery->lockForUpdate();
+        }
+
+        $slugMatchCount = $slugQuery->count();
+
+        if ($slugMatchCount > 0) {
+            return new CmsPageComparison(
+                status: 'conflict',
+                externalId: $pageData['external_id'],
+                baseFingerprint: $snapshot->baseFingerprint(),
+                currentFingerprint: null,
+                incomingFingerprint: $incomingFingerprint,
+                matchingPages: $slugMatchCount,
+            );
+        }
+
+        if ($matchCount === 0) {
+            return new CmsPageComparison(
+                status: 'create',
+                externalId: $pageData['external_id'],
+                baseFingerprint: $snapshot->baseFingerprint(),
+                currentFingerprint: null,
+                incomingFingerprint: $incomingFingerprint,
+                matchingPages: 0,
             );
         }
 

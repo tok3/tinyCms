@@ -2,7 +2,7 @@
     "schema_version": 1,
     "source": "local-live-mirror",
     "exported_at": "2026-10-16T13:50:00+00:00",
-    "base_fingerprint": "5ca61bd09396e730695afe8b2116da5e5503a89caf842d07629aca8824679b73",
+    "base_fingerprint": "374505372c96b0f7bf4d2b8c76a2c0753385d78ba2ae10262e4d7ba73d215e94",
     "page": {
         "blocks": [
             {
@@ -107,7 +107,7 @@
             }
         ],
         "custom_footer_code": null,
-        "custom_head_code": "<style>\nmain > section:first-of-type { padding-top: 120px; }\n.text-white-75 { color: rgba(255,255,255,.78) !important; }\n@media (max-width: 767.98px) { main > section:first-of-type { padding-top: 96px; } }\n</style>",
+        "custom_head_code": "<style>\nmain > section:first-of-type { padding-top: 120px; }\n.text-white-75 { color: rgba(255,255,255,.78) !important; }\n[data-bs-theme=\"dark\"] main .text-primary { color: var(--bs-primary-text-emphasis) !important; }\n[data-bs-theme=\"dark\"] main .card .text-body-secondary { color: var(--bs-body-color) !important; }\n@media (max-width: 767.98px) { main > section:first-of-type { padding-top: 96px; } }\n</style>",
         "external_id": "bfd71c27-dc08-41f3-bf54-d2b25bff7e56",
         "meta": {
             "description": "IncluCert verbindet regelmäßige technische Website-Prüfungen mit einem öffentlichen Fortschrittsnachweis und vier einbindbaren Badge-Varianten.",

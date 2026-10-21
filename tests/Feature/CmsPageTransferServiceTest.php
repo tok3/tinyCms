@@ -114,6 +114,22 @@ class CmsPageTransferServiceTest extends TestCase
         self::assertNull($comparison->currentFingerprint);
     }
 
+    public function test_new_page_slug_collision_is_reported_as_conflict_and_not_created(): void
+    {
+        $snapshot = $this->newPageSnapshot();
+        $existing = $this->makePage();
+        Page::withoutEvents(fn (): bool => $existing->forceFill(['slug' => 'neue-seite'])->save());
+        $countBefore = Page::query()->count();
+
+        $comparison = $this->service->compare($snapshot);
+        $result = $this->service->import($snapshot, apply: true, authorId: $this->author->id);
+
+        self::assertSame('conflict', $comparison->status);
+        self::assertSame('conflict', $result->comparison->status);
+        self::assertFalse($result->applied);
+        self::assertSame($countBefore, Page::query()->count());
+    }
+
     public function test_duplicate_external_id_is_reported_as_ambiguous(): void
     {
         $externalId = (string) Str::uuid();
