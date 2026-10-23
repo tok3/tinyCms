@@ -2,6 +2,7 @@
 
 namespace App\Services\Contracts;
 
+use App\Contracts\MollieSubscriptionGateway;
 use App\Models\Contract;
 use App\Models\ContractLifecycleEvent;
 use App\Models\MolliePayment;
@@ -9,9 +10,14 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class ContractLifecycleService
 {
+    public function __construct(private MollieSubscriptionGateway $mollieGateway)
+    {
+    }
+
     public function normalEffectiveDate(Contract $contract, CarbonInterface $receivedOn): CarbonImmutable
     {
         $this->assertCancellable($contract);
@@ -210,6 +216,190 @@ class ContractLifecycleService
 
             return $contract->fresh();
         });
+    }
+
+    public function renewDueContract(int $contractId, CarbonInterface $today): bool
+    {
+        return DB::transaction(function () use ($contractId, $today): bool {
+            $contract = Contract::withTrashed()->lockForUpdate()->find($contractId);
+
+            if ($contract === null
+                || $contract->trashed()
+                || $contract->status !== Contract::STATUS_ACTIVE
+                || ! $contract->auto_renew
+                || ! $contract->isRecurring()
+                || $contract->end_date === null) {
+                return false;
+            }
+
+            $renewalMonths = (int) $contract->renewal_period_months;
+
+            if ($renewalMonths < 1) {
+                throw new DomainException('Der Verlängerungszeitraum muss mindestens einen Monat betragen.');
+            }
+
+            $oldEnd = CarbonImmutable::instance($contract->end_date)->startOfDay();
+            $deadline = $oldEnd->subMonthsNoOverflow((int) $contract->notice_period_months);
+
+            if (CarbonImmutable::instance($today)->startOfDay()->lessThanOrEqualTo($deadline)) {
+                return false;
+            }
+
+            $newEnd = $oldEnd->addMonthsNoOverflow($renewalMonths);
+            $idempotencyKey = 'renewal:'.$contract->id.':'.$oldEnd->toDateString().':'.$newEnd->toDateString();
+
+            if (ContractLifecycleEvent::query()->where('idempotency_key', $idempotencyKey)->exists()) {
+                return false;
+            }
+
+            $contract->forceFill([
+                'end_date' => $newEnd,
+                'iteration' => (int) $contract->iteration + 1,
+            ])->save();
+
+            ContractLifecycleEvent::record(
+                $contract,
+                'renewed',
+                [
+                    'previous_end_date' => $oldEnd->toDateString(),
+                    'new_end_date' => $newEnd->toDateString(),
+                    'deadline' => $deadline->toDateString(),
+                ],
+                null,
+                $idempotencyKey
+            );
+
+            return true;
+        });
+    }
+
+    public function endIfDue(int $contractId, CarbonInterface $today): bool
+    {
+        return DB::transaction(function () use ($contractId, $today): bool {
+            $contract = Contract::withTrashed()->lockForUpdate()->find($contractId);
+
+            if ($contract === null
+                || $contract->trashed()
+                || $contract->status !== Contract::STATUS_CANCELLATION_PENDING
+                || $contract->cancellation_effective_at === null
+                || CarbonImmutable::instance($today)->startOfDay()->lessThanOrEqualTo(
+                    CarbonImmutable::instance($contract->cancellation_effective_at)->startOfDay()
+                )) {
+                return false;
+            }
+
+            $effectiveEnd = CarbonImmutable::instance($contract->cancellation_effective_at)->startOfDay();
+            $idempotencyKey = 'ended:'.$contract->id.':'.$effectiveEnd->toDateString();
+
+            if (ContractLifecycleEvent::query()->where('idempotency_key', $idempotencyKey)->exists()) {
+                return false;
+            }
+
+            $contract->forceFill([
+                'status' => Contract::STATUS_ENDED,
+                'auto_renew' => false,
+            ])->save();
+
+            ContractLifecycleEvent::record(
+                $contract,
+                'contract_ended',
+                ['effective_date' => $effectiveEnd->toDateString()],
+                null,
+                $idempotencyKey
+            );
+
+            return true;
+        });
+    }
+
+    public function cancelMollieIfDue(int $contractId, CarbonInterface $today): bool
+    {
+        try {
+            return DB::transaction(function () use ($contractId, $today): bool {
+                $contract = Contract::withTrashed()->lockForUpdate()->find($contractId);
+
+                if ($contract === null
+                    || $contract->trashed()
+                    || $contract->status !== Contract::STATUS_CANCELLATION_PENDING
+                    || $contract->cancellation_effective_at === null
+                    || $contract->subscription_id === null
+                    || $contract->mollie_canceled_at !== null) {
+                    return false;
+                }
+
+                $processingDate = CarbonImmutable::instance($today)->startOfDay();
+                $dueDate = CarbonImmutable::instance($contract->cancellation_effective_at)
+                    ->startOfDay()
+                    ->subDay();
+
+                if ($processingDate->lessThan($dueDate)) {
+                    return false;
+                }
+
+                $subscription = $contract->mollieSubscription()->lockForUpdate()->first();
+
+                if ($subscription === null) {
+                    throw new DomainException('Der lokale Mollie-Datensatz fehlt.');
+                }
+
+                if (blank($subscription->customer_id)) {
+                    throw new DomainException('Die Mollie-Customer-ID fehlt.');
+                }
+
+                $remoteStatus = $subscription->status;
+
+                if ($subscription->status !== 'canceled') {
+                    $remoteStatus = $this->mollieGateway->status(
+                        $subscription->customer_id,
+                        $subscription->subscription_id
+                    );
+
+                    if ($remoteStatus !== 'canceled') {
+                        $this->mollieGateway->cancel(
+                            $subscription->customer_id,
+                            $subscription->subscription_id
+                        );
+                    }
+                }
+
+                $subscription->forceFill(['status' => 'canceled'])->save();
+                $contract->forceFill(['mollie_canceled_at' => now()])->save();
+
+                ContractLifecycleEvent::record(
+                    $contract,
+                    'mollie_cancellation_succeeded',
+                    [
+                        'subscription_id' => $subscription->subscription_id,
+                        'processing_date' => $processingDate->toDateString(),
+                        'remote_status_before' => $remoteStatus,
+                    ],
+                    null,
+                    'mollie-canceled:'.$contract->id.':'.$subscription->subscription_id
+                );
+
+                return true;
+            });
+        } catch (Throwable $exception) {
+            DB::transaction(function () use ($contractId, $today, $exception): void {
+                $contract = Contract::withTrashed()->lockForUpdate()->find($contractId);
+
+                if ($contract === null) {
+                    return;
+                }
+
+                ContractLifecycleEvent::record(
+                    $contract,
+                    'mollie_cancellation_failed',
+                    [
+                        'subscription_id' => $contract->subscription_id,
+                        'processing_date' => CarbonImmutable::instance($today)->toDateString(),
+                        'exception' => $exception::class,
+                    ]
+                );
+            });
+
+            throw $exception;
+        }
     }
 
     private function assertCancellable(Contract $contract): void

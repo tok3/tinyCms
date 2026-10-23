@@ -27,6 +27,11 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(
+            \App\Contracts\MollieSubscriptionGateway::class,
+            \App\Services\Mollie\MollieApiSubscriptionGateway::class
+        );
+
+        $this->app->bind(
             \Spatie\Backup\Commands\BackupCommand::class,
             \App\Backup\BackupCommand::class
         );

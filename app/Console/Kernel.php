@@ -13,13 +13,24 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
 
-        $schedule->command('app:generate-recurring-invoices')->twiceDaily(8, 20);
+        $schedule->command('contracts:process-lifecycle')
+            ->dailyAt('07:30')
+            ->timezone('Europe/Berlin')
+            ->withoutOverlapping();
+
+        $schedule->command('app:generate-recurring-invoices')
+            ->twiceDaily(8, 20)
+            ->timezone('Europe/Berlin')
+            ->withoutOverlapping();
         $schedule->command('sepa:mail-due')->dailyAt('06:00')->timezone('Europe/Berlin');
 
         $schedule->command('determine:scan')->hourly();
         $schedule->command('backup:clean')->daily()->at('13:00');
         $schedule->command('backup:run')->daily()->at('13:30');
-        $schedule->command('app:cleanup')->daily()->at('9:30');
+        $schedule->command('app:cleanup')
+            ->dailyAt('09:30')
+            ->timezone('Europe/Berlin')
+            ->withoutOverlapping();
         $schedule->command('app:image-description')->everyThreeMinutes();
         // Keep the lock outside the cache: it is released even after a forced exit.
         // Bound wall-clock time as well as CPU time, including stuck native image code.
