@@ -122,11 +122,13 @@ class ContractResource extends BaseResource
                             ->nullable(),
                         TextInput::make('subscription_id')
                             ->label('Subscription ID')
-                            ->required()
+                            ->disabled()
+                            ->dehydrated(false)
                             ->visible(fn (callable $get): bool => (bool) $get('subscription_id')),
                         DatePicker::make('subscription_start_date')
                             ->label('Subscription Start Date')
-                            ->required()
+                            ->disabled()
+                            ->dehydrated(false)
                             ->visible(fn (callable $get): bool => (bool) $get('subscription_id')),
                     ])
                     ->columns(2),
@@ -145,13 +147,62 @@ class ContractResource extends BaseResource
                             ->required(),
                         DatePicker::make('end_date')
                             ->label('End Date')
-                            ->required(),
+                            ->disabled()
+                            ->dehydrated(false),
                         TextInput::make('iteration')
                             ->label('Iteration')
                             ->numeric()
-                            ->required(),
+                            ->disabled()
+                            ->dehydrated(false),
                     ])
                     ->columns(2),
+                Section::make('Vertragsstatus und Verlängerung')
+                    ->schema([
+                        Placeholder::make('lifecycle_status')
+                            ->label('Status')
+                            ->content(fn (?Contract $record) => match ($record?->status) {
+                                Contract::STATUS_ACTIVE => 'Aktiv',
+                                Contract::STATUS_CANCELLATION_PENDING => 'Kündigung vorgemerkt',
+                                Contract::STATUS_ENDED => 'Beendet',
+                                default => 'Unbekannt',
+                            }),
+                        Placeholder::make('notice_deadline')
+                            ->label('Kündigungsfrist bis')
+                            ->content(fn (?Contract $record) => $record?->end_date
+                                ? $record->end_date
+                                    ->copy()
+                                    ->subMonthsNoOverflow((int) $record->notice_period_months)
+                                    ->format('d.m.Y')
+                                : '—'),
+                        Placeholder::make('auto_renew_display')
+                            ->label('Automatische Verlängerung')
+                            ->content(fn (?Contract $record) => $record?->auto_renew ? 'Ja' : 'Nein'),
+                        TextInput::make('notice_period_months')
+                            ->label('Kündigungsfrist (Monate)')
+                            ->numeric()
+                            ->minValue(1)
+                            ->maxValue(120)
+                            ->required(),
+                        TextInput::make('renewal_period_months')
+                            ->label('Verlängerung (Monate)')
+                            ->numeric()
+                            ->minValue(1)
+                            ->maxValue(120)
+                            ->required(),
+                        Placeholder::make('cancellation_received_display')
+                            ->label('Kündigung eingegangen')
+                            ->content(fn (?Contract $record) => $record?->cancellation_received_at?->format('d.m.Y') ?? '—'),
+                        Placeholder::make('cancellation_effective_display')
+                            ->label('Vertragsende nach Kündigung')
+                            ->content(fn (?Contract $record) => $record?->cancellation_effective_at?->format('d.m.Y') ?? '—'),
+                        Placeholder::make('goodwill_display')
+                            ->label('Kulanz')
+                            ->content(fn (?Contract $record) => $record?->cancellation_is_goodwill ? 'Ja' : 'Nein'),
+                        Placeholder::make('mollie_canceled_display')
+                            ->label('Mollie beendet')
+                            ->content(fn (?Contract $record) => $record?->mollie_canceled_at?->format('d.m.Y H:i') ?? 'Noch nicht'),
+                    ])
+                    ->columns(3),
                 InfoBox::make()
                     ->type('info')
                     ->content(function ($record) {
