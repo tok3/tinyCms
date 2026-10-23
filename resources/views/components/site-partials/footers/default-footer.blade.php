@@ -65,7 +65,7 @@ Die D-U-N-S Nummer wird von der Europäischen Kommission, den Vereinten Nationen
                                 <strong class="small text-white">camindu GmbH
                                 </strong>
                             </p>
-                            <p class="mb-3 text-white">
+                            <p class="mb-0 text-white">
                                 Behringstr. 13
                                 <br> 63814 Mainaschaff
 
@@ -74,7 +74,7 @@ Die D-U-N-S Nummer wird von der Europäischen Kommission, den Vereinten Nationen
                                 <inclucert-badge
                                     data-ulid="01M22SX9MMBG2WFQK1ASE3S42M"
                                     data-appearance="compact"
-                                    data-theme="auto"
+                                    data-theme="stealth"
                                     aria-label="IncluCert-Fortschrittsnachweis von aktion-barrierefrei.org ansehen"
                                 ></inclucert-badge>
                             </div>
