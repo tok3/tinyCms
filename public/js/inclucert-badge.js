@@ -823,13 +823,18 @@
 
             const closePanel = () => {
                 root.classList.remove('akb-open');
-                panel.style.top = '0px';
             };
 
             const openPanel = () => {
                 root.classList.add('akb-open');
                 positionPanel();
             };
+
+            panel.addEventListener('transitionend', event => {
+                if (event.propertyName === 'transform' && !root.classList.contains('akb-open')) {
+                    panel.style.top = '0px';
+                }
+            });
 
             strip.querySelector('.akb-toggle').addEventListener('click', e => {
                 e.stopPropagation();

@@ -100,6 +100,31 @@ test('compact panel stays inside the nearest clipping container', async () => {
             geometry.panel.bottom <= geometry.clip.bottom - 12,
             `Panel ragt ${geometry.panel.bottom - (geometry.clip.bottom - 12)}px unter den sicheren Bereich`,
         );
+
+        const openTop = await page.$eval('.akb-panel', panel => panel.style.top);
+        assert.notEqual(openTop, '0px');
+
+        await page.click('.akb-panel .akb-toggle');
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        const closingState = await page.evaluate(() => ({
+            open: document.querySelector('.akb-anchor').classList.contains('akb-open'),
+            top: document.querySelector('.akb-panel').style.top,
+        }));
+
+        assert.equal(closingState.open, false);
+        assert.equal(
+            closingState.top,
+            openTop,
+            'Panel muss während der Schließanimation an seiner geöffneten Position bleiben',
+        );
+
+        await new Promise(resolve => setTimeout(resolve, 400));
+        assert.equal(
+            await page.$eval('.akb-panel', panel => panel.style.top),
+            '0px',
+            'Position darf erst nach der Schließanimation zurückgesetzt werden',
+        );
     } finally {
         await browser.close();
     }
