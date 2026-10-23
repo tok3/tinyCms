@@ -61,13 +61,15 @@ class IncluCertProductPageTest extends TestCase
             ->assertSee('Vier Badge-Varianten')
             ->assertSee('Was automatische Prüfungen nicht zeigen')
             ->assertSee('Häufige Fragen zu IncluCert')
-            ->assertSee('/inclucert/01JER4830K1Y3QDGRFDJ7ZN160', false)
-            ->assertSee('/inclucert/01JER4830K1Y3QDGRFDJ7ZN160/pdf', false)
+            ->assertSee('/inclucert/01M22SX9MMBG2WFQK1ASE3S42M', false)
+            ->assertSee('/inclucert/01M22SX9MMBG2WFQK1ASE3S42M/pdf', false)
             ->assertSee('data-appearance="full"', false)
             ->assertSee('data-appearance="compact"', false)
             ->assertSee('data-appearance="minimal"', false)
             ->assertSee('data-appearance="micro"', false)
             ->assertSee('<inclucert-badge', false);
+
+        self::assertSame(1, substr_count($response->getContent(), 'src="'.asset('js/inclucert-badge.js').'"'));
 
         $content = $response->getContent();
         preg_match('/<main[^>]*>(.*)<\/main>/si', $content, $mainMatch);

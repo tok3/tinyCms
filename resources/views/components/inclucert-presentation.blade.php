@@ -74,9 +74,9 @@
                     </div>
                 </div>
 
-                @once
+                @pushOnce('scripts', 'inclucert-badge-script')
                     <script src="{{ asset('js/inclucert-badge.js') }}" defer></script>
-                @endonce
+                @endPushOnce
             @endif
         </div>
     </div>

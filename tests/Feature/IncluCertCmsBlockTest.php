@@ -76,6 +76,7 @@ class IncluCertCmsBlockTest extends TestCase
                 heading="Zweite Darstellung"
                 badge-ulid="01JER4830K1Y3QDGRFDJ7ZN160"
             />
+            @stack('scripts')
         BLADE);
 
         self::assertSame(2, substr_count($html, '<inclucert-badge'));

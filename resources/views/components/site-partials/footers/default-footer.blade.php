@@ -70,6 +70,14 @@ Die D-U-N-S Nummer wird von der Europäischen Kommission, den Vereinten Nationen
                                 <br> 63814 Mainaschaff
 
                             </p>
+                            <div class="mt-4" aria-label="IncluCert-Fortschrittsnachweis von aktion-barrierefrei.org">
+                                <inclucert-badge
+                                    data-ulid="01M22SX9MMBG2WFQK1ASE3S42M"
+                                    data-appearance="compact"
+                                    data-theme="auto"
+                                    aria-label="IncluCert-Fortschrittsnachweis von aktion-barrierefrei.org ansehen"
+                                ></inclucert-badge>
+                            </div>
                         </div>
                     </div>
                     <div class="ps-sm-3 flex-grow-1">
@@ -135,3 +143,7 @@ Die D-U-N-S Nummer wird von der Europäischen Kommission, den Vereinten Nationen
     <!--container-->
 </footer>
 <!--end:Footer-->
+
+@pushOnce('scripts', 'inclucert-badge-script')
+    <script src="{{ asset('js/inclucert-badge.js') }}" defer></script>
+@endPushOnce

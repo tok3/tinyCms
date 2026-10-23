@@ -10,10 +10,10 @@
                     "badge_appearance": "full",
                     "badge_theme": "stealth",
                     "badge_theme_cycle": true,
-                    "badge_ulid": "01JER4830K1Y3QDGRFDJ7ZN160",
+                    "badge_ulid": "01M22SX9MMBG2WFQK1ASE3S42M",
                     "body": "<p>IncluCert verbindet regelmäßige technische Website-Prüfungen mit einem öffentlichen Fortschrittsnachweis. Das Badge zeigt: Diese Website wird beobachtet, Ergebnisse werden dokumentiert und Verbesserungen bleiben nachvollziehbar.</p>",
                     "button_text": "Echten Fortschrittsnachweis ansehen",
-                    "button_url": "/inclucert/01JER4830K1Y3QDGRFDJ7ZN160",
+                    "button_url": "/inclucert/01M22SX9MMBG2WFQK1ASE3S42M",
                     "heading": "Fortschritt sichtbar machen",
                     "mode": "feature"
                 },
@@ -27,7 +27,7 @@
             },
             {
                 "data": {
-                    "editorContent": "<section class=\"position-relative overflow-hidden\"><div class=\"container py-9 py-lg-11\"><div class=\"row align-items-center g-5\"><div class=\"col-lg-6\"><p class=\"text-uppercase text-primary fw-semibold mb-3\">Ein reales Beispiel</p><h2 class=\"display-5 mb-4\">Nicht nur behaupten – den aktuellen Stand öffnen.</h2><p class=\"lead text-body-secondary\">Der öffentliche Fortschrittsnachweis zeigt die zuletzt erhobenen Daten, beobachtete Seiten und die Entwicklung. Für Rückfragen lässt sich derselbe Stand als PDF ausgeben.</p><div class=\"d-flex flex-wrap gap-3\"><a class=\"btn btn-primary\" href=\"/inclucert/01JER4830K1Y3QDGRFDJ7ZN160\">Fortschrittsnachweis öffnen</a><a class=\"btn btn-outline-primary\" href=\"/inclucert/01JER4830K1Y3QDGRFDJ7ZN160/pdf\">PDF ansehen</a></div></div><div class=\"col-lg-5 ms-lg-auto text-center\"><img src=\"/assets/img/produkte/inclu-cert-check.png\" class=\"img-fluid\" style=\"max-height: 430px; width: auto;\" width=\"1500\" height=\"2121\" alt=\"IncluCert Fortschrittsnachweis mit dokumentiertem Prüfverlauf\" /></div></div></div></section>"
+                    "editorContent": "<section class=\"position-relative overflow-hidden\"><div class=\"container py-9 py-lg-11\"><div class=\"row align-items-center g-5\"><div class=\"col-lg-6\"><p class=\"text-uppercase text-primary fw-semibold mb-3\">Ein reales Beispiel</p><h2 class=\"display-5 mb-4\">Nicht nur behaupten – den aktuellen Stand öffnen.</h2><p class=\"lead text-body-secondary\">Der öffentliche Fortschrittsnachweis zeigt die zuletzt erhobenen Daten, beobachtete Seiten und die Entwicklung. Für Rückfragen lässt sich derselbe Stand als PDF ausgeben.</p><div class=\"d-flex flex-wrap gap-3\"><a class=\"btn btn-primary\" href=\"/inclucert/01M22SX9MMBG2WFQK1ASE3S42M\">Fortschrittsnachweis öffnen</a><a class=\"btn btn-outline-primary\" href=\"/inclucert/01M22SX9MMBG2WFQK1ASE3S42M/pdf\">PDF ansehen</a></div></div><div class=\"col-lg-5 ms-lg-auto text-center\"><img src=\"/assets/img/produkte/inclu-cert-check.png\" class=\"img-fluid\" style=\"max-height: 430px; width: auto;\" width=\"1500\" height=\"2121\" alt=\"IncluCert Fortschrittsnachweis mit dokumentiertem Prüfverlauf\" /></div></div></div></section>"
                 },
                 "type": "tinyMCE"
             },
@@ -41,7 +41,7 @@
                 "data": {
                     "badge_appearance": "compact",
                     "badge_theme": "stealth",
-                    "badge_ulid": "01JER4830K1Y3QDGRFDJ7ZN160",
+                    "badge_ulid": "01M22SX9MMBG2WFQK1ASE3S42M",
                     "body": "<p>Die kompakte Variante zeigt Wert, QR-Code und direkten Zugang zum öffentlichen Fortschrittsnachweis auf wenig Raum.</p>",
                     "button_text": "",
                     "button_url": "",
@@ -54,7 +54,7 @@
                 "data": {
                     "badge_appearance": "minimal",
                     "badge_theme": "light",
-                    "badge_ulid": "01JER4830K1Y3QDGRFDJ7ZN160",
+                    "badge_ulid": "01M22SX9MMBG2WFQK1ASE3S42M",
                     "body": "<p>Die minimale Variante stellt Badge, QR-Code und Nachweis als eigenständiges Element dar – passend für einen Vertrauens- oder Transparenzbereich.</p>",
                     "button_text": "",
                     "button_url": "",
@@ -67,7 +67,7 @@
                 "data": {
                     "badge_appearance": "micro",
                     "badge_theme": "mono",
-                    "badge_ulid": "01JER4830K1Y3QDGRFDJ7ZN160",
+                    "badge_ulid": "01M22SX9MMBG2WFQK1ASE3S42M",
                     "body": "<p>Die kleinste Variante passt in den Footer oder an das Ende der gehosteten Barrierefreiheitserklärung und führt trotzdem direkt zum Nachweis.</p>",
                     "button_text": "",
                     "button_url": "",
@@ -102,7 +102,7 @@
             },
             {
                 "data": {
-                    "editorContent": "<section class=\"position-relative bg-gradient-dark-night text-white\"><div class=\"container py-9 text-center\"><div class=\"row justify-content-center\"><div class=\"col-lg-8\"><h2 class=\"display-5 text-white mb-4\">Sehen Sie zuerst, wie der Fortschrittsnachweis funktioniert.</h2><p class=\"lead text-white-75 mb-5\">Öffnen Sie das reale Beispiel oder vergleichen Sie anschließend die bestehenden Produkte und Pakete.</p><div class=\"d-flex flex-wrap justify-content-center gap-3\"><a class=\"btn btn-primary btn-lg\" href=\"/inclucert/01JER4830K1Y3QDGRFDJ7ZN160\">Beispiel öffnen</a><a class=\"btn btn-outline-light btn-lg\" href=\"/preise\">Pakete &amp; Preise ansehen</a></div></div></div></div></section>"
+                    "editorContent": "<section class=\"position-relative bg-gradient-dark-night text-white\"><div class=\"container py-9 text-center\"><div class=\"row justify-content-center\"><div class=\"col-lg-8\"><h2 class=\"display-5 text-white mb-4\">Sehen Sie zuerst, wie der Fortschrittsnachweis funktioniert.</h2><p class=\"lead text-white-75 mb-5\">Öffnen Sie das reale Beispiel oder vergleichen Sie anschließend die bestehenden Produkte und Pakete.</p><div class=\"d-flex flex-wrap justify-content-center gap-3\"><a class=\"btn btn-primary btn-lg\" href=\"/inclucert/01M22SX9MMBG2WFQK1ASE3S42M\">Beispiel öffnen</a><a class=\"btn btn-outline-light btn-lg\" href=\"/preise\">Pakete &amp; Preise ansehen</a></div></div></div></div></section>"
                 },
                 "type": "tinyMCE"
             }
