@@ -126,5 +126,4 @@ class EditContract extends EditRecord
             && ($this->record->mollie_canceled_at !== null
                 || $this->record->mollieSubscription?->status === 'canceled');
     }
-
 }

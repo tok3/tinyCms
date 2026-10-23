@@ -1,11 +1,11 @@
 <?php
+
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Models\Company;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Contract extends Model
 {
@@ -70,7 +70,6 @@ class Contract extends Model
         'mollie_canceled_at',
     ];
 
-
     public static function boot()
     {
         parent::boot();
@@ -96,7 +95,8 @@ class Contract extends Model
         return $this->morphTo();
     }
 
-    public function company(){
+    public function company()
+    {
         return $this->contractable();
     }
 
@@ -141,7 +141,6 @@ class Contract extends Model
             ->withTimestamps();
     }
 
-
     public function sepaMandate()
     {
         return $this->belongsTo(\App\Models\SepaMandate::class);
@@ -168,6 +167,7 @@ class Contract extends Model
             ->recurring()
             ->update(['sepa_mandate_id' => $mandateId]);
     }
+
     public function assignFeaturesToCompany()
     {
         \Log::info("Triggered Contract ID {$this->id}, Product ID: {$this->product_id}");
@@ -175,8 +175,9 @@ class Contract extends Model
         $company = $this->contractable;
         $product = Product::find($this->product_id);
 
-        if (!$company || !$product) {
+        if (! $company || ! $product) {
             \Log::warning("Company oder Product nicht gefunden für Contract ID {$this->id}");
+
             return;
         }
 
@@ -195,19 +196,20 @@ class Contract extends Model
 
         \Log::info("Features für Company ID {$company->id} aus Product ID {$product->id} gespeichert.");
     }
+
     // Relationship to MollieSubscription using subscription_id
     public function mollieSubscription()
     {
         return $this->belongsTo(MollieSubscription::class, 'subscription_id', 'subscription_id');
     }
 
-    public function getFormattedPriceAttribute($locale = "DE")
+    public function getFormattedPriceAttribute($locale = 'DE')
     {
         // Tausendertrennzeichen: '.', Dezimaltrennzeichen: ','
         return number_format($this->price / 100, 2, ',', '.');
     }
 
-    public function getFormattedSetupFeeAttribute($locale = "DE")
+    public function getFormattedSetupFeeAttribute($locale = 'DE')
     {
         // Tausendertrennzeichen: '.', Dezimaltrennzeichen: ','
         return number_format($this->setup_fee / 100, 2, ',', '.');
@@ -223,12 +225,17 @@ class Contract extends Model
     protected function priceGrossFormatted(): Attribute
     {
         return Attribute::make(
-            get: fn () => number_format($this->price * (1 + config('accounting.tax_rate') / 100), 2, ',', '.') . ' €',
+            get: fn () => number_format($this->price * (1 + config('accounting.tax_rate') / 100), 2, ',', '.').' €',
         );
     }
 
-    public function scopeActive($q){ return $q->whereNull('end_date')->orWhere('end_date','>',now()); }
+    public function scopeActive($q)
+    {
+        return $q->whereNull('end_date')->orWhere('end_date', '>', now());
+    }
 
-    public function scopeForProduct($q,$productId){ return $q->where('product_id',$productId); }
-
+    public function scopeForProduct($q, $productId)
+    {
+        return $q->where('product_id', $productId);
+    }
 }

@@ -1,11 +1,11 @@
 <?php
 
+use App\Http\Controllers\MolliePaymentController;
 use App\Models\Company;
 use App\Models\Contract;
 use App\Models\ContractLifecycleEvent;
 use App\Models\Invoice;
 use App\Models\MolliePayment;
-use App\Http\Controllers\MolliePaymentController;
 use App\Services\InvoiceService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -13,8 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Mollie\Laravel\Facades\Mollie;
 use Mollie\Api\MollieApiClient;
+use Mollie\Laravel\Facades\Mollie;
 use Tests\TestCase;
 
 uses(TestCase::class, DatabaseTransactions::class);
@@ -272,9 +272,7 @@ it('does not alert for a payment made on the effective contract end date', funct
 
     $controller = new class extends MolliePaymentController
     {
-        public function prepareInvoice($molliePaymentId)
-        {
-        }
+        public function prepareInvoice($molliePaymentId) {}
     };
 
     $controller->handlePaymentNotification(Request::create('/mollie/webhook', 'POST', ['id' => 'tr_final_day']));

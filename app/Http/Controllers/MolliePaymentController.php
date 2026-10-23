@@ -2,43 +2,36 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\Contract;
 use App\Models\ContractLifecycleEvent;
 use App\Models\Coupon;
-use App\Models\Product;
-use App\Services\InvoiceService;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Mollie\Laravel\Facades\Mollie;
+use App\Models\MollieCustomer;
 use App\Models\MolliePayment;
 use App\Models\MollieSubscription;
-use GuzzleHttp\Client;
-use App\Models\User;
-use App\Models\Company;
+use App\Models\Product;
 use App\Models\TemporaryUserData;
-use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use App\Services\InvoiceService;
+use Carbon\Carbon;
+use GuzzleHttp\Client;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Faker\Factory as Faker;
-use App\Models\MollieCustomer;
-use App\Services\MessageTranslationService;
 use Illuminate\Support\Facades\Log;
+use Mollie\Laravel\Facades\Mollie;
 
 class MolliePaymentController extends Controller
 {
-
-    var $contractID = null;
-
+    public $contractID = null;
 
     /**
-     * @param $subscriptionId
-     * @param $customerId
-     * @param $newAmount
      * @return mixed|null
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    function updateSubscriptionAmount($subscriptionId, $customerId, $newAmount)
+    public function updateSubscriptionAmount($subscriptionId, $customerId, $newAmount)
     {
-        $client = new Client();
+        $client = new Client;
 
         // Authentifizierung mit deinem Mollie API Key
         $apiKey = env('MOLLIE_KEY');
@@ -46,44 +39,41 @@ class MolliePaymentController extends Controller
         // Der Betrag muss im richtigen Format gesendet werden (z.B. "12.20")
         $formattedAmount = number_format($newAmount, 2, '.', '');
 
-        try
-        {
+        try {
             $response = $client->request('PATCH', "https://api.mollie.com/v2/customers/{$customerId}/subscriptions/{$subscriptionId}", [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . $apiKey,
+                    'Authorization' => 'Bearer '.$apiKey,
                     'Accept' => 'application/json',
                 ],
                 'json' => [
                     'amount' => [
                         'value' => $formattedAmount,
                         'currency' => 'EUR', // Währung festlegen
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
             // Erfolgreiche Antwort von Mollie
             $responseData = json_decode($response->getBody(), true);
 
             return $responseData; // Optional: Rückgabe der aktualisierten Subscription-Daten
-        }
-        catch (\Exception $e)
-        {
+        } catch (\Exception $e) {
             // Fehlerbehandlung
-            //\Log::error('Fehler beim Update der Subscription: ' . $e->getMessage());
+            // \Log::error('Fehler beim Update der Subscription: ' . $e->getMessage());
 
             return null;
         }
     }
 
     /**
-     * @param Request $request
      * @return void
+     *
      * @throws \Mollie\Api\Exceptions\ApiException
      */
     public function handlePaymentNotification(Request $request)
     {
         \Log::info('<-- Webhook Start -->');
-        \Log::info('Payment Webhook: ' . $request->id);
+        \Log::info('Payment Webhook: '.$request->id);
 
         $paymentId = $request->id;
         $payment = Mollie::api()->payments->get($paymentId);
@@ -94,15 +84,12 @@ class MolliePaymentController extends Controller
         $interval = $metadata->interval ?? 'monthly';
         $product = $productId ? Product::find($productId) : null;
 
-
         // Fallback für wiederkehrende Zahlungen ohne metadata
-        if (!$product && !empty($payment->subscriptionId))
-        {
+        if (! $product && ! empty($payment->subscriptionId)) {
             $contract = Contract::where('subscription_id', $payment->subscriptionId)->first();
 
-            if ($contract)
-            {
-                $product = (object)[
+            if ($contract) {
+                $product = (object) [
                     'id' => $contract->product_id,
                     'name' => $contract->product_name,
                     'description' => $contract->product_description,
@@ -116,10 +103,8 @@ class MolliePaymentController extends Controller
                 $company = $contract->contractable;
                 $interval = $contract->interval ?? $interval;
                 $this->contractID = $contract->id;
-            }
-            else
-            {
-                \Log::warning('Kein Contract für subscriptionId: ' . $payment->subscriptionId);
+            } else {
+                \Log::warning('Kein Contract für subscriptionId: '.$payment->subscriptionId);
             }
         }
         MolliePayment::updateOrCreate(
@@ -147,19 +132,17 @@ class MolliePaymentController extends Controller
 
         $this->recordUnexpectedPostTermPayment($contract ?? null, $payment);
 
-        if (!isset($company))
-        {
+        if (! isset($company)) {
             $company = isset($metadata->company_id) && $metadata->company_id != 0
                 ? Company::find($metadata->company_id)
                 : $this->initCompanyAccount($customerId);
         }
 
-        $actingCompany = !empty($metadata->acting_company_id)
+        $actingCompany = ! empty($metadata->acting_company_id)
             ? Company::find($metadata->acting_company_id)
             : $company;
 
-        if ($payment->sequenceType === 'first')
-        {
+        if ($payment->sequenceType === 'first') {
             $mandates = $this->getMandates($customerId);
 
             $hasValidMandate = collect($mandates['_embedded']['mandates'] ?? [])->contains('status', 'valid');
@@ -174,33 +157,30 @@ class MolliePaymentController extends Controller
             $priceModel = $product->prices->firstWhere('interval', $interval);
             $productPriceDec = $priceModel ? number_format($priceModel->price / 100, 2, '.', '') : number_format($product->price / 100, 2, '.', '');
 
-            if (!empty($metadata->coupon_code))
-            {
+            if (! empty($metadata->coupon_code)) {
                 $coupon = Coupon::where('code', $metadata->coupon_code)->first();
                 $cpCtrl = new CouponController;
                 $productPriceDec = number_format($cpCtrl->calculateTotalPrice($coupon->promotion, $product, false), 2, '.', '');
 
-                if ($coupon->infinite !== 1)
-                {
+                if ($coupon->infinite !== 1) {
                     $coupon->redeem();
                 }
             }
 
             $agencyCompany = $this->resolveAgencyDiscountCompany($company, $actingCompany);
-            if ($agencyCompany && (float)($agencyCompany->agency_discount_percent ?? 0) > 0) {
-                $agencyPct = (float)$agencyCompany->agency_discount_percent;
-                $productPriceDec = number_format(((float)$productPriceDec) * (1 - ($agencyPct / 100)), 2, '.', '');
+            if ($agencyCompany && (float) ($agencyCompany->agency_discount_percent ?? 0) > 0) {
+                $agencyPct = (float) $agencyCompany->agency_discount_percent;
+                $productPriceDec = number_format(((float) $productPriceDec) * (1 - ($agencyPct / 100)), 2, '.', '');
             }
 
-            if ($hasValidMandate)
-            {
+            if ($hasValidMandate) {
                 $subscriptionData = [
                     'amount' => [
                         'currency' => $product->currency,
                         'value' => $productPriceDec,
                     ],
                     'interval' => $intervals[$interval],
-                    'description' => $product->name . ' ' . $product->description,
+                    'description' => $product->name.' '.$product->description,
                     'startDate' => $startDate,
                     'webhookUrl' => route('mollie.paymentWebhook'),
                     'metadata' => [],
@@ -209,22 +189,20 @@ class MolliePaymentController extends Controller
                 $subscription = $this->createSubscription($customerId, $subscriptionData);
                 $this->syncLocalSubscription($subscription);
 
-                if (isset($subscription->id))
-                {
+                if (isset($subscription->id)) {
                     MolliePayment::where('payment_id', $payment->id)->update(['subscription_id' => $subscription->id]);
                 }
 
                 $product->price = $priceModel ? $priceModel->price : $product->price;
 
                 $additionalData = [];
-                if (!empty($coupon))
-                {
+                if (! empty($coupon)) {
                     $additionalData['promotion'] = $coupon->promotion;
                     $additionalData['bemerkung'] = 'Product über Promocode erworben';
                 }
 
                 // Snapshot (mit Agentur-Rabatt) bauen
-                if (!($product instanceof \App\Models\Product)) {
+                if (! ($product instanceof \App\Models\Product)) {
                     $product = \App\Models\Product::find($product->id ?? null);
                 }
                 $couponCodeMeta = $metadata->coupon_code ?? null;
@@ -240,7 +218,6 @@ class MolliePaymentController extends Controller
             }
         }
 
-
         $this->prepareInvoice($payment->id);
 
         return response()->json(['status' => 'ok'], 200);
@@ -248,9 +225,9 @@ class MolliePaymentController extends Controller
 
     private function recordUnexpectedPostTermPayment(?Contract $contract, object $payment): void
     {
-        if (!$contract
+        if (! $contract
             || $payment->status !== 'paid'
-            || !$contract->cancellation_effective_at
+            || ! $contract->cancellation_effective_at
             || empty($payment->paidAt ?? $payment->createdAt ?? null)) {
             return;
         }
@@ -265,7 +242,7 @@ class MolliePaymentController extends Controller
             $timezone
         )->startOfDay();
 
-        if (!$paymentDate->greaterThan($effectiveDate)) {
+        if (! $paymentDate->greaterThan($effectiveDate)) {
             return;
         }
 
@@ -292,15 +269,10 @@ class MolliePaymentController extends Controller
         }
     }
 
-
     /**
-     * @param $company
-     * @param $product
-     * @param $subscription
-     * @param $startDate
      * @return void
      */
-    public function createContract($company, $product, $subscription = false, $startDate, array $additionalData = [], $interval = 'monthly')
+    public function createContract($company, $product, $subscription, $startDate, array $additionalData = [], $interval = 'monthly')
     {
         $additionalData['ordered_product'] = $product;
         $subscriptionId = is_object($subscription) ? $subscription->id : null;
@@ -309,7 +281,6 @@ class MolliePaymentController extends Controller
         $grossPriceCents = $product->price;
         $netPriceEuro = ($grossPriceCents / 100) / (1 + ($taxRate / 100));
         $netPriceCents = round($netPriceEuro * 100);
-
 
         $contract = new Contract([
             'contractable_type' => Company::class,
@@ -333,20 +304,16 @@ class MolliePaymentController extends Controller
         return $contract;
     }
 
-
     /**
-     * @param $product
      * @return string
      */
     private function getStartDate($interval, $product)
     {
-        if ($product->trial_period_days > 0)
-        {
+        if ($product->trial_period_days > 0) {
             return now()->addDays($product->trial_period_days)->toDateString();
         }
 
-        return match ($interval)
-        {
+        return match ($interval) {
             'daily' => now()->addDay()->toDateString(),
             'weekly' => now()->addWeek()->toDateString(),
             'monthly' => now()->addMonth()->toDateString(),
@@ -355,32 +322,28 @@ class MolliePaymentController extends Controller
         };
     }
 
-
     /** sync subscriptions in local database
      *
-     * @param $mollieSubscriptionResponse
      * @return true
      */
     private function syncLocalSubscription($mollieSubscriptionResponse)
     {
 
         \Log::info('<---------------------------------->');
-        \Log::info('Subscription syncLocalSubscription(): ' . __LINE__ . json_encode($mollieSubscriptionResponse, JSON_PRETTY_PRINT));
+        \Log::info('Subscription syncLocalSubscription(): '.__LINE__.json_encode($mollieSubscriptionResponse, JSON_PRETTY_PRINT));
         \Log::info('<---------------------------------->');
         // Prüfen, ob $mollieSubscriptionResponse ein Array ist
-        if (is_array($mollieSubscriptionResponse))
-        {
+        if (is_array($mollieSubscriptionResponse)) {
             // In ein Objekt umwandeln
             $mollieSubscriptionResponse = json_decode(json_encode($mollieSubscriptionResponse));
 
             \Log::info('<---------------------------------->');
-            \Log::info('Subscription array to object: ' . __LINE__ . json_encode($mollieSubscriptionResponse, JSON_PRETTY_PRINT));
+            \Log::info('Subscription array to object: '.__LINE__.json_encode($mollieSubscriptionResponse, JSON_PRETTY_PRINT));
             \Log::info('<---------------------------------->');
 
         }
 
-        if (isset($mollieSubscriptionResponse->id))
-        {
+        if (isset($mollieSubscriptionResponse->id)) {
             // Aktualisiere oder speichere die Subscription in der Datenbank
             MollieSubscription::updateOrCreate(
                 ['subscription_id' => $mollieSubscriptionResponse->id],
@@ -399,15 +362,13 @@ class MolliePaymentController extends Controller
                 ]
             );
             \Log::info('<---------------------------------->');
-            \Log::info('SUBSCRIPTION SYNCED: ' . __LINE__);
+            \Log::info('SUBSCRIPTION SYNCED: '.__LINE__);
             \Log::info('<---------------------------------->');
 
             return true;
-        }
-        else
-        {
+        } else {
             \Log::info('<---------------------------------->');
-            \Log::info('SUBSCRIPTION NOT SYNCED no subscription id ' . __LINE__);
+            \Log::info('SUBSCRIPTION NOT SYNCED no subscription id '.__LINE__);
             \Log::info('<---------------------------------->');
 
             return false;
@@ -415,22 +376,21 @@ class MolliePaymentController extends Controller
     }
 
     /**
-     * @param $customerId
      * @return mixed
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function getMandates($customerId = 'cst_EuWP587Cqy', $maxRetries = 3, $delaySeconds = 2)
     {
-        $client = new Client();
+        $client = new Client;
         $apiKey = env('MOLLIE_KEY');
         $retryCount = 0;
 
-        while ($retryCount < $maxRetries)
-        {
+        while ($retryCount < $maxRetries) {
             // API-Request für Mandate des Kunden
             $response = $client->request('GET', "https://api.mollie.com/v2/customers/{$customerId}/mandates", [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . $apiKey,
+                    'Authorization' => 'Bearer '.$apiKey,
                     'Accept' => 'application/json',
                 ],
             ]);
@@ -439,10 +399,8 @@ class MolliePaymentController extends Controller
             $mandates = json_decode($response->getBody(), true);
 
             // Überprüfe, ob ein gültiges Mandat vorhanden ist
-            foreach ($mandates['_embedded']['mandates'] as $mandate)
-            {
-                if ($mandate['status'] === 'valid')
-                {
+            foreach ($mandates['_embedded']['mandates'] as $mandate) {
+                if ($mandate['status'] === 'valid') {
                     return $mandates; // Gültiges Mandat gefunden, Rückgabe und Abbruch der Schleife
                 }
             }
@@ -455,9 +413,7 @@ class MolliePaymentController extends Controller
         return $mandates; // Gibt das Mandat (ob gültig oder nicht) nach max. Versuchen zurück
     }
 
-
     /**
-     * @param $paymentId
      * @return void
      */
     public function prepareInvoice($paymentId)
@@ -465,47 +421,37 @@ class MolliePaymentController extends Controller
 
         $payment = MolliePayment::where('payment_id', $paymentId)->first();
 
-        if ($payment->amount_value > 0.00)
-        {
+        if ($payment->amount_value > 0.00) {
 
             $customer = MollieCustomer::where('mollie_customer_id', $payment->customer_id)->first();
 
-            $taxRate = (float)config('accounting.tax_rate', 19);
+            $taxRate = (float) config('accounting.tax_rate', 19);
 
             // Versuche Contract (für snapshot)
             $contract = null;
-            if ($this->contractID)
-            {
+            if ($this->contractID) {
                 $contract = \App\Models\Contract::find($this->contractID);
-            }
-            else if (!empty($payment->subscription_id))
-            {
+            } elseif (! empty($payment->subscription_id)) {
                 $contract = \App\Models\Contract::where('subscription_id', $payment->subscription_id)->first();
-                if ($contract)
-                {
+                if ($contract) {
                     $this->contractID = $contract->id;
                 }
             }
 
             // Items aus snapshot, falls vorhanden
             $items = null;
-            if ($contract && is_array($contract->data) && isset($contract->data['pricing_snapshot']['items']))
-            {
+            if ($contract && is_array($contract->data) && isset($contract->data['pricing_snapshot']['items'])) {
                 $items = $contract->data['pricing_snapshot']['items'];
-            }
-            elseif ($contract && is_string($contract->data))
-            {
+            } elseif ($contract && is_string($contract->data)) {
                 $decoded = json_decode($contract->data, true);
-                if (isset($decoded['pricing_snapshot']['items']))
-                {
+                if (isset($decoded['pricing_snapshot']['items'])) {
                     $items = $decoded['pricing_snapshot']['items'];
                 }
             }
 
             // Fallback: eine Position aus Payment
-            if (!$items || !is_array($items) || count($items) === 0)
-            {
-                $gross = (float)$payment->amount_value;
+            if (! $items || ! is_array($items) || count($items) === 0) {
+                $gross = (float) $payment->amount_value;
                 $net = round($gross / (1 + $taxRate / 100), 2);
                 $items = [[
                     'id' => '1',
@@ -517,19 +463,17 @@ class MolliePaymentController extends Controller
 
             // Summen aus Items (NETTO) berechnen
             $totalNet = 0.0;
-            foreach ($items as $it)
-            {
-                $totalNet += (float)($it['line_total_amount'] ?? 0);
+            foreach ($items as $it) {
+                $totalNet += (float) ($it['line_total_amount'] ?? 0);
             }
             $totalNet = round($totalNet, 2);
             $tax = round($totalNet * $taxRate / 100, 2);
             $totalGross = round($totalNet + $tax, 2);
 
             // Optional: an tatsächliche Payment-Summe anpassen (Cent-Differenzen)
-            $paidGross = round((float)$payment->amount_value, 2);
+            $paidGross = round((float) $payment->amount_value, 2);
             $delta = round($paidGross - $totalGross, 2);
-            if (abs($delta) >= 0.01)
-            {
+            if (abs($delta) >= 0.01) {
                 // korrigiere eine Item-Zeile minimal (netto-seitig)
                 $divisor = 1 + ($taxRate / 100);
 
@@ -553,10 +497,10 @@ class MolliePaymentController extends Controller
                 // Summen neu ziehen
                 $totalNet = 0.0;
                 foreach ($items as $it) {
-                    $totalNet += (float)($it['line_total_amount'] ?? 0);
+                    $totalNet += (float) ($it['line_total_amount'] ?? 0);
                 }
-                $totalNet   = round($totalNet, 2);
-                $tax        = round($totalNet * $taxRate / 100, 2);
+                $totalNet = round($totalNet, 2);
+                $tax = round($totalNet * $taxRate / 100, 2);
                 $totalGross = round($totalNet + $tax, 2);
             }
 
@@ -575,7 +519,7 @@ class MolliePaymentController extends Controller
                 'data' => ['items' => $items],
             ];
 
-            $invoiceService = new InvoiceService();
+            $invoiceService = new InvoiceService;
             $invoiceService->createInvoice($invoiceData);
             $invoiceService->sendInvoiceEmail();
         }
@@ -584,16 +528,15 @@ class MolliePaymentController extends Controller
 
     private function buildPricingSnapshot(\App\Models\Product $product, string $interval, ?string $couponCode, ?\App\Models\Company $actingCompany, ?\App\Models\Company $billingCompany = null): array
     {
-        $taxRate = (float)config('accounting.tax_rate', 19);
+        $taxRate = (float) config('accounting.tax_rate', 19);
         $divisor = 1 + ($taxRate / 100);
 
         $priceModel = $product->prices()->where('interval', $interval)->first();
-        if (!$priceModel)
-        {
+        if (! $priceModel) {
             return ['items' => [], 'total_net' => 0.0, 'meta' => ['captured_at' => now()->toDateTimeString()]];
         }
 
-        $baseGross = round(((int)$priceModel->price) / 100, 2); // z.B. 100.00 €
+        $baseGross = round(((int) $priceModel->price) / 100, 2); // z.B. 100.00 €
         $baseNet = round($baseGross / $divisor, 2);
 
         $descRaw = \App\Helpers\FormatHelper::stripHtmlButKeepSpaces($product->invoice_text ?: $product->description);
@@ -609,65 +552,58 @@ class MolliePaymentController extends Controller
         // Coupon
         $couponDiscountGross = 0.00;
         $couponLabel = null;
-        if (!empty($couponCode) && ($coupon = \App\Models\Coupon::where('code', $couponCode)->first()))
-        {
+        if (! empty($couponCode) && ($coupon = \App\Models\Coupon::where('code', $couponCode)->first())) {
             $cp = new \App\Http\Controllers\CouponController;
 
-            $netAfter = (float)$cp->calculateTotalPrice($coupon->promotion, $priceModel, false);
+            $netAfter = (float) $cp->calculateTotalPrice($coupon->promotion, $priceModel, false);
             $grossAfterFromNet = round($netAfter * $divisor, 2);
-            $grossAfterDirect = round((float)$cp->calculateTotalPrice($coupon->promotion, $priceModel, true), 2);
+            $grossAfterDirect = round((float) $cp->calculateTotalPrice($coupon->promotion, $priceModel, true), 2);
 
-            $candidates = array_filter([$grossAfterFromNet, $grossAfterDirect], fn($v) => $v > 0 && $v < $baseGross);
-            $grossAfter = !empty($candidates) ? min($candidates) : $baseGross;
+            $candidates = array_filter([$grossAfterFromNet, $grossAfterDirect], fn ($v) => $v > 0 && $v < $baseGross);
+            $grossAfter = ! empty($candidates) ? min($candidates) : $baseGross;
 
             $couponDiscountGross = max(0, round($baseGross - $grossAfter, 2));
-            if ($couponDiscountGross > 0)
-            {
-                $couponLabel = 'Aktionscode ' . $coupon->code;
+            if ($couponDiscountGross > 0) {
+                $couponLabel = 'Aktionscode '.$coupon->code;
             }
         }
 
         $agencyPct = 0.0;
         $agencyCompany = $this->resolveAgencyDiscountCompany($billingCompany, $actingCompany);
-        if ($agencyCompany && (float)($agencyCompany->agency_discount_percent ?? 0) > 0)
-        {
-            $agencyPct = (float)$agencyCompany->agency_discount_percent;
+        if ($agencyCompany && (float) ($agencyCompany->agency_discount_percent ?? 0) > 0) {
+            $agencyPct = (float) $agencyCompany->agency_discount_percent;
         }
 
         $agencyDiscountGross = 0.00;
-        if ($agencyPct > 0)
-        {
+        if ($agencyPct > 0) {
             $grossAfterCoupon = round($baseGross - $couponDiscountGross, 2);
             $agencyDiscountGross = round($grossAfterCoupon * ($agencyPct / 100), 2);
         }
 
         // Rabattzeilen (NETTO)
         $pos = 2;
-        if ($couponDiscountGross > 0.00)
-        {
+        if ($couponDiscountGross > 0.00) {
             $discNet = round($couponDiscountGross / $divisor, 2);
             $items[] = [
-                'id' => (string)$pos++,
+                'id' => (string) $pos++,
                 'description' => $couponLabel ?? 'Gutschein',
                 'quantity' => 1,
                 'line_total_amount' => -$discNet,
             ];
         }
-        if ($agencyDiscountGross > 0.00)
-        {
+        if ($agencyDiscountGross > 0.00) {
             $discNet = round($agencyDiscountGross / $divisor, 2);
             $items[] = [
-                'id' => (string)$pos++,
-                'description' => 'Agentur-Rabatt ' . rtrim(rtrim(number_format($agencyPct, 2, ',', ''), '0'), ',') . '%',
+                'id' => (string) $pos++,
+                'description' => 'Agentur-Rabatt '.rtrim(rtrim(number_format($agencyPct, 2, ',', ''), '0'), ',').'%',
                 'quantity' => 1,
                 'line_total_amount' => -$discNet,
             ];
         }
 
         $totalNet = 0.0;
-        foreach ($items as $it)
-        {
-            $totalNet += (float)($it['line_total_amount'] ?? 0);
+        foreach ($items as $it) {
+            $totalNet += (float) ($it['line_total_amount'] ?? 0);
         }
         $totalNet = round($totalNet, 2);
 
@@ -695,19 +631,17 @@ class MolliePaymentController extends Controller
     }
 
     /**
-     * @param $subscriptionId
-     * @param $customerId
      * @return mixed|null
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function getMollieSubscription($subscriptionId, $customerId)
     {
         // Mollie API Schlüssel
         $apiKey = env('MOLLIE_KEY');
-        $client = new Client();
+        $client = new Client;
 
-        try
-        {
+        try {
             // Sende eine GET-Anfrage an die Mollie-API
             $response = $client->request('GET', "https://api.mollie.com/v2/customers/{$customerId}/subscriptions/{$subscriptionId}", [
                 'headers' => [
@@ -720,39 +654,36 @@ class MolliePaymentController extends Controller
             $subscriptionData = json_decode($response->getBody()->getContents(), true);
 
             // Protokolliere oder arbeite mit den Daten
-            \Log::info('Mollie Subscription Data: ' . json_encode($subscriptionData, JSON_PRETTY_PRINT));
+            \Log::info('Mollie Subscription Data: '.json_encode($subscriptionData, JSON_PRETTY_PRINT));
 
             return $subscriptionData;
 
-        }
-        catch (\Exception $e)
-        {
+        } catch (\Exception $e) {
             // Fehlerbehandlung
-            \Log::error('Error fetching Mollie subscription: ' . $e->getMessage());
+            \Log::error('Error fetching Mollie subscription: '.$e->getMessage());
 
             return null;
         }
     }
 
     /**
-     * @param $customerId
      * @return mixed
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function createSubscription($customerId = 'cst_EuWP587Cqy', $subscriptionData)
+    public function createSubscription($customerId, $subscriptionData)
     {
-        $client = new Client();
+        $client = new Client;
         $apiKey = env('MOLLIE_KEY');
 
-        try
-        {
+        try {
             // API-Request für die Erstellung der Subscription
             $response = $client->request('POST', "https://api.mollie.com/v2/customers/{$customerId}/subscriptions", [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . $apiKey,
+                    'Authorization' => 'Bearer '.$apiKey,
                     'Accept' => 'application/json',
                 ],
-                'json' => $subscriptionData
+                'json' => $subscriptionData,
             ]);
 
             // JSON-Antwort dekodieren
@@ -760,11 +691,9 @@ class MolliePaymentController extends Controller
 
             return $subscription;
 
-        }
-        catch (\GuzzleHttp\Exception\ClientException $e)
-        {
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
             // Logge den Fehler und seine Details
-            \Log::error('Error creating subscription: ' . __FILE__ . ' ' . __LINE__ . $e->getMessage(), [
+            \Log::error('Error creating subscription: '.__FILE__.' '.__LINE__.$e->getMessage(), [
                 'customer_id' => $customerId,
                 'subscription_data' => $subscriptionData,
             ]);
@@ -774,22 +703,22 @@ class MolliePaymentController extends Controller
         }
     }
 
-
     /**
      * Delete all subscriptions for specified customer
-     * @param $customerId
+     *
      * @return string
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function deleteCustomerSubscriptions($customerId)
     {
-        $client = new Client();
+        $client = new Client;
         $apiKey = env('MOLLIE_KEY');
 
         // 1. Hole alle Subscriptions für den angegebenen Kunden
         $response = $client->request('GET', "https://api.mollie.com/v2/customers/{$customerId}/subscriptions", [
             'headers' => [
-                'Authorization' => 'Bearer ' . $apiKey,
+                'Authorization' => 'Bearer '.$apiKey,
                 'Accept' => 'application/json',
             ],
         ]);
@@ -798,18 +727,15 @@ class MolliePaymentController extends Controller
         $subscriptions = json_decode($response->getBody(), true);
 
         // 3. Überprüfe, ob Subscriptions vorhanden sind
-        if (isset($subscriptions['_embedded']['subscriptions']))
-        {
-            foreach ($subscriptions['_embedded']['subscriptions'] as $subscription)
-            {
+        if (isset($subscriptions['_embedded']['subscriptions'])) {
+            foreach ($subscriptions['_embedded']['subscriptions'] as $subscription) {
                 // Lösche jede Subscription
                 $subscriptionId = $subscription['id'];
 
-                try
-                {
+                try {
                     $client->request('DELETE', "https://api.mollie.com/v2/customers/{$customerId}/subscriptions/{$subscriptionId}", [
                         'headers' => [
-                            'Authorization' => 'Bearer ' . $apiKey,
+                            'Authorization' => 'Bearer '.$apiKey,
                             'Accept' => 'application/json',
                         ],
                     ]);
@@ -817,37 +743,30 @@ class MolliePaymentController extends Controller
                     // Logge das Ergebnis
                     \Log::info("Deleted subscription: {$subscriptionId} for customer: {$customerId}");
 
-                }
-                catch (\Exception $e)
-                {
+                } catch (\Exception $e) {
                     // Logge den Fehler und fahre fort
-                    \Log::warning("Skipping subscription with ID: {$subscriptionId} for customer: {$customerId}. Reason: " . $e->getMessage());
+                    \Log::warning("Skipping subscription with ID: {$subscriptionId} for customer: {$customerId}. Reason: ".$e->getMessage());
+
                     continue; // Überspringe diese Subscription und fahre mit der nächsten fort
                 }
             }
 
             \Log::info("All subscriptions for customer {$customerId} have been processed.");
-        }
-        else
-        {
+        } else {
             \Log::info("No subscriptions found for customer {$customerId}.");
         }
-
 
         return true;
     }
 
-
     /**
-     * @param $mollieCustomerId
      * @return false
      */
     public function initCompanyAccount($mollieCustomerId)
     {
 
         $tempData = TemporaryUserData::where('mollie_customer_id', $mollieCustomerId)->first();
-        if ($tempData)
-        {
+        if ($tempData) {
 
             // User- und Firmendaten aus dem JSON extrahieren
             $userData = json_decode($tempData->user_data, true);
@@ -855,7 +774,6 @@ class MolliePaymentController extends Controller
 
             // Firma erstellen
             $company = Company::create($companyData);
-
 
             // MollieCustomer mit Zuordnung zu Company erstellen
             $mollieCustomer = MollieCustomer::create([
@@ -865,7 +783,7 @@ class MolliePaymentController extends Controller
             ]);
 
             $userData = [
-                'name' => trim($userData['vorname'] . ' ' . $userData['name']),
+                'name' => trim($userData['vorname'].' '.$userData['name']),
                 'email' => $userData['email'],
                 'password' => Hash::make($userData['password']),
             ];
@@ -890,22 +808,20 @@ class MolliePaymentController extends Controller
             $tempData->delete();
 
             return $company;
-        }
-        else
-        {
+        } else {
             // Eine oder beide Session-Daten fehlen
-            //\Log::error('Benutzer- oder Firmendaten fehlen.');
+            // \Log::error('Benutzer- oder Firmendaten fehlen.');
 
             return false;
         }
 
-
     }
-
 
     /**
      * delete all subscriptions BE CAREFUL FOR CLEANING TESTDATA ONY
+     *
      * @return string
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function deleteAllSubscriptions()
@@ -913,18 +829,17 @@ class MolliePaymentController extends Controller
 
         $apiKey = env('MOLLIE_KEY');
 
-        if (strpos($apiKey, 'test_') !== 0)
-        {
+        if (strpos($apiKey, 'test_') !== 0) {
             // Falls der API-Key nicht mit 'test_' beginnt, wird die Ausführung verhindert
             abort(403, 'Ungültiger API-Key. Nur Test-API-Keys sind erlaubt.');
         }
 
-        $client = new Client();
+        $client = new Client;
 
         // 1. Hole alle Subscriptions
         $response = $client->request('GET', 'https://api.mollie.com/v2/subscriptions', [
             'headers' => [
-                'Authorization' => 'Bearer ' . $apiKey,
+                'Authorization' => 'Bearer '.$apiKey,
                 'Accept' => 'application/json',
             ],
         ]);
@@ -933,30 +848,26 @@ class MolliePaymentController extends Controller
         $data = json_decode($response->getBody(), true);
 
         // 3. Überprüfe, ob Subscriptions vorhanden sind
-        if (isset($data['_embedded']['subscriptions']))
-        {
-            foreach ($data['_embedded']['subscriptions'] as $subscription)
-            {
+        if (isset($data['_embedded']['subscriptions'])) {
+            foreach ($data['_embedded']['subscriptions'] as $subscription) {
                 $subscriptionId = $subscription['id'];
                 $customerId = $subscription['customerId'];
 
                 // 4. Lösche die Subscription
                 $client->request('DELETE', "https://api.mollie.com/v2/customers/{$customerId}/subscriptions/{$subscriptionId}", [
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $apiKey,
+                        'Authorization' => 'Bearer '.$apiKey,
                         'Accept' => 'application/json',
                     ],
                 ]);
 
                 // Logge das Ergebnis
-                //\Log::info("Deleted subscription with ID: {$subscriptionId} for customer: {$customerId}");
+                // \Log::info("Deleted subscription with ID: {$subscriptionId} for customer: {$customerId}");
             }
 
-            return "All subscriptions have been deleted.";
-        }
-        else
-        {
-            return "No subscriptions found.";
+            return 'All subscriptions have been deleted.';
+        } else {
+            return 'No subscriptions found.';
         }
     }
 
@@ -964,18 +875,17 @@ class MolliePaymentController extends Controller
     {
         $apiKey = env('MOLLIE_KEY');
 
-        if (strpos($apiKey, 'test_') !== 0)
-        {
+        if (strpos($apiKey, 'test_') !== 0) {
             // Falls der API-Key nicht mit 'test_' beginnt, wird die Ausführung verhindert
             abort(403, 'Ungültiger API-Key. Nur Test-API-Keys sind erlaubt.');
         }
 
-        $client = new Client();
+        $client = new Client;
 
         // 1. Hole alle Kunden
         $response = $client->request('GET', 'https://api.mollie.com/v2/customers', [
             'headers' => [
-                'Authorization' => 'Bearer ' . $apiKey,
+                'Authorization' => 'Bearer '.$apiKey,
                 'Accept' => 'application/json',
             ],
         ]);
@@ -984,10 +894,8 @@ class MolliePaymentController extends Controller
         $data = json_decode($response->getBody(), true);
 
         // 3. Überprüfe, ob Kunden vorhanden sind
-        if (isset($data['_embedded']['customers']))
-        {
-            foreach ($data['_embedded']['customers'] as $customer)
-            {
+        if (isset($data['_embedded']['customers'])) {
+            foreach ($data['_embedded']['customers'] as $customer) {
                 $customerId = $customer['id'];
 
                 // 4. Lösche alle Subscriptions für den Kunden
@@ -996,7 +904,7 @@ class MolliePaymentController extends Controller
                 // 5. Lösche den Kunden
                 $client->request('DELETE', "https://api.mollie.com/v2/customers/{$customerId}", [
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $apiKey,
+                        'Authorization' => 'Bearer '.$apiKey,
                         'Accept' => 'application/json',
                     ],
                 ]);
@@ -1005,13 +913,9 @@ class MolliePaymentController extends Controller
                 \Log::info("Deleted customer with ID: {$customerId}");
             }
 
-            return "All customers have been deleted.";
-        }
-        else
-        {
-            return "No customers found.";
+            return 'All customers have been deleted.';
+        } else {
+            return 'No customers found.';
         }
     }
-
-
 }

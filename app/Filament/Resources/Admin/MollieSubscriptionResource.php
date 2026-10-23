@@ -3,26 +3,21 @@
 namespace App\Filament\Resources\Admin;
 
 use App\Filament\Resources\Admin;
-use App\Filament\Resources\MollieSubscriptionResource\Pages;
-use App\Filament\Resources\MollieSubscriptionResource\RelationManagers;
+use App\Filament\Resources\BaseResource;
 use App\Models\MollieSubscription;
 use Carbon\Carbon;
-use Filament\Forms;
+use Filament\Forms\Components\Card;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Support\Enums\Alignment;
 use Filament\Tables;
-use Filament\Tables\Table;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\DatePicker;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\Card;
-use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Grid;
-use GuzzleHttp\Client;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Table;
+use GuzzleHttp\Client;
 use Mollie\Laravel\Facades\Mollie;
-use App\Filament\Resources\BaseResource;
 
 class MollieSubscriptionResource extends BaseResource
 {
@@ -30,12 +25,10 @@ class MollieSubscriptionResource extends BaseResource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-
     public static function getNavigationLabel(): string
     {
         // Kontextuell basierend auf der Rolle des Benutzers
-        if (auth()->user()->is_admin == 1)
-        {
+        if (auth()->user()->is_admin == 1) {
             return 'Mollie Subscriptions';
 
         }
@@ -46,11 +39,11 @@ class MollieSubscriptionResource extends BaseResource
     public static function shouldRegisterNavigation(): bool
     {
 
-        if (auth()->user()->is_admin == 1)
-        {
+        if (auth()->user()->is_admin == 1) {
             return true;
 
         }
+
         return false;
     }
 
@@ -64,7 +57,7 @@ class MollieSubscriptionResource extends BaseResource
                     TextInput::make('customer_id')->disabled(),
                     TextInput::make('amount_value')
                         ->label('Amount')
-                        ->formatStateUsing(fn(string $state) => number_format($state, 2, ',', '.')),
+                        ->formatStateUsing(fn (string $state) => number_format($state, 2, ',', '.')),
                     TextInput::make('description')
                         ->label('Description'),
                     DatePicker::make('start_date')->label('Start Date'),
@@ -77,14 +70,13 @@ class MollieSubscriptionResource extends BaseResource
     protected function beforeFill(): void
     {
         $record = $this->getRecord();
-        $client = new Client();
+        $client = new Client;
         $apiKey = env('MOLLIE_KEY');
 
-        try
-        {
+        try {
             $response = $client->request('GET', "https://api.mollie.com/v2/customers/{$record->customer_id}/subscriptions/{$record->subscription_id}", [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . $apiKey,
+                    'Authorization' => 'Bearer '.$apiKey,
                     'Accept' => 'application/json',
                 ],
             ]);
@@ -101,13 +93,10 @@ class MollieSubscriptionResource extends BaseResource
                 'next_payment_date' => $subscriptionData['nextPaymentDate'] ?? null,
             ]);
 
-        }
-        catch (\Exception $e)
-        {
-            \Log::error('Failed to fetch subscription data from Mollie: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            \Log::error('Failed to fetch subscription data from Mollie: '.$e->getMessage());
         }
     }
-
 
     /*   public static function form(Form $form): Form
        {
@@ -196,23 +185,23 @@ class MollieSubscriptionResource extends BaseResource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('start_date')
                     ->label('Start Date')
-                    ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y'))
+                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('d.m.Y'))
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('start_date')
                     ->label('Start Date')
-                    ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y'))
+                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('d.m.Y'))
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('next_payment_date')
                     ->label('Next Payment Date')
-                    ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y'))
+                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('d.m.Y'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('status')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('description')
                     ->label('Description')
-                    ->formatStateUsing(fn ($state) => strip_tags(substr($state, 0,55))." ...")
+                    ->formatStateUsing(fn ($state) => strip_tags(substr($state, 0, 55)).' ...')
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('interval')
@@ -221,11 +210,11 @@ class MollieSubscriptionResource extends BaseResource
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Created At')
-                    ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d.m.Y'))
+                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('d.m.Y'))
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('amount_value')
-                    ->formatStateUsing(fn(string $state) => number_format($state, 2, ',', '.'))
+                    ->formatStateUsing(fn (string $state) => number_format($state, 2, ',', '.'))
                     ->alignment(Alignment::End)
                     ->label('Amount')
                     ->sortable(),
@@ -238,7 +227,6 @@ class MollieSubscriptionResource extends BaseResource
                 Tables\Columns\TextColumn::make('customer_id')
                     ->label('Customer ID')
                     ->searchable(),
-
 
             ])
             ->defaultSort('start_date', 'desc')
@@ -261,7 +249,6 @@ class MollieSubscriptionResource extends BaseResource
                     ->disabled(fn (MollieSubscription $record): bool => ! \App\Models\Contract::query()
                         ->where('subscription_id', $record->subscription_id)
                         ->exists()),
-
 
             ])
             ->bulkActions([
@@ -287,17 +274,15 @@ class MollieSubscriptionResource extends BaseResource
         ];
     }
 
-
     public static function getSubscriptionPayments($customerId, $subscriptionId)
     {
-        $client = new Client();
+        $client = new Client;
         $apiKey = env('MOLLIE_KEY');
 
-        try
-        {
+        try {
             $response = $client->request('GET', "https://api.mollie.com/v2/customers/{$customerId}/subscriptions/{$subscriptionId}/payments", [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . $apiKey,
+                    'Authorization' => 'Bearer '.$apiKey,
                     'Accept' => 'application/json',
                 ],
             ]);
@@ -306,10 +291,8 @@ class MollieSubscriptionResource extends BaseResource
 
             return $payments['_embedded']['payments'] ?? [];
 
-        }
-        catch (\Exception $e)
-        {
-            \Log::error('Fehler beim Abrufen der Zahlungen von Mollie: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            \Log::error('Fehler beim Abrufen der Zahlungen von Mollie: '.$e->getMessage());
 
             return [];
         }

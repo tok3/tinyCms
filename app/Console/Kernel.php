@@ -46,7 +46,7 @@ class Kernel extends ConsoleKernel
         // Verify Reminder (Aktivierung)
         $schedule->command('followup:verify')
             ->weekdays() // Mo–Fr
-            ->when(fn() => in_array(now()->dayOfWeek, [2, 3, 4])) // Di–Do
+            ->when(fn () => in_array(now()->dayOfWeek, [2, 3, 4])) // Di–Do
             ->dailyAt('09:30')
             ->timezone('Europe/Berlin')
             ->withoutOverlapping()
@@ -55,7 +55,7 @@ class Kernel extends ConsoleKernel
         // Followup Mail (Conversion)
         $schedule->command('followup:wcag')
             ->weekdays()
-            ->when(fn() => in_array(now()->dayOfWeek, [2, 3, 4])) // Di–Do
+            ->when(fn () => in_array(now()->dayOfWeek, [2, 3, 4])) // Di–Do
             ->dailyAt('10:30')
             ->timezone('Europe/Berlin')
             ->withoutOverlapping()
@@ -68,7 +68,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands(): void
     {
-        $this->load(__DIR__ . '/Commands');
+        $this->load(__DIR__.'/Commands');
 
         require base_path('routes/console.php');
     }

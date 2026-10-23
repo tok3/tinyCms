@@ -3,21 +3,18 @@
 namespace App\Providers;
 
 use App\Http\Responses\LogoutResponse;
+use App\Http\ViewComposers\TopNavigationComposer;
+use App\Models\Company;
+use Cviebrock\EloquentSluggable\SluggableObserver;
 use Filament\Http\Responses\Auth\Contracts\LogoutResponse as LogoutResponseContract;
-use Illuminate\Support\ServiceProvider;
 use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\View;
-use App\Http\ViewComposers\TopNavigationComposer;
-use Filament\Forms\Components\Actions;
-use App\Models\Company;
-use Laravel\Cashier\Cashier;
 use Illuminate\Support\Facades\URL;
-use Cviebrock\EloquentSluggable\SluggableObserver;
-use Filament\Facades\Filament;
-use Filament\Support\Facades\FilamentIcon;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
+use Laravel\Cashier\Cashier;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -41,8 +38,6 @@ class AppServiceProvider extends ServiceProvider
             require_once $helperPath;
         }
 
-
-
         $this->app->bind(LogoutResponseContract::class, LogoutResponse::class);
     }
 
@@ -52,8 +47,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(\Illuminate\Http\Request $request): void
     {
 
-
-        if (!\Illuminate\Support\Facades\App::runningUnitTests()) {
+        if (! \Illuminate\Support\Facades\App::runningUnitTests()) {
             Company::observe(SluggableObserver::class);
         }
 
@@ -61,39 +55,35 @@ class AppServiceProvider extends ServiceProvider
             Url::forceScheme(scheme: 'https');
         }
 
-       // Cashier::useSubscriptionModel(Subscription::class);
+        // Cashier::useSubscriptionModel(Subscription::class);
 
         FilamentAsset::register([
-           // Css::make('custom-stylesheet', __DIR__ . '/../../public/build/assets/custom.css'),
-            Css::make('filament', __DIR__ . '/../../public/css/filament/filament/app.css'),
+            // Css::make('custom-stylesheet', __DIR__ . '/../../public/build/assets/custom.css'),
+            Css::make('filament', __DIR__.'/../../public/css/filament/filament/app.css'),
             Js::make('be-custom', asset('js/be-custom.js')),
 
         ]);
-
-
 
         View::composer('components.site-partials.headers.default-navbar', TopNavigationComposer::class);
         view()->composer('components.site-partials.footers.default-footer', \App\Http\ViewComposers\FooterNavigationComposer::class);
 
     }
 
-
     protected function resolveViteAssetPath(string $originalPath): ?string
     {
         $manifestPath = public_path('build/manifest.json');
 
-        if (!File::exists($manifestPath)) {
+        if (! File::exists($manifestPath)) {
             return null; // Manifest-Datei existiert nicht
         }
 
         $manifest = json_decode(File::get($manifestPath), true);
         $assetPath = $manifest[$originalPath]['file'] ?? null;
 
-        if (!$assetPath) {
+        if (! $assetPath) {
             return null; // Asset wurde im Manifest nicht gefunden
         }
 
         return asset("build/{$assetPath}");
     }
-
 }

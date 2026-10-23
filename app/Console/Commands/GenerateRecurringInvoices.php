@@ -2,15 +2,16 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\Contract;
 use App\Models\Invoice;
-use Carbon\Carbon;
 use App\Services\InvoiceService;
+use Carbon\Carbon;
+use Illuminate\Console\Command;
 
 class GenerateRecurringInvoices extends Command
 {
     protected $signature = 'app:generate-recurring-invoices';
+
     protected $description = 'Erstellt wiederkehrende Rechnungen auf Basis von Verträgen.';
 
     public function handle(InvoiceService $invoiceService)
@@ -35,12 +36,10 @@ class GenerateRecurringInvoices extends Command
                 ->orderByDesc('issue_date')
                 ->first();
 
-
-
             $shouldCreate = false;
             $nextIssueDate = null;
 
-            if (!$lastInvoice) {
+            if (! $lastInvoice) {
                 $shouldCreate = true;
                 $nextIssueDate = Carbon::parse($contract->start_date);
             } else {
@@ -72,6 +71,7 @@ class GenerateRecurringInvoices extends Command
 
                 if ($alreadyExists) {
                     $this->info("➤ Rechnung für {$nextIssueDate->toDateString()} existiert bereits.");
+
                     continue;
                 }
 
@@ -80,29 +80,29 @@ class GenerateRecurringInvoices extends Command
                 $company = $contract->contractable;
                 $taxRate = (float) config('accounting.tax_rate', 19);
 
-// Contract->data sicher lesen (Array-Cast + Fallback für ältere, JSON-enkodierte Datensätze)
+                // Contract->data sicher lesen (Array-Cast + Fallback für ältere, JSON-enkodierte Datensätze)
                 $raw = $contract->getAttribute('data');
                 $cdata = is_array($raw) ? $raw : (is_string($raw) ? json_decode($raw, true) ?? [] : []);
 
-// 1) Items aus Pricing-Snapshot (falls vorhanden)
+                // 1) Items aus Pricing-Snapshot (falls vorhanden)
                 $snapshot = $cdata['pricing_snapshot'] ?? null;
-                $items = (is_array($snapshot) && !empty($snapshot['items']) && is_array($snapshot['items']))
+                $items = (is_array($snapshot) && ! empty($snapshot['items']) && is_array($snapshot['items']))
                     ? $snapshot['items']
                     : null;
 
-// 2) Fallback: eine Position aus contract->price (NETTO-Cent)
-                if (!$items) {
+                // 2) Fallback: eine Position aus contract->price (NETTO-Cent)
+                if (! $items) {
                     $priceNet = round(($contract->price ?? 0) / 100, 2); // NETTO €
                     $desc = $contract->invoice_text ?? ($contract->product_name ?? 'Leistung');
                     $items = [[
-                        'id'                => '1',
-                        'description'       => $desc,
-                        'quantity'          => 1,
+                        'id' => '1',
+                        'description' => $desc,
+                        'quantity' => 1,
                         'line_total_amount' => $priceNet, // NETTO
                     ]];
                 }
 
-// 3) Netto-Summe aus Items (oder Snapshot-Wert nutzen, wenn vorhanden)
+                // 3) Netto-Summe aus Items (oder Snapshot-Wert nutzen, wenn vorhanden)
                 if (isset($snapshot['total_net']) && is_numeric($snapshot['total_net'])) {
                     $totalNet = round((float) $snapshot['total_net'], 2);
                 } else {
@@ -126,7 +126,7 @@ class GenerateRecurringInvoices extends Command
                     if ($discountNet > 0) {
                         $items[] = [
                             'id' => 'agency-discount',
-                            'description' => 'Agentur-Rabatt ' . rtrim(rtrim(number_format($agencyPct, 2, ',', ''), '0'), ',') . '%',
+                            'description' => 'Agentur-Rabatt '.rtrim(rtrim(number_format($agencyPct, 2, ',', ''), '0'), ',').'%',
                             'quantity' => 1,
                             'line_total_amount' => -$discountNet,
                         ];
@@ -137,7 +137,7 @@ class GenerateRecurringInvoices extends Command
                     }
                 }
 
-                $tax        = round($totalNet * $taxRate / 100, 2);
+                $tax = round($totalNet * $taxRate / 100, 2);
                 $totalGross = round($totalNet + $tax, 2);
 
                 $invoiceData = ['items' => $items];
@@ -145,26 +145,26 @@ class GenerateRecurringInvoices extends Command
                     $invoiceData['meta'] = $snapshotMeta;
                 }
 
-// 4) Rechnung erzeugen – PDF nimmt die Items 1:1 aus 'data.items'
+                // 4) Rechnung erzeugen – PDF nimmt die Items 1:1 aus 'data.items'
                 $invoiceService->createInvoice([
-                    'company_id'        => $company->id,
-                    'contract_id'       => $contract->id,
-                    'issue_date'        => $nextIssueDate->format('Y-m-d'),
+                    'company_id' => $company->id,
+                    'contract_id' => $contract->id,
+                    'issue_date' => $nextIssueDate->format('Y-m-d'),
                     'mollie_payment_id' => null,
-                    'due_date'          => $nextIssueDate->copy()->addWeekdays(10)->format('Y-m-d'),
-                    'payment_date'      => null,
-                    'total_net'         => $totalNet,
-                    'total_gross'       => $totalGross,
-                    'tax'               => $tax,
-                    'tax_rate'          => $taxRate,
-                    'status'            => 'sent',
-                    'data'              => $invoiceData,
+                    'due_date' => $nextIssueDate->copy()->addWeekdays(10)->format('Y-m-d'),
+                    'payment_date' => null,
+                    'total_net' => $totalNet,
+                    'total_gross' => $totalGross,
+                    'tax' => $tax,
+                    'tax_rate' => $taxRate,
+                    'status' => 'sent',
+                    'data' => $invoiceData,
                 ]);
 
-                $this->info("✔ Rechnung erstellt.");
+                $this->info('✔ Rechnung erstellt.');
                 $invoiceService->sendInvoiceEmail();
             } else {
-                $this->info("➤ Keine neue Rechnung erforderlich.");
+                $this->info('➤ Keine neue Rechnung erforderlich.');
             }
         }
     }

@@ -13,7 +13,7 @@ class MollieApiSubscriptionGateway implements MollieSubscriptionGateway
 
     public function __construct(private ?ClientInterface $client = null)
     {
-        $this->client ??= new Client();
+        $this->client ??= new Client;
     }
 
     public function status(string $customerId, string $subscriptionId): string

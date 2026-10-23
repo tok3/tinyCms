@@ -14,9 +14,7 @@ use Throwable;
 
 class ContractLifecycleService
 {
-    public function __construct(private MollieSubscriptionGateway $mollieGateway)
-    {
-    }
+    public function __construct(private MollieSubscriptionGateway $mollieGateway) {}
 
     public function normalEffectiveDate(Contract $contract, CarbonInterface $receivedOn): CarbonImmutable
     {
