@@ -20,7 +20,7 @@ class ContractLifecycleService
     {
         $this->assertCancellable($contract);
 
-        $end = CarbonImmutable::instance($contract->end_date)->startOfDay();
+        [$end] = $this->applicableEndForReceipt($contract, $receivedOn);
         $deadline = $end->subMonthsNoOverflow((int) $contract->notice_period_months);
         $received = CarbonImmutable::instance($receivedOn)->startOfDay();
 
@@ -47,8 +47,12 @@ class ContractLifecycleService
             $this->assertCancellable($contract);
 
             $oldEnd = CarbonImmutable::instance($contract->end_date)->startOfDay();
-            $normalEnd = $this->normalEffectiveDate($contract, $receivedOn);
-            $deadline = $oldEnd->subMonthsNoOverflow((int) $contract->notice_period_months);
+            [$applicableEnd, $supersededRenewals] = $this->applicableEndForReceipt($contract, $receivedOn);
+            $deadline = $applicableEnd->subMonthsNoOverflow((int) $contract->notice_period_months);
+            $received = CarbonImmutable::instance($receivedOn)->startOfDay();
+            $normalEnd = $received->lessThanOrEqualTo($deadline)
+                ? $applicableEnd
+                : $applicableEnd->addMonthsNoOverflow((int) $contract->renewal_period_months);
             $isGoodwill = $goodwillEnd !== null;
             $effectiveEnd = $normalEnd;
 
@@ -69,9 +73,12 @@ class ContractLifecycleService
                 }
             }
 
-            if ($normalEnd->greaterThan($oldEnd)) {
-                $contract->iteration = (int) $contract->iteration + 1;
-            }
+            $contract->iteration = max(
+                1,
+                (int) $contract->iteration
+                    - count($supersededRenewals)
+                    + ($normalEnd->greaterThan($applicableEnd) ? 1 : 0)
+            );
 
             $contract->forceFill([
                 'end_date' => $effectiveEnd,
@@ -83,6 +90,19 @@ class ContractLifecycleService
                 'cancellation_is_goodwill' => $isGoodwill,
             ])->save();
 
+            if ($supersededRenewals !== []) {
+                ContractLifecycleEvent::record(
+                    $contract,
+                    'renewal_superseded_by_cancellation',
+                    [
+                        'renewal_event_ids' => array_column($supersededRenewals, 'id'),
+                        'received_date' => $received->toDateString(),
+                        'restored_end_date' => $applicableEnd->toDateString(),
+                    ],
+                    $actorId
+                );
+            }
+
             ContractLifecycleEvent::record(
                 $contract,
                 $isGoodwill ? 'goodwill_cancellation_scheduled' : 'cancellation_scheduled',
@@ -91,7 +111,8 @@ class ContractLifecycleService
                     'normal_effective_date' => $normalEnd->toDateString(),
                     'effective_date' => $effectiveEnd->toDateString(),
                     'deadline' => $deadline->toDateString(),
-                    'received_date' => CarbonImmutable::instance($receivedOn)->toDateString(),
+                    'received_date' => $received->toDateString(),
+                    'superseded_renewal_event_ids' => array_column($supersededRenewals, 'id'),
                     'reason' => filled($reason) ? trim($reason) : null,
                 ],
                 $actorId
@@ -162,6 +183,24 @@ class ContractLifecycleService
                 : null;
             $mollieAlreadyCanceled = $formerSubscriptionId !== null
                 && ($contract->mollie_canceled_at !== null || $localSubscription?->status === 'canceled');
+
+            if ($formerSubscriptionId !== null && ! $mollieAlreadyCanceled) {
+                if ($localSubscription === null || blank($localSubscription->customer_id)) {
+                    throw new DomainException('Der Mollie-Status kann ohne vollständige lokale Abo-Daten nicht geprüft werden.');
+                }
+
+                $remoteStatus = $this->mollieGateway->status(
+                    $localSubscription->customer_id,
+                    $formerSubscriptionId
+                );
+
+                if (in_array($remoteStatus, ['canceled', 'completed'], true)) {
+                    $mollieAlreadyCanceled = true;
+                    $localSubscription->forceFill(['status' => 'canceled'])->save();
+                } elseif ($remoteStatus !== 'active') {
+                    throw new DomainException("Der Mollie-Status '{$remoteStatus}' erlaubt keine sichere Rücknahme.");
+                }
+            }
 
             if ($mollieAlreadyCanceled && ! $confirmInvoiceFallback) {
                 throw new DomainException('Die Umstellung auf normale Rechnung muss bestätigt werden.');
@@ -318,7 +357,10 @@ class ContractLifecycleService
 
                 if ($contract === null
                     || $contract->trashed()
-                    || $contract->status !== Contract::STATUS_CANCELLATION_PENDING
+                    || ! in_array($contract->status, [
+                        Contract::STATUS_CANCELLATION_PENDING,
+                        Contract::STATUS_ENDED,
+                    ], true)
                     || $contract->cancellation_effective_at === null
                     || $contract->subscription_id === null
                     || $contract->mollie_canceled_at !== null) {
@@ -413,5 +455,35 @@ class ContractLifecycleService
         if ($contract->status !== Contract::STATUS_ACTIVE) {
             throw new DomainException('Der Vertrag ist nicht aktiv.');
         }
+    }
+
+    /**
+     * @return array{0: CarbonImmutable, 1: array<int, array{id: int}>}
+     */
+    private function applicableEndForReceipt(Contract $contract, CarbonInterface $receivedOn): array
+    {
+        $received = CarbonImmutable::instance($receivedOn)->startOfDay();
+        $end = CarbonImmutable::instance($contract->end_date)->startOfDay();
+        $superseded = [];
+
+        $renewals = $contract->lifecycleEvents()
+            ->where('type', 'renewed')
+            ->latest('id')
+            ->get();
+
+        foreach ($renewals as $renewal) {
+            $context = $renewal->context;
+
+            if (! isset($context['previous_end_date'], $context['new_end_date'], $context['deadline'])
+                || $end->toDateString() !== $context['new_end_date']
+                || $received->greaterThan(CarbonImmutable::parse($context['deadline'])->startOfDay())) {
+                continue;
+            }
+
+            $end = CarbonImmutable::parse($context['previous_end_date'])->startOfDay();
+            $superseded[] = ['id' => (int) $renewal->id];
+        }
+
+        return [$end, $superseded];
     }
 }

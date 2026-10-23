@@ -194,6 +194,33 @@ it('records a failed Mollie attempt and succeeds on a later retry', function () 
     expect($contract->fresh()->mollie_canceled_at)->not->toBeNull();
 });
 
+it('retries a failed Mollie cancellation after the contract has ended', function () {
+    $failingGateway = Mockery::mock(MollieSubscriptionGateway::class);
+    $failingGateway->shouldReceive('status')->once()->andThrow(new RuntimeException('Mollie unavailable'));
+    app()->instance(MollieSubscriptionGateway::class, $failingGateway);
+    createProcessMollieSubscription('sub_retry_after_end');
+    $contract = makeProcessLifecycleContract([
+        'status' => Contract::STATUS_CANCELLATION_PENDING,
+        'auto_renew' => false,
+        'subscription_id' => 'sub_retry_after_end',
+        'cancellation_received_at' => '2027-03-24',
+        'cancellation_effective_at' => '2027-06-24',
+    ]);
+
+    $this->artisan('contracts:process-lifecycle', ['--date' => '2027-06-25'])->assertExitCode(1);
+    expect($contract->fresh()->status)->toBe(Contract::STATUS_ENDED)
+        ->and($contract->fresh()->mollie_canceled_at)->toBeNull();
+
+    $recoveringGateway = Mockery::mock(MollieSubscriptionGateway::class);
+    $recoveringGateway->shouldReceive('status')->once()->andReturn('canceled');
+    $recoveringGateway->shouldNotReceive('cancel');
+    app()->instance(MollieSubscriptionGateway::class, $recoveringGateway);
+
+    $this->artisan('contracts:process-lifecycle', ['--date' => '2027-06-26'])->assertExitCode(0);
+    expect($contract->fresh()->mollie_canceled_at)->not->toBeNull()
+        ->and($contract->lifecycleEvents()->where('type', 'mollie_cancellation_succeeded')->count())->toBe(1);
+});
+
 it('fails visibly and remains retryable when local Mollie data is incomplete', function (bool $createSubscription, string $customerId) {
     bindUnusedMollieGateway();
     $subscriptionId = 'sub_incomplete_'.($createSubscription ? 'customer' : 'record');

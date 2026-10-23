@@ -3,10 +3,12 @@
 namespace App\Console\Commands;
 
 use App\Models\Contract;
+use App\Models\ContractLifecycleEvent;
 use App\Models\Invoice;
 use App\Services\InvoiceService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class GenerateRecurringInvoices extends Command
 {
@@ -18,7 +20,7 @@ class GenerateRecurringInvoices extends Command
     {
         $today = today();
 
-        $contracts = Contract::withoutGlobalScopes()
+        $contractIds = Contract::withoutGlobalScopes()
             ->whereNull('subscription_id')
             ->whereDate('start_date', '<=', $today)
             ->whereDate('end_date', '>=', $today)
@@ -26,146 +28,192 @@ class GenerateRecurringInvoices extends Command
             ->whereNotIn('interval', ['one_time'])
             ->whereNull('deleted_at') // Soft-deleted Verträge ausschließen
             ->where('price', '>', 0)
-            ->get();
+            ->pluck('id');
 
-        foreach ($contracts as $contract) {
-            $this->info("Prüfe Vertrag #{$contract->id}");
+        foreach ($contractIds as $contractId) {
+            $this->info("Prüfe Vertrag #{$contractId}");
 
-            $lastInvoice = Invoice::where('contract_id', $contract->id)
-                ->where('status', '!=', 'canceled')
-                ->orderByDesc('issue_date')
-                ->first();
+            $created = DB::transaction(function () use ($contractId, $today, $invoiceService): bool {
+                $contract = Contract::withoutGlobalScopes()
+                    ->whereNull('subscription_id')
+                    ->whereDate('start_date', '<=', $today)
+                    ->whereDate('end_date', '>=', $today)
+                    ->whereIn('status', [Contract::STATUS_ACTIVE, Contract::STATUS_CANCELLATION_PENDING])
+                    ->whereNotIn('interval', ['one_time'])
+                    ->whereNull('deleted_at')
+                    ->where('price', '>', 0)
+                    ->lockForUpdate()
+                    ->find($contractId);
 
-            $shouldCreate = false;
-            $nextIssueDate = null;
-
-            if (! $lastInvoice) {
-                $shouldCreate = true;
-                $nextIssueDate = Carbon::parse($contract->start_date);
-            } else {
-                $lastIssueDate = Carbon::parse($lastInvoice->issue_date);
-
-                switch ($contract->interval) {
-                    case 'daily':
-                        $nextIssueDate = $lastIssueDate->copy()->addDay();
-                        break;
-                    case 'weekly':
-                        $nextIssueDate = $lastIssueDate->copy()->addWeek();
-                        break;
-                    case 'monthly':
-                        $nextIssueDate = $lastIssueDate->copy()->addMonth();
-                        break;
-                    case 'annual':
-                    case 'yearly':
-                        $nextIssueDate = $lastIssueDate->copy()->addYear();
-                        break;
+                if (! $contract) {
+                    return false;
                 }
 
-                $shouldCreate = $nextIssueDate?->lte($today) ?? false;
-            }
+                $lastInvoice = Invoice::where('contract_id', $contract->id)
+                    ->where('status', '!=', 'canceled')
+                    ->orderByDesc('issue_date')
+                    ->first();
 
-            if ($shouldCreate && $nextIssueDate) {
-                $alreadyExists = Invoice::where('contract_id', $contract->id)
-                    ->whereDate('issue_date', $nextIssueDate)
-                    ->exists();
+                $shouldCreate = false;
+                $nextIssueDate = null;
 
-                if ($alreadyExists) {
-                    $this->info("➤ Rechnung für {$nextIssueDate->toDateString()} existiert bereits.");
-
-                    continue;
-                }
-
-                $this->info("➤ Rechnung wird erstellt für Vertrag #{$contract->id}");
-
-                $company = $contract->contractable;
-                $taxRate = (float) config('accounting.tax_rate', 19);
-
-                // Contract->data sicher lesen (Array-Cast + Fallback für ältere, JSON-enkodierte Datensätze)
-                $raw = $contract->getAttribute('data');
-                $cdata = is_array($raw) ? $raw : (is_string($raw) ? json_decode($raw, true) ?? [] : []);
-
-                // 1) Items aus Pricing-Snapshot (falls vorhanden)
-                $snapshot = $cdata['pricing_snapshot'] ?? null;
-                $items = (is_array($snapshot) && ! empty($snapshot['items']) && is_array($snapshot['items']))
-                    ? $snapshot['items']
-                    : null;
-
-                // 2) Fallback: eine Position aus contract->price (NETTO-Cent)
-                if (! $items) {
-                    $priceNet = round(($contract->price ?? 0) / 100, 2); // NETTO €
-                    $desc = $contract->invoice_text ?? ($contract->product_name ?? 'Leistung');
-                    $items = [[
-                        'id' => '1',
-                        'description' => $desc,
-                        'quantity' => 1,
-                        'line_total_amount' => $priceNet, // NETTO
-                    ]];
-                }
-
-                // 3) Netto-Summe aus Items (oder Snapshot-Wert nutzen, wenn vorhanden)
-                if (isset($snapshot['total_net']) && is_numeric($snapshot['total_net'])) {
-                    $totalNet = round((float) $snapshot['total_net'], 2);
+                if (! $lastInvoice) {
+                    $shouldCreate = true;
+                    $nextIssueDate = Carbon::parse($contract->start_date);
                 } else {
-                    $totalNet = 0.0;
-                    foreach ($items as $it) {
-                        $totalNet += (float) ($it['line_total_amount'] ?? 0);
-                    }
-                    $totalNet = round($totalNet, 2);
+                    $lastIssueDate = Carbon::parse($lastInvoice->issue_date);
+
+                    $nextIssueDate = $this->nextIssueDate($lastIssueDate, $contract->interval);
+
+                    $shouldCreate = $nextIssueDate?->lte($today) ?? false;
                 }
 
-                $agencyCompany = $company instanceof \App\Models\Company
-                    ? $company->loadMissing('agency')->agencyBillingDiscountSource()
-                    : null;
-                $snapshotMeta = is_array($snapshot['meta'] ?? null) ? $snapshot['meta'] : [];
-                $snapshotHasAgencyDiscount = (float) ($snapshotMeta['agency_percent'] ?? 0) > 0;
-                $agencyPct = (float) ($agencyCompany?->agency_discount_percent ?? 0);
+                if ($shouldCreate && $nextIssueDate) {
+                    while (Invoice::where('contract_id', $contract->id)
+                        ->whereDate('issue_date', $nextIssueDate)
+                        ->where('status', 'canceled')
+                        ->exists()) {
+                        $nextIssueDate = $this->nextIssueDate($nextIssueDate, $contract->interval);
 
-                if (! $snapshotHasAgencyDiscount && $agencyPct > 0) {
-                    $discountNet = round($totalNet * ($agencyPct / 100), 2);
+                        if (! $nextIssueDate || $nextIssueDate->greaterThan($today)) {
+                            return false;
+                        }
+                    }
 
-                    if ($discountNet > 0) {
-                        $items[] = [
-                            'id' => 'agency-discount',
-                            'description' => 'Agentur-Rabatt '.rtrim(rtrim(number_format($agencyPct, 2, ',', ''), '0'), ',').'%',
+                    $alreadyExists = Invoice::where('contract_id', $contract->id)
+                        ->whereDate('issue_date', $nextIssueDate)
+                        ->where('status', '!=', 'canceled')
+                        ->exists();
+
+                    if ($alreadyExists) {
+                        $this->info("➤ Rechnung für {$nextIssueDate->toDateString()} existiert bereits.");
+
+                        return false;
+                    }
+
+                    $claim = ContractLifecycleEvent::record(
+                        $contract,
+                        'recurring_invoice_claimed',
+                        ['issue_date' => $nextIssueDate->toDateString()],
+                        null,
+                        "recurring-invoice:{$contract->id}:{$nextIssueDate->toDateString()}"
+                    );
+
+                    if (! $claim->wasRecentlyCreated) {
+                        return false;
+                    }
+
+                    $this->info("➤ Rechnung wird erstellt für Vertrag #{$contract->id}");
+
+                    $company = $contract->contractable;
+                    $taxRate = (float) config('accounting.tax_rate', 19);
+
+                    // Contract->data sicher lesen (Array-Cast + Fallback für ältere, JSON-enkodierte Datensätze)
+                    $raw = $contract->getAttribute('data');
+                    $cdata = is_array($raw) ? $raw : (is_string($raw) ? json_decode($raw, true) ?? [] : []);
+
+                    // 1) Items aus Pricing-Snapshot (falls vorhanden)
+                    $snapshot = $cdata['pricing_snapshot'] ?? null;
+                    $items = (is_array($snapshot) && ! empty($snapshot['items']) && is_array($snapshot['items']))
+                        ? $snapshot['items']
+                        : null;
+
+                    // 2) Fallback: eine Position aus contract->price (NETTO-Cent)
+                    if (! $items) {
+                        $priceNet = round(($contract->price ?? 0) / 100, 2); // NETTO €
+                        $desc = $contract->invoice_text ?? ($contract->product_name ?? 'Leistung');
+                        $items = [[
+                            'id' => '1',
+                            'description' => $desc,
                             'quantity' => 1,
-                            'line_total_amount' => -$discountNet,
-                        ];
-
-                        $totalNet = round($totalNet - $discountNet, 2);
-                        $snapshotMeta['agency_percent'] = $agencyPct;
-                        $snapshotMeta['agency_company_id'] = $agencyCompany->id;
+                            'line_total_amount' => $priceNet, // NETTO
+                        ]];
                     }
+
+                    // 3) Netto-Summe aus Items (oder Snapshot-Wert nutzen, wenn vorhanden)
+                    if (isset($snapshot['total_net']) && is_numeric($snapshot['total_net'])) {
+                        $totalNet = round((float) $snapshot['total_net'], 2);
+                    } else {
+                        $totalNet = 0.0;
+                        foreach ($items as $it) {
+                            $totalNet += (float) ($it['line_total_amount'] ?? 0);
+                        }
+                        $totalNet = round($totalNet, 2);
+                    }
+
+                    $agencyCompany = $company instanceof \App\Models\Company
+                        ? $company->loadMissing('agency')->agencyBillingDiscountSource()
+                        : null;
+                    $snapshotMeta = is_array($snapshot['meta'] ?? null) ? $snapshot['meta'] : [];
+                    $snapshotHasAgencyDiscount = (float) ($snapshotMeta['agency_percent'] ?? 0) > 0;
+                    $agencyPct = (float) ($agencyCompany?->agency_discount_percent ?? 0);
+
+                    if (! $snapshotHasAgencyDiscount && $agencyPct > 0) {
+                        $discountNet = round($totalNet * ($agencyPct / 100), 2);
+
+                        if ($discountNet > 0) {
+                            $items[] = [
+                                'id' => 'agency-discount',
+                                'description' => 'Agentur-Rabatt '.rtrim(rtrim(number_format($agencyPct, 2, ',', ''), '0'), ',').'%',
+                                'quantity' => 1,
+                                'line_total_amount' => -$discountNet,
+                            ];
+
+                            $totalNet = round($totalNet - $discountNet, 2);
+                            $snapshotMeta['agency_percent'] = $agencyPct;
+                            $snapshotMeta['agency_company_id'] = $agencyCompany->id;
+                        }
+                    }
+
+                    $tax = round($totalNet * $taxRate / 100, 2);
+                    $totalGross = round($totalNet + $tax, 2);
+
+                    $invoiceData = ['items' => $items];
+                    if (! empty($snapshotMeta)) {
+                        $invoiceData['meta'] = $snapshotMeta;
+                    }
+
+                    // 4) Rechnung erzeugen – PDF nimmt die Items 1:1 aus 'data.items'
+                    $invoiceService->createInvoice([
+                        'company_id' => $company->id,
+                        'contract_id' => $contract->id,
+                        'issue_date' => $nextIssueDate->format('Y-m-d'),
+                        'mollie_payment_id' => null,
+                        'due_date' => $nextIssueDate->copy()->addWeekdays(10)->format('Y-m-d'),
+                        'payment_date' => null,
+                        'total_net' => $totalNet,
+                        'total_gross' => $totalGross,
+                        'tax' => $tax,
+                        'tax_rate' => $taxRate,
+                        'status' => 'sent',
+                        'data' => $invoiceData,
+                    ]);
+
+                    $this->info('✔ Rechnung erstellt.');
+
+                    return true;
+                } else {
+                    return false;
                 }
 
-                $tax = round($totalNet * $taxRate / 100, 2);
-                $totalGross = round($totalNet + $tax, 2);
+            });
 
-                $invoiceData = ['items' => $items];
-                if (! empty($snapshotMeta)) {
-                    $invoiceData['meta'] = $snapshotMeta;
-                }
-
-                // 4) Rechnung erzeugen – PDF nimmt die Items 1:1 aus 'data.items'
-                $invoiceService->createInvoice([
-                    'company_id' => $company->id,
-                    'contract_id' => $contract->id,
-                    'issue_date' => $nextIssueDate->format('Y-m-d'),
-                    'mollie_payment_id' => null,
-                    'due_date' => $nextIssueDate->copy()->addWeekdays(10)->format('Y-m-d'),
-                    'payment_date' => null,
-                    'total_net' => $totalNet,
-                    'total_gross' => $totalGross,
-                    'tax' => $tax,
-                    'tax_rate' => $taxRate,
-                    'status' => 'sent',
-                    'data' => $invoiceData,
-                ]);
-
-                $this->info('✔ Rechnung erstellt.');
+            if ($created) {
                 $invoiceService->sendInvoiceEmail();
             } else {
                 $this->info('➤ Keine neue Rechnung erforderlich.');
             }
         }
+    }
+
+    private function nextIssueDate(Carbon $date, string $interval): ?Carbon
+    {
+        return match ($interval) {
+            'daily' => $date->copy()->addDay(),
+            'weekly' => $date->copy()->addWeek(),
+            'monthly' => $date->copy()->addMonth(),
+            'annual', 'yearly' => $date->copy()->addYear(),
+            default => null,
+        };
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Contracts\MollieSubscriptionGateway;
 use App\Models\Company;
 use App\Models\Contract;
 use App\Models\MollieSubscription;
@@ -78,6 +79,26 @@ it('extends a normal cancellation received one day late exactly once', function 
 
     expect($contract->fresh()->end_date->toDateString())->toBe('2028-06-24')
         ->and($contract->fresh()->iteration)->toBe(2);
+});
+
+it('supersedes an automatic renewal when a timely notice is entered later', function () {
+    $contract = makeLifecycleServiceContract();
+    $service = app(ContractLifecycleService::class);
+
+    expect($service->renewDueContract($contract->id, CarbonImmutable::parse('2027-03-25')))->toBeTrue();
+
+    $result = $service->scheduleCancellation(
+        $contract->id,
+        CarbonImmutable::parse('2027-03-24'),
+        null,
+        'Kündigung wurde einen Tag später eingetragen',
+        null
+    );
+
+    expect($result->end_date->toDateString())->toBe('2027-06-24')
+        ->and($result->cancellation_effective_at->toDateString())->toBe('2027-06-24')
+        ->and($result->iteration)->toBe(1)
+        ->and($result->lifecycleEvents()->where('type', 'renewal_superseded_by_cancellation')->count())->toBe(1);
 });
 
 it('uses no overflow arithmetic at month and leap year boundaries', function () {
@@ -184,6 +205,9 @@ it('revokes a pending cancellation while keeping an active Mollie subscription',
         'subscription_id' => 'sub_active_revoke',
         'subscription_start_date' => '2025-07-24',
     ]);
+    $gateway = Mockery::mock(MollieSubscriptionGateway::class);
+    $gateway->shouldReceive('status')->once()->with('cst_active_revoke', 'sub_active_revoke')->andReturn('active');
+    app()->instance(MollieSubscriptionGateway::class, $gateway);
     $service = app(ContractLifecycleService::class);
     $service->scheduleCancellation($contract->id, CarbonImmutable::parse('2026-10-23'), null, null, $actorId);
 
@@ -200,6 +224,78 @@ it('revokes a pending cancellation while keeping an active Mollie subscription',
 
     expect(fn () => $service->revokeCancellation($contract->id, 'Noch einmal', false, $actorId))
         ->toThrow(DomainException::class, 'Es gibt keine Kündigung, die zurückgenommen werden kann.');
+});
+
+it('switches to invoices when Mollie canceled but the local commit was lost', function () {
+    CarbonImmutable::setTestNow('2026-10-23 10:00:00');
+    MollieSubscription::query()->create([
+        'subscription_id' => 'sub_remote_canceled_revoke',
+        'customer_id' => 'cst_remote_canceled_revoke',
+        'amount_value' => 10,
+        'amount_currency' => 'EUR',
+        'interval' => '1 month',
+        'status' => 'active',
+        'start_date' => '2025-07-24 00:00:00',
+    ]);
+    $contract = makeLifecycleServiceContract([
+        'subscription_id' => 'sub_remote_canceled_revoke',
+        'subscription_start_date' => '2025-07-24',
+    ]);
+    $service = app(ContractLifecycleService::class);
+    $service->scheduleCancellation($contract->id, CarbonImmutable::parse('2026-10-23'), null, null, null);
+
+    $gateway = Mockery::mock(MollieSubscriptionGateway::class);
+    $gateway->shouldReceive('status')->twice()
+        ->with('cst_remote_canceled_revoke', 'sub_remote_canceled_revoke')
+        ->andReturn('canceled');
+    app()->instance(MollieSubscriptionGateway::class, $gateway);
+
+    expect(fn () => app(ContractLifecycleService::class)->revokeCancellation(
+        $contract->id,
+        'Kündigung war falsch',
+        false,
+        null
+    ))->toThrow(DomainException::class, 'Die Umstellung auf normale Rechnung muss bestätigt werden.');
+
+    $result = app(ContractLifecycleService::class)->revokeCancellation(
+        $contract->id,
+        'Kündigung war falsch',
+        true,
+        null
+    );
+
+    expect($result->subscription_id)->toBeNull()
+        ->and(MollieSubscription::where('subscription_id', 'sub_remote_canceled_revoke')->value('status'))->toBe('canceled')
+        ->and($result->lifecycleEvents()->where('type', 'reactivated_on_invoice')->count())->toBe(1);
+});
+
+it('does not revoke when Mollie subscription status cannot be verified', function () {
+    MollieSubscription::query()->create([
+        'subscription_id' => 'sub_uncertain_revoke',
+        'customer_id' => 'cst_uncertain_revoke',
+        'amount_value' => 10,
+        'amount_currency' => 'EUR',
+        'interval' => '1 month',
+        'status' => 'active',
+        'start_date' => '2025-07-24 00:00:00',
+    ]);
+    $contract = makeLifecycleServiceContract(['subscription_id' => 'sub_uncertain_revoke']);
+    $service = app(ContractLifecycleService::class);
+    $service->scheduleCancellation($contract->id, CarbonImmutable::parse('2026-10-23'), null, null, null);
+
+    $gateway = Mockery::mock(MollieSubscriptionGateway::class);
+    $gateway->shouldReceive('status')->once()->andThrow(new RuntimeException('Mollie unavailable'));
+    app()->instance(MollieSubscriptionGateway::class, $gateway);
+
+    expect(fn () => app(ContractLifecycleService::class)->revokeCancellation(
+        $contract->id,
+        'Status unklar',
+        true,
+        null
+    ))->toThrow(RuntimeException::class, 'Mollie unavailable');
+
+    expect($contract->fresh()->status)->toBe(Contract::STATUS_CANCELLATION_PENDING)
+        ->and($contract->fresh()->subscription_id)->toBe('sub_uncertain_revoke');
 });
 
 it('restores the normal end when revoking a goodwill cancellation', function () {

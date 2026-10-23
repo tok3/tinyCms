@@ -92,8 +92,8 @@ class EditContract extends EditRecord
                         ->required(),
                     Checkbox::make('confirm_invoice_fallback')
                         ->label('Auf normale Rechnung umstellen')
-                        ->helperText('Das gekündigte Mollie-Abo kann nicht reaktiviert werden.')
-                        ->visible(fn (): bool => $this->requiresInvoiceFallback())
+                        ->helperText('Bestätigen, falls Mollie das Abo bereits beendet hat; der Status wird beim Speichern geprüft.')
+                        ->visible(fn (): bool => $this->record->subscription_id !== null)
                         ->accepted(fn (): bool => $this->requiresInvoiceFallback()),
                 ])
                 ->action(function (array $data): void {

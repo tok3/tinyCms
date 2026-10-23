@@ -45,7 +45,8 @@ class ProcessContractLifecycle extends Command
             ->pluck('id');
 
         $mollieIds = Contract::query()
-            ->whereIn('id', $pendingIds)
+            ->whereIn('status', [Contract::STATUS_CANCELLATION_PENDING, Contract::STATUS_ENDED])
+            ->whereNotNull('cancellation_effective_at')
             ->whereNotNull('subscription_id')
             ->whereNull('mollie_canceled_at')
             ->pluck('id');

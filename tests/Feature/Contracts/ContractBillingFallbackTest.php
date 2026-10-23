@@ -170,6 +170,44 @@ it('does not create the same contract issue date twice across repeated runs', fu
         ->count())->toBe(1);
 });
 
+it('advances beyond a canceled invoice on the next cadence date', function () {
+    Carbon::setTestNow('2026-11-01 10:00:00');
+    bindLightweightInvoiceService();
+    $contract = makeBillingFallbackContract();
+    createBillingInvoice($contract, '2026-09-01', 'paid', 'tr_paid_before_cancel');
+    createBillingInvoice($contract, '2026-10-01', 'canceled');
+
+    $this->artisan('app:generate-recurring-invoices')->assertExitCode(0);
+
+    expect(DB::table('invoices')
+        ->where('contract_id', $contract->id)
+        ->where('issue_date', '2026-11-01')
+        ->where('status', 'sent')
+        ->count())->toBe(1);
+});
+
+it('honors the unique recurring invoice claim before creating or emailing', function () {
+    Carbon::setTestNow('2026-10-01 10:00:00');
+    $contract = makeBillingFallbackContract();
+    createBillingInvoice($contract, '2026-09-01', 'paid');
+    ContractLifecycleEvent::record(
+        $contract,
+        'recurring_invoice_claimed',
+        ['issue_date' => '2026-10-01'],
+        null,
+        "recurring-invoice:{$contract->id}:2026-10-01"
+    );
+
+    $service = Mockery::mock(InvoiceService::class);
+    $service->shouldNotReceive('createInvoice');
+    $service->shouldNotReceive('sendInvoiceEmail');
+    app()->instance(InvoiceService::class, $service);
+
+    $this->artisan('app:generate-recurring-invoices')->assertExitCode(0);
+
+    expect(DB::table('invoices')->where('contract_id', $contract->id)->count())->toBe(1);
+});
+
 it('keeps a paid post-term Mollie payment and records one critical lifecycle alert', function () {
     Carbon::setTestNow('2026-10-01 10:00:00');
     Log::spy();
