@@ -5,16 +5,35 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Models\Company;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Contract extends Model
 {
     use SoftDeletes;
+
+    public const STATUS_ACTIVE = 'active';
+
+    public const STATUS_CANCELLATION_PENDING = 'cancellation_pending';
+
+    public const STATUS_ENDED = 'ended';
+
+    protected $attributes = [
+        'status' => self::STATUS_ACTIVE,
+        'notice_period_months' => 3,
+        'renewal_period_months' => 12,
+        'cancellation_is_goodwill' => false,
+    ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
         'order_date' => 'date',
         'subscription_start_date' => 'date',
+        'cancellation_received_at' => 'date',
+        'cancellation_effective_at' => 'date',
+        'cancellation_is_goodwill' => 'boolean',
+        'mollie_canceled_at' => 'datetime',
+        'auto_renew' => 'boolean',
         'data' => 'array',
         'discount_percent' => 'float',
     ];
@@ -40,6 +59,15 @@ class Contract extends Model
         'discount_percent',
         'discount_label',
         'sepa_mandate_id',
+        'status',
+        'auto_renew',
+        'notice_period_months',
+        'renewal_period_months',
+        'cancellation_received_at',
+        'cancellation_effective_at',
+        'cancellation_reason',
+        'cancellation_is_goodwill',
+        'mollie_canceled_at',
     ];
 
 
@@ -60,10 +88,6 @@ class Contract extends Model
             }
         });
 
-        static::created(function ($contract) {
-            $contract->assignFeaturesToCompany();
-        });
-
     }
 
     // Polymorphic relation to Company
@@ -80,6 +104,29 @@ class Contract extends Model
     public function invoices()
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    public function lifecycleEvents(): HasMany
+    {
+        return $this->hasMany(ContractLifecycleEvent::class);
+    }
+
+    public function isRecurring(): bool
+    {
+        return in_array($this->interval, ['daily', 'weekly', 'monthly', 'annual', 'yearly'], true);
+    }
+
+    public function setIntervalAttribute(string $interval): void
+    {
+        $this->attributes['interval'] = $interval;
+
+        if (! array_key_exists('auto_renew', $this->attributes)) {
+            $this->attributes['auto_renew'] = in_array(
+                $interval,
+                ['daily', 'weekly', 'monthly', 'annual', 'yearly'],
+                true
+            );
+        }
     }
 
     public function features()
@@ -104,7 +151,7 @@ class Contract extends Model
     // Wiederkehrend = z. B. monatlich/jährlich
     public function scopeRecurring($q)
     {
-        return $q->whereIn('interval', ['monthly', 'yearly']);
+        return $q->whereIn('interval', ['daily', 'weekly', 'monthly', 'annual', 'yearly']);
     }
 
     // Filter für eine Company (polymorph)
