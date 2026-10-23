@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contract;
+use App\Models\ContractLifecycleEvent;
 use App\Models\Coupon;
 use App\Models\Product;
 use App\Services\InvoiceService;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\Hash;
 use Faker\Factory as Faker;
 use App\Models\MollieCustomer;
 use App\Services\MessageTranslationService;
+use Illuminate\Support\Facades\Log;
 
 class MolliePaymentController extends Controller
 {
@@ -143,6 +145,8 @@ class MolliePaymentController extends Controller
             ]
         );
 
+        $this->recordUnexpectedPostTermPayment($contract ?? null, $payment);
+
         if (!isset($company))
         {
             $company = isset($metadata->company_id) && $metadata->company_id != 0
@@ -240,6 +244,52 @@ class MolliePaymentController extends Controller
         $this->prepareInvoice($payment->id);
 
         return response()->json(['status' => 'ok'], 200);
+    }
+
+    private function recordUnexpectedPostTermPayment(?Contract $contract, object $payment): void
+    {
+        if (!$contract
+            || $payment->status !== 'paid'
+            || !$contract->cancellation_effective_at
+            || empty($payment->paidAt ?? $payment->createdAt ?? null)) {
+            return;
+        }
+
+        $timezone = config('app.timezone', 'UTC');
+        $paymentDate = Carbon::parse($payment->paidAt ?? $payment->createdAt)
+            ->setTimezone($timezone)
+            ->startOfDay();
+        $effectiveDate = Carbon::createFromFormat(
+            'Y-m-d',
+            $contract->cancellation_effective_at->format('Y-m-d'),
+            $timezone
+        )->startOfDay();
+
+        if (!$paymentDate->greaterThan($effectiveDate)) {
+            return;
+        }
+
+        $event = ContractLifecycleEvent::record(
+            $contract,
+            'unexpected_post_term_payment',
+            [
+                'payment_id' => $payment->id,
+                'payment_date' => $paymentDate->toDateString(),
+                'effective_date' => $effectiveDate->toDateString(),
+                'amount' => $payment->amount->value ?? null,
+                'currency' => $payment->amount->currency ?? null,
+            ],
+            null,
+            "post-term-payment:{$contract->id}:{$payment->id}"
+        );
+
+        if ($event->wasRecentlyCreated) {
+            Log::critical('Mollie payment received after contract end.', [
+                'contract_id' => $contract->id,
+                'payment_id' => $payment->id,
+                'effective_date' => $effectiveDate->toDateString(),
+            ]);
+        }
     }
 
 

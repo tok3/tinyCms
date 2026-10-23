@@ -13,7 +13,7 @@ class GenerateRecurringInvoices extends Command
     protected $signature = 'app:generate-recurring-invoices';
     protected $description = 'Erstellt wiederkehrende Rechnungen auf Basis von Verträgen.';
 
-    public function handle()
+    public function handle(InvoiceService $invoiceService)
     {
         $today = today();
 
@@ -21,6 +21,7 @@ class GenerateRecurringInvoices extends Command
             ->whereNull('subscription_id')
             ->whereDate('start_date', '<=', $today)
             ->whereDate('end_date', '>=', $today)
+            ->whereIn('status', [Contract::STATUS_ACTIVE, Contract::STATUS_CANCELLATION_PENDING])
             ->whereNotIn('interval', ['one_time'])
             ->whereNull('deleted_at') // Soft-deleted Verträge ausschließen
             ->where('price', '>', 0)
@@ -30,6 +31,7 @@ class GenerateRecurringInvoices extends Command
             $this->info("Prüfe Vertrag #{$contract->id}");
 
             $lastInvoice = Invoice::where('contract_id', $contract->id)
+                ->where('status', '!=', 'canceled')
                 ->orderByDesc('issue_date')
                 ->first();
 
@@ -55,14 +57,24 @@ class GenerateRecurringInvoices extends Command
                         $nextIssueDate = $lastIssueDate->copy()->addMonth();
                         break;
                     case 'annual':
+                    case 'yearly':
                         $nextIssueDate = $lastIssueDate->copy()->addYear();
                         break;
                 }
 
-                $shouldCreate = $nextIssueDate->lte($today);
+                $shouldCreate = $nextIssueDate?->lte($today) ?? false;
             }
 
             if ($shouldCreate && $nextIssueDate) {
+                $alreadyExists = Invoice::where('contract_id', $contract->id)
+                    ->whereDate('issue_date', $nextIssueDate)
+                    ->exists();
+
+                if ($alreadyExists) {
+                    $this->info("➤ Rechnung für {$nextIssueDate->toDateString()} existiert bereits.");
+                    continue;
+                }
+
                 $this->info("➤ Rechnung wird erstellt für Vertrag #{$contract->id}");
 
                 $company = $contract->contractable;
@@ -134,8 +146,7 @@ class GenerateRecurringInvoices extends Command
                 }
 
 // 4) Rechnung erzeugen – PDF nimmt die Items 1:1 aus 'data.items'
-                $svc = new \App\Services\InvoiceService();
-                $svc->createInvoice([
+                $invoiceService->createInvoice([
                     'company_id'        => $company->id,
                     'contract_id'       => $contract->id,
                     'issue_date'        => $nextIssueDate->format('Y-m-d'),
@@ -151,7 +162,7 @@ class GenerateRecurringInvoices extends Command
                 ]);
 
                 $this->info("✔ Rechnung erstellt.");
-                $svc->sendInvoiceEmail();
+                $invoiceService->sendInvoiceEmail();
             } else {
                 $this->info("➤ Keine neue Rechnung erforderlich.");
             }
