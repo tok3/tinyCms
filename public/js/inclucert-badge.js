@@ -795,13 +795,49 @@
             root.appendChild(strip);
             root.appendChild(panel);
 
+            const positionPanel = () => {
+                const margin = 12;
+                const anchorRect = root.getBoundingClientRect();
+                let topBoundary = margin;
+                let bottomBoundary = window.innerHeight - margin;
+
+                for (let ancestor = root.parentElement; ancestor; ancestor = ancestor.parentElement) {
+                    const overflowY = window.getComputedStyle(ancestor).overflowY;
+                    if (!['auto', 'clip', 'hidden', 'scroll'].includes(overflowY)) continue;
+
+                    const ancestorRect = ancestor.getBoundingClientRect();
+                    topBoundary = Math.max(topBoundary, ancestorRect.top + margin);
+                    bottomBoundary = Math.min(bottomBoundary, ancestorRect.bottom - margin);
+                }
+
+                let top = 0;
+                if (anchorRect.top + panel.offsetHeight > bottomBoundary) {
+                    top = bottomBoundary - anchorRect.top - panel.offsetHeight;
+                }
+                if (anchorRect.top + top < topBoundary) {
+                    top = topBoundary - anchorRect.top;
+                }
+
+                panel.style.top = `${Math.round(top)}px`;
+            };
+
+            const closePanel = () => {
+                root.classList.remove('akb-open');
+                panel.style.top = '0px';
+            };
+
+            const openPanel = () => {
+                root.classList.add('akb-open');
+                positionPanel();
+            };
+
             strip.querySelector('.akb-toggle').addEventListener('click', e => {
                 e.stopPropagation();
-                root.classList.toggle('akb-open');
+                root.classList.contains('akb-open') ? closePanel() : openPanel();
             });
             panel.querySelector('.akb-toggle').addEventListener('click', e => {
                 e.stopPropagation();
-                root.classList.remove('akb-open');
+                closePanel();
             });
             strip.addEventListener('click', e => {
                 if (e.target.closest('.akb-toggle')) return;
@@ -812,8 +848,14 @@
                 window.open(data.url, '_blank');
             });
             document.addEventListener('click', e => {
-                if (!root.contains(e.target)) root.classList.remove('akb-open');
+                if (!root.contains(e.target)) closePanel();
             }, true);
+            window.addEventListener('resize', () => {
+                if (root.classList.contains('akb-open')) positionPanel();
+            }, { passive: true });
+            window.addEventListener('scroll', () => {
+                if (root.classList.contains('akb-open')) positionPanel();
+            }, { passive: true });
 
             // ── full (default) ────────────────────────────────────────────────────
         } else {
