@@ -13,6 +13,11 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
 
+        $schedule->command('email-blocklist:update')
+            ->dailyAt('03:15')
+            ->timezone('Europe/Berlin')
+            ->withoutOverlapping();
+
         $schedule->command('contracts:process-lifecycle')
             ->dailyAt('07:30')
             ->timezone('Europe/Berlin')

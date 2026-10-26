@@ -74,7 +74,8 @@ class EditInvoice extends EditRecord
                   //  $invoiceService->sendInvoiceEmail($newInvoice->id); // versendet korrekturrechnung direkt
 
                     \Filament\Notifications\Notification::make()
-                        ->title('Korrekturrechnung wurde erstellt und versendet')
+                        ->title('Korrekturrechnung wurde erstellt')
+                        ->body('Bitte versenden Sie die Korrekturrechnung manuell.')
                         ->success()
                         ->send();
 

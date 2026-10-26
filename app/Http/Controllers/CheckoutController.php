@@ -20,6 +20,7 @@ use App\Models\TemporaryUserData;
 use Illuminate\Support\Str;
 use App\Helpers\FormatHelper;
 use App\Helpers\CompanyHelper;
+use App\Rules\PermanentEmailAddress;
 
 /**
  *
@@ -37,7 +38,22 @@ class CheckoutController extends MolliePaymentController
      */
     public function preparePayment(Request $request)
     {
-
+        $request->validate([
+            'user.email' => [
+                'required',
+                'string',
+                'email:rfc',
+                'max:255',
+                app(PermanentEmailAddress::class),
+            ],
+            'company.email' => [
+                'required',
+                'string',
+                'email:rfc',
+                'max:255',
+                app(PermanentEmailAddress::class),
+            ],
+        ]);
 
         $checkoutUrl = $this->firstPayment($request);
 
