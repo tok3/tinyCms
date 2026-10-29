@@ -84,6 +84,12 @@ class FixsternController extends Controller
                 $openAIService = new OpenAIService();
                 $res = $openAIService->generateText($prompt);
                 $res = preg_replace('/^[\'"\`“”‘’]+|[\'"\`“”‘’]+$/u', '', $res);
+                if (trim($res) === '' || str_starts_with(ltrim($res), 'Error:')) {
+                    return response()->json([
+                        'status' => 502,
+                        'message' => 'Der Text konnte nicht erstellt werden. Bitte versuchen Sie es erneut.',
+                    ], 502);
+                }
                 //\Log::info("Ergebnis ".$this->aitag);
                 if($res != "Bitte beachten Sie, dass ich Ihnen keine Übersetzungen in leichter Sprache anbieten kann. Gerne kann ich jedoch den Originaltext für Barrierefreiheit überprüfen und relevante Empfehlungen zur Verbesserung geben.")
                 {

@@ -19,28 +19,39 @@ class OpenAIService
      * Generiere eine Antwort basierend auf einem Prompt.
      *
      * @param string $prompt Der vollständige Prompt, der an OpenAI gesendet wird.
-     * @param string $model Das Modell, das verwendet werden soll (z. B. "gpt-4").
+     * @param string $model Das Modell, das verwendet werden soll (z. B. "gpt-6-luna").
      * @param int $maxTokens Maximale Token-Anzahl für die Ausgabe.
      * @return string
      */
-    //public function generateText(string $prompt, string $model = 'gpt-3.5-turbo', int $maxTokens = 500): string
-    public function generateText(string $prompt, string $model = 'gpt-4', int $maxTokens = 500): string
+    public function generateText(string $prompt, string $model = 'gpt-6-luna', int $maxTokens = 500): string
     {
         try {
-            $response = $this->client->chat()->create([
+            $parameters = [
                 'model' => $model,
                 'messages' => [
                     ['role' => 'system', 'content' => 'You are an expert in web accessibility and HTML fixes.'],
                     ['role' => 'user', 'content' => $prompt],
                 ],
-                'max_tokens' => $maxTokens,
-            ]);
+            ];
+
+            if ($model === 'gpt-6-luna') {
+                $parameters['max_completion_tokens'] = $maxTokens;
+                $parameters['reasoning_effort'] = 'none';
+            } else {
+                $parameters['max_tokens'] = $maxTokens;
+            }
+
+            $response = $this->client->chat()->create($parameters);
 
             // Rückgabe der generierten Antwort
-            return $response['choices'][0]['message']['content'] ?? 'No response generated.';
+            return $response['choices'][0]['message']['content'] ?? '';
         } catch (\Exception $e) {
-            // Fehlerbehandlung und Logging
-            return 'Error: ' . $e->getMessage();
+            \Illuminate\Support\Facades\Log::warning('Text generation failed.', [
+                'model' => $model,
+                'message' => $e->getMessage(),
+            ]);
+
+            return '';
         }
     }
 
