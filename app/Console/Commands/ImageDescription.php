@@ -186,7 +186,6 @@ class ImageDescription extends Command
                 }
 
                 $desc = $response->json()['choices'][0]['message']['content'] ?? 'No description received.';
-                Log::info('OpenAI API raw response', $response->json());
 
                 // Update database with description
                 DB::table('imagetags')
