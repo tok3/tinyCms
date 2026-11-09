@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
-use App\Models\CompanySetting;
 use App\Models\Company;
 use App\Models\CompanyFeature;
+use App\Services\WidgetScriptProfileResolver;
 
 class ScriptController extends Controller
 {
@@ -39,105 +39,28 @@ class ScriptController extends Controller
 
 
 
-        if ($tool == 'fixstern')
-        {
-            $company = Company::where('ulid', $ulid)->first();
-            /*
-            $companyFeatures = CompanyFeature::where('company_id', $company->id)
-                ->whereNull('deleted_at')
-                ->get();
-                */
+        // The access middleware owns customer lookup and authorization.
+        $company = $request->attributes->get('widget_company');
+        if (! $company instanceof Company || $company->ulid !== $ulid) {
+            return response('Unauthorized', 403);
+        }
 
-            //$companyFeatures = $company->hasFeature('leichte-sprache');
-            /*$tool = 'standard'; // Default value
-            if($company->hasFeature('leichte-sprache') == 1){
-                $tool = 'tts_eztext_ezspeak';
-            } elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('screen-reader') == 1){
-                $tool =  'tts';
-            }
-            */
+        if (in_array($tool, ['fixstern', 'altstar'], true)) {
+            // Keep the relationship's deleted-pivot filtering and existence semantics.
+            $features = array_fill_keys($company->features()->pluck('slug')->all(), true);
 
-            $tool = 'standard'; // Default value
-            if($company->hasFeature('leichte-sprache') == 1){
-                $tool = 'tts_eztext_ezspeak';
-            //} elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('screen-reader') == 1){
-            } elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('eztext') == 0 && $company->hasFeature('ezspeak') == 0 && $company->hasFeature('screen-reader') == 1  ){
-                $tool =  'tts';
-            } elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('eztext') == 1 && $company->hasFeature('ezspeak') == 0 && $company->hasFeature('screen-reader') == 0  ){
-                $tool = 'eztext';
-            } elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('eztext') == 1 && $company->hasFeature('ezspeak') == 1 && $company->hasFeature('screen-reader') == 0  ){
-                $tool = 'eztext_ezspeak';
-            } elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('eztext') == 1 && $company->hasFeature('ezspeak') == 1 && $company->hasFeature('screen-reader') == 1  ){
-                $tool = 'tts_eztext_ezspeak';
-            } elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('eztext') == 0 && $company->hasFeature('ezspeak') == 1 && $company->hasFeature('screen-reader') == 0  ){
-                $tool = 'ezspeak';
-            } elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('eztext') == 0 && $company->hasFeature('ezspeak') == 1 && $company->hasFeature('screen-reader') == 1  ){
-                $tool = 'tts_ezspeak';
-            } elseif($company->hasFeature('leichte-sprache') == 0 && $company->hasFeature('eztext') == 1 && $company->hasFeature('ezspeak') == 0 && $company->hasFeature('screen-reader') == 1  ){
-                $tool = 'tts_eztext';
-            } elseif($company->hasFeature('eztext-only') == 1){
-                $tool = 'eztext_only';
-            } elseif($company->hasFeature('ezspeak-only') == 1){
-                $tool = 'ezspeak_only';
-            } elseif($company->hasFeature('eztext-ezspeak-only') == 1){
-                $tool = 'eztext_ezspeak_only';
-            }
-            //\Log::info($tool);
-            if($ulid == '01JRT7ABK98TYXEXM62N11NHGR'){
-                $tool = 'tts_eztext_ezspeak';
-            }
-            if($ulid == '01JRSPY9VYFFM60FCSXX52BP8T'){
-                $tool = 'tts_eztext_ezspeak';
-            }
-            if($ulid == '01JWXJ42G8GZVCMEN1CQMPSD49'){
-                //\Log::info('01JE6A5H2NQZCT4P9N3FEZG2CX');
-                $tool = 'futtermedicus';
-            }
-        //\Log::info($tool);
-            /*
-            if($ulid == '01JSPJB7M8358WNYBYKEF8E4B3' || $ulid == '01JSNNXB5HEDE3D26N51PQQ11A'){
-                $tool = 'pyr';
-            }
-            */
-        } elseif ($tool == 'altstar') {
-            $company = Company::where('ulid', $ulid)->first();
-            $companyFeatures = CompanyFeature::where('company_id', $company->id)->get();
-            $specialUlid = '01JE6A5H2NQZCT4P9N3FEZG2CX';
-
-
-            if ($companyFeatures->count() >= 1) {
-                //if ($companyFeatures->contains(fn($feature) => $feature->feature_id == 4)) {
-                /*
-                if($company->hasFeature('image-alt-tags-all') == 1) {
-                    $tool = 'imgAlltags.min';
-                } elseif($company->hasFeature('image-alt-tags') == 1) {
-                    $tool = 'img.min';
-                } else {
-                    return response('Feature not available', 404);
-                }
-                */
-                //rewrite: if any feature containing alt-tag is enabled let the user choose in the settings
-                if($company->hasFeature('image-alt-tags-all') == 1 || $company->hasFeature('image-alt-tags') == 1) {
-                    $setting = CompanySetting::where('company_id', $company->id)->first();
-                    if($setting->altstar_type == 0){
-                        $tool = 'img.min';
-                        //\Log::info('tool: ' . $tool);
-                    } else {
-                        $tool = 'imgAlltags.min';
-                        //\Log::info('tool: ' . $tool);
-                    }
-                } else {
-                    return response('Feature not available', 404);
-                }
-
-
-
+            if ($tool === 'fixstern') {
+                $tool = app(WidgetScriptProfileResolver::class)->fixstern($ulid, $features);
+            } elseif (isset($features['image-alt-tags-all']) || isset($features['image-alt-tags'])) {
+                $setting = $company->settings;
+                $tool = $setting->altstar_type == 0 ? 'img.min' : 'imgAlltags.min';
             } else {
-                if ($ulid === $specialUlid) {
-                    $tool = 'img.min';
-                } else {
-                    return response('Feature not available', $companyFeatures->isEmpty() ? 403 : 404);
+                // Legacy exception applies only when there are NO assignments, including deleted ones.
+                $hasAssignments = CompanyFeature::where('company_id', $company->id)->exists();
+                if ($hasAssignments || $ulid !== '01JE6A5H2NQZCT4P9N3FEZG2CX') {
+                    return response('Feature not available', $hasAssignments ? 404 : 403);
                 }
+                $tool = 'img.min';
             }
         }
 

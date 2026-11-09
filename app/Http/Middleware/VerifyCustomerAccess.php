@@ -32,6 +32,8 @@ class VerifyCustomerAccess
         }
 
 
+        $request->attributes->set('widget_company', $customer);
+
         // HTTP-Referer aus dem Request
         $httpReferrer = $request->header('referer');
 

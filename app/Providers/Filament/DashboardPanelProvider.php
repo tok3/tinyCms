@@ -36,12 +36,6 @@ class DashboardPanelProvider extends PanelProvider
 
     public function panel(Panel $panel): Panel
     {
-        $tenant_id = \Request::segment(2);
-
-       $tenant = Company::where('id', $tenant_id)->first();
-
-
-
         $items = [];
 
         $items[] = NavigationItem::make('Termin Vereinbaren')
@@ -70,14 +64,14 @@ class DashboardPanelProvider extends PanelProvider
         ];
 
         foreach ($upsellFeatures as $feature => $config) {
-            if (! $tenant?->hasFeature($feature)) {
-
-                $items[] = NavigationItem::make($config['label'])
-                    ->url("#feature={$feature}")
-                    ->icon($config['icon'])
-                    ->group('Features')
-                    ->sort(1000);
-            }
+            $items[] = NavigationItem::make($config['label'])
+                ->visible(fn (): bool => Filament::getCurrentPanel()?->getId() === 'dashboard'
+                    && Filament::getTenant() instanceof Company
+                    && ! Filament::getTenant()->hasFeature($feature))
+                ->url("#feature={$feature}")
+                ->icon($config['icon'])
+                ->group('Features')
+                ->sort(1000);
         }
 
 
@@ -177,7 +171,7 @@ class DashboardPanelProvider extends PanelProvider
             ->renderHook(
                 'panels::body.end',
                 fn () => view('filament.partials.upsell-templates', [
-                    'tenant' => $tenant_id,
+                    'tenant' => Filament::getTenant()?->getKey(),
                 ])
             )
             ->navigationItems($items);
