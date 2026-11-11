@@ -49,7 +49,8 @@ class GenerateRecurringInvoices extends Command
                     return false;
                 }
 
-                $lastInvoice = Invoice::where('contract_id', $contract->id)
+                $lastInvoice = Invoice::forRecurringCadence()
+                    ->where('contract_id', $contract->id)
                     ->where('status', '!=', 'canceled')
                     ->orderByDesc('issue_date')
                     ->first();
@@ -80,7 +81,8 @@ class GenerateRecurringInvoices extends Command
                         }
                     }
 
-                    $alreadyExists = Invoice::where('contract_id', $contract->id)
+                    $alreadyExists = Invoice::forRecurringCadence()
+                        ->where('contract_id', $contract->id)
                         ->whereDate('issue_date', $nextIssueDate)
                         ->where('status', '!=', 'canceled')
                         ->exists();
@@ -91,12 +93,27 @@ class GenerateRecurringInvoices extends Command
                         return false;
                     }
 
+                    $replacementCorrectionId = Invoice::query()
+                        ->where('contract_id', $contract->id)
+                        ->whereNotNull('ref_to_id')
+                        ->whereHas('originalInvoice', function ($query) use ($contract, $nextIssueDate): void {
+                            $query
+                                ->where('contract_id', $contract->id)
+                                ->whereDate('issue_date', $nextIssueDate);
+                        })
+                        ->max('id');
+
+                    $claimKey = "recurring-invoice:{$contract->id}:{$nextIssueDate->toDateString()}";
+                    if ($replacementCorrectionId !== null) {
+                        $claimKey .= ":replacement:{$replacementCorrectionId}";
+                    }
+
                     $claim = ContractLifecycleEvent::record(
                         $contract,
                         'recurring_invoice_claimed',
                         ['issue_date' => $nextIssueDate->toDateString()],
                         null,
-                        "recurring-invoice:{$contract->id}:{$nextIssueDate->toDateString()}"
+                        $claimKey
                     );
 
                     if (! $claim->wasRecentlyCreated) {

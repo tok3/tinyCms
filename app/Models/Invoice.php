@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use App\Models\Contract;
@@ -129,6 +130,13 @@ class Invoice extends Model
     public function correctionInvoice()
     {
         return $this->hasOne(Invoice::class, 'ref_to_id');
+    }
+
+    public function scopeForRecurringCadence(Builder $query): Builder
+    {
+        return $query
+            ->whereNull('ref_to_id')
+            ->whereDoesntHave('correctionInvoice');
     }
 
     public function originalInvoice()

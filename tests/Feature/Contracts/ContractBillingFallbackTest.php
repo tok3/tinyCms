@@ -53,9 +53,15 @@ function makeBillingFallbackContract(array $overrides = []): Contract
     ], $overrides));
 }
 
-function createBillingInvoice(Contract $contract, string $issueDate, string $status = 'paid', ?string $molliePaymentId = null): int
+function createBillingInvoice(
+    Contract $contract,
+    string $issueDate,
+    string $status = 'paid',
+    ?string $molliePaymentId = null,
+    array $overrides = []
+): int
 {
-    return DB::table('invoices')->insertGetId([
+    return DB::table('invoices')->insertGetId(array_merge([
         'invoice_number' => 'TEST-'.uniqid(),
         'company_id' => $contract->contractable_id,
         'contract_id' => $contract->id,
@@ -72,7 +78,7 @@ function createBillingInvoice(Contract $contract, string $issueDate, string $sta
         'data' => json_encode(['items' => []]),
         'created_at' => now(),
         'updated_at' => now(),
-    ]);
+    ], $overrides));
 }
 
 function bindLightweightInvoiceService(): void
@@ -206,6 +212,49 @@ it('honors the unique recurring invoice claim before creating or emailing', func
     $this->artisan('app:generate-recurring-invoices')->assertExitCode(0);
 
     expect(DB::table('invoices')->where('contract_id', $contract->id)->count())->toBe(1);
+});
+
+it('replaces a corrected invoice on its original billing date exactly once', function () {
+    Carbon::setTestNow('2026-11-12 10:00:00');
+    bindLightweightInvoiceService();
+
+    $contract = makeBillingFallbackContract([
+        'price' => 46387,
+        'interval' => 'annual',
+        'start_date' => '2026-11-02',
+    ]);
+
+    $originalId = createBillingInvoice($contract, '2026-11-02', 'paid', null, [
+        'total_net' => 46.39,
+        'total_gross' => 55.20,
+        'tax' => 8.81,
+    ]);
+    createBillingInvoice($contract, '2026-11-11', 'paid', null, [
+        'ref_to_id' => $originalId,
+        'total_net' => -46.39,
+        'total_gross' => -55.20,
+        'tax' => -8.81,
+    ]);
+    ContractLifecycleEvent::record(
+        $contract,
+        'recurring_invoice_claimed',
+        ['issue_date' => '2026-11-02'],
+        null,
+        "recurring-invoice:{$contract->id}:2026-11-02"
+    );
+
+    $this->artisan('app:generate-recurring-invoices')->assertExitCode(0);
+    $this->artisan('app:generate-recurring-invoices')->assertExitCode(0);
+
+    $replacements = Invoice::query()
+        ->where('contract_id', $contract->id)
+        ->whereDate('issue_date', '2026-11-02')
+        ->whereNull('ref_to_id')
+        ->where('id', '!=', $originalId)
+        ->where('total_gross', '>', 0)
+        ->get();
+
+    expect($replacements)->toHaveCount(1);
 });
 
 it('keeps a paid post-term Mollie payment and records one critical lifecycle alert', function () {
