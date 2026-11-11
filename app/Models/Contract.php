@@ -78,6 +78,21 @@ class Contract extends Model
             $contract->assignFeaturesToCompany();
         });
 
+        static::updated(function (Contract $contract): void {
+            if (! $contract->wasChanged(['price', 'interval'])) {
+                return;
+            }
+
+            $data = $contract->data;
+            if (! is_array($data) || ! array_key_exists('pricing_snapshot', $data)) {
+                return;
+            }
+
+            unset($data['pricing_snapshot']);
+            $contract->data = $data;
+            $contract->saveQuietly();
+        });
+
         static::creating(function ($contract) {
             $product = Product::find($contract->product_id);
 
