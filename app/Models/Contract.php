@@ -46,6 +46,7 @@ class Contract extends Model
         'product_description',
         'invoice_text',
         'price',
+        'billing_gross',
         'setup_fee',
         'interval',
         'subscription_id',
@@ -76,6 +77,21 @@ class Contract extends Model
 
         static::created(function ($contract) {
             $contract->assignFeaturesToCompany();
+        });
+
+        static::updated(function (Contract $contract): void {
+            if (! $contract->wasChanged(['price', 'interval'])) {
+                return;
+            }
+
+            $data = $contract->data;
+            if (! is_array($data) || ! array_key_exists('pricing_snapshot', $data)) {
+                return;
+            }
+
+            unset($data['pricing_snapshot']);
+            $contract->data = $data;
+            $contract->saveQuietly();
         });
 
         static::creating(function ($contract) {
@@ -207,6 +223,26 @@ class Contract extends Model
     {
         // Tausendertrennzeichen: '.', Dezimaltrennzeichen: ','
         return number_format($this->price / 100, 2, ',', '.');
+    }
+
+    public function getBillingGrossAttribute(): ?int
+    {
+        $value = $this->data['billing_total_gross_cents'] ?? null;
+
+        return is_numeric($value) ? (int) $value : null;
+    }
+
+    public function setBillingGrossAttribute(mixed $value): void
+    {
+        $data = is_array($this->data) ? $this->data : [];
+
+        if ($value === null || $value === '') {
+            unset($data['billing_total_gross_cents']);
+        } else {
+            $data['billing_total_gross_cents'] = (int) $value;
+        }
+
+        $this->data = $data;
     }
 
     public function getFormattedSetupFeeAttribute($locale = 'DE')

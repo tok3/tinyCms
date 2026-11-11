@@ -49,15 +49,32 @@ class GenerateRecurringInvoices extends Command
                     return false;
                 }
 
-                $lastInvoice = Invoice::where('contract_id', $contract->id)
+                $latestOriginalInvoice = Invoice::query()
+                    ->where('contract_id', $contract->id)
+                    ->whereNull('ref_to_id')
                     ->where('status', '!=', 'canceled')
                     ->orderByDesc('issue_date')
+                    ->orderByDesc('id')
+                    ->first();
+
+                $correctedLatestInvoice = $latestOriginalInvoice?->correctionInvoice()
+                    ->where('status', '!=', 'canceled')
+                    ->exists() ?? false;
+
+                $lastInvoice = Invoice::forRecurringCadence()
+                    ->where('contract_id', $contract->id)
+                    ->where('status', '!=', 'canceled')
+                    ->orderByDesc('issue_date')
+                    ->orderByDesc('id')
                     ->first();
 
                 $shouldCreate = false;
                 $nextIssueDate = null;
 
-                if (! $lastInvoice) {
+                if ($correctedLatestInvoice) {
+                    $shouldCreate = true;
+                    $nextIssueDate = Carbon::parse($latestOriginalInvoice->issue_date);
+                } elseif (! $lastInvoice) {
                     $shouldCreate = true;
                     $nextIssueDate = Carbon::parse($contract->start_date);
                 } else {
@@ -80,7 +97,8 @@ class GenerateRecurringInvoices extends Command
                         }
                     }
 
-                    $alreadyExists = Invoice::where('contract_id', $contract->id)
+                    $alreadyExists = Invoice::forRecurringCadence()
+                        ->where('contract_id', $contract->id)
                         ->whereDate('issue_date', $nextIssueDate)
                         ->where('status', '!=', 'canceled')
                         ->exists();
@@ -91,12 +109,27 @@ class GenerateRecurringInvoices extends Command
                         return false;
                     }
 
+                    $replacementCorrectionId = Invoice::query()
+                        ->where('contract_id', $contract->id)
+                        ->whereNotNull('ref_to_id')
+                        ->whereHas('originalInvoice', function ($query) use ($contract, $nextIssueDate): void {
+                            $query
+                                ->where('contract_id', $contract->id)
+                                ->whereDate('issue_date', $nextIssueDate);
+                        })
+                        ->max('id');
+
+                    $claimKey = "recurring-invoice:{$contract->id}:{$nextIssueDate->toDateString()}";
+                    if ($replacementCorrectionId !== null) {
+                        $claimKey .= ":replacement:{$replacementCorrectionId}";
+                    }
+
                     $claim = ContractLifecycleEvent::record(
                         $contract,
                         'recurring_invoice_claimed',
                         ['issue_date' => $nextIssueDate->toDateString()],
                         null,
-                        "recurring-invoice:{$contract->id}:{$nextIssueDate->toDateString()}"
+                        $claimKey
                     );
 
                     if (! $claim->wasRecentlyCreated) {
@@ -166,7 +199,25 @@ class GenerateRecurringInvoices extends Command
                     }
 
                     $tax = round($totalNet * $taxRate / 100, 2);
-                    $totalGross = round($totalNet + $tax, 2);
+                    $calculatedGross = round($totalNet + $tax, 2);
+
+                    $explicitGrossCents = $cdata['billing_total_gross_cents'] ?? null;
+                    if ($explicitGrossCents !== null) {
+                        $validInteger = is_int($explicitGrossCents)
+                            || (is_string($explicitGrossCents) && ctype_digit($explicitGrossCents));
+                        $totalGross = $validInteger
+                            ? round((int) $explicitGrossCents / 100, 2)
+                            : 0.0;
+                        $roundingAmount = round($totalGross - $calculatedGross, 2);
+
+                        if (! $validInteger || $totalGross <= $totalNet || abs($roundingAmount) > 0.01) {
+                            throw new \UnexpectedValueException(
+                                "Ungültiger Brutto-Rechnungsbetrag für Vertrag #{$contract->id}."
+                            );
+                        }
+                    } else {
+                        $totalGross = $calculatedGross;
+                    }
 
                     $invoiceData = ['items' => $items];
                     if (! empty($snapshotMeta)) {

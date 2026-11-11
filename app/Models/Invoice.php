@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
-use App\Models\Contract;
+
 class Invoice extends Model
 {
     use HasFactory;
@@ -56,6 +57,7 @@ class Invoice extends Model
     protected $casts = [
         'data' => 'array',
     ];
+
     /**
      * Standardwerte für Attribute.
      *
@@ -66,15 +68,15 @@ class Invoice extends Model
         'currency' => 'EUR', // Standardwährung
     ];
 
-
     protected static function booted()
     {
         static::saving(function ($invoice) {
-            if (!empty($invoice->payment_date)) {
+            if (! empty($invoice->payment_date)) {
                 $invoice->status = 'paid';
             }
         });
     }
+
     /**
      * Beziehung zur Company (Firma), die die Rechnung erhalten hat.
      *
@@ -95,7 +97,6 @@ class Invoice extends Model
     }
 
     /**
-     * @param $value
      * @return void
      */
     public function setPaymentDateAttribute($value)
@@ -106,11 +107,13 @@ class Invoice extends Model
             $this->attributes['status'] = 'paid';
         }
     }
+
     // belongs to contract
     public function contract()
     {
         return $this->belongsTo(Contract::class);
     }
+
     /**
      * Die Rechnung, auf die sich diese Korrekturrechnung bezieht.
      */
@@ -126,9 +129,17 @@ class Invoice extends Model
     {
         return $this->hasMany(self::class, 'ref_to_id');
     }
+
     public function correctionInvoice()
     {
         return $this->hasOne(Invoice::class, 'ref_to_id');
+    }
+
+    public function scopeForRecurringCadence(Builder $query): Builder
+    {
+        return $query
+            ->whereNull('ref_to_id')
+            ->whereDoesntHave('correctionInvoice');
     }
 
     public function originalInvoice()
@@ -140,6 +151,7 @@ class Invoice extends Model
     {
         return $this->hasOne(Invoice::class, 'ref_to_id');
     }
+
     /**
      * Gibt den Leistungszeitraum aus.
      *
@@ -148,7 +160,7 @@ class Invoice extends Model
      */
     public function getLeistungszeitraumAttribute()
     {
-        $lz = "";
+        $lz = '';
 
         // 1. Wenn es eine Zahlung mit Abo gibt → Zeitraum aus subscription
         if (
@@ -158,7 +170,7 @@ class Invoice extends Model
         ) {
             $paymentDate = Carbon::parse($this->payment_date ?? $this->issue_date ?? now());
             $nextPaymentDate = Carbon::parse($this->payment->subscription->next_payment_date);
-            $lz = $paymentDate->format('d.m.Y') . ' bis ' . $nextPaymentDate->format('d.m.Y');
+            $lz = $paymentDate->format('d.m.Y').' bis '.$nextPaymentDate->format('d.m.Y');
         }
 
         // 2. Falls $lz leer ist, berechne Zeitraum anhand Vertragsintervall
@@ -185,7 +197,7 @@ class Invoice extends Model
                     $end = $start;
             }
 
-            $lz = $start->locale('de')->isoFormat('L') . " bis " . $end->locale('de')->isoFormat('L');
+            $lz = $start->locale('de')->isoFormat('L').' bis '.$end->locale('de')->isoFormat('L');
         }
 
         return $lz;
@@ -209,8 +221,6 @@ class Invoice extends Model
 
     /**
      * Setze die Rechnungspositionen im JSON-Format.
-     *
-     * @param array $items
      */
     public function setItemsAttribute(array $items)
     {
@@ -227,17 +237,17 @@ class Invoice extends Model
         return ($this->total_net * $this->tax_rate) / 100;
     }
 
-
-
     /**
-     * Berechne den Gesamtbruttobetrag.
-     *
-     * @return float
+     * Verwende den centgenau gespeicherten Bruttobetrag.
      */
-    public function getTotalGrossAttribute()
+    public function getTotalGrossAttribute(mixed $value): float
     {
+        return (float) $value;
+    }
 
-        return $this->total_net + $this->tax_amount;
+    public function getPayableRoundingAttribute(): float
+    {
+        return round((float) $this->total_gross - (float) $this->total_net - (float) $this->tax, 2);
     }
 
     public function sendLogs()

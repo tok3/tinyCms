@@ -48,6 +48,43 @@ function makeLifecycleAdminContract(array $overrides = []): Contract
     ], $overrides));
 }
 
+it('exposes an explicit gross billing amount in the contract form', function () {
+    $contract = makeLifecycleAdminContract();
+
+    Livewire::test(EditContract::class, ['record' => $contract->getRouteKey()])
+        ->assertFormFieldExists('billing_gross');
+});
+
+it('persists a localized explicit gross amount through the contract form', function () {
+    $contract = makeLifecycleAdminContract();
+
+    Livewire::test(EditContract::class, ['record' => $contract->getRouteKey()])
+        ->fillForm([
+            'price' => '463,87',
+            'billing_gross' => '552,00',
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect($contract->fresh()->price)->toBe(46387)
+        ->and($contract->fresh()->billing_gross)->toBe(55200);
+});
+
+it('rejects malformed or incompatible explicit gross amounts in the contract form', function (string $gross) {
+    $contract = makeLifecycleAdminContract(['price' => 46387]);
+
+    Livewire::test(EditContract::class, ['record' => $contract->getRouteKey()])
+        ->fillForm(['billing_gross' => $gross])
+        ->call('save')
+        ->assertHasFormErrors(['billing_gross']);
+
+    expect($contract->fresh()->billing_gross)->toBeNull();
+})->with([
+    'malformed' => 'keine-zahl',
+    'gross below net' => '400,00',
+    'more than one cent rounding difference' => '551,98',
+]);
+
 it('schedules a normal cancellation through the contract action', function () {
     $contract = makeLifecycleAdminContract();
 
