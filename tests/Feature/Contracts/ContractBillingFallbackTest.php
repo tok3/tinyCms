@@ -82,7 +82,7 @@ function createBillingInvoice(
     ], $overrides));
 }
 
-function bindLightweightInvoiceService(): void
+function bindLightweightInvoiceService(?int $expectedEmails = null): void
 {
     $service = Mockery::mock(InvoiceService::class);
     $service->shouldReceive('createInvoice')->andReturnUsing(function (array $data): Invoice {
@@ -107,7 +107,10 @@ function bindLightweightInvoiceService(): void
 
         return Invoice::findOrFail($id);
     });
-    $service->shouldReceive('sendInvoiceEmail')->andReturnNull();
+    $emailExpectation = $service->shouldReceive('sendInvoiceEmail')->andReturnNull();
+    if ($expectedEmails !== null) {
+        $emailExpectation->times($expectedEmails);
+    }
     app()->instance(InvoiceService::class, $service);
 }
 
@@ -217,12 +220,12 @@ it('honors the unique recurring invoice claim before creating or emailing', func
 
 it('replaces a corrected invoice on its original billing date exactly once', function () {
     Carbon::setTestNow('2026-11-12 10:00:00');
-    bindLightweightInvoiceService();
+    bindLightweightInvoiceService(2);
 
     $contract = makeBillingFallbackContract([
         'price' => 4639,
         'interval' => 'monthly',
-        'start_date' => '2026-11-02',
+        'start_date' => '2026-10-02',
         'data' => [
             'pricing_snapshot' => [
                 'items' => [[
@@ -238,6 +241,7 @@ it('replaces a corrected invoice on its original billing date exactly once', fun
         ],
     ]);
 
+    createBillingInvoice($contract, '2026-10-02');
     $originalId = createBillingInvoice($contract, '2026-11-02', 'paid', null, [
         'total_net' => 46.39,
         'total_gross' => 55.20,
@@ -290,8 +294,9 @@ it('replaces a corrected invoice on its original billing date exactly once', fun
     expect(Carbon::parse($replacement->issue_date)->toDateString())->toBe('2026-11-02')
         ->and(Carbon::parse($replacement->due_date)->toDateString())->toBe('2026-11-16')
         ->and((float) $replacement->total_net)->toBe(463.87)
-        ->and((float) $replacement->tax)->toBe(88.13)
+        ->and((float) $replacement->tax)->toBe(88.14)
         ->and((float) $replacement->total_gross)->toBe(552.00)
+        ->and($replacement->payable_rounding)->toBe(-0.01)
         ->and($replacement->data['items'])->toBe([[
             'id' => '1',
             'description' => 'Monatliche Leistung',
@@ -310,6 +315,45 @@ it('replaces a corrected invoice on its original billing date exactly once', fun
         ->get();
 
     expect($followingAnnualInvoices)->toHaveCount(1);
+});
+
+it('does not backfill a corrected historical gap behind a later live invoice', function () {
+    Carbon::setTestNow('2026-11-12 10:00:00');
+    bindLightweightInvoiceService(0);
+
+    $contract = makeBillingFallbackContract([
+        'interval' => 'annual',
+        'start_date' => '2026-09-02',
+    ]);
+
+    $historicalId = createBillingInvoice($contract, '2026-09-02');
+    createBillingInvoice($contract, '2026-09-03', 'paid', null, [
+        'ref_to_id' => $historicalId,
+        'total_net' => -10,
+        'total_gross' => -11.90,
+        'tax' => -1.90,
+    ]);
+    createBillingInvoice($contract, '2026-10-02');
+
+    $this->artisan('app:generate-recurring-invoices')->assertExitCode(0);
+
+    expect(DB::table('invoices')->where('contract_id', $contract->id)->count())->toBe(3);
+});
+
+it('rejects an incompatible explicit gross amount before creating an invoice', function () {
+    Carbon::setTestNow('2026-11-12 10:00:00');
+    bindLightweightInvoiceService(0);
+
+    $contract = makeBillingFallbackContract([
+        'price' => 1000,
+        'start_date' => '2026-11-12',
+        'data' => ['billing_total_gross_cents' => 100],
+    ]);
+
+    expect(fn () => $this->artisan('app:generate-recurring-invoices')->run())
+        ->toThrow(UnexpectedValueException::class);
+
+    expect(DB::table('invoices')->where('contract_id', $contract->id)->count())->toBe(0);
 });
 
 it('keeps a paid post-term Mollie payment and records one critical lifecycle alert', function () {

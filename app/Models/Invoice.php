@@ -245,6 +245,11 @@ class Invoice extends Model
         return (float) $value;
     }
 
+    public function getPayableRoundingAttribute(): float
+    {
+        return round((float) $this->total_gross - (float) $this->total_net - (float) $this->tax, 2);
+    }
+
     public function sendLogs()
     {
         return $this->hasMany(\App\Models\InvoicesSent::class);

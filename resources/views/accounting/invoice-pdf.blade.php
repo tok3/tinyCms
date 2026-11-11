@@ -351,6 +351,12 @@
                 <td><strong>{!! number_format((float) $invoice['tax_rate'], 2, ',', '.')  !!} % USt :</strong></td>
                 <td>{!! number_format((float) $invoice['tax'], 2, ',', '.')  !!}&nbsp;&euro;</td>
             </tr>
+            @if(abs((float) $invoice->payable_rounding) >= 0.01)
+                <tr>
+                    <td><strong>Rundung :</strong></td>
+                    <td>{!! number_format((float) $invoice->payable_rounding, 2, ',', '.') !!}&nbsp;&euro;</td>
+                </tr>
+            @endif
             <tr>
                 <td><strong>Gesamt :</strong></td>
                 <td>{!! number_format((float) $invoice['total_gross'], 2, ',', '.')  !!}&nbsp;&euro;</td>

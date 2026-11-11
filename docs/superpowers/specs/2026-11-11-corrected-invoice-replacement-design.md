@@ -21,9 +21,9 @@ Wenn eine bereits versendete Vertragsrechnung korrigiert und anschließend Preis
 
 ## Gewählter Ansatz
 
-Der Rechnungslauf erhält eine gemeinsame Definition für abrechnungstakt-relevante Rechnungen: Korrekturrechnungen selbst sowie Originalrechnungen, zu denen eine Korrekturrechnung existiert, werden ausgeschlossen. Diese Definition wird sowohl für die Ermittlung der letzten Rechnung als auch für die Dublettenprüfung verwendet. Falls für denselben Stichtag bereits ein früherer Rechnungslauf-Claim existiert, bekommt die Ersatzrechnung einen an die konkrete Korrekturrechnung gebundenen Claim-Schlüssel.
+Der Rechnungslauf erhält eine gemeinsame Definition für abrechnungstakt-relevante Rechnungen: Korrekturrechnungen selbst sowie Originalrechnungen, zu denen eine Korrekturrechnung existiert, werden ausgeschlossen. Diese Definition wird sowohl für die Ermittlung der letzten Rechnung als auch für die Dublettenprüfung verwendet. Ist die zeitlich letzte Originalrechnung korrigiert, wird ihr Stichtag vor der normalen Intervallberechnung als Ersatztermin priorisiert. Eine ältere Korrekturlücke hinter einer neueren, gültigen Rechnung wird nicht nachberechnet. Falls für denselben Stichtag bereits ein früherer Rechnungslauf-Claim existiert, bekommt die Ersatzrechnung einen an die konkrete Korrekturrechnung gebundenen Claim-Schlüssel.
 
-Beim Ändern von `price` oder `interval` entfernt das Contract-Modell einen vorhandenen `data.pricing_snapshot`. Der Vertrag erhält zusätzlich einen expliziten Brutto-Rechnungsbetrag in `data.billing_total_gross_cents`, der im Admin neben dem Nettopreis gepflegt wird. Der Rechnungslauf erzeugt eine einzelne Netto-Position aus `contract.price` und `invoice_text`; wenn ein Brutto-Rechnungsbetrag hinterlegt ist, gilt dieser als verbindlich und die Umsatzsteuer wird als Differenz berechnet. Dadurch werden 463,87 EUR netto, 88,13 EUR Umsatzsteuer und 552,00 EUR brutto centgenau abgebildet.
+Beim Ändern von `price` oder `interval` entfernt das Contract-Modell einen vorhandenen `data.pricing_snapshot`. Der Vertrag erhält zusätzlich einen optionalen expliziten Brutto-Rechnungsbetrag in `data.billing_total_gross_cents`, der im Admin neben dem Nettopreis gepflegt wird. Formular und Rechnungslauf akzeptieren nur positive Werte, die höchstens einen Cent vom regulär berechneten Brutto abweichen. Der Rechnungslauf erzeugt eine einzelne Netto-Position aus `contract.price` und `invoice_text`. Für 463,87 EUR netto ergeben sich regelkonform 88,14 EUR Umsatzsteuer und 552,01 EUR Bruttosumme; ein Rundungsbetrag von -0,01 EUR setzt den verbindlichen Zahlbetrag in PDF und XRechnung auf exakt 552,00 EUR.
 
 ## Verworfene Ansätze
 
@@ -40,7 +40,8 @@ Beim Ändern von `price` oder `interval` entfernt das Contract-Modell einen vorh
 
 ## Sicherheit und Nachweis
 
-- Regressionstests bilden Originalrechnung, Korrekturrechnung, Vertragsumstellung, Ersatzrechnung, erneuten Lauf und den folgenden Jahreslauf ab.
+- Regressionstests bilden eine frühere Monatsrechnung, Originalrechnung, Korrekturrechnung, Vertragsumstellung, Ersatzrechnung, erneuten Lauf und den folgenden Jahreslauf ab.
+- Ein Produktionspfad-Test liest und validiert die erzeugte XRechnung einschließlich Steuer, Rundungsbetrag und Zahlbetrag und prüft die sichtbare Rundungszeile im PDF-Template.
 - Ein Test belegt, dass eine Änderung von Preis oder Intervall den alten Snapshot entfernt; eine fachfremde Vertragsänderung darf ihn nicht entfernen.
 - Die vorhandenen Contract-Billing-Tests und die gesamte Testsuite müssen grün bleiben.
 - Es sind keine Datenbankmigrationen vorgesehen.

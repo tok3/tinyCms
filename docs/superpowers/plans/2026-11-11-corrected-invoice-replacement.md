@@ -132,9 +132,12 @@ git commit -m "fix: clear stale contract pricing snapshots"
 - Modify: `app/Filament/Resources/Admin/ContractResource.php`
 - Modify: `app/Console/Commands/GenerateRecurringInvoices.php`
 - Modify: `app/Models/Invoice.php`
+- Modify: `app/Services/InvoiceService.php`
+- Modify: `resources/views/accounting/invoice-pdf.blade.php`
 - Modify: `tests/Feature/Contracts/ContractBillingFallbackTest.php`
 - Modify: `tests/Feature/Contracts/ContractBillingTermsTest.php`
 - Modify: `tests/Feature/Contracts/ContractLifecycleAdminTest.php`
+- Create: `tests/Feature/Accounting/InvoiceXRechnungRoundingTest.php`
 
 **Interfaces:**
 - Consumes: `Invoice::forRecurringCadence()` from Task 1.
@@ -144,14 +147,17 @@ git commit -m "fix: clear stale contract pricing snapshots"
 
 - [ ] **Step 1: Extend the regression test with the billing-term edit and exact totals**
 
-Start the fixture with monthly price `4639`, interval `monthly`, and a monthly `pricing_snapshot`. First add failing tests that an explicit `billing_gross` value is persisted in contract data and exposed by the contract form. Update the contract through Eloquent to price `46387`, gross billing amount `55200` cents, and interval `annual`, then assert the snapshot is absent before running the command. Make the generator treat the explicit gross amount as authoritative and calculate tax as gross minus net. Assert the replacement has:
+Start the fixture with an earlier monthly invoice, monthly price `4639`, interval `monthly`, and a monthly `pricing_snapshot`. First add failing tests that an explicit `billing_gross` value is persisted in contract data, validated, and round-trips through the contract form. Update the contract through Eloquent to price `46387`, gross billing amount `55200` cents, and interval `annual`, then assert the snapshot is absent before running the command. Prioritize the latest corrected original date over the new annual interval, without backfilling corrected historical gaps behind newer live invoices. Represent the one-cent difference as a payable rounding amount in PDF and XRechnung. Assert the replacement has:
 
 - `issue_date = 2026-11-02`
 - `due_date = 2026-11-16`
 - `total_net = 463.87`
-- `tax = 88.13`
+- `tax = 88.14`
 - `total_gross = 552.00`
+- `payable_rounding = -0.01`
 - a single invoice item for `463.87`
+
+Read the generated XRechnung through the vendor reader and schema validator. Assert `grand_total = 552.01`, `rounding = -0.01`, and `due_payable = 552.00`, and verify that the PDF template displays the rounding line.
 
 - [ ] **Step 2: Run the exact scenario and verify GREEN**
 
@@ -165,9 +171,9 @@ Advance the test clock to `2027-11-02`, run the command again, and assert exactl
 
 - [ ] **Step 4: Run formatting and the full test suite**
 
-Run: `./vendor/bin/pint --test app/Models/Invoice.php app/Models/Contract.php app/Console/Commands/GenerateRecurringInvoices.php app/Filament/Resources/Admin/ContractResource.php tests/Feature/Contracts/ContractBillingFallbackTest.php tests/Feature/Contracts/ContractBillingTermsTest.php tests/Feature/Contracts/ContractLifecycleAdminTest.php`
+Run: `./vendor/bin/pint --test app/Models/Invoice.php app/Models/Contract.php app/Console/Commands/GenerateRecurringInvoices.php app/Filament/Resources/Admin/ContractResource.php tests/Feature/Accounting/InvoiceXRechnungRoundingTest.php tests/Feature/Contracts/ContractBillingFallbackTest.php tests/Feature/Contracts/ContractBillingTermsTest.php tests/Feature/Contracts/ContractLifecycleAdminTest.php`
 
-Expected: no formatting errors.
+Expected: no formatting errors. `InvoiceService.php` is a legacy unformatted file; keep its change localized and use `git diff --check` rather than reformatting the entire unrelated service.
 
 Run: `./vendor/bin/pest`
 
@@ -176,7 +182,7 @@ Expected: no failures beyond the 39-test baseline recorded before implementation
 - [ ] **Step 5: Commit Task 3 and documentation**
 
 ```bash
-git add app/Models/Invoice.php app/Models/Contract.php app/Console/Commands/GenerateRecurringInvoices.php app/Filament/Resources/Admin/ContractResource.php tests/Feature/Contracts/ContractBillingFallbackTest.php tests/Feature/Contracts/ContractBillingTermsTest.php tests/Feature/Contracts/ContractLifecycleAdminTest.php docs/superpowers/specs/2026-11-11-corrected-invoice-replacement-design.md docs/superpowers/plans/2026-11-11-corrected-invoice-replacement.md
+git add app/Models/Invoice.php app/Models/Contract.php app/Console/Commands/GenerateRecurringInvoices.php app/Filament/Resources/Admin/ContractResource.php app/Services/InvoiceService.php resources/views/accounting/invoice-pdf.blade.php tests/Feature/Accounting/InvoiceXRechnungRoundingTest.php tests/Feature/Contracts/ContractBillingFallbackTest.php tests/Feature/Contracts/ContractBillingTermsTest.php tests/Feature/Contracts/ContractLifecycleAdminTest.php docs/superpowers/specs/2026-11-11-corrected-invoice-replacement-design.md docs/superpowers/plans/2026-11-11-corrected-invoice-replacement.md
 git commit -m "fix: preserve exact recurring invoice totals"
 ```
 

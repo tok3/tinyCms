@@ -16,6 +16,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Support\Enums\Alignment;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -75,6 +76,30 @@ class ContractResource extends BaseResource
                         TextInput::make('billing_gross')
                             ->label('Rechnungsbetrag brutto (€)')
                             ->helperText('Optional: verbindlicher Bruttobetrag, wenn die Steuerberechnung centgenau abweichen würde.')
+                            ->rules([
+                                fn (Get $get) => function (string $attribute, mixed $value, \Closure $fail) use ($get): void {
+                                    if ($value === null || trim((string) $value) === '') {
+                                        return;
+                                    }
+
+                                    $grossCents = self::parseEuroToCents($value);
+                                    $netCents = self::parseEuroToCents($get('price'));
+
+                                    if ($grossCents === null || $netCents === null) {
+                                        $fail('Bitte einen gültigen Eurobetrag eingeben, z. B. 552,00.');
+
+                                        return;
+                                    }
+
+                                    $calculatedGrossCents = (int) round(
+                                        $netCents * (1 + ((float) config('accounting.tax_rate', 19) / 100))
+                                    );
+
+                                    if ($grossCents <= $netCents || abs($grossCents - $calculatedGrossCents) > 1) {
+                                        $fail('Der Bruttobetrag darf höchstens einen Cent vom berechneten Betrag abweichen.');
+                                    }
+                                },
+                            ])
                             ->afterStateHydrated(function ($state, callable $set) {
                                 if (is_numeric($state)) {
                                     $set('billing_gross', number_format($state / 100, 2, ',', '.'));
@@ -85,10 +110,12 @@ class ContractResource extends BaseResource
                                     return null;
                                 }
 
-                                $normalized = str_replace(['.', ' '], ['', ''], $state);
-                                $normalized = str_replace(',', '.', $normalized);
+                                $cents = self::parseEuroToCents($state);
+                                if ($cents === null) {
+                                    throw new \InvalidArgumentException('Ungültiger Brutto-Rechnungsbetrag.');
+                                }
 
-                                return (int) round((float) $normalized * 100);
+                                return $cents;
                             }),
                         Select::make('interval')
                             ->label('Payment Interval')
@@ -381,6 +408,26 @@ class ContractResource extends BaseResource
         return [
             //
         ];
+    }
+
+    private static function parseEuroToCents(mixed $value): ?int
+    {
+        $value = str_replace(' ', '', trim((string) $value));
+
+        if ($value === '') {
+            return null;
+        }
+
+        if (preg_match('/^-?\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?$/', $value)) {
+            $normalized = str_replace('.', '', $value);
+            $normalized = str_replace(',', '.', $normalized);
+        } elseif (preg_match('/^-?\d+(?:[.,]\d{1,2})?$/', $value)) {
+            $normalized = str_replace(',', '.', $value);
+        } else {
+            return null;
+        }
+
+        return (int) round((float) $normalized * 100);
     }
 
     public static function getEloquentQuery(): Builder

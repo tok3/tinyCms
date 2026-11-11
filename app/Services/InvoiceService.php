@@ -541,12 +541,13 @@ class InvoiceService
         $dbNet   = round((float)$get('total_net', 0), 2);
         $dbTax   = round((float)$get('tax', 0), 2);
         $dbGross = round((float)$get('total_gross', 0), 2);
+        $roundingAmount = round($dbGross - $grossFromCalc, 2);
 
         if ($dbNet !== 0.0 || $dbTax !== 0.0 || $dbGross !== 0.0) {
-            if (abs($dbNet - $sumLineNet) > 0.01 || abs($dbTax - $taxFromLines) > 0.01 || abs($dbGross - $grossFromCalc) > 0.01) {
+            if (abs($dbNet - $sumLineNet) > 0.01 || abs($dbTax - $taxFromLines) > 0.01 || abs($roundingAmount) > 0.01) {
                 \Log::warning('XRechnung: DB-Totals != berechnete Totals', [
                     'db'   => compact('dbNet','dbTax','dbGross'),
-                    'calc' => ['net'=>$sumLineNet,'tax'=>$taxFromLines,'gross'=>$grossFromCalc],
+                    'calc' => ['net'=>$sumLineNet,'tax'=>$taxFromLines,'gross'=>$grossFromCalc,'rounding'=>$roundingAmount],
                 ]);
             }
         }
@@ -557,13 +558,13 @@ class InvoiceService
         // Header-Summation **zwingend konsistent**:
         $doc->setDocumentSummation(
             $grossFromCalc,  // BT-112 = with VAT
-            $grossFromCalc,  // DuePayable
+            $dbGross,        // DuePayable
             $sumLineNet,     // BT-106 = Sum line net
             0.0,             // Allowances at doc level
             0.0,             // Charges at doc level
             $sumLineNet,     // Tax basis total (BT-109)
             $taxFromLines,   // BT-110
-            null,
+            abs($roundingAmount) >= 0.01 ? $roundingAmount : null,
             0.0
         );
 

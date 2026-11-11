@@ -49,16 +49,32 @@ class GenerateRecurringInvoices extends Command
                     return false;
                 }
 
+                $latestOriginalInvoice = Invoice::query()
+                    ->where('contract_id', $contract->id)
+                    ->whereNull('ref_to_id')
+                    ->where('status', '!=', 'canceled')
+                    ->orderByDesc('issue_date')
+                    ->orderByDesc('id')
+                    ->first();
+
+                $correctedLatestInvoice = $latestOriginalInvoice?->correctionInvoice()
+                    ->where('status', '!=', 'canceled')
+                    ->exists() ?? false;
+
                 $lastInvoice = Invoice::forRecurringCadence()
                     ->where('contract_id', $contract->id)
                     ->where('status', '!=', 'canceled')
                     ->orderByDesc('issue_date')
+                    ->orderByDesc('id')
                     ->first();
 
                 $shouldCreate = false;
                 $nextIssueDate = null;
 
-                if (! $lastInvoice) {
+                if ($correctedLatestInvoice) {
+                    $shouldCreate = true;
+                    $nextIssueDate = Carbon::parse($latestOriginalInvoice->issue_date);
+                } elseif (! $lastInvoice) {
                     $shouldCreate = true;
                     $nextIssueDate = Carbon::parse($contract->start_date);
                 } else {
@@ -182,13 +198,25 @@ class GenerateRecurringInvoices extends Command
                         }
                     }
 
+                    $tax = round($totalNet * $taxRate / 100, 2);
+                    $calculatedGross = round($totalNet + $tax, 2);
+
                     $explicitGrossCents = $cdata['billing_total_gross_cents'] ?? null;
-                    if (is_numeric($explicitGrossCents)) {
-                        $totalGross = round((float) $explicitGrossCents / 100, 2);
-                        $tax = round($totalGross - $totalNet, 2);
+                    if ($explicitGrossCents !== null) {
+                        $validInteger = is_int($explicitGrossCents)
+                            || (is_string($explicitGrossCents) && ctype_digit($explicitGrossCents));
+                        $totalGross = $validInteger
+                            ? round((int) $explicitGrossCents / 100, 2)
+                            : 0.0;
+                        $roundingAmount = round($totalGross - $calculatedGross, 2);
+
+                        if (! $validInteger || $totalGross <= $totalNet || abs($roundingAmount) > 0.01) {
+                            throw new \UnexpectedValueException(
+                                "Ungültiger Brutto-Rechnungsbetrag für Vertrag #{$contract->id}."
+                            );
+                        }
                     } else {
-                        $tax = round($totalNet * $taxRate / 100, 2);
-                        $totalGross = round($totalNet + $tax, 2);
+                        $totalGross = $calculatedGross;
                     }
 
                     $invoiceData = ['items' => $items];
