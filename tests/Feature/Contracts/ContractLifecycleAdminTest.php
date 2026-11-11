@@ -48,6 +48,13 @@ function makeLifecycleAdminContract(array $overrides = []): Contract
     ], $overrides));
 }
 
+it('exposes an explicit gross billing amount in the contract form', function () {
+    $contract = makeLifecycleAdminContract();
+
+    Livewire::test(EditContract::class, ['record' => $contract->getRouteKey()])
+        ->assertFormFieldExists('billing_gross');
+});
+
 it('schedules a normal cancellation through the contract action', function () {
     $contract = makeLifecycleAdminContract();
 

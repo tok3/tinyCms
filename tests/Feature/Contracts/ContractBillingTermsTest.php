@@ -78,3 +78,15 @@ it('preserves the pricing snapshot for unrelated contract changes', function () 
 
     expect($this->contract->refresh()->data)->toEqual($this->pricingData);
 });
+
+it('stores an explicit gross billing amount without losing contract data', function () {
+    $this->contract->update(['billing_gross' => 55200]);
+
+    $contract = $this->contract->refresh();
+
+    expect($contract->billing_gross)->toBe(55200)
+        ->and($contract->data)->toEqual([
+            ...$this->pricingData,
+            'billing_total_gross_cents' => 55200,
+        ]);
+});

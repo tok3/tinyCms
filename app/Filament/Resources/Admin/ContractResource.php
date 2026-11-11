@@ -59,7 +59,7 @@ class ContractResource extends BaseResource
                             ->rows(3)
                             ->required(),
                         TextInput::make('price')
-                            ->label('Price (€)')
+                            ->label('Price netto (€)')
                             ->required()
                             ->afterStateHydrated(function ($state, callable $set) {
                                 if (is_numeric($state)) {
@@ -67,6 +67,24 @@ class ContractResource extends BaseResource
                                 }
                             })
                             ->dehydrateStateUsing(function ($state) {
+                                $normalized = str_replace(['.', ' '], ['', ''], $state);
+                                $normalized = str_replace(',', '.', $normalized);
+
+                                return (int) round((float) $normalized * 100);
+                            }),
+                        TextInput::make('billing_gross')
+                            ->label('Rechnungsbetrag brutto (€)')
+                            ->helperText('Optional: verbindlicher Bruttobetrag, wenn die Steuerberechnung centgenau abweichen würde.')
+                            ->afterStateHydrated(function ($state, callable $set) {
+                                if (is_numeric($state)) {
+                                    $set('billing_gross', number_format($state / 100, 2, ',', '.'));
+                                }
+                            })
+                            ->dehydrateStateUsing(function ($state) {
+                                if ($state === null || $state === '') {
+                                    return null;
+                                }
+
                                 $normalized = str_replace(['.', ' '], ['', ''], $state);
                                 $normalized = str_replace(',', '.', $normalized);
 

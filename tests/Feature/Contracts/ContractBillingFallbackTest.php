@@ -8,6 +8,8 @@ use App\Models\Invoice;
 use App\Models\MolliePayment;
 use App\Services\InvoiceService;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -59,8 +61,7 @@ function createBillingInvoice(
     string $status = 'paid',
     ?string $molliePaymentId = null,
     array $overrides = []
-): int
-{
+): int {
     return DB::table('invoices')->insertGetId(array_merge([
         'invoice_number' => 'TEST-'.uniqid(),
         'company_id' => $contract->contractable_id,
@@ -219,9 +220,22 @@ it('replaces a corrected invoice on its original billing date exactly once', fun
     bindLightweightInvoiceService();
 
     $contract = makeBillingFallbackContract([
-        'price' => 46387,
-        'interval' => 'annual',
+        'price' => 4639,
+        'interval' => 'monthly',
         'start_date' => '2026-11-02',
+        'data' => [
+            'pricing_snapshot' => [
+                'items' => [[
+                    'id' => '1',
+                    'description' => 'Kombi-Paket Connect',
+                    'quantity' => 1,
+                    'line_total_amount' => 46.39,
+                ]],
+                'total_net' => 46.39,
+            ],
+            'promotion' => ['discount_percent' => 20],
+            'bemerkung' => 'Product über Promocode erworben',
+        ],
     ]);
 
     $originalId = createBillingInvoice($contract, '2026-11-02', 'paid', null, [
@@ -243,6 +257,21 @@ it('replaces a corrected invoice on its original billing date exactly once', fun
         "recurring-invoice:{$contract->id}:2026-11-02"
     );
 
+    Model::setEventDispatcher(new Dispatcher(app()));
+    Contract::clearBootedModels();
+    $contract = Contract::query()->findOrFail($contract->id);
+    $contract->update([
+        'price' => 46387,
+        'billing_gross' => 55200,
+        'interval' => 'annual',
+    ]);
+
+    expect($contract->refresh()->data)
+        ->not->toHaveKey('pricing_snapshot')
+        ->and($contract->data['billing_total_gross_cents'])->toBe(55200)
+        ->and($contract->data['promotion'])->toBe(['discount_percent' => 20])
+        ->and($contract->data['bemerkung'])->toBe('Product über Promocode erworben');
+
     $this->artisan('app:generate-recurring-invoices')->assertExitCode(0);
     $this->artisan('app:generate-recurring-invoices')->assertExitCode(0);
 
@@ -255,6 +284,32 @@ it('replaces a corrected invoice on its original billing date exactly once', fun
         ->get();
 
     expect($replacements)->toHaveCount(1);
+
+    $replacement = $replacements->sole();
+
+    expect(Carbon::parse($replacement->issue_date)->toDateString())->toBe('2026-11-02')
+        ->and(Carbon::parse($replacement->due_date)->toDateString())->toBe('2026-11-16')
+        ->and((float) $replacement->total_net)->toBe(463.87)
+        ->and((float) $replacement->tax)->toBe(88.13)
+        ->and((float) $replacement->total_gross)->toBe(552.00)
+        ->and($replacement->data['items'])->toBe([[
+            'id' => '1',
+            'description' => 'Monatliche Leistung',
+            'quantity' => 1,
+            'line_total_amount' => 463.87,
+        ]]);
+
+    Carbon::setTestNow('2027-11-02 10:00:00');
+    $this->artisan('app:generate-recurring-invoices')->assertExitCode(0);
+
+    $followingAnnualInvoices = Invoice::query()
+        ->forRecurringCadence()
+        ->where('contract_id', $contract->id)
+        ->whereDate('issue_date', '2027-11-02')
+        ->where('total_gross', 552.00)
+        ->get();
+
+    expect($followingAnnualInvoices)->toHaveCount(1);
 });
 
 it('keeps a paid post-term Mollie payment and records one critical lifecycle alert', function () {

@@ -182,8 +182,14 @@ class GenerateRecurringInvoices extends Command
                         }
                     }
 
-                    $tax = round($totalNet * $taxRate / 100, 2);
-                    $totalGross = round($totalNet + $tax, 2);
+                    $explicitGrossCents = $cdata['billing_total_gross_cents'] ?? null;
+                    if (is_numeric($explicitGrossCents)) {
+                        $totalGross = round((float) $explicitGrossCents / 100, 2);
+                        $tax = round($totalGross - $totalNet, 2);
+                    } else {
+                        $tax = round($totalNet * $taxRate / 100, 2);
+                        $totalGross = round($totalNet + $tax, 2);
+                    }
 
                     $invoiceData = ['items' => $items];
                     if (! empty($snapshotMeta)) {

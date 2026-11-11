@@ -46,6 +46,7 @@ class Contract extends Model
         'product_description',
         'invoice_text',
         'price',
+        'billing_gross',
         'setup_fee',
         'interval',
         'subscription_id',
@@ -222,6 +223,26 @@ class Contract extends Model
     {
         // Tausendertrennzeichen: '.', Dezimaltrennzeichen: ','
         return number_format($this->price / 100, 2, ',', '.');
+    }
+
+    public function getBillingGrossAttribute(): ?int
+    {
+        $value = $this->data['billing_total_gross_cents'] ?? null;
+
+        return is_numeric($value) ? (int) $value : null;
+    }
+
+    public function setBillingGrossAttribute(mixed $value): void
+    {
+        $data = is_array($this->data) ? $this->data : [];
+
+        if ($value === null || $value === '') {
+            unset($data['billing_total_gross_cents']);
+        } else {
+            $data['billing_total_gross_cents'] = (int) $value;
+        }
+
+        $this->data = $data;
     }
 
     public function getFormattedSetupFeeAttribute($locale = 'DE')
