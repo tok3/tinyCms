@@ -12,13 +12,47 @@ use Illuminate\Support\Facades\DB;
 
 class GenerateRecurringInvoices extends Command
 {
-    protected $signature = 'app:generate-recurring-invoices';
+    protected $signature = 'app:generate-recurring-invoices
+                            {--contract= : Nur diesen Vertrag verarbeiten}
+                            {--dry-run : Fällige Rechnung nur prüfen und anzeigen}
+                            {--as-of= : Simulierter Stichtag im Format JJJJ-MM-TT (nur mit --dry-run)}';
 
     protected $description = 'Erstellt wiederkehrende Rechnungen auf Basis von Verträgen.';
 
     public function handle(InvoiceService $invoiceService)
     {
-        $today = today();
+        $requestedContractId = $this->option('contract');
+        $dryRun = (bool) $this->option('dry-run');
+        $asOf = $this->option('as-of');
+
+        if ($asOf !== null && ! $dryRun) {
+            $this->error('--as-of ist nur zusammen mit --dry-run erlaubt.');
+
+            return self::INVALID;
+        }
+
+        if ($asOf !== null) {
+            try {
+                $today = Carbon::createFromFormat('!Y-m-d', trim((string) $asOf));
+            } catch (\Throwable) {
+                $today = null;
+            }
+
+            if (! $today || $today->format('Y-m-d') !== trim((string) $asOf)) {
+                $this->error('Der Stichtag muss ein gültiges Datum im Format JJJJ-MM-TT sein.');
+
+                return self::INVALID;
+            }
+        } else {
+            $today = today();
+        }
+
+        if ($requestedContractId !== null
+            && (! ctype_digit((string) $requestedContractId) || (int) $requestedContractId < 1)) {
+            $this->error('Die Vertrags-ID muss eine positive Ganzzahl sein.');
+
+            return self::INVALID;
+        }
 
         $contractIds = Contract::withoutGlobalScopes()
             ->whereNull('subscription_id')
@@ -28,12 +62,13 @@ class GenerateRecurringInvoices extends Command
             ->whereNotIn('interval', ['one_time'])
             ->whereNull('deleted_at') // Soft-deleted Verträge ausschließen
             ->where('price', '>', 0)
+            ->when($requestedContractId !== null, fn ($query) => $query->whereKey((int) $requestedContractId))
             ->pluck('id');
 
         foreach ($contractIds as $contractId) {
             $this->info("Prüfe Vertrag #{$contractId}");
 
-            $created = DB::transaction(function () use ($contractId, $today, $invoiceService): bool {
+            $createdInvoice = DB::transaction(function () use ($contractId, $today, $invoiceService, $dryRun): ?Invoice {
                 $contract = Contract::withoutGlobalScopes()
                     ->whereNull('subscription_id')
                     ->whereDate('start_date', '<=', $today)
@@ -46,20 +81,8 @@ class GenerateRecurringInvoices extends Command
                     ->find($contractId);
 
                 if (! $contract) {
-                    return false;
+                    return null;
                 }
-
-                $latestOriginalInvoice = Invoice::query()
-                    ->where('contract_id', $contract->id)
-                    ->whereNull('ref_to_id')
-                    ->where('status', '!=', 'canceled')
-                    ->orderByDesc('issue_date')
-                    ->orderByDesc('id')
-                    ->first();
-
-                $correctedLatestInvoice = $latestOriginalInvoice?->correctionInvoice()
-                    ->where('status', '!=', 'canceled')
-                    ->exists() ?? false;
 
                 $lastInvoice = Invoice::forRecurringCadence()
                     ->where('contract_id', $contract->id)
@@ -71,10 +94,7 @@ class GenerateRecurringInvoices extends Command
                 $shouldCreate = false;
                 $nextIssueDate = null;
 
-                if ($correctedLatestInvoice) {
-                    $shouldCreate = true;
-                    $nextIssueDate = Carbon::parse($latestOriginalInvoice->issue_date);
-                } elseif (! $lastInvoice) {
+                if (! $lastInvoice) {
                     $shouldCreate = true;
                     $nextIssueDate = Carbon::parse($contract->start_date);
                 } else {
@@ -93,7 +113,7 @@ class GenerateRecurringInvoices extends Command
                         $nextIssueDate = $this->nextIssueDate($nextIssueDate, $contract->interval);
 
                         if (! $nextIssueDate || $nextIssueDate->greaterThan($today)) {
-                            return false;
+                            return null;
                         }
                     }
 
@@ -106,37 +126,8 @@ class GenerateRecurringInvoices extends Command
                     if ($alreadyExists) {
                         $this->info("➤ Rechnung für {$nextIssueDate->toDateString()} existiert bereits.");
 
-                        return false;
+                        return null;
                     }
-
-                    $replacementCorrectionId = Invoice::query()
-                        ->where('contract_id', $contract->id)
-                        ->whereNotNull('ref_to_id')
-                        ->whereHas('originalInvoice', function ($query) use ($contract, $nextIssueDate): void {
-                            $query
-                                ->where('contract_id', $contract->id)
-                                ->whereDate('issue_date', $nextIssueDate);
-                        })
-                        ->max('id');
-
-                    $claimKey = "recurring-invoice:{$contract->id}:{$nextIssueDate->toDateString()}";
-                    if ($replacementCorrectionId !== null) {
-                        $claimKey .= ":replacement:{$replacementCorrectionId}";
-                    }
-
-                    $claim = ContractLifecycleEvent::record(
-                        $contract,
-                        'recurring_invoice_claimed',
-                        ['issue_date' => $nextIssueDate->toDateString()],
-                        null,
-                        $claimKey
-                    );
-
-                    if (! $claim->wasRecentlyCreated) {
-                        return false;
-                    }
-
-                    $this->info("➤ Rechnung wird erstellt für Vertrag #{$contract->id}");
 
                     $company = $contract->contractable;
                     $taxRate = (float) config('accounting.tax_rate', 19);
@@ -224,8 +215,36 @@ class GenerateRecurringInvoices extends Command
                         $invoiceData['meta'] = $snapshotMeta;
                     }
 
+                    if ($dryRun) {
+                        $this->info(sprintf(
+                            'VORSCHAU Vertrag #%d | %s | %s | Netto %.2f € | Brutto %.2f € | Empfänger %s',
+                            $contract->id,
+                            $company->name ?? 'Unbekannter Kunde',
+                            $nextIssueDate->toDateString(),
+                            $totalNet,
+                            $totalGross,
+                            $company->email ?? 'nicht hinterlegt'
+                        ));
+
+                        return null;
+                    }
+
+                    $claim = ContractLifecycleEvent::record(
+                        $contract,
+                        'recurring_invoice_claimed',
+                        ['issue_date' => $nextIssueDate->toDateString()],
+                        null,
+                        "recurring-invoice:{$contract->id}:{$nextIssueDate->toDateString()}"
+                    );
+
+                    if (! $claim->wasRecentlyCreated) {
+                        return null;
+                    }
+
+                    $this->info("➤ Rechnung wird erstellt für Vertrag #{$contract->id}");
+
                     // 4) Rechnung erzeugen – PDF nimmt die Items 1:1 aus 'data.items'
-                    $invoiceService->createInvoice([
+                    $invoice = $invoiceService->createInvoice([
                         'company_id' => $company->id,
                         'contract_id' => $contract->id,
                         'issue_date' => $nextIssueDate->format('Y-m-d'),
@@ -242,16 +261,16 @@ class GenerateRecurringInvoices extends Command
 
                     $this->info('✔ Rechnung erstellt.');
 
-                    return true;
+                    return $invoice;
                 } else {
-                    return false;
+                    return null;
                 }
 
             });
 
-            if ($created) {
-                $invoiceService->sendInvoiceEmail();
-            } else {
+            if ($createdInvoice) {
+                $invoiceService->sendInvoiceEmail($createdInvoice->id);
+            } elseif (! $dryRun) {
                 $this->info('➤ Keine neue Rechnung erforderlich.');
             }
         }

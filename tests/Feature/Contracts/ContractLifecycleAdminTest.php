@@ -70,6 +70,17 @@ it('persists a localized explicit gross amount through the contract form', funct
         ->and($contract->fresh()->billing_gross)->toBe(55200);
 });
 
+it('persists a net price with a decimal point as cents', function () {
+    $contract = makeLifecycleAdminContract();
+
+    Livewire::test(EditContract::class, ['record' => $contract->getRouteKey()])
+        ->fillForm(['price' => '243.70'])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect($contract->fresh()->price)->toBe(24370);
+});
+
 it('rejects malformed or incompatible explicit gross amounts in the contract form', function (string $gross) {
     $contract = makeLifecycleAdminContract(['price' => 46387]);
 

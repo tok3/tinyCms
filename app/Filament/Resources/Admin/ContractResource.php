@@ -62,16 +62,27 @@ class ContractResource extends BaseResource
                         TextInput::make('price')
                             ->label('Price netto (€)')
                             ->required()
+                            ->rules([
+                                function () {
+                                    return function (string $attribute, mixed $value, \Closure $fail): void {
+                                        if (self::parseEuroToCents($value) === null) {
+                                            $fail('Bitte einen gültigen Eurobetrag eingeben, z. B. 243,70.');
+                                        }
+                                    };
+                                },
+                            ])
                             ->afterStateHydrated(function ($state, callable $set) {
                                 if (is_numeric($state)) {
                                     $set('price', number_format($state / 100, 2, ',', '.'));
                                 }
                             })
                             ->dehydrateStateUsing(function ($state) {
-                                $normalized = str_replace(['.', ' '], ['', ''], $state);
-                                $normalized = str_replace(',', '.', $normalized);
+                                $cents = self::parseEuroToCents($state);
+                                if ($cents === null) {
+                                    throw new \InvalidArgumentException('Ungültiger Netto-Rechnungsbetrag.');
+                                }
 
-                                return (int) round((float) $normalized * 100);
+                                return $cents;
                             }),
                         TextInput::make('billing_gross')
                             ->label('Rechnungsbetrag brutto (€)')

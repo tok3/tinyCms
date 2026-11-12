@@ -137,9 +137,10 @@ class Invoice extends Model
 
     public function scopeForRecurringCadence(Builder $query): Builder
     {
+        // Korrektur- und manuelle Rechnungen ändern Beträge, aber niemals den Vertragsrhythmus.
         return $query
-            ->whereNull('ref_to_id')
-            ->whereDoesntHave('correctionInvoice');
+            ->where('type', 'RG')
+            ->whereNull('ref_to_id');
     }
 
     public function originalInvoice()
