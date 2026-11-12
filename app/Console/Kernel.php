@@ -23,10 +23,11 @@ class Kernel extends ConsoleKernel
             ->timezone('Europe/Berlin')
             ->withoutOverlapping();
 
-        $schedule->command('app:generate-recurring-invoices')
-            ->twiceDaily(8, 20)
-            ->timezone('Europe/Berlin')
-            ->withoutOverlapping();
+        // PAUSED 2026-11-12: recurring invoice incident under investigation.
+        // $schedule->command('app:generate-recurring-invoices')
+        //     ->twiceDaily(8, 20)
+        //     ->timezone('Europe/Berlin')
+        //     ->withoutOverlapping();
 
         $schedule->command('sepa:mail-due')->dailyAt('06:00')->timezone('Europe/Berlin');
 
