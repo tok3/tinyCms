@@ -27,6 +27,7 @@ class Kernel extends ConsoleKernel
             ->twiceDaily(8, 20)
             ->timezone('Europe/Berlin')
             ->withoutOverlapping();
+
         $schedule->command('sepa:mail-due')->dailyAt('06:00')->timezone('Europe/Berlin');
 
         $schedule->command('determine:scan')->hourly();
