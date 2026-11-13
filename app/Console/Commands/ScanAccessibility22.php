@@ -123,7 +123,7 @@ class ScanAccessibility22 extends Command
                 $url->url,
                 $this->resolvePa11yBrowserPath(),
                 json_encode(array_values($chromeArgs), JSON_THROW_ON_ERROR),
-            ], base_path());
+            ], base_path(), ['A11Y_NODE_MODULES_PATH' => config('accessibility_scan.runtime.node_modules_path') ?: '']);
             $process->setTimeout(180);
             $process->mustRun();
 
@@ -191,7 +191,7 @@ class ScanAccessibility22 extends Command
         $configPath = $this->buildPa11yConfigFile($browserPath, $chromeArgs);
 
         $processArgs = [
-            'pa11y',
+            escapeshellarg(config('accessibility_scan.runtime.pa11y_binary', 'pa11y')),
             "'" . $url->url . "'",
             '--runner', 'axe',
             '--reporter', 'json',
@@ -322,12 +322,16 @@ class ScanAccessibility22 extends Command
         $config = [
             'chromeLaunchConfig' => [
                 'executablePath' => $browserPath,
-                'ignoreHTTPSErrors' => true,
+                \App\Support\ScannerRuntime::tlsOption() => true,
             ],
         ];
 
         if ($userDataDir !== false && is_dir($userDataDir)) {
             $config['chromeLaunchConfig']['userDataDir'] = $userDataDir;
+            $config['chromeLaunchConfig']['env'] = array_merge(getenv(), [
+                'XDG_CONFIG_HOME' => $userDataDir.'/config',
+                'XDG_CACHE_HOME' => $userDataDir.'/cache',
+            ]);
         }
 
         if (!empty($chromeArgs)) {

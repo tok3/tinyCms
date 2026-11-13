@@ -76,7 +76,7 @@ class PublicAccessibilityCheck extends Command
     private function runScan($url, $runner, $level, $includeNotices, $includeWarnings)
     {
         $processArgs = [
-            'pa11y', $url,
+            config('accessibility_scan.runtime.pa11y_binary', 'pa11y'), $url,
             '--runner', $runner,
             '--reporter', 'json',
         ];
@@ -94,6 +94,10 @@ class PublicAccessibilityCheck extends Command
             $processArgs[] = '--include-warnings';
         }
 
+        $files = \App\Support\ScannerRuntime::createValidatedConfig();
+        [$configPath] = $files;
+        $processArgs[] = '--config';
+        $processArgs[] = $configPath;
         $process = new Process($processArgs);
         $process->setTimeout(120);
 
@@ -118,6 +122,8 @@ class PublicAccessibilityCheck extends Command
             $this->error("An error occurred during scan: " . $e->getMessage());
             // Wir geben null zurück, um anzuzeigen, dass der Scan fehlgeschlagen ist
             return null;
+        } finally {
+            \App\Support\ScannerRuntime::removeValidatedConfig($files);
         }
     }
 

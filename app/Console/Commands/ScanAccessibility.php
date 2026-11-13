@@ -51,6 +51,7 @@ class ScanAccessibility extends Command
             $this->info("Scanning -> {$url->url}...");
             $lock = Cache::lock('accessibility-scan:url:' . $url->id, 3600);
             $lock->block(5);
+            $scannerFiles = null;
             try {
                 $snapshots = app(AccessibilitySnapshotReplicationService::class);
                 $scanOptions = $snapshots->options($url, 'scan:accessibility', ['levels' => $levels, 'warnings' => $includeWarnings, 'notices' => $includeNotices]);
@@ -67,6 +68,7 @@ class ScanAccessibility extends Command
                     continue;
                 }
 
+                $scannerFiles = \App\Support\ScannerRuntime::createValidatedConfig();
                 $allPartsSucceeded = true;
                 foreach ($levels as $level)
                 {
@@ -74,10 +76,11 @@ class ScanAccessibility extends Command
 
                     // Befehl zusammenstellen
                     $processArgs = [
-                        'pa11y', // Pa11y-Befehl mit dem absoluten Pfad
+                        config('accessibility_scan.runtime.pa11y_binary', 'pa11y'),
                         $url->url, // Die zu scannende URL
                         '--reporter', 'json', // JSON-Ausgabe
-                        '--standard', "WCAG2{$level}"  // WCAG Level (z.B. A, AA, AAA)
+                        '--standard', "WCAG2{$level}",
+                        '--config', $scannerFiles[0],
                     ];
 
                     if ($includeNotices)
@@ -90,11 +93,10 @@ class ScanAccessibility extends Command
                         $processArgs[] = '--include-warnings';
                     }
 
-                    $command = implode(' ', $processArgs);
-    //               $command = 'PATH=/usr/bin:' . getenv('PATH') . ' /usr/bin/pa11y ' . $url->url . ' --reporter json --standard WCAG2' . $level;
-    //                $output = shell_exec($command . ' 2>&1'); // Fehler und Standardausgabe zusammen
-    //                \Log::info('pa11y output: ' . $output);
-                    $output = shell_exec($command);
+                    $process = new Process($processArgs);
+                    $process->setTimeout(180);
+                    $process->run();
+                    $output = $process->getOutput();
                     // Ergebnisse parsen
                     $results = json_decode($output, true);
 
@@ -142,6 +144,7 @@ class ScanAccessibility extends Command
                 $url->update(['last_checked' => now()]);
                 $this->info("Finished scanning {$url->url}");
             } finally {
+                \App\Support\ScannerRuntime::removeValidatedConfig($scannerFiles);
                 $lock->release();
             }
         }

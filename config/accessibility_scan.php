@@ -67,7 +67,15 @@ return [
         'wait_seconds' => 0,
     ],
 
+    // Unset paths keep the existing local/global Node installation usable.
+    'runtime' => [
+        'node_modules_path' => env('A11Y_NODE_MODULES_PATH'),
+        'pa11y_binary' => env('A11Y_PA11Y_BINARY', 'pa11y'),
+    ],
+
     'browser' => [
+        // Puppeteer >= 23 uses acceptInsecureCerts; older versions use ignoreHTTPSErrors.
+        'tls_option' => env('A11Y_BROWSER_TLS_OPTION', 'ignoreHTTPSErrors'),
         'path' => env('A11Y_BROWSER_PATH'),
         'preference' => env('A11Y_BROWSER_PREFERENCE', 'auto'),
         'use_temp_profile' => env('A11Y_BROWSER_TEMP_PROFILE', true),

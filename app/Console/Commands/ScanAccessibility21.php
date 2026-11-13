@@ -143,7 +143,7 @@ private function scanWithAxe($url, $includeWarnings)
         '-l',
         '35',
         '--',
-        'pa11y',
+        escapeshellarg(config('accessibility_scan.runtime.pa11y_binary', 'pa11y')),
         escapeshellarg($url->url),
         '--runner',
         'axe',
@@ -283,12 +283,16 @@ private function scanWithAxe($url, $includeWarnings)
         $config = [
             'chromeLaunchConfig' => [
                 'executablePath' => $browserPath,
-                'ignoreHTTPSErrors' => true,
+                \App\Support\ScannerRuntime::tlsOption() => true,
             ],
         ];
 
         if ($userDataDir !== false && is_dir($userDataDir)) {
             $config['chromeLaunchConfig']['userDataDir'] = $userDataDir;
+            $config['chromeLaunchConfig']['env'] = array_merge(getenv(), [
+                'XDG_CONFIG_HOME' => $userDataDir.'/config',
+                'XDG_CACHE_HOME' => $userDataDir.'/cache',
+            ]);
         }
 
         if (!empty($chromeArgs)) {

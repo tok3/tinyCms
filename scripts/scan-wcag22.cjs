@@ -1,7 +1,12 @@
 'use strict';
 
-const puppeteer = require('puppeteer');
-const axe = require('axe-core');
+const path = require('node:path');
+const fs = require('node:fs');
+const os = require('node:os');
+const load = name => require(process.env.A11Y_NODE_MODULES_PATH
+    ? path.join(process.env.A11Y_NODE_MODULES_PATH, name) : name);
+const puppeteer = load('puppeteer');
+const axe = load('axe-core');
 
 async function main() {
     const [url, executablePath, argsJson = '[]'] = process.argv.slice(2);
@@ -17,8 +22,13 @@ async function main() {
     }
 
     // Puppeteer creates and removes a separate temporary browser profile.
-    const browser = await puppeteer.launch({ executablePath, args, headless: true });
+    const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'axe-profile-'));
+    let browser;
     try {
+        browser = await puppeteer.launch({ executablePath, args, headless: true,
+            env: { ...process.env, XDG_CONFIG_HOME: path.join(scratch, 'config'),
+                XDG_CACHE_HOME: path.join(scratch, 'cache') },
+        });
         const page = await browser.newPage();
         page.setDefaultNavigationTimeout(60000);
         await page.goto(url, { waitUntil: 'networkidle2' });
@@ -30,7 +40,11 @@ async function main() {
         });
         process.stdout.write(JSON.stringify(results));
     } finally {
-        await browser.close();
+        try {
+            if (browser) await browser.close();
+        } finally {
+            fs.rmSync(scratch, { recursive: true, force: true });
+        }
     }
 }
 

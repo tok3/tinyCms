@@ -13,8 +13,12 @@ class AccessibilitySnapshotReplicationService
 {
     public function options(Pa11yUrl $url, string $command, array $options): array
     {
+        $modulesPath = config('accessibility_scan.runtime.node_modules_path');
+        $lockPath = $modulesPath ? dirname($modulesPath).'/package-lock.json' : base_path('package-lock.json');
+
         return array_merge($options, [
-            'snapshot_version' => 1,
+            'snapshot_version' => 2,
+            'runtime' => config('accessibility_scan.runtime'),
             'command' => $command,
             'url' => $url->url,
             'contrast_errors' => (int) ($url->company?->settings?->contrast_errors ?? 0),
@@ -22,8 +26,8 @@ class AccessibilitySnapshotReplicationService
             'axe_chrome_options' => getenv('AXE_CHROME_OPTIONS') ?: null,
             'pa11y_chrome_path' => getenv('PA11Y_CHROME_PATH') ?: null,
             'pa11y_chrome_args' => getenv('PA11Y_CHROME_ARGS') ?: null,
-            'node_dependencies' => is_file(base_path('package-lock.json'))
-                ? hash_file('sha256', base_path('package-lock.json')) : null,
+            'node_dependencies' => is_file($lockPath)
+                ? hash_file('sha256', $lockPath) : null,
         ]);
     }
 
