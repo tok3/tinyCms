@@ -207,7 +207,7 @@ class Pa11yUrlResource extends BaseResource
                     ->action(function ($record) {
                         $standard = getCurrentWcagStandard($record);
 
-                        \Log::info('Starting rescan for URL', ['url_id' => $record->id]);
+                        \Log::debug('Starting rescan for URL', ['url_id' => $record->id]);
 
                         $command = getWcagScanCommand($standard);
                         $arguments = ['urls' => [$record->id]];
@@ -300,7 +300,7 @@ class Pa11yUrlResource extends BaseResource
                     ->action(function ($records) {
                         foreach ($records as $record) {
                             $levels = 'A,AA,AAA';
-                            \Log::info('Starting bulk rescan for URL', ['url_id' => $record->id]);
+                            \Log::debug('Starting bulk rescan for URL', ['url_id' => $record->id]);
                             Artisan::call('scan:accessibility', [
                                 'urls' => [$record->id],
                                 '--levels' => $levels,

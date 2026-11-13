@@ -51,7 +51,7 @@ class ProcessIncluCertVisitJob implements ShouldQueue
         try {
             $referrerRecordingService->record($this->eventUuid, $company, $this->normalizedUrl);
         } catch (LockTimeoutException $exception) {
-            Log::warning('IncluCert visit referrer lock is busy; retrying in background.', [
+            Log::debug('IncluCert visit referrer lock is busy; retrying in background.', [
                 'event_uuid' => $this->eventUuid,
                 'company_ulid' => $this->companyUlid,
                 'ip' => $this->ip,

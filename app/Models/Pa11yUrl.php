@@ -67,11 +67,11 @@ class Pa11yUrl extends Model
      */
     public function getAggregatedStatistics()
     {
-        \Log::info('getAggregatedStatistics called', ['url_id' => $this->id]);
+        \Log::debug('getAggregatedStatistics called', ['url_id' => $this->id]);
 
         $issues = $this->accessibilityIssues;
 
-        \Log::info('Accessibility Issues', ['count' => $issues->count()]);
+        \Log::debug('Accessibility Issues', ['count' => $issues->count()]);
 
         return [
             'errors' => $issues->where('type', 'error')->count(),

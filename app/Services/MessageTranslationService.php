@@ -51,8 +51,9 @@ class MessageTranslationService
             'target_lang' => $language,
         ];
 
-        Log::info('DeepL API request payload', [
-            'message' => $message,
+        Log::debug('DeepL translation requested', [
+            'message_hash' => self::generateHash($message),
+            'message_length' => mb_strlen($message),
             'language' => $language,
         ]);
 
@@ -65,15 +66,15 @@ class MessageTranslationService
             }
 
             Log::error('DeepL API error', [
-                'message' => $message,
+                'message_hash' => self::generateHash($message),
                 'language' => $language,
-                'response' => $response->body(),
+                'response_excerpt' => mb_substr($response->body(), 0, 1000),
                 'status' => $response->status(),
             ]);
 
         } catch (\Exception $e) {
             Log::error('DeepL API request failed', [
-                'message' => $message,
+                'message_hash' => self::generateHash($message),
                 'language' => $language,
                 'error' => $e->getMessage(),
             ]);

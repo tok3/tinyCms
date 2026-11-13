@@ -421,7 +421,7 @@ private function scanWithAxe($url, $includeWarnings)
 
         // Fall 2: Scan erfolgreich, aber KEINE Fehler gefunden (leeres Array)
         if (empty($results)) {
-            \Log::info("Perfekte Seite: {$url->url} ist fehlerfrei.");
+            \Log::debug("Perfekte Seite: {$url->url} ist fehlerfrei.");
 
             $existingStat = Pa11yStatistic::where('url_id', $url->id)
                 ->where('standard', '2.1')
@@ -493,6 +493,6 @@ private function scanWithAxe($url, $includeWarnings)
             ]);
         }
 
-        \Log::info("Scan für {$url->url} abgeschlossen. Fehler: {$totalErrors}, Warnungen: {$totalWarnings}");
+        \Log::debug("Scan für {$url->url} abgeschlossen. Fehler: {$totalErrors}, Warnungen: {$totalWarnings}");
     }
 }

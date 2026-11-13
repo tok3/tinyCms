@@ -39,7 +39,7 @@ class ProcessWidgetReferrerJob implements ShouldQueue
         try {
             $service->process($this->eventUuid, $this->companyUlid, $this->referrer);
         } catch (LockTimeoutException $exception) {
-            Log::warning('Widget referrer processing lock is busy; retrying in background.', [
+            Log::debug('Widget referrer processing lock is busy; retrying in background.', [
                 'event_uuid' => $this->eventUuid,
                 'company_ulid' => $this->companyUlid,
                 'tool' => $this->tool,

@@ -41,10 +41,10 @@ class ScanAccessibilityJob implements ShouldQueue
             $arguments['--standard'] = getWcagScanStandardOption($standard);
         }
 
-        \Log::info("Dispatching accessibility scan for {$pa11yUrl->url} using {$command} ({$standard}).");
+        \Log::debug("Dispatching accessibility scan for {$pa11yUrl->url} using {$command} ({$standard}).");
 
         Artisan::call($command, $arguments);
 
-        \Log::info("Finished accessibility scan for {$pa11yUrl->url} using {$command} ({$standard}).");
+        \Log::debug("Finished accessibility scan for {$pa11yUrl->url} using {$command} ({$standard}).");
     }
 }

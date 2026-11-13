@@ -72,7 +72,6 @@ class MolliePaymentController extends Controller
      */
     public function handlePaymentNotification(Request $request)
     {
-        \Log::info('<-- Webhook Start -->');
         \Log::info('Payment Webhook: '.$request->id);
 
         $paymentId = $request->id;
@@ -329,17 +328,13 @@ class MolliePaymentController extends Controller
     private function syncLocalSubscription($mollieSubscriptionResponse)
     {
 
-        \Log::info('<---------------------------------->');
-        \Log::info('Subscription syncLocalSubscription(): '.__LINE__.json_encode($mollieSubscriptionResponse, JSON_PRETTY_PRINT));
-        \Log::info('<---------------------------------->');
+        \Log::debug('Subscription sync started');
         // Prüfen, ob $mollieSubscriptionResponse ein Array ist
         if (is_array($mollieSubscriptionResponse)) {
             // In ein Objekt umwandeln
             $mollieSubscriptionResponse = json_decode(json_encode($mollieSubscriptionResponse));
 
-            \Log::info('<---------------------------------->');
-            \Log::info('Subscription array to object: '.__LINE__.json_encode($mollieSubscriptionResponse, JSON_PRETTY_PRINT));
-            \Log::info('<---------------------------------->');
+            \Log::debug('Subscription response converted to object');
 
         }
 
@@ -361,15 +356,11 @@ class MolliePaymentController extends Controller
                     'metadata' => json_encode($mollieSubscriptionResponse->metadata), // Hinzufügen des metadata-Feldes als JSON
                 ]
             );
-            \Log::info('<---------------------------------->');
-            \Log::info('SUBSCRIPTION SYNCED: '.__LINE__);
-            \Log::info('<---------------------------------->');
+            \Log::debug('Subscription synced');
 
             return true;
         } else {
-            \Log::info('<---------------------------------->');
-            \Log::info('SUBSCRIPTION NOT SYNCED no subscription id '.__LINE__);
-            \Log::info('<---------------------------------->');
+            \Log::warning('Subscription not synced: missing subscription id');
 
             return false;
         }
@@ -654,7 +645,7 @@ class MolliePaymentController extends Controller
             $subscriptionData = json_decode($response->getBody()->getContents(), true);
 
             // Protokolliere oder arbeite mit den Daten
-            \Log::info('Mollie Subscription Data: '.json_encode($subscriptionData, JSON_PRETTY_PRINT));
+            \Log::debug('Mollie subscription retrieved', ['subscription_id' => data_get($subscriptionData, 'id')]);
 
             return $subscriptionData;
 
