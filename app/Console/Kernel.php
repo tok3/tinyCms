@@ -32,8 +32,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('sepa:mail-due')->dailyAt('06:00')->timezone('Europe/Berlin');
 
         $schedule->command('determine:scan')->hourly();
-        $schedule->command('backup:clean')->daily()->at('13:00');
-        $schedule->command('backup:run')->daily()->at('13:30');
+        $schedule->command('backup:clean')->dailyAt('02:00')->timezone('Europe/Berlin');
+        $schedule->command('backup:run')->dailyAt('02:30')->timezone('Europe/Berlin');
         $schedule->command('app:cleanup')
             ->dailyAt('09:30')
             ->timezone('Europe/Berlin')
